@@ -6,7 +6,7 @@ Module for Policy Report
 This script processes and creates the Policy sheet in the Excel report.
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Private/3.ReportingFunctions/Build-AZSCPolicyReport.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Private/3.ReportingFunctions/Build-AZSCPolicyReport.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC)

@@ -1,10 +1,10 @@
 # Contributing to Azure Scout
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/thisismydemo/azure-scout/main/docs/images/azurescout-banner.svg" width="400">
+  <img src="https://raw.githubusercontent.com/Hybrid-Solutions-Cloud/azure-scout/main/docs/images/azurescout-banner.svg" width="400">
   <h3>Guidelines for Community Contributions</h3>
   
-  [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/thisismydemo/azure-scout/pulls)
+  [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/Hybrid-Solutions-Cloud/azure-scout/pulls)
   [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
 </div>
 
@@ -366,7 +366,7 @@ Once you create the module file, it must be placed in the correct folder structu
 
 If you have questions or need help with your contribution:
 
-- **Open an Issue**: Create a new issue in the [GitHub repository](https://github.com/thisismydemo/azure-scout/issues)
+- **Open an Issue**: Create a new issue in the [GitHub repository](https://github.com/Hybrid-Solutions-Cloud/azure-scout/issues)
 - **Documentation**: Refer to the [README.md](README.md) and other documentation
 - **Community Discussions**: Check existing discussions in the Issues tab
 

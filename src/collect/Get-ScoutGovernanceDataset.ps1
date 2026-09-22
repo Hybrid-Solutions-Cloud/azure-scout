@@ -71,6 +71,8 @@ $ErrorActionPreference = 'Stop'
     `Import-Governance` and `Get-ScoutApiResources` already use.
 #>
 function Get-ScoutGovernanceDataset {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'ManagementGroupId',
+        Justification = 'False positive: read inside the nested Invoke-ScoutGovernanceArg closure (line 108), not in the outer function body.')]
     [CmdletBinding()]
     [OutputType([PSCustomObject])]
     param(

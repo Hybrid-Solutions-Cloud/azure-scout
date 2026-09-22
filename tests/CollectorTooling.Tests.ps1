@@ -14,12 +14,12 @@
 
 BeforeAll {
     $script:RepoRoot = Split-Path -Parent $PSScriptRoot
-    $script:AuditScript = Join-Path $script:RepoRoot 'scripts' 'Invoke-CollectorAudit.ps1'
-    $script:ConverterScript = Join-Path $script:RepoRoot 'scripts' 'ConvertTo-ScoutCollectorDefinition.ps1'
-    $script:Sandbox = Join-Path ([System.IO.Path]::GetTempPath()) ("azsc-collector-tooling-" + [guid]::NewGuid().ToString('N'))
-    $script:InventoryRoot = Join-Path $script:Sandbox 'retired-collector-scripts'
-    $script:CategoryRoot = Join-Path $script:InventoryRoot 'Test'
-    $script:AuditJson = Join-Path $script:Sandbox 'collector-audit.json'
+    $script:AuditScript = Join-Path -Path $script:RepoRoot -ChildPath 'scripts' -AdditionalChildPath 'Invoke-CollectorAudit.ps1'
+    $script:ConverterScript = Join-Path -Path $script:RepoRoot -ChildPath 'scripts' -AdditionalChildPath 'ConvertTo-ScoutCollectorDefinition.ps1'
+    $script:Sandbox = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath ("azsc-collector-tooling-" + [guid]::NewGuid().ToString('N'))
+    $script:InventoryRoot = Join-Path -Path $script:Sandbox -ChildPath 'retired-collector-scripts'
+    $script:CategoryRoot = Join-Path -Path $script:InventoryRoot -ChildPath 'Test'
+    $script:AuditJson = Join-Path -Path $script:Sandbox -ChildPath 'collector-audit.json'
     New-Item -ItemType Directory -Path $script:CategoryRoot -Force | Out-Null
 
     function New-ToolingCollector {
@@ -28,7 +28,7 @@ BeforeAll {
             [Parameter(Mandatory)] [string[]] $ProcessingStatements
         )
 
-        $Path = Join-Path $script:CategoryRoot "$Name.ps1"
+        $Path = Join-Path -Path $script:CategoryRoot -ChildPath "$Name.ps1"
         $Lines = @(
             'param($SCPath, $Sub, $Intag, $Resources, $Retirements, $Task, $File, $SmaResources, $TableStyle, $Unsupported)'
             "if (`$Task -eq 'Processing') {"

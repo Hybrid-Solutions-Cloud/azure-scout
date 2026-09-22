@@ -26,7 +26,7 @@ Clear-AZSCCacheFolder -OlderThan 30
 Removes every run folder that has not been written to in the last 30 days.
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Private/0.MainFunctions/Clear-AZSCCacheFolder.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Private/0.MainFunctions/Clear-AZSCCacheFolder.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC)

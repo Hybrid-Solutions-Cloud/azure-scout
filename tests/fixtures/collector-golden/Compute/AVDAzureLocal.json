@@ -3,7 +3,7 @@
   "Category": "Compute",
   "Name": "AVDAzureLocal",
   "FixturePath": "tests/fixtures/collector-equivalence/Compute.json",
-  "FixtureSha256": "aa18793f47f540f92ff8475c80e3cdf8c12d9024112002190eb908b46fe52c4b",
+  "FixtureSha256": "243cf6b3a93bc017d70f468e868afd6a90d787cb38a4ec1e482391d73f186997",
   "Rows": [
     "Agent Version=s:res-value|Allow New Session=s:res-value|Assigned User=s:res-value|Azure Local Cluster=s:N/A|Host Pool=s:res-value|Last Heartbeat=s:2026-01-15 10:30|Location=s:res-value|Name=s:avdazurelocal-t1a|OS Version=s:res-value|Platform=s:res-value|Resource Group=s:res-value|Resource ID=s:res-value|Resource U=j:1|Sessions=s:res-value|Status=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",
     "Agent Version=s:res-value|Allow New Session=s:res-value|Assigned User=s:res-value|Azure Local Cluster=s:N/A|Host Pool=s:res-value|Last Heartbeat=s:2026-01-15 10:30|Location=s:res-value|Name=s:avdazurelocal-t1b|OS Version=s:res-value|Platform=s:res-value|Resource Group=s:res-value|Resource ID=s:res-value|Resource U=j:1|Sessions=s:res-value|Status=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",

@@ -3,7 +3,7 @@
   "Category": "Networking",
   "Name": "PublicDNS",
   "FixturePath": "tests/fixtures/collector-equivalence/Networking.json",
-  "FixtureSha256": "ef0dda055f4d35746417ac0d6115f76721bc7adcb1a40671707442d8fe22f7be",
+  "FixtureSha256": "1147a9d5a79986dc0f2be0d88266bb68e3965f51134e498006256d9263bcee80",
   "Rows": [
     "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/dnszones/publicdns-t1a-1|Location=s:res-value|Max Number of Record Sets=s:res-value|Name=s:publicdns-t1a|Name Servers=s:res-value|Number of Record Sets=s:res-value|Resource Group=s:res-value|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod|Zone Type=s:res-value",
     "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/dnszones/publicdns-t1b-1|Location=s:res-value|Max Number of Record Sets=s:res-value|Name=s:publicdns-t1b|Name Servers=s:res-value|Number of Record Sets=s:res-value|Resource Group=s:res-value|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod|Zone Type=s:res-value",

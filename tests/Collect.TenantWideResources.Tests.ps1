@@ -3,8 +3,8 @@
 
 BeforeAll {
     $script:RepoRoot = Split-Path $PSScriptRoot -Parent
-    . (Join-Path $script:RepoRoot 'src/collect/ConvertTo-ScoutManagementGroupHierarchy.ps1')
-    . (Join-Path $script:RepoRoot 'src/collect/Get-ScoutTenantWideResource.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/collect/ConvertTo-ScoutManagementGroupHierarchy.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/collect/Get-ScoutTenantWideResource.ps1')
 
     function Get-TestEnvelope {
         param(
@@ -127,7 +127,7 @@ Describe 'Get-ScoutTenantWideResource - integration contract' {
         @($PolicySets.properties.id) | Should -Be @('set-1')
 
         $Source = Get-Content -LiteralPath (
-            Join-Path $script:RepoRoot 'src/collect/Get-ScoutTenantWideResource.ps1'
+            Join-Path -Path $script:RepoRoot -ChildPath 'src/collect/Get-ScoutTenantWideResource.ps1'
         ) -Raw
         $Source | Should -Not -Match 'Get-AzPolicyDefinition|Get-AzPolicySetDefinition'
     }

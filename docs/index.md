@@ -18,14 +18,14 @@ hero:
       link: /reference/assessment-catalogue
     - theme: alt
       text: View on GitHub
-      link: https://github.com/thisismydemo/azure-scout
+      link: https://github.com/Hybrid-Solutions-Cloud/azure-scout
 
 features:
   - title: Two modes, one command
     details: Run bare for a wide inventory of everything in the tenant. Add -Assessment for a scored CAF/WAF review. Run with no parameters at all and a guided wizard walks you through it.
     link: /guide/overview
     linkText: How the modes differ
-  - title: 242 collectors, 18 categories
+  - title: 245 collectors, 18 categories
     details: Every one of Microsoft's eighteen published service categories, from AI and Analytics through to Storage and Web — plus Entra ID identity objects via Microsoft Graph.
     link: /reference/arm-modules
     linkText: Browse the collectors
@@ -37,10 +37,10 @@ features:
     details: Scout never creates, modifies or deletes anything in your tenant. Reader at the root management group is enough, and a pre-flight audit tells you exactly what you can and cannot collect before you run.
     link: /guide/permissions
     linkText: Permissions required
-  - title: Reports in the format you need
-    details: Excel workbooks, Word, PowerPoint, PDF, self-contained HTML, React, Power BI and JSON evidence — generated offline, with no service dependency.
-    link: /guide/output
-    linkText: Output formats
+  - title: One report, and it is the deliverable
+    details: The self-contained React/HTML report — inventory, every assessment, evidence and the remediation plan on one page, exporting to Markdown, JSON, CSV and PDF from the page itself. React, Json and JsonEvidence are the only live output formats in every run mode. All legacy renderers are on hold while they are rebuilt to generate from React.
+    link: /assessment/configuration
+    linkText: Report tiers and what is on hold
   - title: Unattended by design
     details: Azure Automation runbooks, GitHub Actions, or Azure DevOps pipelines. Managed identity or service principal, writing straight to blob storage.
     link: /automation-guide/
@@ -51,7 +51,7 @@ features:
 
 ```powershell
 # Install from the PowerShell Gallery
-Install-Module -Name AzureScout
+Install-Module -Name AzureScout -Scope CurrentUser -Force -AllowClobber
 
 # Guided wizard — no parameters needed
 Invoke-AzureScout
@@ -60,7 +60,7 @@ Invoke-AzureScout
 Invoke-AzureScout -Scope All
 
 # Scored CAF/WAF assessment
-Invoke-AzureScout -Assessment LandingZone
+Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone'
 
 # Check what you have access to, before running anything
 Invoke-AzureScout -PermissionAudit

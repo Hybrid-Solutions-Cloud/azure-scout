@@ -3,7 +3,7 @@
   "Category": "Security",
   "Name": "Sentinel",
   "FixturePath": "tests/fixtures/collector-equivalence/Security.json",
-  "FixtureSha256": "f6d62e0e7358688f3cbd2b3ef11e3eb82821ecea0db668135ab42d42028a834f",
+  "FixtureSha256": "48fc641403b55b20acc89c1dfd876e0439fccb8da0fd8795b63486bb8a38ac45",
   "Rows": [
     "Customer Managed Key=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.securityinsights/onboardingstates/sentinel-t2a-1|Location=s:res-value|Name=s:sentinel-t2a|Plan=s:res-value|Provisioning State=s:res-value|Resource Group=s:res-value|Resource Kind=s:microsoft.securityinsights/onboardingstates|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod|Workspace=s:seg8",
     "Customer Managed Key=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.securityinsights/onboardingstates/sentinel-t2b-1|Location=s:res-value|Name=s:sentinel-t2b|Plan=s:res-value|Provisioning State=s:res-value|Resource Group=s:res-value|Resource Kind=s:microsoft.securityinsights/onboardingstates|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod|Workspace=s:seg8",

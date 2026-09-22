@@ -19,7 +19,7 @@ The following core capabilities come directly from the original project:
 |------|-------------------|
 | **ARM Resource Extraction** | The fundamental pattern of using Azure Resource Graph and ARM APIs to enumerate resources across subscriptions. |
 | **Draw.io Diagram Engine** | All network topology diagram generation — VNets, subnets, peerings, NSGs, load balancers, and resource layout logic. |
-| **Excel Report Pipeline** | The ImportExcel-based pipeline that turns resource data into formatted `.xlsx` workbooks with conditional formatting. |
+| **Held Excel pipeline** | The retained ImportExcel-based compatibility implementation can shape `.xlsx` workbooks, but Excel is not a live output format. |
 | **154 ARM Resource Modules (at fork)** | AzureScout forked ARI v3.6.11 with 154 ARM inventory modules. That is a historical count, not a current one — see [current numbers](#current-numbers-not-the-ari-fork-count) below. The pattern (one module per resource type, ARM/Resource Graph enumeration) and much of the original module logic trace back to ARI even where the files have since been rewritten. |
 | **Orchestration Pattern** | The extraction → processing → reporting three-phase orchestration that powers the main pipeline. |
 | **Automation Account Mode** | The concept of running inside an Azure Automation Account with a Managed Identity. This path is now documented and validated — see [Azure Automation Account](../automation-guide/automation.md). |
@@ -87,15 +87,19 @@ AzureScout adds a `-Scope` parameter that controls *what types of objects* are i
 
 This is separate from the `-SubscriptionID` parameter (inherited from ARI) that targets a specific subscription.
 
-### Multi-Format Output (`-OutputFormat`)
+### Unified Output (`-OutputFormat`)
 
-ARI outputs Excel (`.xlsx`) and Draw.io (`.drawio`) files.
-AzureScout adds:
+ARI outputs Excel (`.xlsx`) and Draw.io (`.drawio`) files. AzureScout historically added several
+parallel renderers, but those legacy renderers are now on hold across every run mode. The live
+contract is:
 
-- **JSON** (`-OutputFormat JSON`) — raw cache data as `.json` for programmatic consumption
-- **Markdown** (`-OutputFormat Markdown` or `-OutputFormat MD`) — GitHub-Flavored Markdown tables
-- **AsciiDoc** (`-OutputFormat AsciiDoc` or `-OutputFormat Adoc`) — Antora/Confluence-compatible AsciiDoc tables
-- **All** (`-OutputFormat All`) — every format at once
+- **React** — the self-contained report and its in-page export menu
+- **Json** — machine-readable run results
+- **JsonEvidence** — resources-only evidence
+- **All** — all three live formats
+
+The held set includes Excel, Markdown/MD, AsciiDoc/Adoc, Power BI, standalone HTML, PowerPoint,
+PDF, Word, ECharts dashboard, and governance-report renderers.
 
 ### Category Filtering (`-Category`)
 
@@ -129,9 +133,11 @@ Virtual Machine and Arc Server modules now pull supplementary data from multiple
 ### Dependency Bootstrap
 
 ARI requires modules to be pre-installed (declared in `RequiredModules`).
-AzureScout auto-installs missing dependencies on first import:
+AzureScout also declares its core dependencies in `RequiredModules`, allowing
+PowerShellGet to resolve them during installation without installing software
+as a side effect of `Import-Module`:
 
-- `ImportExcel`, `Az.Accounts`, `Az.ResourceGraph`, `Az.Storage`, `Az.Compute`, `Az.Authorization`, `Az.Resources`
+- `ImportExcel`, `Az.Accounts`, `Az.ResourceGraph`, `Az.Storage`, `Az.Compute`, `Az.Resources`, `Az.Advisor`, `powershell-yaml`
 
 ## Structural Changes
 
@@ -201,7 +207,7 @@ The following ARI features were intentionally removed:
 | **RAMP Functions** | `Invoke-AzureRAMPInventory` and the `4.RAMPFunctions/` folder were removed. RAMP (Risk Assessment & Mitigation Program) is an internal Microsoft program not broadly applicable. |
 | **Auto-Update Logic** | ARI calls `Update-Module` to self-update. AzureScout removes this — module updates should be a conscious decision by the operator, not automatic. |
 | **Remove-ARIExcelProcess** | ARI included a function that kills Excel processes to prevent file-lock issues. AzureScout removes this aggressive behavior. |
-| **RequiredModules hard dependency** | Replaced with runtime bootstrap (see [Dependency Bootstrap](#dependency-bootstrap)). |
+| **RequiredModules dependency declaration** | Retained and expanded for AzureScout's core inventory and assessment modules (see [Dependency Bootstrap](#dependency-bootstrap)). |
 
 ## Not Yet in AzureScout
 
@@ -237,4 +243,4 @@ ARI v3.6.11 (microsoft/ARI)
 - [Credits & Attribution](./credits.md) — full list of original authors and contributors
 - [AzureScout Documentation Home](../index.md)
 - [ARI on GitHub](https://github.com/microsoft/ARI) — the original project
-- [AzureScout on GitHub](https://github.com/thisismydemo/azure-scout) — this fork
+- [AzureScout on GitHub](https://github.com/Hybrid-Solutions-Cloud/azure-scout) — this fork

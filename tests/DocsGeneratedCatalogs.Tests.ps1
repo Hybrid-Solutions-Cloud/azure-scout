@@ -21,13 +21,13 @@ BeforeAll {
 Describe 'Generated reference catalogues are current' {
 
     It 'framework-coverage.md matches a fresh regeneration' {
-        $Script = Join-Path $script:Root 'scripts/Build-FrameworkCoverage.ps1'
+        $Script = Join-Path -Path $script:Root -ChildPath 'scripts/Build-FrameworkCoverage.ps1'
         & pwsh -NoProfile -File $Script -Check 2>&1 | Out-String -OutVariable Output | Out-Null
         $LASTEXITCODE | Should -Be 0 -Because "adding a rule or editing a framework enumeration must be followed by ``pwsh scripts/Build-FrameworkCoverage.ps1``. Output:`n$Output"
     }
 
     It 'collector-fields.md matches a fresh regeneration' {
-        $Script = Join-Path $script:Root 'scripts/Build-CollectorFieldCatalog.ps1'
+        $Script = Join-Path -Path $script:Root -ChildPath 'scripts/Build-CollectorFieldCatalog.ps1'
         & pwsh -NoProfile -File $Script -Check 2>&1 | Out-String -OutVariable Output | Out-Null
         $LASTEXITCODE | Should -Be 0 -Because "changing a collector's Export block must be followed by ``pwsh scripts/Build-CollectorFieldCatalog.ps1``. Output:`n$Output"
     }
@@ -36,7 +36,7 @@ Describe 'Generated reference catalogues are current' {
 Describe 'Framework coverage is reported honestly' {
 
     It 'states a coverage percentage rather than implying full alignment' {
-        $Page = Get-Content -LiteralPath (Join-Path $script:Root 'docs/reference/framework-coverage.md') -Raw
+        $Page = Get-Content -LiteralPath (Join-Path -Path $script:Root -ChildPath 'docs/reference/framework-coverage.md') -Raw
         $Page | Should -Match '\*\*\d+ of \d+ items \(\d+%\) have a rule behind them\*\*'
     }
 
@@ -44,13 +44,13 @@ Describe 'Framework coverage is reported honestly' {
         # CAF enumerates individual recommendations while the rules work per design area, so
         # item-level coverage is 0% by construction. Printing that number with no explanation
         # would be as misleading as claiming full coverage.
-        $Page = Get-Content -LiteralPath (Join-Path $script:Root 'docs/reference/framework-coverage.md') -Raw
+        $Page = Get-Content -LiteralPath (Join-Path -Path $script:Root -ChildPath 'docs/reference/framework-coverage.md') -Raw
         $Page | Should -Match '0% \*\*by construction\*\*'
         $Page | Should -Match 'Areas covered'
     }
 
     It 'says a covered item is not necessarily a well-tested one' {
-        $Page = Get-Content -LiteralPath (Join-Path $script:Root 'docs/reference/framework-coverage.md') -Raw
+        $Page = Get-Content -LiteralPath (Join-Path -Path $script:Root -ChildPath 'docs/reference/framework-coverage.md') -Raw
         $Page | Should -Match 'coverage\s+measure, not a quality one'
     }
 }
@@ -58,14 +58,14 @@ Describe 'Framework coverage is reported honestly' {
 Describe 'Collector fields catalogue covers every collector' {
 
     It 'lists as many collectors as the manifest tree holds' {
-        $Expected = @(Get-ChildItem -LiteralPath (Join-Path $script:Root 'manifests/collectors') -Recurse -Filter '*.psd1' -File).Count
-        $Page = Get-Content -LiteralPath (Join-Path $script:Root 'docs/reference/collector-fields.md') -Raw
+        $Expected = @(Get-ChildItem -LiteralPath (Join-Path -Path $script:Root -ChildPath 'manifests/collectors') -Recurse -Filter '*.psd1' -File).Count
+        $Page = Get-Content -LiteralPath (Join-Path -Path $script:Root -ChildPath 'docs/reference/collector-fields.md') -Raw
         $Rows = ([regex]::Matches($Page, '(?m)^\| \*\*[^*]+\*\* \|')).Count
         $Rows | Should -Be $Expected
     }
 
     It 'warns that a declared column is not a guarantee of data' {
-        $Page = Get-Content -LiteralPath (Join-Path $script:Root 'docs/reference/collector-fields.md') -Raw
+        $Page = Get-Content -LiteralPath (Join-Path -Path $script:Root -ChildPath 'docs/reference/collector-fields.md') -Raw
         $Page | Should -Match 'collector-rowcounts\.json'
     }
 }

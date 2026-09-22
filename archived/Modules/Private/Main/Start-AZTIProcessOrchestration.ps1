@@ -6,7 +6,7 @@ Process orchestration for Azure Resource Inventory
 This module orchestrates the processing of resources for Azure Resource Inventory.
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Private/0.MainFunctions/Start-AZSCProcessOrchestration.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Private/0.MainFunctions/Start-AZSCProcessOrchestration.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC)
@@ -23,6 +23,8 @@ function Start-AZSCProcessOrchestration {
     # It only ever shrank the parallel job batch size to keep CPU and memory in check; with the
     # jobs gone (AB#5649) there is no batch to shrink, and peak memory is now one category at a
     # time regardless. It still applies to the extraction phase, which does its own throttling.
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'File', Justification = "Declared to match this function's call signature -- callers invoke it with this named/positional argument; removing the parameter would break them even though this implementation does not need the value.")]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'Heavy', Justification = "Declared to match this function's call signature -- callers invoke it with this named/positional argument; removing the parameter would break them even though this implementation does not need the value.")]
     Param($Subscriptions, $Resources, $Retirements, $DefaultPath, $File, $Heavy, $InTag, $Automation, $Category)
     # ── StrictMode boundary (AB#5633) ────────────────────────────────────────────────
     # This is the v1 inventory engine, forked from microsoft/ARI. It was written without

@@ -31,23 +31,95 @@
 #>
 
 BeforeAll {
+    # Invoke-Collect always performs these two non-ARG sweeps. Keep fake
+    # subscriptions and tenants inside the test process.
+    function Get-ScoutDefenderPlanSweep {
+        param([object[]] $Subscriptions)
+        $null = $Subscriptions
+        return @()
+    }
+
+    function Get-ScoutExternalIdentitiesPolicy {
+        param([string] $TenantID)
+        $null = $TenantID
+        return [pscustomobject]@{ Collected = $false }
+    }
+
+    # The raw path owns several non-ARG helpers. Keep this round-trip-count suite hermetic and
+    # make their successful-empty contracts explicit; otherwise the optional loader imports the
+    # real helper implementations and the fixture can reach the operator's ambient Az context.
+    function Get-ScoutArmChildResource {
+        param([object[]] $Resources, [string[]] $Dataset, [System.Collections.IList] $CollectionHealth)
+        $null = $Resources; $null = $Dataset; $null = $CollectionHealth
+        return @()
+    }
+    function Get-ScoutApiResources {
+        param([Parameter(ValueFromRemainingArguments)] $Rest)
+        $null = $Rest
+        return @()
+    }
+    function Get-ScoutTenantWideResource {
+        param([Parameter(ValueFromRemainingArguments)] $Rest)
+        $null = $Rest
+        return @()
+    }
+    function Get-ScoutGovernanceDataset {
+        param([Parameter(ValueFromRemainingArguments)] $Rest)
+        $null = $Rest
+        return [pscustomobject]@{
+            roleAssignments = @(); roleDefinitions = @(); policyAssignments = @()
+            budgets = @(); resourceLocks = @()
+        }
+    }
+    function Get-ScoutOperationalCollectorEnrichment {
+        param([Parameter(ValueFromRemainingArguments)] $Rest)
+        $null = $Rest
+        return @()
+    }
+    function Get-ScoutSubscriptionSecurityPolicySweep {
+        param([Parameter(ValueFromRemainingArguments)] $Rest)
+        $null = $Rest
+        return @()
+    }
+    function ConvertTo-ScoutAvdAzureLocalSessionHost {
+        param([Parameter(ValueFromRemainingArguments)] $Rest)
+        $null = $Rest
+        return @()
+    }
+    function ConvertTo-ScoutArcSiteResource {
+        param([Parameter(ValueFromRemainingArguments)] $Rest)
+        $null = $Rest
+        return @()
+    }
+    function Get-ScoutOutageResource {
+        param([Parameter(ValueFromRemainingArguments)] $Rest)
+        $null = $Rest
+        return @()
+    }
     $script:root = Split-Path $PSScriptRoot -Parent
 
     # Neutralise Import-Module so `Import-Module Az.ResourceGraph` inside the functions under
     # test cannot pull the real cmdlet into the session and make a live call.
-    function Import-Module { param([Parameter(ValueFromRemainingArguments)] $Rest) }
+    function Import-Module {         [Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Intentional local override of a built-in cmdlet to stub Azure/PowerShell calls for the test -- this is the point of the mock.')]
+        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([Parameter(ValueFromRemainingArguments)] $Rest) }
 
     . "$script:root/src/collect/ConvertFrom-ScoutInventory.ps1"
     . "$script:root/src/collect/Get-ScoutRawInventory.ps1"
     . "$script:root/src/collect/Invoke-Collect.ps1"
     . "$script:root/src/collect/Start-ScoutGraphExtraction.ps1"
 
-    function Get-AZSCManagementGroups { param($ManagementGroup, $Subscriptions) return $Subscriptions }
+    function Get-AZSCManagementGroups {         [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+        [Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '', Justification = 'Name matches the real collector/API/fixture noun (often already plural in the product surface, e.g. ManagementGroups); renaming would break the shadow/mocked signature or the fixture-name convention used across this suite.')]
+param($ManagementGroup, $Subscriptions) return $Subscriptions }
 
     # ---- the one fixture estate both paths are driven from ----
     # Raw rows carry the full properties bag exactly as Resource Graph indexes it; the typed
     # responses further down are the projections ARG would return for these same resources.
     function Get-FixtureContainerRows {
+        [Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '', Justification = 'Name matches the real collector/API/fixture noun (often already plural in the product surface, e.g. ManagementGroups); renaming would break the shadow/mocked signature or the fixture-name convention used across this suite.')]
+        param()
+
         @(
             [pscustomobject]@{
                 id = '/subscriptions/aaa'; name = 'demo-sub'; type = 'microsoft.resources/subscriptions'
@@ -69,6 +141,9 @@ BeforeAll {
     }
 
     function Get-FixtureResourceRows {
+        [Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '', Justification = 'Name matches the real collector/API/fixture noun (often already plural in the product surface, e.g. ManagementGroups); renaming would break the shadow/mocked signature or the fixture-name convention used across this suite.')]
+        param()
+
         @(
             [pscustomobject]@{
                 id = '/subscriptions/aaa/resourceGroups/rg-net/providers/microsoft.network/virtualnetworks/vnet1'
@@ -78,7 +153,15 @@ BeforeAll {
                 extendedLocation = $null; managedBy = $null; tags = $null
                 properties = [pscustomobject]@{
                     enableDdosProtection   = $false
-                    virtualNetworkPeerings = @([pscustomobject]@{ name = 'peer1' })
+                    virtualNetworkPeerings = @([pscustomobject]@{
+                            name       = 'peer1'
+                            properties = [pscustomobject]@{
+                                remoteVirtualNetwork = [pscustomobject]@{ id = '/subscriptions/aaa/resourceGroups/rg-net/providers/Microsoft.Network/virtualNetworks/vnet2' }
+                                peeringState         = 'Connected'
+                                allowGatewayTransit  = $true
+                                useRemoteGateways    = $false
+                            }
+                        })
                     subnets                = @(
                         [pscustomobject]@{
                             name = 'snet-app'
@@ -129,6 +212,15 @@ BeforeAll {
             return @([pscustomobject]@{ name = 'vnet1'; resourceGroup = 'rg-net'; subscriptionId = 'aaa'
                     peeringCount = 1; ddosEnabled = $false })
         }
+        # AB#6928 vnetPeerings -- the per-peering mv-expand projection for peer1 above. Must be
+        # checked ON the remoteVirtualNetwork marker: the parent virtualNetworks query also
+        # names virtualNetworkPeerings (array_length), but only this query walks the pairs.
+        if ($Query -match 'remoteVirtualNetwork') {
+            return @([pscustomobject]@{ vnet = 'vnet1'; resourceGroup = 'rg-net'; subscriptionId = 'aaa'
+                    remoteVnetId = '/subscriptions/aaa/resourceGroups/rg-net/providers/Microsoft.Network/virtualNetworks/vnet2'
+                    remoteVnetName = 'vnet2'; peeringState = 'Connected'
+                    allowGatewayTransit = $true; useRemoteGateways = $false })
+        }
         if ($Query -match 'ipUtilizationPct') {
             return @([pscustomobject]@{ vnet = 'vnet1'; subnet = 'snet-app'; prefix = '10.0.1.0/24'
                     total = 251; used = 2; ipUtilizationPct = [Math]::Round((2 / 251) * 100, 1) })
@@ -168,16 +260,17 @@ BeforeAll {
     }
 
     # One stub, two dispatch modes. The raw pass is identified by its projection
-    # (`project id,name,type,tenantId,...`), which no typed query uses.
+    # (`project id,name,type,tenantId,kind,...`), which no typed query uses.
     function New-CountingSearchAzGraph {
         $script:argQueries = [System.Collections.Generic.List[string]]::new()
         function global:Search-AzGraph {
-            param(
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param(
                 [string] $Query, [int] $First, [int] $Skip, [string] $SkipToken,
                 [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction
             )
             $script:argQueries.Add($Query)
-            $isRawProjection = $Query -match 'project id,name,type,tenantId'
+            $isRawProjection = $Query -match 'project id,name,type,tenantId,kind'
             if ($isRawProjection -and $Query -match '^resourcecontainers\b') { return Get-FixtureContainerRows }
             if ($isRawProjection -and $Query -match '^resources\b')           { return Get-FixtureResourceRows }
             if ($isRawProjection)                                            { return @() }
@@ -187,46 +280,62 @@ BeforeAll {
 }
 
 AfterAll {
-    Remove-Item function:global:Search-AzGraph -ErrorAction SilentlyContinue
+    Remove-Item function:Search-AzGraph -ErrorAction SilentlyContinue
 }
 
 Describe 'AB#5648 — Resource Graph round-trip count per entry point' {
 
     BeforeEach { New-CountingSearchAzGraph }
 
-    It 'the DEFAULT assessment collect reaches Resource Graph exactly 5 times' {
+    It 'the DEFAULT assessment collect reaches Resource Graph exactly 7 times' {
         Invoke-Collect -WarningAction SilentlyContinue | Out-Null
 
-        # Four raw tables + the one query that genuinely cannot be served from inventory.
+        # Four raw tables carrying the `project id,name,type,tenantId,kind` marker, plus two more raw
+        # tables that do NOT carry it (see below), plus the one query that genuinely cannot be
+        # served from inventory.
         #
-        # This was 4 until AB#6835. The fourth raw table is `recoveryservicesresources`, added
-        # because backup protected items are the right-hand side of XR-BKP-01 ("which VMs have no
-        # backup") and no other table carries them. It is the ONLY round-trip that epic added:
-        # snapshots, managed disks, disk encryption sets and the entire Migration domain are all
-        # shaped from the `resources` rows the pass already returns. Raising this number is a
-        # deliberate contract change, and a SIXTH would need the same justification in writing.
-        $script:argQueries.Count | Should -Be 5 -Because 'the inverted path is one raw pass (resourcecontainers, resources, networkresources, recoveryservicesresources) plus sqlDefenderPricing'
+        # This was 4 until AB#6835 (recoveryservicesresources, for XR-BKP-01/02). It is 6 raw
+        # round-trips as of AB#7107/AB#7108 (Story AB#7059, Feature AB#7069, Epic AB#7099):
+        # `patchassessmentresources` and `patchinstallationresources` are Update Manager's OWN
+        # Resource Graph tables (7-day/30-day retention respectively) -- read-only, same as every
+        # other raw-pass table, but not derivable from `resources`/`networkresources` at all, so
+        # collecting them costs two more round-trips. Raising this number further is a deliberate
+        # contract change, and an EIGHTH would need the same justification in writing.
+        $script:argQueries.Count | Should -Be 7 -Because 'the inverted path is one raw pass (resourcecontainers, resources, networkresources, recoveryservicesresources, patchassessmentresources, patchinstallationresources) plus sqlDefenderPricing'
 
-        @($script:argQueries | Where-Object { $_ -match 'project id,name,type,tenantId' }).Count | Should -Be 4
+        # patchassessmentresources/patchinstallationresources deliberately omit the `project
+        # $columns` clause every OTHER raw table carries (Get-ScoutRawInventory.ps1's AB#6731
+        # comment explains why: a `project` naming a column the table does not define fails the
+        # whole query, and these two tables' schema is not guaranteed to match the `resources`
+        # projection). That means the `project id,name,type,tenantId,kind` marker below only ever
+        # matches 4 of the 6 raw-pass queries, not all 6 -- an accident of the heuristic, not a
+        # sign the patch queries are typed/live queries.
+        @($script:argQueries | Where-Object { $_ -match 'project id,name,type,tenantId,kind' }).Count | Should -Be 4
         @($script:argQueries | Where-Object { $_ -match 'microsoft\.security/pricings' }).Count | Should -Be 1
+        @($script:argQueries | Where-Object { $_ -match '^patchassessmentresources' }).Count | Should -Be 1
+        @($script:argQueries | Where-Object { $_ -match '^patchinstallationresources' }).Count | Should -Be 1
     }
 
-    It 'the one remaining live query is the documented SecurityResources exception, nothing else' {
+    It 'the queries outside the projection marker are the documented SecurityResources exception plus the two patch tables, nothing else' {
         Invoke-Collect -WarningAction SilentlyContinue | Out-Null
-        $typed = @($script:argQueries | Where-Object { $_ -notmatch 'project id,name,type,tenantId' })
-        $typed.Count | Should -Be 1
-        $typed[0] | Should -Match 'SecurityResources'
-        $typed[0] | Should -Match 'microsoft\.security/pricings'
+        $unmarked = @($script:argQueries | Where-Object { $_ -notmatch 'project id,name,type,tenantId,kind' })
+        $unmarked.Count | Should -Be 3
+
+        $securityException = @($unmarked | Where-Object { $_ -match 'SecurityResources' -and $_ -match 'microsoft\.security/pricings' })
+        $securityException.Count | Should -Be 1
+
+        $patchTables = @($unmarked | Where-Object { $_ -match '^patchassessmentresources' -or $_ -match '^patchinstallationresources' })
+        $patchTables.Count | Should -Be 2
     }
 
     It 'the pre-inversion typed pack still costs more than 30 round-trips (the "before" number)' {
         Invoke-Collect -Source TypedQueries -WarningAction SilentlyContinue | Out-Null
         $script:argQueries.Count | Should -BeGreaterThan 30
         # And it makes no raw pass at all -- the two sources are genuinely alternatives.
-        @($script:argQueries | Where-Object { $_ -match 'project id,name,type,tenantId' }).Count | Should -Be 0
+        @($script:argQueries | Where-Object { $_ -match 'project id,name,type,tenantId,kind' }).Count | Should -Be 0
     }
 
-    It 'a narrowed -Categories collect still costs 4 or fewer, never more than the full run' {
+    It 'a narrowed -Categories collect never costs more than the full run' {
         Invoke-Collect -Categories @('Security') -WarningAction SilentlyContinue | Out-Null
         $narrow = $script:argQueries.Count
 
@@ -234,8 +343,13 @@ Describe 'AB#5648 — Resource Graph round-trip count per entry point' {
         Invoke-Collect -WarningAction SilentlyContinue | Out-Null
         $full = $script:argQueries.Count
 
+        # The raw pass (resourcecontainers/resources/networkresources/recoveryservicesresources/
+        # patchassessmentresources/patchinstallationresources) is NOT category-filtered -- it is
+        # the same unconditional sweep regardless of -Categories, same as -IncludeBackupResources
+        # was before it -- so a narrowed run costs the same 7 as the full run; it can never cost
+        # MORE.
         $narrow | Should -BeLessOrEqual $full
-        $narrow | Should -BeLessOrEqual 5
+        $narrow | Should -BeLessOrEqual 7
     }
 
     It '-FromInventory still costs exactly 1 (the combined-run path is unchanged)' {
@@ -248,7 +362,7 @@ Describe 'AB#5648 — Resource Graph round-trip count per entry point' {
         $script:argQueries[0] | Should -Match 'microsoft\.security/pricings'
     }
 
-    It 'the inventory extraction path reaches Resource Graph 11 times, all from one function' {
+    It 'the inventory extraction path reaches Resource Graph 10 times, all from one function' {
         Start-AZSCGraphExtraction -Subscriptions @([pscustomobject]@{ id = 'aaa'; name = 'demo-sub' }) `
             -AzureEnvironment 'AzureCloud' -IncludeTags ([switch]$false) `
             -SkipAdvisory ([switch]$false) -SecurityCenter ([switch]$false) `
@@ -265,38 +379,31 @@ Describe 'AB#5648 — Resource Graph round-trip count per entry point' {
         # tables and did not update the count here. Corrected while running the suite for
         # AB#6741; the extra two round-trips are that change's, not this Epic's.
         #
-        # 10 -> 11 (AB#6771): the `managedserviceresources` table. Management/LighthouseDelegations
-        # declares a REAL resource type, Microsoft.ManagedServices/registrationDefinitions, but no
-        # pass read the one ARG table that carries it, so the worksheet was blank on every run.
-        # One extra round-trip is the honest price of a dataset that was previously empty.
-        #
         # This budget is deliberately tight and is meant to FAIL when a round-trip is added. That
         # is how it just proved something else: AB#6779 added four governance collectors
         # (RoleAssignments, ResourceLocks, PolicyAssignments, Budgets) whose acceptance criterion
         # was "no additional Azure API call, proven by comparing query counts before and after".
-        # The count moved by exactly one, and that one is attributable to AB#6771 above -- so the
-        # governance renders cost ZERO new queries. This assertion IS that proof.
-        $script:argQueries.Count | Should -Be 11
+        # The governance renders cost ZERO new queries. Lighthouse is not a released Scout
+        # surface and therefore contributes no managedserviceresources request.
+        $script:argQueries.Count | Should -Be 10
     }
 
-    It 'a combined inventory + assessment run costs 12, not 43' {
+    It 'a combined inventory + assessment run costs 11, not 43' {
         $extraction = Start-AZSCGraphExtraction -Subscriptions @([pscustomobject]@{ id = 'aaa'; name = 'demo-sub' }) `
             -AzureEnvironment 'AzureCloud' -IncludeTags ([switch]$true) `
             -SkipAdvisory ([switch]$false) -SecurityCenter ([switch]$false) `
             3>$null 4>$null 6>$null
         Invoke-Collect -FromInventory $extraction -WarningAction SilentlyContinue | Out-Null
 
-        # Eleven inventory tables plus the one SecurityResources query. The combined run reuses
+        # Ten inventory tables plus the one SecurityResources query. The combined run reuses
         # the extraction's rows, so the assessment adds ONE call, not five -- that is the property
         # this assertion protects, and it is unchanged by the Update Manager tables, by the
         # recoveryservicesresources pass AB#6835 added to the standalone assessment path, or by
-        # AB#6771's managedserviceresources table (which moved the inventory half from 10 to 11).
-        #
         # The number that matters here is not 12; it is the DIFFERENCE of one against the
         # inventory-only assertion above. A combined run costing inventory+1 is the whole
         # collect-once guarantee. If this ever reads inventory+5, the assessment has stopped
         # reusing the extraction's rows and is querying Azure a second time.
-        $script:argQueries.Count | Should -Be 12 -Because 'eleven inventory tables plus the one SecurityResources query'
+        $script:argQueries.Count | Should -Be 11 -Because 'ten inventory tables plus the one SecurityResources query'
     }
 }
 
@@ -387,37 +494,54 @@ Describe 'AB#5648 — the inverted path and the typed pack produce the same coll
 
     It 'still populates sqlDefenderPricing from the live query on the inverted path' {
         function global:Search-AzGraph {
-            param(
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param(
                 [string] $Query, [int] $First, [int] $Skip, [string] $SkipToken,
                 [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction
             )
             if ($Query -match 'microsoft\.security/pricings') {
                 return @([pscustomobject]@{ subscriptionId = 'aaa'; name = 'SqlServers'; pricingTier = 'Standard' })
             }
-            if ($Query -match 'project id,name,type,tenantId' -and $Query -match '^resourcecontainers\b') { return Get-FixtureContainerRows }
-            if ($Query -match 'project id,name,type,tenantId' -and $Query -match '^resources\b') { return Get-FixtureResourceRows }
+            if ($Query -match 'project id,name,type,tenantId,kind' -and $Query -match '^resourcecontainers\b') { return Get-FixtureContainerRows }
+            if ($Query -match 'project id,name,type,tenantId,kind' -and $Query -match '^resources\b') { return Get-FixtureResourceRows }
             return @()
         }
-        $collect = Invoke-Collect -WarningAction SilentlyContinue
-        @($collect.domains.databases.sqlDefenderPricing).Count | Should -Be 1
-        $collect.domains.databases.sqlDefenderPricing[0].pricingTier | Should -Be 'Standard'
+        try {
+            $collect = Invoke-Collect -WarningAction SilentlyContinue
+            @($collect.domains.databases.sqlDefenderPricing).Count | Should -Be 1
+            $collect.domains.databases.sqlDefenderPricing[0].pricingTier | Should -Be 'Standard'
+        }
+        finally {
+            Remove-Item function:Search-AzGraph -ErrorAction SilentlyContinue
+        }
     }
 
-    It 'falls back to the typed pack when the raw pass throws, rather than returning nothing' {
+    It 'fails closed when the raw pass cannot prove required assessment evidence' {
         function global:Search-AzGraph {
-            param(
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param(
                 [string] $Query, [int] $First, [int] $Skip, [string] $SkipToken,
                 [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction
             )
-            if ($Query -match 'project id,name,type,tenantId') { throw 'ARG is unavailable' }
+            if ($Query -match 'project id,name,type,tenantId,kind') { throw 'ARG is unavailable' }
             return Invoke-FixtureTypedQuery -Query $Query
         }
-        # Get-ScoutRawInventory absorbs per-table failures itself (warn and skip), so a total
-        # ARG outage comes back as an EMPTY raw pass rather than an exception. Either way the
-        # caller must still get a well-formed collect object with the contract's keys present.
-        $collect = Invoke-Collect -WarningAction SilentlyContinue
-        $collect.PSObject.Properties.Name | Should -Contain 'networking'
-        $collect.PSObject.Properties.Name | Should -Contain 'domains'
-        { @($collect.networking.virtualNetworks).Count } | Should -Not -Throw
+        try {
+            # A typed-query fallback cannot recreate raw-only child/API datasets. Returning a
+            # well-shaped empty collect here would let absence assertions fabricate Passes, so
+            # the assessment contract now stops with the marker combined mode knows how to catch.
+            $caught = $null
+            try {
+                Invoke-Collect -WarningAction SilentlyContinue | Out-Null
+            }
+            catch { $caught = $_ }
+
+            $caught | Should -Not -BeNullOrEmpty
+            $caught.Exception.Data['AzureScoutFailureKind'] | Should -Be 'AssessmentSourceUnavailable'
+            $caught.Exception.Message | Should -Match 'required inventory datasets are unavailable'
+        }
+        finally {
+            Remove-Item function:Search-AzGraph -ErrorAction SilentlyContinue
+        }
     }
 }

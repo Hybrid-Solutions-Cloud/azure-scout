@@ -10,6 +10,7 @@ $ErrorActionPreference = 'Stop'
     Tracks ADO Story AB#5046.
 #>
 function Export-PowerBi {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'Collect', Justification = 'Kept for the uniform renderer signature dispatched by src/report/Export-Report.ps1 (all renderers take Findings/Collect/OutputPath).')]
     param($Findings, $Collect, [string] $OutputPath)
     $pbiDir = Join-Path $OutputPath 'powerbi'
     New-Item -ItemType Directory -Path $pbiDir -Force | Out-Null
@@ -18,6 +19,18 @@ function Export-PowerBi {
     # the area and findings tables so the Power BI relationship binds on a stable
     # key instead of fragile raw-text (Framework, Area) equality (AB#5092).
     function New-AreaKey($fw, $ar) { ("{0}|{1}" -f $fw, $ar).ToLower().Trim() }
+    function ConvertTo-SafeCsvRow {
+        param([Parameter(ValueFromPipeline)]$InputObject)
+        process {
+            $safe = [ordered]@{}
+            foreach ($property in $InputObject.PSObject.Properties) {
+                $value = $property.Value
+                if ($value -is [string] -and $value -match '^[\t\r\n ]*[=+\-@]') { $value = "'$value" }
+                $safe[$property.Name] = $value
+            }
+            [pscustomobject]$safe
+        }
+    }
 
     # $Findings.Areas/.Frameworks/.Gaps/.Findings dot directly into a possibly-
     # $null $Findings (e.g. a standalone re-render from a hand-edited/partial
@@ -33,9 +46,11 @@ function Export-PowerBi {
     }
 
     (Get-ScoutPowerBiProp $Findings 'Areas') | Select-Object @{n = 'AreaKey'; e = { New-AreaKey $_.Framework $_.Area } }, * |
+        ConvertTo-SafeCsvRow |
         Export-Csv "$pbiDir/fact_area_scores.csv" -NoTypeInformation
-    (Get-ScoutPowerBiProp $Findings 'Frameworks') | Export-Csv "$pbiDir/fact_framework.csv" -NoTypeInformation
+    (Get-ScoutPowerBiProp $Findings 'Frameworks') | ConvertTo-SafeCsvRow | Export-Csv "$pbiDir/fact_framework.csv" -NoTypeInformation
     (Get-ScoutPowerBiProp $Findings 'Gaps') | Select-Object @{n = 'AreaKey'; e = { New-AreaKey $_.Framework $_.Area } }, * |
+        ConvertTo-SafeCsvRow |
         Export-Csv "$pbiDir/dim_gaps.csv" -NoTypeInformation
     # AB#6882, clause B-04. ScanDate is carried onto every fact row so the semantic model has a
     # real date column to relate its date dimension to. Without it the date table is decoration:
@@ -51,6 +66,7 @@ function Export-PowerBi {
 
     (Get-ScoutPowerBiProp $Findings 'Findings') |
         Select-Object @{n = 'AreaKey'; e = { New-AreaKey $_.Framework $_.Area } }, Id, Framework, Area, Severity, Status, EvidenceCount, Title, Remediation, Manual, @{n = 'ScanDate'; e = { $scanDate } } |
+        ConvertTo-SafeCsvRow |
         Export-Csv "$pbiDir/fact_findings.csv" -NoTypeInformation
 
     # Generate the Power BI Template (.pbit) bound to the star-schema CSVs above.

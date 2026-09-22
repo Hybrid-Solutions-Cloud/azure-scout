@@ -61,10 +61,10 @@ $ErrorActionPreference = 'Stop'
 $RepoRoot = Split-Path $PSScriptRoot -Parent
 
 if (-not $DataDumpPath) {
-    $DataDumpPath = Join-Path $RepoRoot 'tests' 'datadump'
+    $DataDumpPath = Join-Path -Path $RepoRoot -ChildPath 'tests' -AdditionalChildPath 'datadump'
 }
 if (-not $OutputPath) {
-    $OutputPath = Join-Path $RepoRoot 'tests' 'test-output'
+    $OutputPath = Join-Path -Path $RepoRoot -ChildPath 'tests' -AdditionalChildPath 'test-output'
 }
 
 # ── Validate Prerequisites ───────────────────────────────────────────────
@@ -73,7 +73,7 @@ Write-Host "  AzureScout — Power BI Report Test Harness" -ForegroundColor Cyan
 Write-Host "═══════════════════════════════════════════════════════════`n" -ForegroundColor DarkCyan
 
 # Find the JSON report file
-$SampleFile = Join-Path $DataDumpPath 'sample-report.json'
+$SampleFile = Join-Path -Path $DataDumpPath -ChildPath 'sample-report.json'
 if (Test-Path $SampleFile) {
     $JsonFile = Get-Item $SampleFile
 } else {
@@ -88,7 +88,7 @@ Write-Host "  Source JSON:  " -NoNewline -ForegroundColor Gray
 Write-Host $JsonFile.Name -ForegroundColor White
 
 # Import the module
-$ModulePath = Join-Path $RepoRoot 'AzureScout.psm1'
+$ModulePath = Join-Path -Path $RepoRoot -ChildPath 'AzureScout.psm1'
 if (-not (Test-Path $ModulePath)) {
     Write-Error "Cannot find AzureScout.psm1 at $RepoRoot"
     return
@@ -117,8 +117,8 @@ Write-Host ($Metadata.scope ?? 'N/A') -ForegroundColor White
 # ── Prepare Output Folders ───────────────────────────────────────────────
 Write-Host "`n  Preparing output folders..." -ForegroundColor Gray
 
-$ReportCache  = Join-Path $OutputPath 'ReportCache'
-$DiagramCache = Join-Path $OutputPath 'DiagramCache'
+$ReportCache  = Join-Path -Path $OutputPath -ChildPath 'ReportCache'
+$DiagramCache = Join-Path -Path $OutputPath -ChildPath 'DiagramCache'
 
 # Clean previous test output
 if (Test-Path $ReportCache)  { Remove-Item $ReportCache  -Recurse -Force }
@@ -138,7 +138,7 @@ function ConvertTo-PascalCase {
 }
 
 # Build module name lookup maps
-$RetiredCollectorPath = Join-Path $RepoRoot 'retired-collector-scripts'
+$RetiredCollectorPath = Join-Path -Path $RepoRoot -ChildPath 'retired-collector-scripts'
 $ModuleFolders = Get-ChildItem -Path $RetiredCollectorPath -Directory
 
 $FolderMap = @{}
@@ -180,7 +180,7 @@ if ($ReportData.arm) {
         }
 
         if ($cacheObj.Count -gt 0) {
-            $CacheFile = Join-Path $ReportCache "$folderName.json"
+            $CacheFile = Join-Path -Path $ReportCache -ChildPath "$folderName.json"
             $cacheObj | ConvertTo-Json -Depth 40 | Out-File -FilePath $CacheFile -Encoding utf8
             $CacheFilesCreated++
             Write-Host "    [+] $folderName.json ($($cacheObj.Count) modules)" -ForegroundColor Green
@@ -204,7 +204,7 @@ if ($ReportData.entra) {
     }
 
     if ($entraObj.Count -gt 0) {
-        $CacheFile = Join-Path $ReportCache "Identity.json"
+        $CacheFile = Join-Path -Path $ReportCache -ChildPath "Identity.json"
         $entraObj | ConvertTo-Json -Depth 40 | Out-File -FilePath $CacheFile -Encoding utf8
         $CacheFilesCreated++
         Write-Host "    [+] Identity.json ($($entraObj.Count) modules)" -ForegroundColor Green
@@ -213,15 +213,15 @@ if ($ReportData.entra) {
 
 # Advisory / Policy / Security extra cache files
 if ($ReportData.advisory) {
-    $ReportData.advisory | ConvertTo-Json -Depth 40 | Out-File (Join-Path $ReportCache 'Advisory.json') -Encoding utf8
+    $ReportData.advisory | ConvertTo-Json -Depth 40 | Out-File (Join-Path -Path $ReportCache -ChildPath 'Advisory.json') -Encoding utf8
     Write-Host "    [+] Advisory.json" -ForegroundColor Green
 }
 if ($ReportData.policy) {
-    $ReportData.policy | ConvertTo-Json -Depth 40 | Out-File (Join-Path $ReportCache 'Policy.json') -Encoding utf8
+    $ReportData.policy | ConvertTo-Json -Depth 40 | Out-File (Join-Path -Path $ReportCache -ChildPath 'Policy.json') -Encoding utf8
     Write-Host "    [+] Policy.json" -ForegroundColor Green
 }
 if ($ReportData.security) {
-    $ReportData.security | ConvertTo-Json -Depth 40 | Out-File (Join-Path $ReportCache 'SecurityCenter.json') -Encoding utf8
+    $ReportData.security | ConvertTo-Json -Depth 40 | Out-File (Join-Path -Path $ReportCache -ChildPath 'SecurityCenter.json') -Encoding utf8
     Write-Host "    [+] SecurityCenter.json" -ForegroundColor Green
 }
 
@@ -241,7 +241,7 @@ if ($Metadata.subscriptions) {
 # ── Set up output file path (base path — PowerBI dir will be a sibling) ──
 $Timestamp = Get-Date -Format 'yyyy-MM-dd_HH_mm'
 $FileName  = "AzureScout_TestReport_$Timestamp"
-$File      = Join-Path $OutputPath "$FileName.xlsx"
+$File      = Join-Path -Path $OutputPath -ChildPath "$FileName.xlsx"
 
 Write-Host "`n  Base file path: " -NoNewline -ForegroundColor Gray
 Write-Host $File -ForegroundColor White
@@ -276,7 +276,7 @@ if (Test-Path $PowerBIDir) {
     $ValidationErrors++
 }
 
-$metaFile = Join-Path $PowerBIDir '_metadata.csv'
+$metaFile = Join-Path -Path $PowerBIDir -ChildPath '_metadata.csv'
 if (Test-Path $metaFile) {
     $metaContent = Import-Csv $metaFile
     Write-Host "  [OK] _metadata.csv ($($metaContent.Count) rows)" -ForegroundColor Green
@@ -285,7 +285,7 @@ if (Test-Path $metaFile) {
     $ValidationErrors++
 }
 
-$subsFile = Join-Path $PowerBIDir 'Subscriptions.csv'
+$subsFile = Join-Path -Path $PowerBIDir -ChildPath 'Subscriptions.csv'
 if (Test-Path $subsFile) {
     $subsContent = Import-Csv $subsFile
     Write-Host "  [OK] Subscriptions.csv ($($subsContent.Count) rows)" -ForegroundColor Green
@@ -294,7 +294,7 @@ if (Test-Path $subsFile) {
     $ValidationErrors++
 }
 
-$relFile = Join-Path $PowerBIDir '_relationships.json'
+$relFile = Join-Path -Path $PowerBIDir -ChildPath '_relationships.json'
 if (Test-Path $relFile) {
     $relContent = Get-Content $relFile -Raw | ConvertFrom-Json
     Write-Host "  [OK] _relationships.json ($(@($relContent.relationships).Count) relationships)" -ForegroundColor Green
@@ -354,7 +354,7 @@ if (-not $SkipTemplate.IsPresent) {
     Write-Host "`n── Phase 2: Power BI Template (.pbit) Generation ───────────" -ForegroundColor DarkCyan
 
     $PbitFileName = "AzureScout_TestReport_$(Get-Date -Format 'yyyy-MM-dd_HH_mm').pbit"
-    $PbitFile     = Join-Path $OutputPath $PbitFileName
+    $PbitFile     = Join-Path -Path $OutputPath -ChildPath $PbitFileName
 
     Write-Host "  Output file:  " -NoNewline -ForegroundColor Gray
     Write-Host $PbitFile -ForegroundColor White
@@ -430,7 +430,7 @@ if ($OpenTemplate.IsPresent -and $PbitFile -and (Test-Path $PbitFile)) {
         Start-Process -FilePath $pbiExe -ArgumentList "`"$PbitFile`""
     } else {
         Write-Host "`n  [INFO] Power BI Desktop not found — attempting OS default handler." -ForegroundColor Yellow
-        try { Start-Process $PbitFile } catch { }
+        try { Start-Process $PbitFile } catch { $null = $_ }
     }
 }
 

@@ -1,3 +1,7 @@
+#Requires -Version 7.0
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
 <#
 .Synopsis
 Runs a script block once per subscription and always restores the caller's context.
@@ -82,9 +86,26 @@ function Invoke-AZSCInSubscriptionContext {
                         }
 
                     Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Switching context to subscription: '+$SubId)
-                    $contextParams = @{ Subscription = $SubId; ErrorAction = 'SilentlyContinue' }
+                    $contextParams = @{ Subscription = $SubId; ErrorAction = 'Stop' }
                     if ($SubTenant) { $contextParams['Tenant'] = $SubTenant }
-                    Set-AzContext @contextParams | Out-Null
+
+                    try {
+                        $SelectedContext = Set-AzContext @contextParams
+                        if (-not $SelectedContext) {
+                            throw "Set-AzContext returned no context for subscription '$SubId'."
+                        }
+                        if ($SelectedContext.PSObject.Properties.Name -contains 'Subscription' -and
+                            $SelectedContext.Subscription -and
+                            $SelectedContext.Subscription.PSObject.Properties.Name -contains 'Id' -and
+                            $SelectedContext.Subscription.Id -and
+                            [string]$SelectedContext.Subscription.Id -ne [string]$SubId) {
+                            throw "Set-AzContext selected subscription '$($SelectedContext.Subscription.Id)' instead of '$SubId'."
+                        }
+                    }
+                    catch {
+                        Write-Warning "Skipping subscription '$SubId' because its Azure context could not be selected: $($_.Exception.Message)"
+                        continue
+                    }
 
                     & $Process $Sub
                 }

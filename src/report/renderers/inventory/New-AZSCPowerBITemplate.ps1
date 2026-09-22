@@ -1,3 +1,7 @@
+#Requires -Version 7.0
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
 <#
 .Synopsis
 Generate a Power BI Template (.pbit) file from an AzureScout CSV bundle.
@@ -47,6 +51,7 @@ No extra modules required.
 #>
 function New-AZSCPowerBITemplate {
     [CmdletBinding()]
+    [OutputType([System.Array], [string])]
     param(
         [Parameter(Mandatory)]
         [string] $PowerBIDir,

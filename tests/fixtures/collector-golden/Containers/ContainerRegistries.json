@@ -3,7 +3,7 @@
   "Category": "Containers",
   "Name": "ContainerRegistries",
   "FixturePath": "tests/fixtures/collector-equivalence/Containers.json",
-  "FixtureSha256": "fe3063c5624aaab79c6c564ecf1449282eb78cd9d9d92a902452064233eea9a3",
+  "FixtureSha256": "cc1f023f45b0747a8b7e33ea43b7b584dabf5afa299fa14a27621353186ed66b",
   "Rows": [
     "Anonymous Pull Enabled=s:res-value|Created Time=s:2026-01-15 10:30|Encryption=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.containerregistry/registries/containerregistries-t1a-1|Location=s:res-value|Name=s:containerregistries-t1a|Private Link=s:True|Public Network Access=s:res-value|Resource Group=s:res-value|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|SKU=s:res-value|Soft Delete Policy=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod|Total=<null>|Trust Policy=s:res-value|Zone Redundancy=s:res-value",
     "Anonymous Pull Enabled=s:res-value|Created Time=s:2026-01-15 10:30|Encryption=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.containerregistry/registries/containerregistries-t1b-1|Location=s:res-value|Name=s:containerregistries-t1b|Private Link=s:True|Public Network Access=s:res-value|Resource Group=s:res-value|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|SKU=s:res-value|Soft Delete Policy=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod|Total=<null>|Trust Policy=s:res-value|Zone Redundancy=s:res-value",

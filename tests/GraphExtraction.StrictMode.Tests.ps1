@@ -29,12 +29,16 @@ BeforeAll {
     $root = Split-Path $PSScriptRoot -Parent
     # Neutralise Import-Module so Get-ScoutRawInventory's `Import-Module Az.ResourceGraph`
     # cannot pull the real module (and therefore the real Search-AzGraph) into this session.
-    function Import-Module { param([Parameter(ValueFromRemainingArguments)] $Rest) }
+    function Import-Module {         [Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Intentional local override of a built-in cmdlet to stub Azure/PowerShell calls for the test -- this is the point of the mock.')]
+        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([Parameter(ValueFromRemainingArguments)] $Rest) }
     . "$root/src/collect/Get-ScoutRawInventory.ps1"
     . "$root/src/collect/Start-ScoutGraphExtraction.ps1"
 
     function Get-AZSCManagementGroups {
-        param($ManagementGroup, $Subscriptions)
+                [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+        [Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '', Justification = 'Name matches the real collector/API/fixture noun (often already plural in the product surface, e.g. ManagementGroups); renaming would break the shadow/mocked signature or the fixture-name convention used across this suite.')]
+param($ManagementGroup, $Subscriptions)
         return $Subscriptions
     }
 
@@ -57,7 +61,8 @@ Describe 'Start-AZSCGraphExtraction under StrictMode (AB#5547)' {
     BeforeEach {
         $script:capturedQueries = @()
         function Search-AzGraph {
-            param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
             $script:capturedQueries += $Query
             return @()
         }
@@ -71,12 +76,28 @@ Describe 'Start-AZSCGraphExtraction under StrictMode (AB#5547)' {
         } | Should -Not -Throw
     }
 
+    It 'records an explicit Advisor skip as NotAssessed without issuing the Advisor query' {
+        Set-StrictMode -Version Latest
+        $result = Start-AZSCGraphExtraction -Subscriptions $script:subs -AzureEnvironment 'AzureCloud' `
+            @script:switchArgs 3>$null 4>$null 6>$null
+
+        ($script:capturedQueries -join "`n") | Should -Not -Match '(?m)^advisorresources\b'
+        $health = @($result.CollectionHealth | Where-Object Dataset -eq 'Advisories')
+        $health.Count | Should -Be 1
+        $health[0].Status | Should -Be 'NotAssessed'
+    }
+
     It 'builds the resourcecontainers query with an empty management-group extension' {
         Set-StrictMode -Version Latest
         Start-AZSCGraphExtraction -Subscriptions $script:subs -AzureEnvironment 'AzureCloud' `
             @script:switchArgs 3>$null 4>$null 6>$null | Out-Null
 
-        $containerQuery = @($script:capturedQueries | Where-Object { $_ -match '^resourcecontainers\b' })
+        # Select the raw inventory query this contract owns. Operational enrichment also reads
+        # resourcecontainers to derive display-only management-group paths and legitimately names
+        # managementGroupAncestorsChain even when no row filter was requested.
+        $containerQuery = @($script:capturedQueries | Where-Object {
+                $_ -match '^resourcecontainers\b' -and $_ -match 'project id,name,type,tenantId,kind'
+            })
         $containerQuery.Count | Should -BeGreaterThan 0
         # The management-group join must be absent entirely, not rendered as a literal null.
         ($containerQuery -join "`n") | Should -Not -Match 'managementGroupAncestorsChain'
@@ -87,7 +108,9 @@ Describe 'Start-AZSCGraphExtraction under StrictMode (AB#5547)' {
         Start-AZSCGraphExtraction -Subscriptions $script:subs -AzureEnvironment 'AzureCloud' `
             -ManagementGroup 'mg-root' @script:switchArgs 3>$null 4>$null 6>$null | Out-Null
 
-        $containerQuery = @($script:capturedQueries | Where-Object { $_ -match '^resourcecontainers\b' }) -join "`n"
+        $containerQuery = @($script:capturedQueries | Where-Object {
+                $_ -match '^resourcecontainers\b' -and $_ -match 'project id,name,type,tenantId,kind'
+            }) -join "`n"
         $containerQuery | Should -Match 'managementGroupAncestorsChain'
         $containerQuery | Should -Match 'mg-root'
     }
@@ -108,7 +131,8 @@ Describe 'Start-AZSCGraphExtraction issues no Resource Graph query of its own (A
     BeforeEach {
         $script:capturedQueries = @()
         function Search-AzGraph {
-            param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
             $script:capturedQueries += $Query
             return @()
         }

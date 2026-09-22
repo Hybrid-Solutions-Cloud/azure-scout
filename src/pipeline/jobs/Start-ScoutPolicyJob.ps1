@@ -1,3 +1,7 @@
+#Requires -Version 7.0
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
 <#
 # Relocated from Modules/Public/PublicFunctions/Jobs for the v3 pipeline.
 .Synopsis
@@ -7,7 +11,7 @@ Start Policy Job Module
 This script processes and creates the Policy sheet based on advisor resources.
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/PublicFunctions/Jobs/Start-AZSCPolicyJob.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/PublicFunctions/Jobs/Start-AZSCPolicyJob.ps1
 
 .COMPONENT
     This powershell Module is part of Azure Scout (AZSC)
@@ -19,6 +23,7 @@ Authors: Claudio Merola
 
 #>
 function Start-AZSCPolicyJob {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'Subscriptions', Justification = 'Fixed dispatcher signature shared with sibling job functions (Start-AZSCAdvisoryJob, Start-AZSCSecCenterJob, etc.) -- not every job function reads every slot.')]
     param($Subscriptions, $PolicySetDef, $PolicyAssign, $PolicyDef)
     # ── StrictMode boundary (AB#5633, revised by AB#5649) ────────────────────────────
     # v1 inventory engine (forked from microsoft/ARI), written without StrictMode: it reads

@@ -29,14 +29,14 @@ BeforeAll {
     # AB#5089-style defensive sort/label guard is actually exercised
     # end-to-end through Get-Score -> Export-Word, same as Export-Pptx's tests.
     $script:Findings = @(
-        (New-WordTestFinding 'CAF-NET-01' 'CAF' 'Networking' 'Pass' 'low')
-        (New-WordTestFinding 'CAF-NET-02' 'CAF' 'Networking' 'Fail' 'high')
-        (New-WordTestFinding 'CAF-NET-03' 'CAF' 'Networking' 'Partial' 'medium')
-        (New-WordTestFinding 'WAF-SEC-01' 'WAF' 'Security' 'Fail' $null)
-        (New-WordTestFinding 'WAF-SEC-02' 'WAF' 'Security' 'Fail' '')
-        (New-WordTestFinding 'WAF-SEC-03' 'WAF' 'Security' 'Fail' 'bogus-severity')
-        (New-WordTestFinding 'WAF-SEC-04' 'WAF' 'Security' 'Manual')
-        (New-WordTestFinding 'WAF-SEC-05' 'WAF' 'Security' 'Unknown')
+        (New-WordTestFinding -Id 'CAF-NET-01' -Framework 'CAF' -Area 'Networking' -Status 'Pass' -Severity 'low')
+        (New-WordTestFinding -Id 'CAF-NET-02' -Framework 'CAF' -Area 'Networking' -Status 'Fail' -Severity 'high')
+        (New-WordTestFinding -Id 'CAF-NET-03' -Framework 'CAF' -Area 'Networking' -Status 'Partial' -Severity 'medium')
+        (New-WordTestFinding -Id 'WAF-SEC-01' -Framework 'WAF' -Area 'Security' -Status 'Fail' -Severity $null)
+        (New-WordTestFinding -Id 'WAF-SEC-02' -Framework 'WAF' -Area 'Security' -Status 'Fail' -Severity '')
+        (New-WordTestFinding -Id 'WAF-SEC-03' -Framework 'WAF' -Area 'Security' -Status 'Fail' -Severity 'bogus-severity')
+        (New-WordTestFinding -Id 'WAF-SEC-04' -Framework 'WAF' -Area 'Security' -Status 'Manual')
+        (New-WordTestFinding -Id 'WAF-SEC-05' -Framework 'WAF' -Area 'Security' -Status 'Unknown')
     )
     $script:Scored = Get-Score -Findings $script:Findings
 
@@ -44,7 +44,7 @@ BeforeAll {
         _meta = [pscustomobject]@{ scope = 'ArmOnly'; managementGroupId = 'mg-test-01' }
     }
 
-    $script:OutDir = Join-Path $script:Root 'tests' 'test-output' 'word'
+    $script:OutDir = Join-Path -Path $script:Root -ChildPath 'tests' -AdditionalChildPath 'test-output', 'word'
     if (Test-Path $script:OutDir) { Remove-Item $script:OutDir -Recurse -Force }
 
     # Extracts word/document.xml as raw text -- the rendered runs/text nodes
@@ -70,7 +70,8 @@ BeforeAll {
     }
 
     function Get-DocxValidationIssues {
-        param([string]$Path)
+                [Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '', Justification = 'Name matches the real collector/API/fixture noun (often already plural in the product surface, e.g. ManagementGroups); renaming would break the shadow/mocked signature or the fixture-name convention used across this suite.')]
+param([string]$Path)
         $doc = [DocumentFormat.OpenXml.Packaging.WordprocessingDocument]::Open($Path, $false)
         try {
             # Office2013 target: the parameterless OpenXmlValidator() defaults to
@@ -191,10 +192,10 @@ Describe 'Export-Word -- table header repeat (AB#333 long-table usability)' {
 Describe 'Export-Word -- prioritized gaps capping and honesty note' {
     BeforeAll {
         $script:ManyGapFindings = 1..60 | ForEach-Object {
-            New-WordTestFinding "GAP-$($_.ToString('000'))" 'CAF' 'Networking' 'Fail' 'high'
+            New-WordTestFinding -Id "GAP-$($_.ToString('000'))" -Framework 'CAF' -Area 'Networking' -Status 'Fail' -Severity 'high'
         }
         $script:ManyGapScored = Get-Score -Findings $script:ManyGapFindings
-        $script:ManyGapDir = Join-Path $script:Root 'tests' 'test-output' 'word-manygaps'
+        $script:ManyGapDir = Join-Path -Path $script:Root -ChildPath 'tests' -AdditionalChildPath 'test-output', 'word-manygaps'
         if (Test-Path $script:ManyGapDir) { Remove-Item $script:ManyGapDir -Recurse -Force }
     }
 
@@ -213,7 +214,7 @@ Describe 'Export-Word -- prioritized gaps capping and honesty note' {
 
 Describe 'Export-Word -- edge cases' {
     It 'does not throw on an empty Findings set and still produces a schema-valid docx' {
-        $dir = Join-Path $script:Root 'tests' 'test-output' 'word-empty'
+        $dir = Join-Path -Path $script:Root -ChildPath 'tests' -AdditionalChildPath 'test-output', 'word-empty'
         if (Test-Path $dir) { Remove-Item $dir -Recurse -Force }
         try {
             $emptyScored = Get-Score -Findings @()
@@ -228,7 +229,7 @@ Describe 'Export-Word -- edge cases' {
     }
 
     It 'does not throw when Collect is $null' {
-        $dir = Join-Path $script:Root 'tests' 'test-output' 'word-nocollect'
+        $dir = Join-Path -Path $script:Root -ChildPath 'tests' -AdditionalChildPath 'test-output', 'word-nocollect'
         if (Test-Path $dir) { Remove-Item $dir -Recurse -Force }
         try {
             { Export-Word -Findings $script:Scored -Collect $null -OutputPath $dir } | Should -Not -Throw
@@ -241,7 +242,7 @@ Describe 'Export-Word -- edge cases' {
 
 Describe 'Export-Word -- non-fatal on failure (AB#333)' {
     It 'writes a clearly-labeled HTML fallback instead of throwing when rendering fails' {
-        $dir = Join-Path $script:Root 'tests' 'test-output' 'word-forcefail'
+        $dir = Join-Path -Path $script:Root -ChildPath 'tests' -AdditionalChildPath 'test-output', 'word-forcefail'
         if (Test-Path $dir) { Remove-Item $dir -Recurse -Force }
         $savedFn = ${function:New-ScoutDocxRun}
         try {
@@ -290,7 +291,7 @@ Describe 'Get-ScoutDocxSeverityLabel / Get-ScoutDocxSeverityRank (unit)' {
 Describe 'AB#6862/AB#6892 -- the gaps table carries its supporting number (clause W-14)' {
 
     BeforeAll {
-        . (Join-Path (Split-Path -Parent $PSScriptRoot) 'src/report/renderers/Export-Word.ps1')
+        . (Join-Path -Path (Split-Path -Parent $PSScriptRoot) -ChildPath 'src/report/renderers/Export-Word.ps1')
     }
 
     It 'says "<Expected>" for EvidenceCount=<Count>, Denominator=<Denom>' -ForEach @(
@@ -317,7 +318,7 @@ Describe 'AB#6862/AB#6892 -- the gaps table carries its supporting number (claus
     }
 
     It 'declares Evidence as the fourth column of the prioritized gaps table' {
-        $Source = Get-Content -LiteralPath (Join-Path (Split-Path -Parent $PSScriptRoot) 'src/report/renderers/Export-Word.ps1') -Raw
+        $Source = Get-Content -LiteralPath (Join-Path -Path (Split-Path -Parent $PSScriptRoot) -ChildPath 'src/report/renderers/Export-Word.ps1') -Raw
         $Source | Should -Match "foreach \(\`$h in 'Severity', 'Area', 'Gap', 'Evidence'\)"
         $Source | Should -Match 'Get-ScoutDocxEvidenceSummary \$gap'
     }
@@ -326,7 +327,7 @@ Describe 'AB#6862/AB#6892 -- the gaps table carries its supporting number (claus
 Describe 'AB#6874 -- the document has real Word styles (clauses W-01, W-02)' {
 
     BeforeAll {
-        $script:StyleDir = Join-Path ([System.IO.Path]::GetTempPath()) ("scout-styles-" + [guid]::NewGuid().ToString('N'))
+        $script:StyleDir = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath ("scout-styles-" + [guid]::NewGuid().ToString('N'))
         $null = New-Item -ItemType Directory -Path $script:StyleDir -Force
         # The suite's shared fixture, built in the top-level BeforeAll.
         Export-Word -Findings ([pscustomobject]@{ Findings = $script:Findings }) -Collect $null -OutputPath $script:StyleDir 3>$null

@@ -1,0 +1,24 @@
+{
+  "SchemaVersion": 1,
+  "Category": "Management",
+  "Name": "DefenderEasmWorkspaces",
+  "FixturePath": "tests/fixtures/collector-equivalence/Management.json",
+  "FixtureSha256": "5205b49897e87cdc85834b288856fc19c7e903a752d00d85d7cfbb09863d69fc",
+  "Rows": [
+    "Data Plane Endpoint=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.easm/workspaces/defendereasmworkspaces-t1a-1|Location=s:res-value|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod|Workspace Name=s:defendereasmworkspaces-t1a",
+    "Data Plane Endpoint=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.easm/workspaces/defendereasmworkspaces-t1b-1|Location=s:res-value|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod|Workspace Name=s:defendereasmworkspaces-t1b",
+    "Data Plane Endpoint=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.easm/workspaces/defendereasmworkspaces-t1b-1|Location=s:res-value|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:0|Subscription=s:sub-fixture-01|Tag Name=s:owner|Tag Value=s:platform|Workspace Name=s:defendereasmworkspaces-t1b",
+    "Data Plane Endpoint=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.easm/workspaces/defendereasmworkspaces-t1c-1|Location=s:res-value|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Subscription=s:sub-fixture-01|Tag Name=s:|Tag Value=s:|Workspace Name=s:defendereasmworkspaces-t1c",
+    "Data Plane Endpoint=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.easm/workspaces/defendereasmworkspaces-t1d-1|Location=s:res-value|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Subscription=<null>|Tag Name=s:env|Tag Value=s:dev|Workspace Name=s:defendereasmworkspaces-t1d",
+    "Data Plane Endpoint=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.easm/workspaces/defendereasmworkspaces-t1e-1|Location=s:res-value|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod|Workspace Name=s:defendereasmworkspaces-t1e",
+    "Data Plane Endpoint=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.easm/workspaces/defendereasmworkspaces-t1f-1|Location=s:res-value|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod|Workspace Name=s:defendereasmworkspaces-t1f"
+  ],
+  "Workbook": {
+    "WithoutTags": [
+      "Subscription\tResource Group\tWorkspace Name\tLocation\tData Plane Endpoint\tProvisioning State\tResource U\nsub-fixture-01\tres-value\tdefendereasmworkspaces-t1a\tres-value\tres-value\tres-value\t1\nsub-fixture-01\tres-value\tdefendereasmworkspaces-t1b\tres-value\tres-value\tres-value\t1\nsub-fixture-01\tres-value\tdefendereasmworkspaces-t1b\tres-value\tres-value\tres-value\t0\nsub-fixture-01\tres-value\tdefendereasmworkspaces-t1c\tres-value\tres-value\tres-value\t1\n\tres-value\tdefendereasmworkspaces-t1d\tres-value\tres-value\tres-value\t1\nsub-fixture-01\tres-value\tdefendereasmworkspaces-t1e\tres-value\tres-value\tres-value\t1\nsub-fixture-01\tres-value\tdefendereasmworkspaces-t1f\tres-value\tres-value\tres-value\t1"
+    ],
+    "WithTags": [
+      "Subscription\tResource Group\tWorkspace Name\tLocation\tData Plane Endpoint\tProvisioning State\tTag Name\tTag Value\tResource U\nsub-fixture-01\tres-value\tdefendereasmworkspaces-t1a\tres-value\tres-value\tres-value\tenv\tprod\t1\nsub-fixture-01\tres-value\tdefendereasmworkspaces-t1b\tres-value\tres-value\tres-value\tenv\tprod\t1\nsub-fixture-01\tres-value\tdefendereasmworkspaces-t1b\tres-value\tres-value\tres-value\towner\tplatform\t0\nsub-fixture-01\tres-value\tdefendereasmworkspaces-t1c\tres-value\tres-value\tres-value\t\t\t1\n\tres-value\tdefendereasmworkspaces-t1d\tres-value\tres-value\tres-value\tenv\tdev\t1\nsub-fixture-01\tres-value\tdefendereasmworkspaces-t1e\tres-value\tres-value\tres-value\tenv\tprod\t1\nsub-fixture-01\tres-value\tdefendereasmworkspaces-t1f\tres-value\tres-value\tres-value\tenv\tprod\t1"
+    ]
+  }
+}

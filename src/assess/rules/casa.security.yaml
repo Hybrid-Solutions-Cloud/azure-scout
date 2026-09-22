@@ -93,12 +93,13 @@ rules:
   - id: CASA-PM-03
     title: "Threat detection is tuned and enabled via Microsoft Defender for Cloud"
     severity: high
-    # security.defenderPlans is a hard-coded empty field in collect.json (the same pre-existing
-    # gap CAF-SEC-02 already has) -- there is no honest automated signal for tenant-wide Defender
-    # plan assignment today.
+    # security.defenderPlans carries subscription-level plan tiers (AB#6903), which can evidence
+    # plans being ENABLED -- but this control asks whether detection is TUNED (suppression rules,
+    # alert routing, analyst review), and no ARM dataset carries tuning state. Manual, not a
+    # false pass on a proxy signal.
     query: null
     assert: { type: manual }
-    remediation: "CASA-PM-03. security.defenderPlans is not populated by any current collection path, so Defender for Cloud plan assignment and alert tuning cannot be confirmed automatically here -- verify directly in the Defender for Cloud portal."
+    remediation: "CASA-PM-03. security.defenderPlans evidences which Defender plans are assigned per subscription, but alert TUNING (suppression rules, routing, review cadence) is not ARM-readable -- verify tuning directly in the Defender for Cloud portal."
     manual: true
   - id: CASA-PM-04
     title: "Secure score is tracked in Microsoft Defender for Cloud"
@@ -113,7 +114,7 @@ rules:
     # Policy-assignment existence only -- the IaC/templateHash half of this item is not
     # automatable (see the file-level note above on management.deployments).
     query: "$.governance.policyAssignments[*]"
-    assert: { type: exists }
+    assert: { type: exists, gate: "$.governance.policyAssignmentsAvailable" }
     remediation: "CASA-PM-05. No Azure Policy assignment was found in scope. Automate validation through Azure Policy, and separately confirm IaC-based deployment and continuous compliance scanning are in place -- collect.json has no reliable IaC-deployment signal to automate that half."
     manual: false
 
@@ -166,7 +167,7 @@ rules:
     title: "Identity and access policies restrict access to sensitive data"
     severity: high
     query: "$.governance.roleAssignments[*]"
-    assert: { type: exists }
+    assert: { type: exists, gate: "$.governance.roleAssignmentsAvailable" }
     remediation: "CASA-CO-02. No role assignment was found in scope. Restrict access to sensitive data through identity and access policy -- role-assignment existence alone does not confirm least-privilege scoping to sensitive resources specifically."
     manual: false
   - id: CASA-CO-03

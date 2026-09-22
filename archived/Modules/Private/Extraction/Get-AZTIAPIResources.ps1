@@ -6,7 +6,7 @@ Module responsible for retrieving Azure API resources.
 This module retrieves Azure API resources, including Resource Health, Managed Identities, Advisor Scores, and Policies.
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Private/1.ExtractionFunctions/Get-AZSCAPIResources.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Private/1.ExtractionFunctions/Get-AZSCAPIResources.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC).
@@ -17,6 +17,7 @@ First Release Date: 15th Oct, 2024
 Authors: Claudio Merola
 #>
 function Get-AZSCAPIResources {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Justification = 'Internal function name, called by that exact name elsewhere in the module; renaming is a breaking change out of scope for a lint-only pass.')]
     Param($Subscriptions, $AzureEnvironment, $SkipPolicy)
 
     Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Starting API Inventory')

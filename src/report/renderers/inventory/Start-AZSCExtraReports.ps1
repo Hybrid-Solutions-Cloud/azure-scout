@@ -1,3 +1,7 @@
+#Requires -Version 7.0
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
 <#
 .Synopsis
 Module for Extra Reports
@@ -6,7 +10,7 @@ Module for Extra Reports
 This script processes and creates additional report sheets such as Quotas, Security Center, Policies, and Advisory.
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Private/3.ReportingFunctions/Start-AZSCExtraReports.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Private/3.ReportingFunctions/Start-AZSCExtraReports.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC)
@@ -21,6 +25,7 @@ function Start-AZSCExtraReports {
     # $ExtraData is the hashtable returned by Start-AZSCExtraJobs — Security, Policy, Advisory
     # and Subscriptions. It replaces the Receive-Job harvest that used to sit in this function
     # (AB#5649); see the note at each use site.
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Justification = 'Called by name from src/Invoke-AzureScout.ps1, src/Start-AZTIReporOrchestration.ps1 and src/pipeline/Start-ScoutExtraJobs.ps1 (outside this task''s src/report+src/assess scope) plus several tests; renaming would break out-of-scope callers.')]
     Param($File, $Quotas, $SecurityCenter, $SkipPolicy, $SkipAdvisory, $IncludeCosts, $TableStyle, $ReportCache, $ExtraData)
 
     if ($null -eq $ExtraData) { $ExtraData = @{} }

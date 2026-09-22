@@ -35,7 +35,27 @@ BeforeAll {
     . "$script:Root/src/collect/Get-ScoutCostInventory.ps1"
     Import-Module powershell-yaml -ErrorAction Stop
 
-    $script:Manifest = Import-PowerShellDataFile (Join-Path $script:Root 'manifests/assessments.psd1')
+    # Script-scope command doubles are visible to the ingestors defined above. Defining these
+    # inside an individual It block is not: PowerShell command discovery then auto-loads the real
+    # Az.CostManagement/Azure DevOps implementation and can contact the operator's live tenant.
+    $script:CostQueryHandler = { param($Scope) [pscustomobject]@{ Row = @() } }
+    function global:Invoke-AzCostManagementQuery {
+        [CmdletBinding()]
+        param(
+            [string]$Type, [string]$Scope, [string]$Timeframe,
+            [string]$DatasetGranularity, [object[]]$DatasetGrouping,
+            [hashtable]$DatasetAggregation, [datetime]$TimePeriodFrom, [datetime]$TimePeriodTo
+        )
+        return & $script:CostQueryHandler $Scope
+    }
+    $script:DevOpsExtractionHandler = { [pscustomobject]@{ DevOpsResources = @() } }
+    function global:Start-AZSCDevOpsExtraction {
+        [CmdletBinding()]
+        param([string]$TenantID, [string]$Organization, [string]$Pat)
+        return & $script:DevOpsExtractionHandler
+    }
+
+    $script:Manifest = Import-PowerShellDataFile (Join-Path -Path $script:Root -ChildPath 'manifests/assessments.psd1')
 
     function New-ScoutRule {
         param($Id = 'X', $Query = '$.a[*]', $AssertType = 'exists', $Value = $null, $Gate = $null, $DenominatorQuery = $null)
@@ -45,6 +65,11 @@ BeforeAll {
         if ($DenominatorQuery) { $assert.denominatorQuery = $DenominatorQuery }
         return @{ id = $Id; title = 't'; severity = 'medium'; query = $Query; assert = $assert; remediation = 'r'; manual = $false }
     }
+}
+
+AfterAll {
+    Remove-Item Function:global:Invoke-AzCostManagementQuery -Force -ErrorAction SilentlyContinue
+    Remove-Item Function:global:Start-AZSCDevOpsExtraction -Force -ErrorAction SilentlyContinue
 }
 
 Describe 'AB#6826 -- Invoke-Rule assert.gate' {
@@ -87,15 +112,18 @@ Describe 'AB#6826 -- Invoke-Rule assert.gate' {
 
 Describe 'AB#6826 -- Import-ScoutCostInventory availability semantics' {
     It 'unavailable when Az.CostManagement is not installed at all' {
-        # No Invoke-AzCostManagementQuery function defined -- Get-Command must not find it.
+        # Hermetic: the dev/CI machine may genuinely have Az.CostManagement installed, so hide
+        # exactly that one command from the importer's Get-Command probe.
+        Mock Get-Command { $null } -ParameterFilter { $Name -eq 'Invoke-AzCostManagementQuery' }
         $collect = [pscustomobject]@{ subscriptions = @([pscustomobject]@{ id = 'sub-1'; name = 'sub-one' }) }
         $result = Import-ScoutCostInventory -Collect $collect -WarningAction SilentlyContinue
         $result.finops.available | Should -BeFalse
         $result.finops.moduleAvailable | Should -BeFalse
     }
     It 'available when the module resolves and returns real cost rows' {
-        function Invoke-AzCostManagementQuery {
-            param([Parameter(ValueFromRemainingArguments)] $Rest)
+        $script:CostQueryHandler = {
+            param($Scope)
+            $null = $Scope
             return [pscustomobject]@{ Row = @(, @(42.5, '20260701', 'Microsoft.Compute/virtualMachines', 'rg-1', 'eastus', 'Virtual Machines', 'USD')) }
         }
         $collect = [pscustomobject]@{ subscriptions = @([pscustomobject]@{ id = 'sub-1'; name = 'sub-one' }) }
@@ -104,11 +132,10 @@ Describe 'AB#6826 -- Import-ScoutCostInventory availability semantics' {
         $result.finops.moduleAvailable | Should -BeTrue
         @($result.finops.costRows).Count | Should -Be 1
         $result.finops.costRows[0].Cost | Should -Be 42.5
-        Remove-Item function:Invoke-AzCostManagementQuery -ErrorAction SilentlyContinue
     }
     It 'unavailable (blocked) when the module resolves but every subscription errors -- never reads as zero-spend' {
-        function Invoke-AzCostManagementQuery {
-            param([string] $Scope, [Parameter(ValueFromRemainingArguments)] $Rest)
+        $script:CostQueryHandler = {
+            param($Scope)
             throw "Forbidden: the caller does not have permission to perform action 'Microsoft.CostManagement/query/action' for subscription '$Scope'"
         }
         $collect = [pscustomobject]@{ subscriptions = @([pscustomobject]@{ id = 'sub-1'; name = 'sub-one' }) }
@@ -116,9 +143,9 @@ Describe 'AB#6826 -- Import-ScoutCostInventory availability semantics' {
         $result.finops.available | Should -BeFalse -Because 'a billing-permission-blocked pull must degrade to unavailable, not a scored zero'
         $result.finops.moduleAvailable | Should -BeTrue -Because 'the module itself resolved fine -- only the API call was blocked'
         @($result.finops.blockedSubscriptions) | Should -Contain 'sub-one'
-        Remove-Item function:Invoke-AzCostManagementQuery -ErrorAction SilentlyContinue
     }
     It 'trivially available on an estate with zero subscriptions -- an empty estate is not a blocked one' {
+        Mock Get-Command { $null } -ParameterFilter { $Name -eq 'Invoke-AzCostManagementQuery' }
         $collect = [pscustomobject]@{ subscriptions = @() }
         $result = Import-ScoutCostInventory -Collect $collect -WarningAction SilentlyContinue
         # No module installed AND no subscriptions -- module absence still wins (deterministic
@@ -144,16 +171,14 @@ Describe 'AB#6827 -- Import-ScoutDevOpsCapability availability semantics' {
         $result.devops.attempted | Should -BeFalse
     }
     It 'unavailable when -IncludeDevOps is set but the extraction finds zero resources of any type' {
-        function Start-AZSCDevOpsExtraction { param([Parameter(ValueFromRemainingArguments)] $Rest) return [pscustomobject]@{ DevOpsResources = @() } }
+        $script:DevOpsExtractionHandler = { return [pscustomobject]@{ DevOpsResources = @() } }
         $collect = [pscustomobject]@{}
         $result = Import-ScoutDevOpsCapability -Collect $collect -IncludeDevOps
         $result.devops.available | Should -BeFalse -Because 'attempted but zero resources came back must not read as a clean zero'
         $result.devops.attempted | Should -BeTrue
-        Remove-Item function:Start-AZSCDevOpsExtraction -ErrorAction SilentlyContinue
     }
     It 'available and shapes projects/pipelines/serviceConnections when resources come back' {
-        function Start-AZSCDevOpsExtraction {
-            param([Parameter(ValueFromRemainingArguments)] $Rest)
+        $script:DevOpsExtractionHandler = {
             return [pscustomobject]@{
                 DevOpsResources = @(
                     [pscustomobject]@{ organization = 'contoso'; name = 'proj1'; type = 'devops/projects'; properties = [pscustomobject]@{ state = 'wellFormed' } }
@@ -169,11 +194,10 @@ Describe 'AB#6827 -- Import-ScoutDevOpsCapability availability semantics' {
         @($result.devops.serviceConnections).Count | Should -Be 2
         ($result.devops.serviceConnections | Where-Object Name -eq 'conn1').CredentialFree | Should -BeTrue
         ($result.devops.serviceConnections | Where-Object Name -eq 'conn2').CredentialFree | Should -BeFalse
-        Remove-Item function:Start-AZSCDevOpsExtraction -ErrorAction SilentlyContinue
     }
     It 'reuses -FromInventory rows (devops/* types only) without calling Start-AZSCDevOpsExtraction again' {
         $calledExtraction = $false
-        function Start-AZSCDevOpsExtraction { param([Parameter(ValueFromRemainingArguments)] $Rest) $script:calledExtraction = $true; return [pscustomobject]@{ DevOpsResources = @() } }
+        $script:DevOpsExtractionHandler = { $script:calledExtraction = $true; return [pscustomobject]@{ DevOpsResources = @() } }
         $fromInventory = @(
             [pscustomobject]@{ organization = 'contoso'; name = 'proj1'; type = 'devops/projects'; properties = [pscustomobject]@{} }
             [pscustomobject]@{ name = 'vm1'; type = 'microsoft.compute/virtualmachines'; properties = [pscustomobject]@{} }
@@ -183,7 +207,6 @@ Describe 'AB#6827 -- Import-ScoutDevOpsCapability availability semantics' {
         $result.devops.available | Should -BeTrue
         @($result.devops.projects).Count | Should -Be 1
         $calledExtraction | Should -BeFalse -Because 'the collect-once pattern must not re-call Azure when rows were already handed in'
-        Remove-Item function:Start-AZSCDevOpsExtraction -ErrorAction SilentlyContinue
     }
     It 'preserves the ARM-sourced stub fields Invoke-Collect already attached (managedPools etc.)' {
         $collect = [pscustomobject]@{ devops = [pscustomobject]@{ managedPools = @(@{ name = 'pool1' }) } }
@@ -194,8 +217,8 @@ Describe 'AB#6827 -- Import-ScoutDevOpsCapability availability semantics' {
 
 Describe 'AB#6826/AB#6827 -- rule files load, cite real items, and gate every access-restricted automated rule' {
     BeforeAll {
-        $script:FinOpsDoc = ConvertFrom-Yaml (Get-Content (Join-Path $script:Root 'src/assess/rules/finops.review.yaml') -Raw)
-        $script:DevOpsDoc = ConvertFrom-Yaml (Get-Content (Join-Path $script:Root 'src/assess/rules/devops.capability.yaml') -Raw)
+        $script:FinOpsDoc = ConvertFrom-Yaml (Get-Content (Join-Path -Path $script:Root -ChildPath 'src/assess/rules/finops.review.yaml') -Raw)
+        $script:DevOpsDoc = ConvertFrom-Yaml (Get-Content (Join-Path -Path $script:Root -ChildPath 'src/assess/rules/devops.capability.yaml') -Raw)
     }
     It 'finops.review.yaml loads under Get-RuleSet with a non-empty frameworkversion' {
         $set = Get-RuleSet -Patterns @('finops.review')
@@ -242,17 +265,17 @@ Describe 'AB#6826/AB#6827 -- rule files load, cite real items, and gate every ac
 
 Describe 'AB#6826/AB#6827 -- registry entries exist and route to the right rule file' {
     It 'FinOps Review is registered and points at exactly finops.review' {
-        $script:Manifest.Keys | Should -Contain 'FinOps Review'
-        $script:Manifest['FinOps Review'].Rules | Should -Be @('finops.review')
-        $script:Manifest['FinOps Review'].Ingest | Should -Contain 'CostInventory'
+        $script:Manifest.Keys | Should -Contain 'Microsoft: FinOps Review'
+        $script:Manifest['Microsoft: FinOps Review'].Rules | Should -Be @('finops.review')
+        $script:Manifest['Microsoft: FinOps Review'].Ingest | Should -Contain 'CostInventory'
     }
     It 'DevOps Capability Assessment is registered and points at exactly devops.capability' {
-        $script:Manifest.Keys | Should -Contain 'DevOps Capability Assessment'
-        $script:Manifest['DevOps Capability Assessment'].Rules | Should -Be @('devops.capability')
-        $script:Manifest['DevOps Capability Assessment'].Ingest | Should -Contain 'DevOpsCapability'
+        $script:Manifest.Keys | Should -Contain 'Microsoft: DevOps Capability'
+        $script:Manifest['Microsoft: DevOps Capability'].Rules | Should -Be @('devops.capability')
+        $script:Manifest['Microsoft: DevOps Capability'].Ingest | Should -Contain 'DevOpsCapability'
     }
     It 'both Description fields state the enumeration is inferred, not Microsoft-published' {
-        $script:Manifest['FinOps Review'].Description | Should -Match '(?i)inferred'
-        $script:Manifest['DevOps Capability Assessment'].Description | Should -Match '(?i)inferred'
+        $script:Manifest['Microsoft: FinOps Review'].Description | Should -Match '(?i)inferred'
+        $script:Manifest['Microsoft: DevOps Capability'].Description | Should -Match '(?i)inferred'
     }
 }

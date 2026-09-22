@@ -15,8 +15,8 @@ description: Common errors and solutions when running AzureScout.
 | `Get-AzSubscription returned 0 subscriptions` | Identity has no Reader role on any subscription | Assign `Reader` at the subscription or management group level. |
 | `Connect-AzAccount: interactive login failed` | Running in a non-interactive session (CI/CD, SSH) | Use `-DeviceLogin`, SPN with secret, or SPN with certificate. See [Authentication](./authentication.md). |
 | `Token acquisition failed for MSGraph` | Az.Accounts version too old or tenant configuration issue | Update `Az.Accounts` to latest: `Update-Module Az.Accounts -Force` |
-| `Export-Excel: file is locked` | Excel report file is open in another application | Close the file and re-run. |
-| Management Groups / Custom Role Definitions / Policy Definitions / Policy Set Definitions worksheets are empty | First check: is `Reader` assigned at the **tenant-root management group**, not just at individual subscriptions? Subscription-scoped `Reader` silently returns an empty hierarchy — no error. | Assign `Reader` at the tenant-root MG. Since v2.3.0 the login summary reports the visible management-group count at sign-in. If root-MG `Reader` is already in place and the sheet is still empty, that's worth reporting — whether `Management Group Reader` is genuinely additional beyond `Reader` is currently unresolved; see [Permissions](./permissions.md#arm-permissions). Do not reach for a broader role first. |
+| `Export-Excel: file is locked` during an internal compatibility test | A fixture from the held Excel renderer is open in another application; live runs do not emit Excel | Close the fixture and re-run the renderer test. |
+| Management groups, custom roles, or policy definitions are absent from React/JSON | First check: is `Reader` assigned at the **tenant-root management group**, not just at individual subscriptions? Subscription-scoped `Reader` silently returns an empty hierarchy — no error. | Assign `Reader` at the tenant-root MG. Since v2.3.0 the login summary reports the visible management-group count at sign-in. If root-MG `Reader` is already in place and the data is still empty, that's worth reporting — whether `Management Group Reader` is genuinely additional beyond `Reader` is currently unresolved; see [Permissions](./permissions.md#arm-permissions). Do not reach for a broader role first. |
 | A Graph-backed collector (e.g. `IdentityProviders`) is empty and nothing seems wrong with permissions | Some Graph queries are issued but consumed by no collector — Scout still probes them so the pre-flight can tell you they're unnecessary | Expected. The pre-flight prints `Warn ... queried but NO collector reads the result. Do not grant it.` for these — check `-PermissionAudit` / `Test-AZSCPermissions` output rather than granting more access. See [Permissions](./permissions.md#microsoft-graph-permissions). |
 | `Get-AzAdvisorRecommendation_List: ... Expected '{' or '['. Was String: The.` | A defect in `Az.Advisor` 3.0.0, not in Scout. Azure returned a plain-text error sentence beginning "The …" — almost always `Microsoft.Advisor` not being registered on that subscription, or Advisor not having assessed it yet — and the generated cmdlet deserialises it as JSON regardless. | **Expected and handled since v3.3.2.** Scout skips that subscription, names it, and carries on; the other subscriptions are unaffected and the missing findings are reported as *Not assessed*. To include it: `Register-AzResourceProvider -ProviderNamespace Microsoft.Advisor`. To omit Advisor entirely: `-SkipAdvisory`. Before v3.3.2 this aborted the Advisor sweep for the **whole tenant** and surfaced as a raw stack trace. |
 | `[FAIL] Graph: IdentityRiskyUser.Read.All: DENIED` on a tenant that has consented to it | Identity Protection is an **Entra ID P2** feature. Without P2 the endpoint returns nothing no matter how much consent is granted. | **Not a permission problem — do not chase it.** Since v3.3.2 Scout reads `subscribedSkus` and reports `NOT LICENSED — requires Microsoft Entra ID P2` instead, and `Identity/RiskyUsers` is reported as *Not assessed*. Granting the permission does not populate it; only a P2 licence does. See [Permissions](./permissions.md#licence-tiers-what-a-permission-cannot-buy-you). |
@@ -25,9 +25,9 @@ description: Common errors and solutions when running AzureScout.
 | Output folders accumulating on disk | One folder per run, by design | `Clear-AZSCCacheFolder -OlderThan 30` prunes runs not written to in the last 30 days. |
 | `No Azure DevOps organizations could be discovered` | Service principals have no profile to enumerate | Pass `-DevOpsOrganization 'contoso','fabrikam'`. See [Azure DevOps](../automation-guide/azure-devops.md). |
 | `Could not acquire an Azure DevOps token` | Not signed in, or the sign-in cannot reach Azure DevOps | Run `Connect-AzAccount`, or pass `-DevOpsPat`. |
-| ADO Service Connections worksheet missing | Identity holds project read but not service connection read | Expected and handled — that slice is skipped and the rest still collects. Grant the scope to include it. |
+| ADO Service Connections data missing | Identity holds project read but not service connection read | Expected and handled — that slice is skipped and the rest still collects. Grant the scope to include it. |
 | Runbook uploads fail with `blob already exists` | Module older than v2.3.0 | Upgrade. Uploads now pass `-Force`, so a second scheduled run overwrites rather than failing. See [Azure Automation Account](../automation-guide/automation.md). |
-| Chart step fails on a GitHub-hosted runner, or `0x80040154 REGDB_E_CLASSNOTREG` | Module older than v2.7.0 — chart customization drove Excel over COM, and no hosted runner has Excel installed | Upgrade. Since v2.7.0 chart styling runs on EPPlus/ImportExcel with no Excel host, so `lite: false` works on a hosted runner. See [GitHub Actions](../automation-guide/github-actions.md). |
+| A held Excel-renderer compatibility test reports `0x80040154 REGDB_E_CLASSNOTREG` | Obsolete module/test path attempted Excel COM | Upgrade the test target. The retained renderer uses EPPlus/ImportExcel; live React/JSON runs do not execute chart customization. |
 | `The term 'Invoke-AzCostManagementQuery' is not recognized` | `Az.CostManagement` missing, and before v2.5.3 `-IncludeCosts` treated that as fatal | Upgrade. Since v2.5.3 the run continues without cost data and warns instead. To collect costs, `Install-Module Az.CostManagement -Scope CurrentUser`. |
 | `The property '<name>' cannot be found on this object` during extraction | Module older than v2.5.3 | Upgrade. This was a StrictMode member-enumeration fault that fired whenever an Azure API returned an empty result for **every** subscription — see [Changelog](../project/changelog.md). |
 
@@ -38,16 +38,18 @@ When something goes wrong, read the log before re-running anything.
 
 | File | Contents |
 |------|----------|
-| `scout-run.log` | Structured log: run metadata header, every phase boundary with elapsed time, per-phase counts, warnings, and — when a run fails — the full error record including the failing script, line number and script stack trace |
+| `scout-run.log` | Structured detailed log: run metadata; DEBUG/VERBOSE extraction subphases; collector status, rows, and elapsed time; processing and assessment timing; per-rule evidence counts; renderer completion; warnings; and, on failure, the full error record including script, line, and stack trace. This detail is written by default without enabling console `-Debug` or `-Verbose`. |
 | `scout-console.log` | Transcript of everything printed to the console, warnings included. Skipped on hosts that do not support transcription (including Azure Automation) |
 
-Both land next to the report:
+Both land next to the live outputs:
 
 ```
 C:\Users\you\Documents\AzureScout\2026-07-25_152431_d6fc73cf\
 ├── scout-run.log
 ├── scout-console.log
-└── AzureScout_Report_2026-07-25_15_24.xlsx
+├── report-react.html
+├── AzureScout_Report_2026-07-25_15_24.json
+└── evidence.json
 ```
 
 A failed run prints the log path before it exits:
@@ -73,7 +75,8 @@ once. A lost log is a lost diagnostic, never a lost report.
 
 ## Debugging
 
-For step-by-step tracing beyond the run log, enable debug output:
+The file log already contains DEBUG/VERBOSE detail. To mirror additional step-by-step diagnostics
+to the console while the run is active, enable debug output:
 
 ```powershell
 Invoke-AzureScout -TenantID '00000000-...' -Debug
