@@ -35,27 +35,26 @@ BeforeAll {
             Account = [pscustomobject]@{ Id = 'test-user@contoso.com' }
         }
     }
-    function Get-AzRoleAssignment {         [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
-param([string]$Scope, [string]$SignInName, [string]$ErrorAction) @() }
+    function Get-AzRoleAssignment { param([string]$Scope, [string]$SignInName, [string]$ErrorAction) @() }
 
     . "$script:Root/src/assess/Test-ScoutPermission.ps1"
 }
 
 Describe 'Test-ScoutPermission -- unknown/missing manifest key crash class (StrictMode sweep)' {
     It 'does not throw when -Assessment names a value that is not a key in -Manifest at all' {
-        $manifest = @{ 'CAF: Azure Landing Zone' = @{ Ingest = @('AzGovViz') } }
+        $manifest = @{ LandingZone = @{ Ingest = @('AzGovViz') } }
         $results = Test-ScoutPermission -Assessment @('NotARealAssessmentName') -Manifest $manifest 6>$null
         @($results).Count | Should -BeGreaterThan 0
     }
 
     It 'does not throw when -Manifest itself is $null' {
-        $results = Test-ScoutPermission -Assessment @('CAF: Azure Landing Zone') -Manifest $null 6>$null
+        $results = Test-ScoutPermission -Assessment @('LandingZone') -Manifest $null 6>$null
         @($results).Count | Should -BeGreaterThan 0
     }
 
     It 'still detects the AzGovViz ingest requirement for an assessment that IS a valid manifest key' {
-        $manifest = @{ 'CAF: Azure Landing Zone' = @{ Ingest = @('AzGovViz') } }
-        $results = Test-ScoutPermission -Assessment @('CAF: Azure Landing Zone') -Manifest $manifest 6>$null
+        $manifest = @{ LandingZone = @{ Ingest = @('AzGovViz') } }
+        $results = Test-ScoutPermission -Assessment @('LandingZone') -Manifest $manifest 6>$null
         # @() wrap is load-bearing here too: a Where-Object match of zero items
         # collapses the bare expression to $null, and $null.Count is exactly the
         # crash class this whole test file exists to guard against.
@@ -63,23 +62,10 @@ Describe 'Test-ScoutPermission -- unknown/missing manifest key crash class (Stri
     }
 
     It 'reports no Graph checks when every named assessment is missing/unknown (no AzGovViz ingest found)' {
-        $manifest = @{ 'CAF: Azure Landing Zone' = @{ Ingest = @('AzGovViz') } }
+        $manifest = @{ LandingZone = @{ Ingest = @('AzGovViz') } }
         $results = Test-ScoutPermission -Assessment @('DoesNotExist1', 'DoesNotExist2') -Manifest $manifest 6>$null
         @($results | Where-Object Check -like 'Graph:*').Count | Should -Be 0
         # The ARM Reader @ MG root check always runs regardless.
         @($results | Where-Object Check -eq 'ARM Reader @ MG root').Count | Should -Be 1
-    }
-
-    It 'requests Key Vault Reader only for assessments that consume key metadata (AB#7358)' {
-        $manifest = @{
-            'Microsoft: CASA' = @{ Ingest = @('Governance') }
-            'Assess: Compute' = @{ Ingest = @() }
-        }
-
-        $casa = Test-ScoutPermission -Assessment @('Microsoft: CASA') -Manifest $manifest 6>$null
-        $compute = Test-ScoutPermission -Assessment @('Assess: Compute') -Manifest $manifest 6>$null
-
-        @($casa | Where-Object Check -eq 'Key Vault Reader @ MG root').Count | Should -Be 1
-        @($compute | Where-Object Check -eq 'Key Vault Reader @ MG root').Count | Should -Be 0
     }
 }

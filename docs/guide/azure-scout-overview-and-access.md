@@ -14,11 +14,10 @@ access. Sections 1–2 are the executive summary; sections 3 onward are the acce
 Azure Scout inventories an Azure estate and assesses it against Microsoft's own published
 frameworks, then produces the deliverable an assessment engagement is normally written by hand:
 a single self-contained report page carrying the inventory, every assessment, the evidence behind
-each finding, and the prioritised path back to compliance—which you can export to PDF/Print,
-Markdown, JSON, CSV, or standalone HTML.
+each finding, and the prioritised path back to compliance — which you can export to PDF, Word,
+Markdown or CSV.
 
-> Standalone Word, PowerPoint, PDF, Excel, Power BI, HTML, ECharts dashboard, Markdown-file,
-> AsciiDoc, and governance-report outputs are **coming soon**: they are being
+> Standalone Word, PowerPoint, PDF, Excel and Power BI outputs are **coming soon**: they are being
 > rebuilt to generate from that report rather than alongside it, so a document and the page it came
 > from can never disagree (**AB#6922**).
 
@@ -75,12 +74,9 @@ Access can be revoked the moment collection finishes; report generation needs no
 | Role | Scope | Why |
 |---|---|---|
 | **Reader** | **Root management group** (Tenant Root Group) | One assignment, inherited by every management group, subscription and resource group beneath it |
-| **Key Vault Reader** | **Key Vaults to inventory**, directly or inherited | Lists secret/key names, tags and lifecycle metadata; cannot read secret values or private key material |
 
-`Reader` is the entire ARM control-plane requirement and confers no write or delete. The separate
-metadata-only `Key Vault Reader` grant is needed only for complete Key Vault object worksheets and
-the assessments that evaluate their expiry/enabled state; Scout reports those datasets unavailable
-when it is absent rather than substituting the incomplete ARM child-resource view.
+This is the **entire Azure RBAC requirement**. Reader is a built-in role that confers no write,
+no delete and no data-plane access.
 
 Assigning at the root management group is preferred over per-subscription assignment for two
 reasons: it is one auditable grant instead of many, and it means a subscription created mid-
@@ -96,12 +92,11 @@ Reader on each in-scope subscription works. The trade-off is explicit and should
 management-group hierarchy and any policy assigned above subscription level become invisible, so
 governance findings will be reported as **not assessed** rather than silently passing.
 
-### Optional cost prerequisite
+### Optional additions
 
-Cost analysis (`-IncludeCosts`) uses the same Azure `Reader` assignment above; Scout does not
-require an additional Azure role. For EA or MCA customers, the billing owner must also enable the
-applicable **view charges / Azure charges** setting. A role assignment cannot override a disabled
-billing visibility setting.
+| Role | Scope | Needed only for |
+|---|---|---|
+| **Cost Management Reader** | Billing scope or subscription | Cost analysis (`-IncludeCosts`). Reader alone cannot query the cost APIs |
 
 Nothing else. If a capability is unavailable, Scout reports it as not assessed and names the
 missing permission — it does not fail the run and does not report a gap it could not measure.
@@ -114,11 +109,8 @@ Directory objects are read through **Microsoft Graph**. Two options:
 
 ### Option A — a delegated user (interactive runs)
 
-Assign the built-in Entra role **Global Reader**. This is the only Entra directory-role assignment
-required for Scout's supported interactive user read scan. Graph OAuth scopes are a separate token
-check: a directory role cannot add a scope that the authentication client did not issue. The two
-Verified ID datasets can therefore remain *Not assessed* under user authentication even with Global
-Reader; use the service-principal option below when those two datasets are required.
+Assign the built-in Entra role **Global Reader**. It is read-only across the directory and covers
+every Graph call below in one grant.
 
 ### Option B — a service principal (automation, and the recommended route)
 
@@ -127,6 +119,7 @@ Grant **application permissions** on Microsoft Graph, each requiring admin conse
 
 | Graph application permission | What Scout reads with it |
 |---|---|
+| `Directory.Read.All` | Baseline directory read |
 | `User.Read.All` | User accounts and their state |
 | `Group.Read.All` | Groups and membership |
 | `Application.Read.All` | App registrations, service principals, credential expiry |
@@ -136,8 +129,7 @@ Grant **application permissions** on Microsoft Graph, each requiring admin conse
 | `Domain.Read.All` | Verified domains and federation configuration |
 | `AdministrativeUnit.Read.All` | Administrative units |
 | `IdentityRiskyUser.Read.All` | Identity Protection risky users — **requires Entra ID P2** |
-| `Policy.Read.AuthenticationMethod` | Verified ID authentication-method configuration |
-| `VerifiedId-Profile.Read.All` | Verified ID profiles |
+| `PrivilegedAccess.Read.AzureResources` | PIM eligibility and activation |
 
 If a permission is withheld, the findings that depend on it are reported as **not assessed** and
 name the permission — the run continues and the rest of the report is unaffected.
@@ -226,14 +218,12 @@ declined, the DevOps capability findings are reported as not assessed and nothin
 | Plane | Grant | Scope |
 |---|---|---|
 | **Azure** | `Reader` | Root management group |
-| **Key Vault metadata** | `Key Vault Reader` | Key Vaults to inventory, directly or inherited |
-| **Azure cost visibility** *(optional)* | No additional role beyond `Reader`; enable EA/MCA view-charges policy | Billing account/profile |
-| **Entra ID** | `Global Reader` for a user, **or** the Graph application permissions in section 4 for a service principal | Tenant |
+| **Azure** *(optional)* | `Cost Management Reader` | Billing scope — only for cost analysis |
+| **Entra ID** | `Global Reader`, **or** the Graph application permissions in section 4 | Tenant |
 | **Azure DevOps** *(optional)* | Read-only PAT | Organisation |
 
-Every grant above is **read-only**. There is no write permission or standing access anywhere in
-this list. `Key Vault Reader` adds metadata-only data actions but cannot read secret values or
-private key material.
+Every grant above is **read-only**. There is no write permission, no data-plane permission and no
+standing access anywhere in this list.
 
 ---
 
@@ -242,9 +232,8 @@ private key material.
 **Does it exfiltrate anything?** No. Scout runs where you run it and writes its output to the
 local path you specify. There is no telemetry, no phone-home and no cloud service component.
 
-**Does it read our data?** It reads resource configuration and metadata, not tenant content: no
-blob contents, database rows, Key Vault secret values, private key material, mail or documents.
-Key Vault items are limited to names, tags, content type and lifecycle metadata.
+**Does it read our data?** No — control plane only. Not blob contents, database rows, Key Vault
+secret values, mail or documents. Key Vault items are read as names and expiry dates.
 
 **Can it change anything?** No. Every permission listed is read-only, and Scout has no write code
 path.

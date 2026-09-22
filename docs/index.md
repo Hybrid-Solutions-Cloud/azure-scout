@@ -18,14 +18,14 @@ hero:
       link: /reference/assessment-catalogue
     - theme: alt
       text: View on GitHub
-      link: https://github.com/Hybrid-Solutions-Cloud/azure-scout
+      link: https://github.com/thisismydemo/azure-scout
 
 features:
   - title: Two modes, one command
     details: Run bare for a wide inventory of everything in the tenant. Add -Assessment for a scored CAF/WAF review. Run with no parameters at all and a guided wizard walks you through it.
     link: /guide/overview
     linkText: How the modes differ
-  - title: 245 collectors, 18 categories
+  - title: 242 collectors, 18 categories
     details: Every one of Microsoft's eighteen published service categories, from AI and Analytics through to Storage and Web — plus Entra ID identity objects via Microsoft Graph.
     link: /reference/arm-modules
     linkText: Browse the collectors
@@ -38,7 +38,7 @@ features:
     link: /guide/permissions
     linkText: Permissions required
   - title: One report, and it is the deliverable
-    details: The self-contained React/HTML report — inventory, every assessment, evidence and the remediation plan on one page, exporting to Markdown, JSON, CSV and PDF from the page itself. React, Json and JsonEvidence are the only live output formats in every run mode. All legacy renderers are on hold while they are rebuilt to generate from React.
+    details: The self-contained React/HTML report — inventory, every assessment, evidence and the remediation plan on one page, exporting to Markdown, JSON, CSV and PDF from the page itself. Word, PowerPoint, PDF, Excel and Power BI renderers are on hold while they are rebuilt to generate from it. Inventory runs still write Excel, JSON, Markdown, AsciiDoc and Power BI CSVs.
     link: /assessment/configuration
     linkText: Report tiers and what is on hold
   - title: Unattended by design
@@ -51,7 +51,7 @@ features:
 
 ```powershell
 # Install from the PowerShell Gallery
-Install-Module -Name AzureScout -Scope CurrentUser -Force -AllowClobber
+Install-Module -Name AzureScout
 
 # Guided wizard — no parameters needed
 Invoke-AzureScout
@@ -60,7 +60,7 @@ Invoke-AzureScout
 Invoke-AzureScout -Scope All
 
 # Scored CAF/WAF assessment
-Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone'
+Invoke-AzureScout -Assessment LandingZone
 
 # Check what you have access to, before running anything
 Invoke-AzureScout -PermissionAudit

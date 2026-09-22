@@ -54,23 +54,11 @@ $ErrorActionPreference = 'Stop'
     Tracks ADO Story AB#396.
 #>
 function Export-JsonEvidence {
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'Findings', Justification = 'AB#396 -- this is a resources-only evidence export (raw Collect only). Findings is kept for the uniform renderer signature dispatched by src/report/Export-Report.ps1.')]
-    param($Findings, $Collect, [string] $OutputPath, [string] $SourceEvidencePath)
+    param($Findings, $Collect, [string] $OutputPath)
 
     try {
         if (-not (Test-Path $OutputPath)) {
             New-Item -ItemType Directory -Path $OutputPath -Force | Out-Null
-        }
-
-        # The assessment orchestrator supplies the completed export of this same immutable
-        # collect snapshot. Preserve standalone files without serializing the entire estate
-        # again for every assessment folder. A failed root export falls back to normal export.
-        $evidencePath = Join-Path $OutputPath 'evidence.json'
-        if ($SourceEvidencePath -and (Test-Path -LiteralPath $SourceEvidencePath -PathType Leaf)) {
-            if ([IO.Path]::GetFullPath($SourceEvidencePath) -ne [IO.Path]::GetFullPath($evidencePath)) {
-                Copy-Item -LiteralPath $SourceEvidencePath -Destination $evidencePath -Force
-            }
-            return $evidencePath
         }
 
         # $Collect may legitimately be $null (e.g. a caller re-rendering from an
@@ -78,6 +66,7 @@ function Export-JsonEvidence {
         # letting ConvertTo-Json render the literal text "null" for the whole file.
         $payload = if ($null -ne $Collect) { $Collect } else { [pscustomobject]@{} }
 
+        $evidencePath = Join-Path $OutputPath 'evidence.json'
         $payload | ConvertTo-Json -Depth 100 | Out-File -FilePath $evidencePath -Encoding utf8
         return $evidencePath
     }

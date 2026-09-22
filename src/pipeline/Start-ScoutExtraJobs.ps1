@@ -1,7 +1,3 @@
-#Requires -Version 7.0
-Set-StrictMode -Version Latest
-$ErrorActionPreference = 'Stop'
-
 <#
 .Synopsis
 Run the non-collector processing work (security, policy, advisory, subscriptions, diagram).
@@ -12,7 +8,7 @@ their results, then starts the draw.io diagram work. Formerly this started one b
 per item; see the AB#5649 notes on the function for why that changed.
 
 .Link
-https://github.com/Hybrid-Solutions-Cloud/azure-scout/src/pipeline/Start-ScoutExtraJobs.ps1
+https://github.com/thisismydemo/azure-scout/src/pipeline/Start-ScoutExtraJobs.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC).
@@ -24,8 +20,6 @@ Authors: Claudio Merola
 #>
 
 function Start-AZSCExtraJobs {
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Justification = 'Public function name referenced by exact spelling from src/Invoke-AzureScout.ps1, archived/Modules, and tests -- renaming is a breaking API change out of scope for a lint-only pass.')]
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'IncludeCosts', Justification = 'Both call sites always pass it as part of a fixed named-argument list shared with sibling dispatch functions; this function does not need it since CostData already carries the cost payload.')]
     Param ($SkipDiagram,
             $SkipAdvisory,
             $SkipPolicy,
@@ -43,7 +37,7 @@ function Start-AZSCExtraJobs {
             $PolicyAssign,
             $Automation,
             $IncludeCosts,
-            $CostData, $DiscoveryContext)
+            $CostData)
     # ── StrictMode boundary ──────────────────────────────────────────────────────────
     # This is the v1 inventory engine, forked from microsoft/ARI, written without StrictMode
     # and carrying property reads over API payloads whose shape varies by tenant. StrictMode is
@@ -109,7 +103,7 @@ function Start-AZSCExtraJobs {
     Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Checking if Draw.io Diagram Job Should be Run.')
     if (![bool]$SkipDiagram) {
         Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Starting Draw.io Diagram Processing Job.')
-        Invoke-AZSCDrawIOJob -Subscriptions $Subscriptions -Resources $Resources -Advisories $Advisories -DDFile $DDFile -DiagramCache $DiagramCache -FullEnv $FullEnv -ResourceContainers $ResourceContainers -Automation $Automation -AZSCModule $AZSCModule -DiscoveryContext $DiscoveryContext
+        Invoke-AZSCDrawIOJob -Subscriptions $Subscriptions -Resources $Resources -Advisories $Advisories -DDFile $DDFile -DiagramCache $DiagramCache -FullEnv $FullEnv -ResourceContainers $ResourceContainers -Automation $Automation -AZSCModule $AZSCModule
     }
 
     <######################################################### SECURITY CENTER ######################################################################>

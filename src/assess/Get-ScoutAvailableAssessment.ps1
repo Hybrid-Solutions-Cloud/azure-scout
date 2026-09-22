@@ -42,7 +42,7 @@ $ErrorActionPreference = 'Stop'
 #>
 function Get-ScoutAvailableAssessment {
     [CmdletBinding()]
-    [OutputType([System.Object[]])]
+    [OutputType([string])]
     param(
         [Parameter(Mandatory)]
         [hashtable] $Manifest,

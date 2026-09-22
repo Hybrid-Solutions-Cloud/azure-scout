@@ -32,18 +32,16 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  build:
-    # Shared HCS runners exclude public repositories; keep this build isolated.
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          persist-credentials: false
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -57,28 +55,8 @@ jobs:
       - name: Build VitePress site
         run: npm run docs:build
 
-      - name: Upload built documentation
-        uses: actions/upload-artifact@v4
-        with:
-          name: documentation-site
-          path: docs/.vitepress/dist
-          if-no-files-found: error
-
-  deploy:
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-    needs: build
-    # Shared HCS runners exclude public repositories; keep this build isolated.
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - name: Download built documentation
-        uses: actions/download-artifact@v4
-        with:
-          name: documentation-site
-          path: docs/.vitepress/dist
-
-      - name: Deploy
+      - name: Deploy (if on main branch)
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}

@@ -1,7 +1,3 @@
-#Requires -Version 7.0
-Set-StrictMode -Version Latest
-$ErrorActionPreference = 'Stop'
-
 <#
 .Synopsis
 Module for Extra Excel Details
@@ -10,7 +6,7 @@ Module for Extra Excel Details
 This script open the Excel file after it has all the Resource sheets and adds extra details.
 
 .Link
-https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Private/3.ReportingFunctions/Start-AZSCExcelExtraData.ps1
+https://github.com/thisismydemo/azure-scout/Modules/Private/3.ReportingFunctions/Start-AZSCExcelExtraData.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC)

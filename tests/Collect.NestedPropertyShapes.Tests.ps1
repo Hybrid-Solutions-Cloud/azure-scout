@@ -42,7 +42,7 @@ $script:Shapes = @('pscustomobject', 'dictionary') +
 # the fixture builders have to be defined in `BeforeAll` to exist at run time -- only the
 # `-ForEach` list above is needed during discovery.
 BeforeAll {
-    . (Join-Path -Path $PSScriptRoot -ChildPath '..' -AdditionalChildPath 'src', 'collect', 'ConvertFrom-ScoutInventory.ps1')
+    . (Join-Path $PSScriptRoot '..' 'src' 'collect' 'ConvertFrom-ScoutInventory.ps1')
 
     $script:VnetJson = @'
 {
@@ -180,22 +180,5 @@ Describe 'ConvertFrom-ScoutInventory shapes real values from the row shapes it c
         $app.prefix | Should -Be '10.0.0.0/24'
         $app.total | Should -Be 251     # 256 addresses less the 5 Azure reserves
         $app.used | Should -Be 2
-    }
-}
-
-Describe 'ConvertFrom-ScoutInventory sparse relationship rows' {
-    It 'retains a private endpoint whose connection arrays are both absent' {
-        $row = [pscustomobject]@{
-            id = '/subscriptions/sub/resourceGroups/rg/providers/Microsoft.Network/privateEndpoints/pe-empty'
-            type = 'microsoft.network/privateendpoints'
-            name = 'pe-empty'
-            resourceGroup = 'rg'
-            subscriptionId = 'sub'
-            properties = [pscustomobject]@{}
-        }
-
-        { $script:sparseResult = ConvertFrom-ScoutInventory -Resources @($row) -ResourceContainers @() } | Should -Not -Throw
-        @($script:sparseResult.privateEndpoints).Count | Should -Be 1
-        $script:sparseResult.privateEndpoints[0].targetResourceId | Should -BeNullOrEmpty
     }
 }

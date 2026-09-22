@@ -17,7 +17,7 @@ function Export-Report {
     # Export-React's own -ReportIdentity doc comment for the neutral-default fallback.
     # $DefaultReportMode (AB#6928 follow-up, optional) -- which view lens the React report opens
     # on when the browser has nothing persisted yet; only the React renderer consumes it.
-    param([string] $Renderer, $Findings, $Collect, [string] $OutputPath, $Drift = $null, [hashtable] $ReportIdentity = @{}, [string] $DefaultReportMode = 'Consultant', [string] $SourceEvidencePath)
+    param([string] $Renderer, $Findings, $Collect, [string] $OutputPath, $Drift = $null, [hashtable] $ReportIdentity = @{}, [string] $DefaultReportMode = 'Consultant')
     switch ($Renderer) {
         'PowerBi' { Export-PowerBi -Findings $Findings -Collect $Collect -OutputPath $OutputPath }
         'Html'    { Export-Html    -Findings $Findings -Collect $Collect -OutputPath $OutputPath }
@@ -31,7 +31,7 @@ function Export-Report {
         'Json'    { $Findings | ConvertTo-Json -Depth 100 | Out-File "$OutputPath/findings.json" }
         # AB#396: resources-only evidence export (raw Collect only -- no assessment
         # metadata/scores/findings; see Export-JsonEvidence.ps1's own header for why).
-        'JsonEvidence' { Export-JsonEvidence -Findings $Findings -Collect $Collect -OutputPath $OutputPath -SourceEvidencePath $SourceEvidencePath }
+        'JsonEvidence' { Export-JsonEvidence -Findings $Findings -Collect $Collect -OutputPath $OutputPath }
         # AB#379/394/395: hand-rolled, dependency-free .pdf renderer (cover, exec
         # summary, per-area findings table with repeating header, gaps, manual
         # review). See Export-Pdf.ps1's own header for the offline-PDF design.

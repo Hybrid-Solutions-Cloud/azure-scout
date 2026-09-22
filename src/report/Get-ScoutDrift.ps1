@@ -76,7 +76,7 @@ function Get-ScoutDrift {
         throw 'Get-ScoutDrift: -RunId is required (pass the caller-controlled run id, e.g. the assessment run-folder name).'
     }
     if ([string]::IsNullOrWhiteSpace($HistoryPath)) {
-        $HistoryPath = Join-Path -Path (Get-Location) -ChildPath 'output' -AdditionalChildPath '.scout-history'
+        $HistoryPath = Join-Path (Get-Location) 'output' '.scout-history'
     }
 
     if (-not (Test-Path $HistoryPath)) {
@@ -132,18 +132,13 @@ function Get-ScoutDrift {
     $previous = if ($priorCandidates.Count -gt 0) { $priorCandidates[-1] } else { $null }
     $isBaseline = ($null -eq $previous)
 
-    # Assessment membership is part of identity: the same rule may have different
-    # evidence and verdicts in two assessments. Older bare-ID history is not a safe
-    # baseline for those rows; they intentionally start a new per-assessment baseline.
+    # ---- current run's findings, keyed by Id ----
     $currentFindings = @(Get-ScoutDriftProp $Findings 'Findings')
     $currentMap = @{}
     foreach ($f in $currentFindings) {
         $id = Get-ScoutDriftProp $f 'Id'
         if ([string]::IsNullOrEmpty($id)) { continue }
-        $assessment = [string](Get-ScoutDriftProp $f 'Assessment')
-        $key = if ($assessment) { '{0}:{1}:{2}' -f $assessment.Length, $assessment, $id } else { $id }
-        if ($currentMap.ContainsKey($key)) { throw "Duplicate finding identity '$key'." }
-        $currentMap[$key] = $f
+        $currentMap[$id] = $f
     }
 
     $previousStatuses = if ($isBaseline) { $null } else { Get-ScoutDriftProp $previous 'Statuses' }
@@ -165,9 +160,7 @@ function Get-ScoutDrift {
 
         $counts[$driftType]++
         $driftFindings.Add([pscustomobject]@{
-            Id             = Get-ScoutDriftProp $f 'Id'
-            Assessment     = Get-ScoutDriftProp $f 'Assessment'
-            FindingKey     = $id
+            Id             = $id
             Title          = Get-ScoutDriftProp $f 'Title'
             Framework      = Get-ScoutDriftProp $f 'Framework'
             Area           = Get-ScoutDriftProp $f 'Area'

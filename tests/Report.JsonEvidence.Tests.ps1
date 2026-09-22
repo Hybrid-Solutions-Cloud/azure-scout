@@ -11,9 +11,8 @@
 BeforeAll {
     $script:Root = Split-Path $PSScriptRoot -Parent
     . "$script:Root/src/report/renderers/Export-JsonEvidence.ps1"
-    . "$script:Root/src/report/Export-Report.ps1"
 
-    $script:CollectPath = Join-Path -Path $script:Root -ChildPath 'tests' -AdditionalChildPath 'datadump', 'sample-collect.json'
+    $script:CollectPath = Join-Path $script:Root 'tests' 'datadump' 'sample-collect.json'
     $script:Collect = Get-Content $script:CollectPath -Raw | ConvertFrom-Json -Depth 100
 
     # A representative scored-Findings object -- Export-JsonEvidence must
@@ -28,37 +27,12 @@ BeforeAll {
         Findings    = @([pscustomobject]@{ Id = 'CAF-NET-01'; Status = 'Fail' })
     }
 
-    $script:OutDir = Join-Path -Path $script:Root -ChildPath 'tests' -AdditionalChildPath 'test-output', 'json-evidence'
+    $script:OutDir = Join-Path $script:Root 'tests' 'test-output' 'json-evidence'
     if (Test-Path $script:OutDir) { Remove-Item $script:OutDir -Recurse -Force }
 }
 
 AfterAll {
     if (Test-Path $script:OutDir) { Remove-Item $script:OutDir -Recurse -Force -ErrorAction SilentlyContinue }
-}
-
-Describe 'Assessment companion evidence reuse' {
-    It 'dispatches a byte-identical standalone copy without serializing the collect again' {
-        $source = Join-Path $TestDrive 'root-evidence.json'
-        '{"rows":[{"name":"retained"}]}' | Set-Content $source -Encoding utf8
-        Mock ConvertTo-Json { throw 'The existing evidence must not be serialized again.' }
-        $output = Export-Report -Renderer JsonEvidence -Collect $script:Collect -Findings $script:Findings `
-            -OutputPath (Join-Path $TestDrive 'assessment') -SourceEvidencePath $source
-        $output | Should -Exist
-        (Get-FileHash $output).Hash | Should -Be (Get-FileHash $source).Hash
-        Should -Invoke ConvertTo-Json -Times 0
-    }
-
-    It 'falls back to serialization when no successful root export exists' {
-        $output = Export-Report -Renderer JsonEvidence -Collect ([pscustomobject]@{ retained = $true }) `
-            -OutputPath (Join-Path $TestDrive 'fallback') -SourceEvidencePath (Join-Path $TestDrive 'missing.json')
-        (Get-Content $output -Raw | ConvertFrom-Json).retained | Should -BeTrue
-    }
-
-    It 'allows the original destination without copying a file onto itself' {
-        $source = Join-Path $TestDrive 'evidence.json'
-        '{"retained":true}' | Set-Content $source
-        Export-JsonEvidence -OutputPath $TestDrive -SourceEvidencePath $source | Should -Be $source
-    }
 }
 
 Describe 'Export-JsonEvidence AB#396' {
@@ -94,7 +68,7 @@ Describe 'Export-JsonEvidence AB#396' {
     }
 
     It 'ignores -Findings entirely -- identical output regardless of what is passed' {
-        $altDir = Join-Path -Path $script:Root -ChildPath 'tests' -AdditionalChildPath 'test-output', 'json-evidence-alt'
+        $altDir = Join-Path $script:Root 'tests' 'test-output' 'json-evidence-alt'
         if (Test-Path $altDir) { Remove-Item $altDir -Recurse -Force }
         try {
             $altPath = Export-JsonEvidence -Findings $null -Collect $script:Collect -OutputPath $altDir
@@ -106,7 +80,7 @@ Describe 'Export-JsonEvidence AB#396' {
     }
 
     It 'is deterministic -- re-rendering the same Collect produces byte-identical output' {
-        $repeatDir = Join-Path -Path $script:Root -ChildPath 'tests' -AdditionalChildPath 'test-output', 'json-evidence-repeat'
+        $repeatDir = Join-Path $script:Root 'tests' 'test-output' 'json-evidence-repeat'
         if (Test-Path $repeatDir) { Remove-Item $repeatDir -Recurse -Force }
         try {
             $repeatPath = Export-JsonEvidence -Findings $script:Findings -Collect $script:Collect -OutputPath $repeatDir
@@ -120,7 +94,7 @@ Describe 'Export-JsonEvidence AB#396' {
 
 Describe 'Export-JsonEvidence -- defensive/edge cases' {
     It 'does not throw and emits an empty object when -Collect is $null' {
-        $dir = Join-Path -Path $script:Root -ChildPath 'tests' -AdditionalChildPath 'test-output', 'json-evidence-null'
+        $dir = Join-Path $script:Root 'tests' 'test-output' 'json-evidence-null'
         if (Test-Path $dir) { Remove-Item $dir -Recurse -Force }
         try {
             $path = Export-JsonEvidence -Findings $null -Collect $null -OutputPath $dir

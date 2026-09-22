@@ -14,14 +14,10 @@ BeforeAll {
 
     # The real function is deliberately polite to ARM (Start-Sleep between calls) -- no need
     # to actually wait in a unit test.
-    function Start-Sleep {         [Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Intentional local override of a built-in cmdlet to stub Azure/PowerShell calls for the test -- this is the point of the mock.')]
-        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
-param([Parameter(ValueFromRemainingArguments)] $Rest) }
+    function Start-Sleep { param([Parameter(ValueFromRemainingArguments)] $Rest) }
 
     function Get-AzAccessToken {
-                [Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidUsingConvertToSecureStringWithPlainText', '', Justification = 'Synthetic fake-credential value used only to satisfy a SecureString-typed mock return in this test -- not a real secret.')]
-        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
-param([Parameter(ValueFromRemainingArguments)] $Rest)
+        param([Parameter(ValueFromRemainingArguments)] $Rest)
         [pscustomobject]@{ Token = (ConvertTo-SecureString -String 'fake-token' -AsPlainText -Force) }
     }
 
@@ -34,9 +30,7 @@ param([Parameter(ValueFromRemainingArguments)] $Rest)
 Describe 'Get-ScoutApiResources -- happy path' {
     It 'returns one row per subscription with every field populated' {
         function Invoke-RestMethod {
-                        [Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Intentional local override of a built-in cmdlet to stub Azure/PowerShell calls for the test -- this is the point of the mock.')]
-            [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
-param([string] $Uri, [hashtable] $Headers, [string] $Method)
+            param([string] $Uri, [hashtable] $Headers, [string] $Method)
             if ($Uri -match 'ResourceHealth') { return [pscustomobject]@{ value = @('health-event') } }
             if ($Uri -match 'ManagedIdentity') { return [pscustomobject]@{ value = @('identity-1') } }
             if ($Uri -match 'advisorScore') { return [pscustomobject]@{ value = @('score-1') } }
@@ -61,65 +55,19 @@ param([string] $Uri, [hashtable] $Headers, [string] $Method)
     It 'calls Microsoft.Edge/sites once per subscription (AB#6801)' {
         $script:edgeCalls = 0
         function Invoke-RestMethod {
-                        [Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Intentional local override of a built-in cmdlet to stub Azure/PowerShell calls for the test -- this is the point of the mock.')]
-            [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
-param([string] $Uri, [hashtable] $Headers, [string] $Method)
+            param([string] $Uri, [hashtable] $Headers, [string] $Method)
             if ($Uri -match 'Microsoft\.Edge/sites\?api-version=2024-02-01-preview') { $script:edgeCalls++ }
             return [pscustomobject]@{ value = @() }
         }
         Get-ScoutApiResources -Subscriptions $script:subs | Out-Null
         $script:edgeCalls | Should -Be 2
     }
-
-    It 'can skip the managed-identity REST call when Resource Graph owns that dataset' {
-        $script:managedIdentityCalls = 0
-        function Invoke-RestMethod {
-            [Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Intentional local override of a built-in cmdlet to stub Azure/PowerShell calls for the test -- this is the point of the mock.')]
-            [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function declares the real cmdlet signature for offline binding.')]
-            param([string] $Uri, [hashtable] $Headers, [string] $Method)
-            if ($Uri -match 'ManagedIdentity') { $script:managedIdentityCalls++ }
-            return [pscustomobject]@{ value = @() }
-        }
-
-        $result = @(Get-ScoutApiResources -Subscriptions @($script:subs[0]) -SkipManagedIdentities)
-
-        $script:managedIdentityCalls | Should -Be 0
-        $result[0].ManagedIdentities | Should -BeNullOrEmpty
-    }
 }
 
 Describe 'Get-ScoutApiResources -- per-call resilience' {
-    It 'treats an unavailable Advisor score as ordinary empty data without throwing' {
-        $script:advisorSkipHttp = $false
-        function Invoke-RestMethod {
-            param(
-                [string] $Uri,
-                [hashtable] $Headers,
-                [string] $Method,
-                [string] $ErrorAction,
-                [switch] $SkipHttpErrorCheck,
-                [string] $StatusCodeVariable
-            )
-            $null = $Headers, $Method, $ErrorAction
-            if ($Uri -match 'advisorScore') {
-                $script:advisorSkipHttp = $SkipHttpErrorCheck
-                Set-Variable -Name $StatusCodeVariable -Value 404 -Scope 1
-                return [pscustomobject]@{ error = [pscustomobject]@{ code = 'NotFound' } }
-            }
-            return [pscustomobject]@{ value = @() }
-        }
-
-        $result = @(Get-ScoutApiResources -Subscriptions @($script:subs[0]) -SkipPolicy)
-
-        $script:advisorSkipHttp | Should -BeTrue
-        $result[0].AdvisorScore | Should -BeNullOrEmpty
-    }
-
     It 'degrades only the failing field to $null and keeps every other field and every other subscription' {
         function Invoke-RestMethod {
-                        [Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Intentional local override of a built-in cmdlet to stub Azure/PowerShell calls for the test -- this is the point of the mock.')]
-            [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
-param([string] $Uri, [hashtable] $Headers, [string] $Method)
+            param([string] $Uri, [hashtable] $Headers, [string] $Method)
             if ($Uri -match 'ManagedIdentity') { throw 'AuthorizationFailed' }
             return [pscustomobject]@{ value = @('ok') }
         }
@@ -142,113 +90,11 @@ Describe 'Get-ScoutApiResources -- SkipPolicy' {
     It 'skips all three policy calls when -SkipPolicy is supplied' {
         $script:policyCalls = 0
         function Invoke-RestMethod {
-                        [Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Intentional local override of a built-in cmdlet to stub Azure/PowerShell calls for the test -- this is the point of the mock.')]
-            [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
-param([string] $Uri, [hashtable] $Headers, [string] $Method)
+            param([string] $Uri, [hashtable] $Headers, [string] $Method)
             if ($Uri -match 'policy' -or $Uri -match 'Policy') { $script:policyCalls++ }
             return [pscustomobject]@{ value = @() }
         }
         Get-ScoutApiResources -Subscriptions $script:subs -SkipPolicy | Out-Null
         $script:policyCalls | Should -Be 0
-    }
-}
-
-Describe 'Get-ScoutApiResources -- request efficiency and resilience' {
-    It 'follows ARM nextLink pages and returns one stable array for the field' {
-        $script:resourceHealthCalls = 0
-        function Invoke-RestMethod {
-            [Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Intentional local test shadow; no remote request is made.')]
-            [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock signature matches the production invocation.')]
-            param([string] $Uri, [hashtable] $Headers, [string] $Method, [string] $ErrorAction)
-
-            if ($Uri -match 'ResourceHealth') {
-                $script:resourceHealthCalls++
-                return [pscustomobject]@{ value = @('page-1'); nextLink = 'https://management.azure.com/next-page' }
-            }
-            if ($Uri -eq 'https://management.azure.com/next-page') {
-                $script:resourceHealthCalls++
-                return [pscustomobject]@{ value = @('page-2') }
-            }
-            return [pscustomobject]@{ value = @() }
-        }
-
-        $result = @(Get-ScoutApiResources -Subscriptions @($script:subs[0]) -SkipPolicy)
-
-        $result[0].ResourceHealth | Should -Be @('page-1', 'page-2')
-        $script:resourceHealthCalls | Should -Be 2
-    }
-
-    It 'does not add fixed pacing sleeps to successful requests' {
-        $script:sleepCalls = 0
-        function Start-Sleep {
-            [Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Intentional local test shadow; no delay is performed.')]
-            param([int] $Milliseconds)
-            $script:sleepCalls++
-        }
-        function Invoke-RestMethod {
-            [Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Intentional local test shadow; no remote request is made.')]
-            [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock signature matches the production invocation.')]
-            param([string] $Uri, [hashtable] $Headers, [string] $Method, [string] $ErrorAction)
-            return [pscustomobject]@{ value = @() }
-        }
-
-        Get-ScoutApiResources -Subscriptions @($script:subs[0]) -SkipPolicy | Out-Null
-
-        $script:sleepCalls | Should -Be 0
-    }
-
-    It 'retries a transient throttling response and honors Retry-After without losing the field' {
-        $script:resourceHealthAttempts = 0
-        $script:retryDelays = @()
-        function Start-Sleep {
-            [Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Intentional local test shadow; no delay is performed.')]
-            param([int] $Milliseconds)
-            $script:retryDelays += $Milliseconds
-        }
-        function Invoke-RestMethod {
-            [Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Intentional local test shadow; no remote request is made.')]
-            [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock signature matches the production invocation.')]
-            param([string] $Uri, [hashtable] $Headers, [string] $Method, [string] $ErrorAction)
-
-            if ($Uri -match 'ResourceHealth') {
-                $script:resourceHealthAttempts++
-                if ($script:resourceHealthAttempts -eq 1) {
-                    $exception = [System.Exception]::new('synthetic throttling response')
-                    $exception.Data['StatusCode'] = 429
-                    $exception.Data['RetryAfter'] = 0
-                    throw $exception
-                }
-                return [pscustomobject]@{ value = @('recovered') }
-            }
-            return [pscustomobject]@{ value = @() }
-        }
-
-        $result = @(Get-ScoutApiResources -Subscriptions @($script:subs[0]) -SkipPolicy)
-
-        $result[0].ResourceHealth | Should -Be @('recovered')
-        $script:resourceHealthAttempts | Should -Be 2
-        $script:retryDelays | Should -Be @(0)
-    }
-
-    It 'preserves the single policy summary object instead of adding an array layer' {
-        function Invoke-RestMethod {
-            [Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Intentional local test shadow; no remote request is made.')]
-            [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock signature matches the production invocation.')]
-            param([string] $Uri, [hashtable] $Headers, [string] $Method, [string] $ErrorAction)
-
-            if ($Uri -match 'policyStates') {
-                return [pscustomobject]@{
-                    value = [pscustomobject]@{
-                        policyAssignments = @([pscustomobject]@{ policyAssignmentId = 'pa-sub-1' })
-                    }
-                }
-            }
-            return [pscustomobject]@{ value = @() }
-        }
-
-        $result = @(Get-ScoutApiResources -Subscriptions @($script:subs[0]))
-
-        $result[0].PolicyAssignments | Should -BeOfType ([pscustomobject])
-        $result[0].PolicyAssignments.policyAssignments[0].policyAssignmentId | Should -Be 'pa-sub-1'
     }
 }

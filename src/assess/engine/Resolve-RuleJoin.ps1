@@ -66,11 +66,8 @@ function Resolve-RuleJoin {
     [OutputType([PSCustomObject])]
     param(
         [Parameter(Mandatory)] $Rule,
-        [Parameter(Mandatory)] $Collect,
-        $QueryContext
+        [Parameter(Mandatory)] $Collect
     )
-
-    if ($null -eq $QueryContext) { $QueryContext = New-ScoutQueryContext -InputObject $Collect }
 
     function Get-JoinValue {
         param([AllowNull()]$Object, [AllowNull()][string]$Name)
@@ -137,8 +134,8 @@ function Resolve-RuleJoin {
     #
     # Round-tripping each token through ConvertFrom-Json gives ordinary PSCustomObjects that the
     # accessor above can read, and keeps this evaluator independent of the JSONPath engine.
-    $LeftRows  = @(ConvertTo-JoinRow -Tokens (Resolve-JsonPath -InputObject $Collect -QueryContext $QueryContext -Path ([string](Get-JoinValue -Object $Join -Name 'left'))))
-    $RightRows = @(ConvertTo-JoinRow -Tokens (Resolve-JsonPath -InputObject $Collect -QueryContext $QueryContext -Path ([string](Get-JoinValue -Object $Join -Name 'right'))))
+    $LeftRows  = @(ConvertTo-JoinRow -Tokens (Resolve-JsonPath -InputObject $Collect -Path ([string](Get-JoinValue -Object $Join -Name 'left'))))
+    $RightRows = @(ConvertTo-JoinRow -Tokens (Resolve-JsonPath -InputObject $Collect -Path ([string](Get-JoinValue -Object $Join -Name 'right'))))
 
     # A right-key value may itself be a scoped id with more segments than the left carries -- a
     # backup protected item's `sourceResourceId` is the VM id, but a lifecycle policy's parent is

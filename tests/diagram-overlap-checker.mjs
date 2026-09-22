@@ -75,37 +75,9 @@ if (!kernel) {
   process.exit(2);
 }
 
-// The original two kernel diagrams (diagramNetworkTopology/diagramMgHierarchy) return
-// {svg, width, height} -- a bare SVG fragment. The four networking diagrams added later
-// (diagVnetTopology/diagHybrid/diagPrivateLink/diagExposure) instead return an
-// already-svgWrap()-wrapped HTML string (a <div class="dgm">...<svg>...</svg>...</div>),
-// matching how their Blade wrapper functions consume them directly (see
-// diagVnetTopoBlade() etc. in the template, which just return the raw function's output
-// or a fallback paragraph). Both shapes contain the same diag-node/diag-edge markup our
-// regex-based parsers look for, so normalise to a plain string here rather than assuming
-// every kernel entry has a `.svg` property.
-function toSvgText(d) {
-  if (d === null || d === undefined || d === '') return null;
-  if (typeof d === 'string') return d;
-  if (typeof d === 'object' && typeof d.svg === 'string') return d.svg;
-  return null;
-}
-
 const diagrams = {
-  'network topology': toSvgText(kernel.diagramNetworkTopology()),
-  'mg hierarchy': toSvgText(kernel.diagramMgHierarchy()),
-  'vnet connectivity': kernel.diagVnetTopology ? toSvgText(kernel.diagVnetTopology()) : null,
-  'hybrid site-to-site': kernel.diagHybrid ? toSvgText(kernel.diagHybrid()) : null,
-  'private link & dns': kernel.diagPrivateLink ? toSvgText(kernel.diagPrivateLink()) : null,
-  'internet exposure': kernel.diagExposure ? toSvgText(kernel.diagExposure()) : null,
-  'edge & delivery': kernel.diagEdgeDelivery ? toSvgText(kernel.diagEdgeDelivery()) : null,
-  'routing & forced tunnelling': kernel.diagRouting ? toSvgText(kernel.diagRouting()) : null,
-  'region footprint': kernel.diagRegions ? toSvgText(kernel.diagRegions()) : null,
-  'traffic flow': kernel.diagTrafficFlow ? toSvgText(kernel.diagTrafficFlow()) : null,
-  'appliance availability': kernel.diagSdwanHa ? toSvgText(kernel.diagSdwanHa()) : null,
-  'backup coverage': kernel.diagBackupCoverage ? toSvgText(kernel.diagBackupCoverage()) : null,
-  'private and public paths': kernel.diagTwoPaths ? toSvgText(kernel.diagTwoPaths()) : null,
-  'regional storage': kernel.diagRegionalStorage ? toSvgText(kernel.diagRegionalStorage()) : null
+  'network topology': kernel.diagramNetworkTopology(),
+  'mg hierarchy': kernel.diagramMgHierarchy()
 };
 
 function parseNodes(svg) {
@@ -150,10 +122,10 @@ function segmentCrossesRect(p1, p2, rect) {
 }
 
 let violations = [];
-for (const [name, svgText] of Object.entries(diagrams)) {
-  if (!svgText) { console.log('(skip) ' + name + ' — no data in fixture'); continue; }
-  const nodes = parseNodes(svgText);
-  const edges = parseEdges(svgText);
+for (const [name, d] of Object.entries(diagrams)) {
+  if (!d) { console.log('(skip) ' + name + ' — no data in fixture'); continue; }
+  const nodes = parseNodes(d.svg);
+  const edges = parseEdges(d.svg);
   console.log(name + ': ' + nodes.length + ' nodes, ' + edges.length + ' edges');
 
   for (let i = 0; i < nodes.length; i++) {

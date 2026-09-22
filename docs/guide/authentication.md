@@ -21,9 +21,9 @@ When multiple auth parameters are supplied, the module selects the *first* match
 
 1. **SPN + Certificate** — `AppId` + `CertificatePath` (+ optional `CertificatePassword`)
 2. **SPN + Client Secret** — `AppId` + `Secret`
-3. **Existing user session** — matching tenant/account/cloud, or silent tenant context acquisition
+3. **Device Code** — `-DeviceLogin` switch
 4. **Managed Identity** — Automatic when running in Azure (no parameters needed)
-5. **User sign-in** — device code with `-DeviceLogin`, otherwise interactive browser login
+5. **Current User / Interactive** — Default fallback, reuses existing `Get-AzContext`
 
 ## Method Details
 
@@ -36,7 +36,7 @@ Connect-AzAccount
 Invoke-AzureScout
 ```
 
-Scout first tries cached contexts and silent tenant token acquisition. A standalone run can sign in if needed. Multi-tenant children record an authentication-required failure and continue the remaining tenants instead of prompting repeatedly. See [multi-tenant recovery](../how-to/multi-tenant-recovery.md).
+If no existing context matches the target tenant, the module calls `Connect-AzAccount` interactively.
 
 ### 2. Device Code
 
@@ -46,7 +46,7 @@ For headless or remote sessions (SSH, containers).
 Invoke-AzureScout -TenantID '00000000-...' -DeviceLogin
 ```
 
-When a sign-in is required, the module displays a URL and code. A valid existing session is reused even when `-DeviceLogin` is supplied.
+The module displays a URL and code. Open the link in any browser, enter the code, and authenticate.
 
 ### 3. Service Principal + Client Secret
 

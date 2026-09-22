@@ -1,7 +1,3 @@
-#Requires -Version 7.0
-Set-StrictMode -Version Latest
-$ErrorActionPreference = 'Stop'
-
 <#
 .Synopsis
 Run the draw.io diagram build.
@@ -10,7 +6,7 @@ Run the draw.io diagram build.
 Builds the draw.io topology diagram for the collected resources.
 
 .Link
-https://github.com/Hybrid-Solutions-Cloud/azure-scout/src/pipeline/Invoke-ScoutDrawIoJob.ps1
+https://github.com/thisismydemo/azure-scout/src/pipeline/Invoke-ScoutDrawIoJob.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC).
@@ -22,7 +18,7 @@ Authors: Claudio Merola
 #>
 
 function Invoke-AZSCDrawIOJob {
-    Param($Subscriptions, $Resources, $Advisories, $DDFile, $DiagramCache, $FullEnv, $ResourceContainers, $Automation, $AZSCModule, $DiscoveryContext)
+    Param($Subscriptions, $Resources, $Advisories, $DDFile, $DiagramCache, $FullEnv, $ResourceContainers, $Automation, $AZSCModule)
 
     <#
         AB#5649 — the last Wait-AZSCJob caller, and the last background job in the run
@@ -62,7 +58,7 @@ function Invoke-AZSCDrawIOJob {
 
     try
         {
-            Start-AZSCDrawIODiagram -Subscriptions $Subscriptions -Resources $Resources -Advisories $Advisories -DDFile $DDFile -DiagramCache $DiagramCache -FullEnvironment $FullEnv -ResourceContainers $ResourceContainers -Automation $Automation -AZSCModule $AZSCModule -DiscoveryContext $DiscoveryContext
+            Start-AZSCDrawIODiagram -Subscriptions $Subscriptions -Resources $Resources -Advisories $Advisories -DDFile $DDFile -DiagramCache $DiagramCache -FullEnvironment $FullEnv -ResourceContainers $ResourceContainers -Automation $Automation -AZSCModule $AZSCModule
         }
     catch
         {

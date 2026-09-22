@@ -10,25 +10,7 @@ $ErrorActionPreference = 'Stop'
     Appends benchmark findings when a benchmark is supplied. Tracks ADO Story AB#5035.
 #>
 function Invoke-Assessment {
-    param($Collect, $RuleSet, $Benchmark, [string] $Assessment, $QueryContext)
-
-    if ($null -eq $QueryContext) { $QueryContext = New-ScoutQueryContext -InputObject $Collect }
-
-    function Write-ScoutRuleTiming {
-        param(
-            [Parameter(Mandatory)] [string] $RuleId,
-            [Parameter(Mandatory)] [string] $Status,
-            [Parameter(Mandatory)] [int] $EvidenceCount,
-            [Parameter(Mandatory)] [System.Diagnostics.Stopwatch] $Timer
-        )
-        if ($Timer.IsRunning) { $Timer.Stop() }
-        if (Get-Command -Name 'Write-AZSCLog' -ErrorAction SilentlyContinue) {
-            Write-AZSCLog -Level 'DEBUG' -Message (
-                'Assessment rule {0}: status={1}; evidence={2}; elapsed={3}' -f
-                    $RuleId, $Status, $EvidenceCount, $Timer.Elapsed.ToString('dd\:hh\:mm\:ss\.fff')
-            )
-        }
-    }
+    param($Collect, $RuleSet, $Benchmark, [string] $Assessment)
 
     $findings = foreach ($set in $RuleSet) {
         # A rule file may declare a data prerequisite (`requires:`). When it does and NOT ONE of
@@ -58,14 +40,13 @@ function Invoke-Assessment {
                 # `Write-Output -NoEnumerate`, so @() would produce a one-element array holding the
                 # (possibly empty) result and every prerequisite would read as satisfied.
                 $Rows = $null
-                try { $Rows = Resolve-JsonPath -InputObject $Collect -QueryContext $QueryContext -Path $Path } catch { $Rows = $null }
+                try { $Rows = Resolve-JsonPath -InputObject $Collect -Path $Path } catch { $Rows = $null }
                 $RowCount = if ($null -eq $Rows) { 0 } else { $Rows.Count }
                 if ($RowCount -gt 0) { $Satisfied = $true } else { $Missing += $(if ($Description) { $Description } else { $Path }) }
             }
             if (-not $Satisfied) {
                 foreach ($rule in $set.Rules) {
-                    $ruleTimer = [System.Diagnostics.Stopwatch]::StartNew()
-                    $f = [pscustomobject]@{
+                    [pscustomobject]@{
                         Id            = $rule.id
                         Title         = $rule.title
                         Framework     = $set.Framework
@@ -79,22 +60,16 @@ function Invoke-Assessment {
                     } | Add-Member -NotePropertyName Assessment -NotePropertyValue $Assessment -PassThru |
                         Add-Member -NotePropertyName AreaWeight -NotePropertyValue $SetWeight -PassThru |
                         Add-Member -NotePropertyName FrameworkVersion -NotePropertyValue $SetFrameworkVersion -PassThru
-                    Write-ScoutRuleTiming -RuleId ([string]$rule.id) -Status 'Unknown' -EvidenceCount 0 -Timer $ruleTimer
-                    $f
                 }
                 continue
             }
         }
 
         foreach ($rule in $set.Rules) {
-            $ruleTimer = [System.Diagnostics.Stopwatch]::StartNew()
-            $f = Invoke-Rule -Rule $rule -Collect $Collect -QueryContext $QueryContext -Area $set.Area -Framework $set.Framework
-            $f = $f | Add-Member -NotePropertyName Assessment -NotePropertyValue $Assessment -PassThru |
+            $f = Invoke-Rule -Rule $rule -Collect $Collect -Area $set.Area -Framework $set.Framework
+            $f | Add-Member -NotePropertyName Assessment -NotePropertyValue $Assessment -PassThru |
                  Add-Member -NotePropertyName AreaWeight -NotePropertyValue $SetWeight -PassThru |
                  Add-Member -NotePropertyName FrameworkVersion -NotePropertyValue $SetFrameworkVersion -PassThru
-            $evidenceCount = if ($f.PSObject.Properties['EvidenceCount']) { [int]$f.EvidenceCount } else { 0 }
-            Write-ScoutRuleTiming -RuleId ([string]$rule.id) -Status ([string]$f.Status) -EvidenceCount $evidenceCount -Timer $ruleTimer
-            $f
         }
     }
     # AB#6929 follow-up -- Compare-Benchmark builds its findings as bare pscustomobjects (no

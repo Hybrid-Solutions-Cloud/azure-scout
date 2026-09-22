@@ -1,7 +1,3 @@
-#Requires -Version 7.0
-Set-StrictMode -Version Latest
-$ErrorActionPreference = 'Stop'
-
 <#
 # Relocated from Modules/Public/PublicFunctions/Diagram for the v3 pipeline.
 .Synopsis
@@ -11,7 +7,7 @@ Subscription Module for Draw.io Diagram
 This module is used for the Subscription topology in the Draw.io Diagram.
 
 .Link
-https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/PublicFunctions/Diagram/Start-AZSCDiagramSubscription.ps1
+https://github.com/thisismydemo/azure-scout/Modules/Public/PublicFunctions/Diagram/Start-AZSCDiagramSubscription.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC)
@@ -23,7 +19,6 @@ Authors: Claudio Merola
 
 #>
 Function Start-AZSCDiagramSubscription {
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'LogFile', Justification = 'Fixed dispatcher signature -- caller passes a positional/named arg list shared across every diagram job function; not every job function reads every slot.')]
     Param($Subscriptions,$Resources,$DiagramCache,$LogFile)
     # ── StrictMode boundary (AB#5633) ────────────────────────────────────────────────
     # v1 inventory engine (forked from microsoft/ARI), written without StrictMode. These job
@@ -55,7 +50,7 @@ Function Start-AZSCDiagramSubscription {
                 $Script:XmlWriter.WriteEndElement()
             }
 
-        function Set-AZSCDiagramIconStyleVariable {
+        function Set-Variable {
 
         $Script:Ret = "rounded=0;whiteSpace=wrap;fontSize=16;html=1;sketch=0;fontFamily=Helvetica;"
         $Script:RetRound = "rounded=1;whiteSpace=wrap;fontSize=16;html=1;sketch=0;fontFamily=Helvetica;"
@@ -1707,7 +1702,7 @@ Function Start-AZSCDiagramSubscription {
                             $Script:XmlWriter.WriteAttributeString('parent', "0")
                             $Script:XmlWriter.WriteEndElement()
 
-                                Set-AZSCDiagramIconStyleVariable
+                                Set-Variable
 
                                 $Script:CellIDRes = -join ((65..90) + (97..122) | Get-Random -Count 20 | ForEach-Object {[char]$_})
 

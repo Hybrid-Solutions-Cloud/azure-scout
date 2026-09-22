@@ -15,9 +15,7 @@ $ErrorActionPreference = 'Stop'
 
     The full payload contract (window.__SCOUT_DATA__) is:
 
-        identity, meta, ran, inventory, entraResources, subscriptions, assessments,
-        resourceIndex, drift, costProjection (AB#7093 -- transparent trailing-30-day cost
-        run-rate extrapolation)
+        identity, meta, ran, inventory, subscriptions, assessments, resourceIndex, drift
 
     See each builder function below for the exact shape it produces. Everything is inlined
     into one report-react.html file -- CSS/JS/data all embedded -- so the report opens and
@@ -135,13 +133,13 @@ function Export-React {
 
     $metaSrc = Get-ReactSafeProp $Collect @('_meta')
     $subscriptions = @(Get-ReactSafeProp $Collect @('subscriptions'))
-    $discovery = Get-ReactSafeProp $Collect @('discovery')
 
     # `ran` drives the adaptive nav -- which top-level sections the shell even offers -- AND the
     # derived reportTitle default just below, so it is computed here, ahead of the identity block.
-    # `entra`: an inventory-only render can carry the Entra rows already gathered by
-    # Start-AZSCExtractionOrchestration. The renderer never acquires a Graph token itself; it
-    # only reports rows present in Collect.entraResources.
+    # `entra`: the Collect layer (Invoke-Collect) is ARM/Resource Graph only -- there is no
+    # Entra/Graph collection path in this platform (see Invoke-ScoutAssessmentCore's own NOTES),
+    # so this is always false for a Collect built by this pipeline. Left as an explicit field
+    # (not just omitted) so a future Entra-aware Collect only has to flip this, not add a key.
     #
     # `@(Get-ReactSafeProp ...)` alone is NOT a safe truthiness check here: `@($null)` is an array
     # of ONE null element (`.Count` = 1), so a Collect that never carried the property at all --
@@ -153,14 +151,11 @@ function Export-React {
     }
     $inventoryHasData = [bool]((Test-ReactHasRow (Get-ReactSafeProp $Collect @('subscriptions'))) -or
         (Test-ReactHasRow (Get-ReactSafeProp $Collect @('networking', 'virtualNetworks'))) -or
-        (Test-ReactHasRow (Get-ReactSafeProp $Collect @('compute', 'virtualMachines'))) -or
-        (Test-ReactHasRow (Get-ReactSafeProp $discovery @('Resources'))))
-    $entraResourcesValue = Get-ReactSafeProp $Collect @('entraResources')
-    $entraResources = if ($null -eq $entraResourcesValue) { @() } else { @($entraResourcesValue) }
+        (Test-ReactHasRow (Get-ReactSafeProp $Collect @('compute', 'virtualMachines'))))
     $allFindingsRows = @(Get-ReactSafeProp $Findings @('Findings'))
     $ran = [ordered]@{
         inventory   = $inventoryHasData
-        entra       = [bool](Test-ReactHasRow $entraResourcesValue)
+        entra       = $false
         assessments = [bool]($allFindingsRows.Count -gt 0)
     }
 
@@ -252,7 +247,7 @@ function Export-React {
     $productUrl = if ($manifestData -and $manifestData.PrivateData -and
                       $manifestData.PrivateData.PSData -and $manifestData.PrivateData.PSData.ProjectUri) {
                       $manifestData.PrivateData.PSData.ProjectUri
-                  } else { 'https://hybrid-solutions-cloud.github.io/azure-scout/' }
+                  } else { 'https://thisismydemo.cloud/azure-scout/' }
 
     $runId = if ($OutputPath) { Split-Path $OutputPath -Leaf } else { '' }
 
@@ -265,7 +260,6 @@ function Export-React {
         productName        = 'Azure Scout'
         productVersion     = $productVersion
         productUrl         = $productUrl
-        collectionHealth   = @(Get-ReactSafeProp $metaSrc @('collectionHealth'))
         # Lower-cased to match the front end's own state.mode / data-mode vocabulary
         # ('executive'/'consultant'/'data') verbatim -- see report-react.html.template's
         # loadPersisted(), which should prefer this over its current hardcoded 'executive'
@@ -308,12 +302,7 @@ function Export-React {
         if ($null -eq $Row -or $Row -isnot [pscustomobject]) { return }
         $n = Get-ReactRowProp $Row 'name'
         if (-not $n) { $n = Get-ReactRowProp $Row 'displayName' }
-        # Collect is a recursively walked, open-ended object graph. Some service payloads use
-        # `name` for a Boolean feature flag rather than a resource identity. Normalise before
-        # applying string methods so one such row cannot prevent the entire React report from
-        # rendering (observed live in the 2026-08-14 thisismydemo run).
-        $n = if ($null -eq $n) { '' } else { [string]$n }
-        if ([string]::IsNullOrWhiteSpace($n)) { return }
+        if (-not $n) { return }
         $rid = Get-ReactRowProp $Row 'id'
         if (-not $rid) { $rid = Get-ReactRowProp $Row 'ResourceId' }
         $sub = Get-ReactRowProp $Row 'subscriptionId'
@@ -440,8 +429,7 @@ function Export-React {
         $lookupName = if ($isJoinRow) { $null } else { Get-ReactRowProp $identitySource 'vnet' }
         if (-not $lookupName) { $lookupName = $name }
         if ((-not $subscriptionId -or -not $resourceGroup -or -not $resourceId) -and $lookupName) {
-            $lookupKey = ([string]$lookupName).ToLowerInvariant()
-            $hit = $collectNameIndex[$lookupKey]
+            $hit = $collectNameIndex[$lookupName.ToLowerInvariant()]
             if ($hit) {
                 if (-not $subscriptionId -and $hit.SubscriptionId) { $subscriptionId = $hit.SubscriptionId }
                 if (-not $resourceGroup -and $hit.ResourceGroup) { $resourceGroup = $hit.ResourceGroup }
@@ -653,24 +641,14 @@ function Export-React {
         'assess-web'           = 'https://learn.microsoft.com/azure/app-service/overview'
     }
     $specialtyLinks = @{
-        # Old (pre-namespace) slugs kept beside the new ones -- a payload rendered from an
-        # older run's findings still carries the old assessment names.
         'cost'                            = 'https://learn.microsoft.com/azure/well-architected/cost-optimization/'
-        'scout-cost-optimization'         = 'https://learn.microsoft.com/azure/well-architected/cost-optimization/'
         'crossresource'                   = 'https://learn.microsoft.com/azure/cloud-adoption-framework/ready/landing-zone/design-areas'
-        'scout-cross-resource'            = 'https://learn.microsoft.com/azure/cloud-adoption-framework/ready/landing-zone/design-areas'
         'devops-capability-assessment'    = 'https://learn.microsoft.com/azure/devops/'
-        'microsoft-devops-capability'     = 'https://learn.microsoft.com/azure/devops/'
         'finops-review'                   = 'https://learn.microsoft.com/azure/cost-management-billing/finops/overview-finops'
-        'microsoft-finops-review'         = 'https://learn.microsoft.com/azure/cost-management-billing/finops/overview-finops'
         'governance'                      = 'https://learn.microsoft.com/azure/cloud-adoption-framework/ready/landing-zone/design-area/governance'
-        'scout-governance-baseline'       = 'https://learn.microsoft.com/azure/cloud-adoption-framework/ready/landing-zone/design-area/governance'
         'monitoring'                      = 'https://learn.microsoft.com/azure/azure-monitor/overview'
-        'scout-monitoring-baseline'       = 'https://learn.microsoft.com/azure/azure-monitor/overview'
         'smart'                           = 'https://learn.microsoft.com/azure/migrate/migrate-services-overview'
-        'microsoft-smart-migration'       = 'https://learn.microsoft.com/azure/migrate/migrate-services-overview'
         'updatemanager'                   = 'https://learn.microsoft.com/azure/update-manager/overview'
-        'scout-update-manager'            = 'https://learn.microsoft.com/azure/update-manager/overview'
     }
     # Finding id/title overrides -- ordered list, first match wins. Checked BEFORE the
     # assessment-level map (see precedence note above).
@@ -713,12 +691,12 @@ function Export-React {
     # the owner's team already hit once and corrected in the mockup).
     function Get-ReactAssessmentLearnUrl {
         param([string] $Slug)
-        if ($Slug -in @('landingzone', 'caf-azure-landing-zone')) { return 'https://learn.microsoft.com/azure/cloud-adoption-framework/ready/landing-zone/' }
+        if ($Slug -eq 'landingzone') { return 'https://learn.microsoft.com/azure/cloud-adoption-framework/ready/landing-zone/' }
         if ($cafDesignAreaLinks.ContainsKey($Slug)) { return $cafDesignAreaLinks[$Slug] }
         if ($wafPillarLinks.ContainsKey($Slug)) { return $wafPillarLinks[$Slug] }
         if ($domainLinks.ContainsKey($Slug)) { return $domainLinks[$Slug] }
-        if ($Slug -like 'avs-*' -or $Slug -like 'workload-avs*') { return 'https://learn.microsoft.com/azure/azure-vmware/' }
-        if ($Slug -in @('casa', 'microsoft-casa')) { return 'https://learn.microsoft.com/security/' }
+        if ($Slug -like 'avs-*') { return 'https://learn.microsoft.com/azure/azure-vmware/' }
+        if ($Slug -eq 'casa') { return 'https://learn.microsoft.com/security/' }
         if ($specialtyLinks.ContainsKey($Slug)) { return $specialtyLinks[$Slug] }
         return 'https://learn.microsoft.com/azure/cloud-adoption-framework/ready/landing-zone/design-areas'
     }
@@ -796,32 +774,14 @@ function Export-React {
         # conformance clause R-04 bans, so the grouping is a plain count over scored rows: no
         # finding is re-derived, no status is re-decided, and the percent arithmetic below is
         # the same visible formula the rest of this payload already uses.
-        # AB#6938 -- ALZ benchmark findings (Compare-Benchmark's BENCH-MG-*/BENCH-POL-*) are
-        # EXCLUDED from the area-scoring tally below. Without this, BENCH-POL-* rows (Area =
-        # 'Governance (policy & compliance)') silently blend into the caf.governance design
-        # area's OWN scorecard -- the exact "merged silently into the CAF chapters" defect the
-        # acceptance criteria calls out -- and BENCH-MG-* rows (Area = 'Management group &
-        # subscription org', which no caf.*.yaml design area claims) would otherwise surface as
-        # a phantom 9th "design area" chapter indistinguishable from the real eight. The
-        # benchmark's own tally is computed separately just below and rendered by the template
-        # as its own named section. `findingsOut` (built further down) still carries every
-        # BENCH-* finding untouched -- exports and the register keep seeing them; only the
-        # per-design-area SCORE stops counting them.
-        $benchFindingRows = @($assessmentFindingRows | Where-Object { $_.Id -like 'BENCH-*' })
-        $scorableFindingRows = @($assessmentFindingRows | Where-Object { $_.Id -notlike 'BENCH-*' })
-
         $areaBuckets = [ordered]@{}
-        foreach ($row in $scorableFindingRows) {
-            $rowFramework = Get-ReactSafeProp $row @('Framework')
-            $bKey = '{0}|{1}' -f $rowFramework, (Get-ReactSafeProp $row @('Area'))
+        foreach ($row in $assessmentFindingRows) {
+            $bKey = '{0}|{1}' -f (Get-ReactSafeProp $row @('Framework')), (Get-ReactSafeProp $row @('Area'))
             if (-not $areaBuckets.Contains($bKey)) {
-                $areaWeight = Get-ReactSafeProp $row @('AreaWeight')
-                if ($null -eq $areaWeight) { $areaWeight = 1.0 }
                 $areaBuckets[$bKey] = [pscustomobject]@{
-                    Area      = (Get-ReactSafeProp $row @('Area'))
-                    Framework = $rowFramework
+                    Area = (Get-ReactSafeProp $row @('Area'))
                     Pass = 0; Partial = 0; Fail = 0; Manual = 0; Unknown = 0; Error = 0; NotAssessed = 0
-                    Score = $null; Weight = [double]$areaWeight
+                    Score = $null; Weight = 0.0
                 }
             }
             $b = $areaBuckets[$bKey]
@@ -834,6 +794,8 @@ function Export-React {
                 'NotAssessed' { $b.NotAssessed++ }
                 default       { $b.Unknown++ }
             }
+            $w = Get-ReactSafeProp $row @('Weight')
+            if ($null -ne $w) { $b.Weight = [math]::Round($b.Weight + [double]$w, 4) }
         }
         foreach ($b in $areaBuckets.Values) {
             $bDen = $b.Pass + $b.Partial + $b.Fail
@@ -855,7 +817,6 @@ function Export-React {
             }
             $areas.Add([pscustomobject]@{
                 name          = $a.Area
-                framework     = $a.Framework
                 percent       = $a.Score
                 numerator     = $num
                 denominator   = $den
@@ -867,52 +828,19 @@ function Export-React {
             $totalManual += $a.Manual; $totalUnknown += $a.Unknown; $totalError += $a.Error; $totalNotAssessed += $a.NotAssessed
             $totalWeight += [double]$a.Weight
         }
-        $automatedCheckCount = $totalPass + $totalPartial + $totalFail
-        $scoredAreas = @($areaBuckets.Values | Where-Object { $null -ne $_.Score })
-        $scoreDen = ($scoredAreas | ForEach-Object { [double]$_.Weight } | Measure-Object -Sum).Sum
-        $scoreNum = ($scoredAreas | ForEach-Object { [double]$_.Score * [double]$_.Weight } | Measure-Object -Sum).Sum
+        $scoreDen = $totalPass + $totalPartial + $totalFail
+        $scoreNum = $totalPass + (0.5 * $totalPartial)
         $scoreExcluded = $totalManual + $totalUnknown + $totalError + $totalNotAssessed
-        $scorePercent = if ($scoreDen -gt 0) { [math]::Round($scoreNum / $scoreDen, 0, [System.MidpointRounding]::AwayFromZero) } else { $null }
+        $scorePercent = if ($scoreDen -gt 0) { [math]::Round($scoreNum / $scoreDen * 100, 0, [System.MidpointRounding]::AwayFromZero) } else { $null }
         $scoreFormula = if ($scoreDen -gt 0) {
-            "Weighted average of $($scoredAreas.Count) area scores ($scoreNum weighted points / $scoreDen total weight) = $scorePercent%; $automatedCheckCount automated checks scored and $scoreExcluded of $($assessmentFindingRows.Count) checks excluded (manual/not-assessed)"
+            "($totalPass pass + 0.5×$totalPartial partial) / $scoreDen automated = $scorePercent%; $scoreExcluded of $($assessmentFindingRows.Count) checks excluded (manual/not-assessed)"
         } else {
             "No automated checks scored in this assessment; $scoreExcluded of $($assessmentFindingRows.Count) checks are manual/not-assessed."
         }
         $excludedReason = ''
-        if ($automatedCheckCount -eq 0 -and $assessmentFindingRows.Count -gt 0) {
+        if ($scoreDen -eq 0 -and $assessmentFindingRows.Count -gt 0) {
             $unknownRow = $assessmentFindingRows | Where-Object { $_.Status -eq 'Unknown' } | Select-Object -First 1
             if ($unknownRow) { $excludedReason = [string]$unknownRow.Remediation }
-        }
-
-        # AB#6938 -- the ALZ benchmark's own scorecard, tallied separately from the eight CAF
-        # design-area scorecards above (same pass/partial/fail-weighted formula, so the two
-        # never disagree about arithmetic, just about what they're arithmetic OVER). $null when
-        # this assessment produced no BENCH-* findings at all (every non-LandingZone assessment,
-        # and LandingZone itself when Compare-Benchmark short-circuited on BENCH-GOV-DATA), so
-        # the template only renders the section when there is something real to show.
-        $benchmark = $null
-        if ($benchFindingRows.Count -gt 0) {
-            $bmPass = @($benchFindingRows | Where-Object Status -eq 'Pass').Count
-            $bmFail = @($benchFindingRows | Where-Object Status -eq 'Fail').Count
-            $bmManual = @($benchFindingRows | Where-Object Status -eq 'Manual').Count
-            $bmUnknown = @($benchFindingRows | Where-Object { $_.Status -in 'Unknown', 'Error', 'NotAssessed' }).Count
-            $bmDen = $bmPass + $bmFail
-            $bmPercent = if ($bmDen -gt 0) { [math]::Round($bmPass / $bmDen * 100, 0, [System.MidpointRounding]::AwayFromZero) } else { $null }
-            $bmFormula = if ($bmDen -gt 0) {
-                "$bmPass pass / $bmDen assessed = $bmPercent%; $($bmManual + $bmUnknown) of $($benchFindingRows.Count) excluded (manual/not-assessed)."
-            } else {
-                "No ALZ benchmark check could be assessed ($($bmUnknown) unknown) -- governance data was likely unavailable for this run."
-            }
-            $benchmark = [pscustomobject]@{
-                label   = 'ALZ benchmark conformance'
-                percent = $bmPercent
-                pass    = $bmPass
-                fail    = $bmFail
-                manual  = $bmManual
-                unknown = $bmUnknown
-                total   = $benchFindingRows.Count
-                formula = $bmFormula
-            }
         }
 
         # Area weight, denormalised onto each finding below (AB#6928 follow-up). The scoring
@@ -921,10 +849,8 @@ function Export-React {
         # moves the score more than another sitting in a lower-weighted area. Looked up by area
         # NAME rather than re-deriving it, since $areas above is already the authoritative
         # per-area weight for this assessment.
-        $areaWeightByKey = @{}
-        foreach ($areaEntry in $areas) {
-            $areaWeightByKey['{0}|{1}' -f $areaEntry.framework, $areaEntry.name] = $areaEntry.weight
-        }
+        $areaWeightByName = @{}
+        foreach ($areaEntry in $areas) { $areaWeightByName[$areaEntry.name] = $areaEntry.weight }
 
         $findingsOut = [System.Collections.Generic.List[pscustomobject]]::new()
         foreach ($i in $idxList) {
@@ -942,21 +868,12 @@ function Export-React {
             foreach ($ident in $evNorm) {
                 if ($ident.ResourceName) { Add-ReactResourceIndexEntry -ResourceName $ident.ResourceName -Identity $ident -Category $category -FindingId $compositeId }
             }
-            $findingAreaKey = '{0}|{1}' -f (Get-ReactSafeProp $f @('Framework')), $f.Area
-            $findingWeight = if ($areaWeightByKey.ContainsKey($findingAreaKey)) {
-                $areaWeightByKey[$findingAreaKey]
-            }
-            else {
-                $declaredWeight = Get-ReactSafeProp $f @('AreaWeight')
-                if ($null -eq $declaredWeight) { 1.0 } else { [double]$declaredWeight }
-            }
             $findingsOut.Add([pscustomobject]@{
                 id            = $compositeId
                 title         = $f.Title
                 severity      = $f.Severity
                 status        = $f.Status
                 area          = $f.Area
-                framework     = (Get-ReactSafeProp $f @('Framework'))
                 remediation   = $f.Remediation
                 learnUrl      = (Get-ReactFindingLearnUrl -Id $f.Id -Title $f.Title -AssessmentSlug $slug)
                 # AB#6928 follow-up -- the area's own weight, denormalised here so the CSV export
@@ -964,9 +881,8 @@ function Export-React {
                 # `areas[]`. $null when the finding's area carries no explicit weight (Get-Score's
                 # own 1.0 default applies at the SCORING layer; this field reports exactly what
                 # that area object already carries, not a re-guessed default).
-                weight        = $findingWeight
+                weight        = $areaWeightByName[$f.Area]
                 evidenceCount = (Get-ReactSafeProp $f @('EvidenceCount'))
-                evidenceTruncated = [bool](Get-ReactSafeProp $f @('EvidenceTruncated'))
                 evidence      = $evidenceOut
             })
         }
@@ -983,7 +899,7 @@ function Export-React {
             scope      = [pscustomobject]@{
                 subscriptionsInScope = $subscriptions.Count
                 checksTotal          = $assessmentFindingRows.Count
-                checksAutomated      = $automatedCheckCount
+                checksAutomated      = $scoreDen
                 checksManual         = $totalManual
                 checksNotAssessed    = ($totalNotAssessed + $totalUnknown + $totalError)
                 excludedReason       = $excludedReason
@@ -997,7 +913,6 @@ function Export-React {
                 formula       = $scoreFormula
             }
             areas      = @($areas)
-            benchmark  = $benchmark
             findings   = $findingsOut
         })
     }
@@ -1005,9 +920,11 @@ function Export-React {
     # ---- inventory{} -----------------------------------------------------------------------------
     # Generic recursive walker over $Collect: every array found (at any depth) becomes its own
     # inventory category keyed by its dotted path, so a category added to Collect tomorrow shows
-    # up here with no renderer change. `_meta` and `discovery` are excluded: discovery has its own
-    # completeness explorer. Retain every row for Data view, details and offline export;
-    # Consultant view limits presentation in the template, never the retained evidence.
+    # up here with no renderer change. `_meta` is the only excluded branch (run metadata, not
+    # inventory). Rows are capped so one enormous category (policy compliance can run into the
+    # thousands) doesn't bloat the embedded payload; `truncated` records the honest shown/actual
+    # split so the UI never presents a cap as a total (AB#6864's own rule, applied here too).
+    $inventoryRowCap = 300
     function Get-ReactInventoryLabel {
         param([string[]] $PathSegments)
         $titled = $PathSegments | ForEach-Object {
@@ -1023,12 +940,12 @@ function Export-React {
         if ($Node -is [System.Collections.IEnumerable] -and $Node -isnot [string] -and $Node -isnot [System.Collections.IDictionary]) {
             $rows = @($Node)
             $key = ($PathSegments -join '.')
-            $shown = $rows
+            $shown = @($rows | Select-Object -First $inventoryRowCap)
             $inventory[$key] = [ordered]@{
                 label     = Get-ReactInventoryLabel -PathSegments $PathSegments
                 count     = $rows.Count
                 rows      = $shown
-                truncated = $null
+                truncated = if ($rows.Count -gt $inventoryRowCap) { [pscustomobject]@{ shown = $shown.Count; actual = $rows.Count } } else { $null }
             }
             return
         }
@@ -1040,109 +957,8 @@ function Export-React {
         foreach ($p in $props) { Add-ReactInventoryCategory -Node $p.Value -PathSegments ($PathSegments + $p.Name) }
     }
     if ($Collect) {
-        foreach ($p in ($Collect.PSObject.Properties | Where-Object { $_.Name -notin @('_meta', '_reportInventory', 'discovery') })) {
+        foreach ($p in ($Collect.PSObject.Properties | Where-Object { $_.Name -ne '_meta' })) {
             Add-ReactInventoryCategory -Node $p.Value -PathSegments @($p.Name)
-        }
-    }
-    $processed = Get-ReactSafeProp $Collect @('_reportInventory')
-    if ($processed -is [System.Collections.IDictionary]) {
-        foreach ($key in $processed.Keys) { $inventory[$key] = $processed[$key] }
-    }
-    elseif ($processed) {
-        foreach ($property in $processed.PSObject.Properties) { $inventory[$property.Name] = $property.Value }
-    }
-    if (@($inventory.Keys | Where-Object { $inventory[$_].count -gt 0 }).Count -gt 0) { $ran.inventory = $true }
-    if (@($inventory.Keys | Where-Object { $_ -match '^(collected|domains)\.identity\.' -and $inventory[$_].count -gt 0 }).Count -gt 0) { $ran.entra = $true }
-
-    # ---- costProjection{} -------------------------------------------------------------------------
-    # AB#7093: a transparent trailing-30-day run-rate extrapolation over finops.costRows (the same
-    # rows Import-ScoutCostInventory already ingests from Get-ScoutCostInventory/Cost Management).
-    # Deliberately the simplest extrapolation that is still honest about its own math -- no seasonal
-    # adjustment, no trend line -- and its `formula` string is shown verbatim, the same
-    # arithmetic-visible convention the score/area formulas above already use: never a bare number.
-    $finopsCostRows = @(Get-ReactSafeProp $Collect @('finops', 'costRows'))
-    $finopsAvailableFlag = Get-ReactSafeProp $Collect @('finops', 'available')
-    $parsedCostRows = [System.Collections.Generic.List[pscustomobject]]::new()
-    foreach ($row in $finopsCostRows) {
-        if (-not $row) { continue }
-        $rawDate = Get-ReactSafeProp $row @('UsageDate')
-        $rawCost = Get-ReactSafeProp $row @('Cost')
-        if ($null -eq $rawDate -or $null -eq $rawCost) { continue }
-        $parsedDate = [datetime]::MinValue
-        if (-not [datetime]::TryParse([string]$rawDate, [ref]$parsedDate)) { continue }
-        $parsedCost = $null
-        try { $parsedCost = [double]$rawCost } catch { continue }
-        [void]$parsedCostRows.Add([pscustomobject]@{
-                Date     = $parsedDate
-                Cost     = $parsedCost
-                Currency = Get-ReactSafeProp $row @('Currency')
-            })
-    }
-
-    if ($parsedCostRows.Count -gt 0) {
-        $anchorDate = @($parsedCostRows | Sort-Object Date -Descending)[0].Date
-        $windowStart = $anchorDate.AddDays(-29)
-        $trailingRows = @($parsedCostRows | Where-Object { $_.Date -ge $windowStart -and $_.Date -le $anchorDate })
-        $trailingTotal = 0.0
-        foreach ($tr in $trailingRows) { $trailingTotal += $tr.Cost }
-        $trailingTotal = [math]::Round($trailingTotal, 2)
-        $dailyRunRate = [math]::Round($trailingTotal / 30, 2)
-        $monthlyProjection = [math]::Round($dailyRunRate * 30, 2)
-        $yearlyProjection = [math]::Round($monthlyProjection * 12, 2)
-        $costCurrencies = @($trailingRows | ForEach-Object { $_.Currency } | Where-Object { $_ } | Sort-Object -Unique)
-        if ($costCurrencies.Count -gt 1) {
-            $costProjection = [pscustomobject]@{
-                available      = $false
-                currency       = $null
-                trailingDays   = 30
-                windowStart    = $windowStart.ToString('yyyy-MM-dd')
-                windowEnd      = $anchorDate.ToString('yyyy-MM-dd')
-                rowsConsidered = $trailingRows.Count
-                trailingTotal  = $null
-                dailyRunRate   = $null
-                monthly        = $null
-                yearly         = $null
-                formula        = "Cost projection was withheld because the trailing window contains multiple currencies: $($costCurrencies -join ', '). Convert them to one currency or review each currency separately."
-            }
-        }
-        else {
-            $costCurrency = if ($costCurrencies.Count -eq 1) { $costCurrencies[0] } else { $null }
-            $costProjection = [pscustomobject]@{
-            available      = $true
-            currency       = $costCurrency
-            trailingDays   = 30
-            windowStart    = $windowStart.ToString('yyyy-MM-dd')
-            windowEnd      = $anchorDate.ToString('yyyy-MM-dd')
-            rowsConsidered = $trailingRows.Count
-            trailingTotal  = $trailingTotal
-            dailyRunRate   = $dailyRunRate
-            monthly        = $monthlyProjection
-            yearly         = $yearlyProjection
-            formula        = "Trailing 30 days ($($windowStart.ToString('yyyy-MM-dd')) to $($anchorDate.ToString('yyyy-MM-dd'))), $($trailingRows.Count) cost row(s): total $trailingTotal ÷ 30 days = $dailyRunRate/day; ×30 = $monthlyProjection monthly; ×12 = $yearlyProjection yearly. Simple trailing run-rate extrapolation, not a seasonally-adjusted forecast."
-            }
-        }
-    }
-    else {
-        $unavailableReason =
-            if ($null -eq (Get-ReactSafeProp $Collect @('finops'))) {
-                'This run did not collect cost data (finops was not populated).'
-            } elseif ($finopsAvailableFlag -eq $false) {
-                'Cost Management data was not available for this run (module missing, or the identity lacked Cost Management Reader rights on every queried subscription) -- see finops.blockedSubscriptions.'
-            } else {
-                'Cost Management returned zero cost rows for the queried period.'
-            }
-        $costProjection = [pscustomobject]@{
-            available      = $false
-            currency       = $null
-            trailingDays   = 30
-            windowStart    = $null
-            windowEnd      = $null
-            rowsConsidered = 0
-            trailingTotal  = $null
-            dailyRunRate   = $null
-            monthly        = $null
-            yearly         = $null
-            formula        = $unavailableReason
         }
     }
 
@@ -1152,15 +968,12 @@ function Export-React {
         meta           = $meta
         ran            = $ran
         inventory      = $inventory
-        discovery      = $discovery
         subscriptions  = @($subscriptions | ForEach-Object {
             [pscustomobject]@{ id = (Get-ReactRowProp $_ 'id'); name = (Get-ReactRowProp $_ 'name'); state = (Get-ReactRowProp $_ 'state') }
         })
-        entraResources = $entraResources
         assessments    = @($assessments)
         resourceIndex  = $resourceIndex
         drift          = $Drift
-        costProjection = $costProjection
     }
 
     # </script> inside embedded JSON would otherwise close the <script> tag early.

@@ -1,7 +1,3 @@
-#Requires -Version 7.0
-Set-StrictMode -Version Latest
-$ErrorActionPreference = 'Stop'
-
 <#
 .Synopsis
 Per-run diagnostic log for Azure Scout.
@@ -35,78 +31,6 @@ This PowerShell Module is part of Azure Scout (AZSC).
 $script:AZSCRunLogPath = $null
 $script:AZSCTranscriptPath = $null
 $script:AZSCRunLogStart = $null
-$script:AZSCPendingLog = [System.Collections.Generic.List[object]]::new()
-$script:AZSCPendingLogDropped = 0
-
-function Protect-ScoutLogText {
-    param([AllowEmptyString()][string]$Text)
-    $Text = [regex]::Replace($Text, '(?is)-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----.*?-----END (?:RSA |EC |OPENSSH )?PRIVATE KEY-----', '[REDACTED PRIVATE KEY]')
-    $Text = [regex]::Replace($Text, '(?im)(Authorization["'']?\s*[=:]\s*["'']?)(?:Bearer|Basic)\s+[^\s"'']+', '$1[REDACTED]')
-    $Text = [regex]::Replace($Text, '(?i)(["'']?(?:access_?token|refresh_?token|id_?token|client_?secret|password|accountkey|sharedaccesskey|connectionstring)["'']?\s*[:=]\s*)(?:"[^"]*"|''[^'']*''|[^\s;&,}]+)', '$1[REDACTED]')
-    $Text = [regex]::Replace($Text, '(?i)([?&]sig=)[^&\s"'']+', '$1[REDACTED]')
-    return $Text
-}
-
-# Private module commands capture Scout diagnostics even when their console streams are
-# disabled. The manifest does not export these proxies into the caller's session.
-function Write-Debug {
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Private module diagnostic proxy; always persists debug messages (AB#9298).')]
-    [CmdletBinding()]
-    param([Parameter(Mandatory, Position = 0, ValueFromPipeline)][AllowEmptyString()][string]$Message)
-    process { Write-AZSCLog -Level DEBUG -Message $Message }
-}
-
-function Write-Verbose {
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Private module diagnostic proxy; always persists verbose messages (AB#9298).')]
-    [CmdletBinding()]
-    param([Parameter(Mandatory, Position = 0, ValueFromPipeline)][AllowEmptyString()][string]$Message)
-    process { Write-AZSCLog -Level VERBOSE -Message $Message }
-}
-
-function Write-Warning {
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Private module diagnostic proxy; persists warnings regardless of console preference (AB#9298).')]
-    [CmdletBinding()]
-    param([Parameter(Mandatory, Position = 0, ValueFromPipeline)][AllowEmptyString()][string]$Message)
-    process {
-        Write-AZSCLog -Level WARN -Message $Message -FileOnly
-        Microsoft.PowerShell.Utility\Write-Warning (Protect-ScoutLogText -Text $Message)
-    }
-}
-
-function Invoke-ScoutDiagnosticOperation {
-    [CmdletBinding()]
-    param([Parameter(Mandatory)][scriptblock]$Operation)
-    # SDK modules have their own scope, so capture their streams at the request boundary.
-    # Only success objects leave this function; diagnostic records never become inventory.
-    $consoleDebug = $DebugPreference
-    $consoleVerbose = $VerbosePreference
-    $consoleWarning = $WarningPreference
-    $DebugPreference = 'Continue'
-    $VerbosePreference = 'Continue'
-    $WarningPreference = 'Continue'
-    try {
-        & $Operation 3>&1 4>&1 5>&1 | ForEach-Object {
-            if ($_ -is [System.Management.Automation.DebugRecord]) {
-                Write-AZSCLog -Level DEBUG -Message $_.Message -FileOnly
-                if ($consoleDebug -in @('Continue', 'Inquire')) { Microsoft.PowerShell.Utility\Write-Debug (Protect-ScoutLogText $_.Message) }
-            }
-            elseif ($_ -is [System.Management.Automation.VerboseRecord]) {
-                Write-AZSCLog -Level VERBOSE -Message $_.Message -FileOnly
-                if ($consoleVerbose -in @('Continue', 'Inquire')) { Microsoft.PowerShell.Utility\Write-Verbose (Protect-ScoutLogText $_.Message) }
-            }
-            elseif ($_ -is [System.Management.Automation.WarningRecord]) {
-                Write-AZSCLog -Level WARN -Message $_.Message -FileOnly
-                if ($consoleWarning -ne 'SilentlyContinue') { Microsoft.PowerShell.Utility\Write-Warning (Protect-ScoutLogText $_.Message) }
-            }
-            else { $PSCmdlet.WriteObject($_, $false) }
-        }
-    }
-    catch {
-        Write-AZSCLog -Level ERROR -Message $_.Exception.Message -FileOnly
-        if ($_.ErrorDetails) { Write-AZSCLog -Level ERROR -Message $_.ErrorDetails.Message -FileOnly }
-        throw
-    }
-}
 
 function Start-AZSCRunLog {
     [CmdletBinding()]
@@ -148,23 +72,15 @@ function Start-AZSCRunLog {
         $Header += '================================================================'
         $Header += ''
 
-        Set-Content -Path $script:AZSCRunLogPath -Value (Protect-ScoutLogText -Text ($Header -join "`n")) -Encoding UTF8 -ErrorAction Stop
+        Set-Content -Path $script:AZSCRunLogPath -Value $Header -Encoding UTF8 -ErrorAction Stop
     }
     catch {
         # A run folder we cannot write to is worth one warning, not a failed run.
-        Microsoft.PowerShell.Utility\Write-Warning "[AzureScout] Could not start the run log: $($_.Exception.Message)"
+        Write-Warning "[AzureScout] Could not start the run log: $($_.Exception.Message)"
         $script:AZSCRunLogPath = $null
         return
     }
 
-    foreach ($entry in $script:AZSCPendingLog) {
-        Write-AZSCLog -Level $entry.Level -Message ("[before log initialization at $($entry.Timestamp)] " + $entry.Message) -FileOnly
-    }
-    $script:AZSCPendingLog.Clear()
-    if ($script:AZSCPendingLogDropped -gt 0) {
-        Write-AZSCLog -Level WARN -Message "$script:AZSCPendingLogDropped pre-run diagnostics exceeded the 10000-entry buffer. Run-time diagnostics are not capped."
-        $script:AZSCPendingLogDropped = 0
-    }
     if ($NoTranscript.IsPresent) { return }
 
     try {
@@ -206,65 +122,26 @@ function Write-AZSCLog {
         [ValidateSet('INFO', 'PHASE', 'WARN', 'ERROR', 'DEBUG', 'VERBOSE')]
         [string]$Level = 'INFO',
 
-        # Report/export catch blocks already pass their caught exception here. Keep the
-        # ordinary message concise, then add type and stack detail to the durable file only.
-        [System.Exception]$Exception,
-
         # Console colour hint. When supplied the message is also written to the host, which is
         # what the collector call sites are asking for. Omitted, this stays a file-only log.
         [ValidateNotNullOrEmpty()]
-        [string]$Color,
-
-        [switch]$FileOnly
+        [string]$Color
     )
-
-    # DEBUG and VERBOSE are always durable file detail, but they should obey the
-    # caller's ordinary PowerShell stream preferences on the console.  Do not set
-    # either preference here: Write-Debug/Write-Verbose stay silent by default and
-    # become visible only when the caller requested -Debug/-Verbose.
-    $Message = Protect-ScoutLogText -Text $Message
-    if ($DebugPreference -eq 'Inquire') { $DebugPreference = 'Continue' }
-    if ($VerbosePreference -eq 'Inquire') { $VerbosePreference = 'Continue' }
-    try {
-        switch ($Level.ToUpperInvariant()) {
-            'DEBUG'   { if (-not $FileOnly) { Microsoft.PowerShell.Utility\Write-Debug $Message } }
-            'VERBOSE' { if (-not $FileOnly) { Microsoft.PowerShell.Utility\Write-Verbose $Message } }
-        }
-    }
-    catch {
-        # Stream preferences such as Stop must not turn optional logging into a run failure.
-        $null = $_.Exception
-    }
 
     if ($PSBoundParameters.ContainsKey('Color')) {
         try { Write-Host $Message -ForegroundColor $Color }
         catch { Write-Host $Message }
     }
 
-    if (-not $script:AZSCRunLogPath) {
-        if ($script:AZSCPendingLog.Count -lt 10000) {
-            $script:AZSCPendingLog.Add([pscustomobject]@{ Timestamp = (Get-Date).ToString('o'); Level = $Level; Message = $Message })
-        }
-        else { $script:AZSCPendingLogDropped++ }
-        return
-    }
+    if (-not $script:AZSCRunLogPath) { return }
 
     try {
         $Stamp = (Get-Date).ToString('yyyy-MM-dd HH:mm:ss.fff')
-        $Lines = @('[{0}] [{1,-5}] {2}' -f $Stamp, $Level.ToUpperInvariant(), $Message)
-        if ($Exception) {
-            $Lines += '[{0}] [{1,-5}] Exception type: {2}' -f $Stamp, $Level.ToUpperInvariant(), $Exception.GetType().FullName
-            if ($Exception.StackTrace) {
-                foreach ($Frame in ($Exception.StackTrace -split "`r?`n" | Where-Object { $_ })) {
-                    $Lines += '[{0}] [{1,-5}]     {2}' -f $Stamp, $Level.ToUpperInvariant(), $Frame.Trim()
-                }
-            }
-        }
-        Add-Content -Path $script:AZSCRunLogPath -Value (Protect-ScoutLogText -Text ($Lines -join "`n")) -Encoding UTF8 -ErrorAction Stop
+        $Line = '[{0}] [{1,-5}] {2}' -f $Stamp, $Level.ToUpperInvariant(), $Message
+        Add-Content -Path $script:AZSCRunLogPath -Value $Line -Encoding UTF8 -ErrorAction Stop
     }
     catch {
         # Deliberately silent: a failed log write must not derail the run.
-        Microsoft.PowerShell.Utility\Write-Debug ('Write-AZSCLog: failed to write to the run log: ' + $_.Exception.Message)
     }
 }
 
@@ -336,7 +213,6 @@ function Write-AZSCLogError {
     }
     catch {
         # Never let error logging raise a second error on top of the first.
-        Microsoft.PowerShell.Utility\Write-Debug ('Write-AZSCLogError: failed while logging the original error: ' + $_.Exception.Message)
     }
 }
 
@@ -359,16 +235,15 @@ function Stop-AZSCRunLog {
             else { 'unknown' }
 
             Write-AZSCLog -Message '' -Level 'INFO'
-            Write-AZSCLog -Message ("Scan/log execution $Status after $Elapsed") -Level 'PHASE'
+            Write-AZSCLog -Message ("Run $Status after $Elapsed") -Level 'PHASE'
         }
         catch {
             # nothing useful left to do here
-            Microsoft.PowerShell.Utility\Write-Debug ('Stop-AZSCRunLog: failed to write the closing log entry: ' + $_.Exception.Message)
         }
     }
 
     if ($script:AZSCTranscriptPath) {
-        try { Stop-Transcript -ErrorAction Stop | Out-Null } catch { Microsoft.PowerShell.Utility\Write-Debug ('Stop-AZSCRunLog: Stop-Transcript failed (no transcript running?): ' + $_.Exception.Message) }
+        try { Stop-Transcript -ErrorAction Stop | Out-Null } catch { }
         $script:AZSCTranscriptPath = $null
     }
 
@@ -379,8 +254,6 @@ function Stop-AZSCRunLog {
 
     $script:AZSCRunLogPath = $null
     $script:AZSCRunLogStart = $null
-    $script:AZSCPendingLog.Clear()
-    $script:AZSCPendingLogDropped = 0
 
     return $Path
 }
