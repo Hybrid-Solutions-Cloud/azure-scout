@@ -1,3 +1,7 @@
+#Requires -Version 7.0
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
 <#
 .Synopsis
 Clear memory for Azure Resource Inventory
@@ -6,7 +10,7 @@ Clear memory for Azure Resource Inventory
 This module clears memory to optimize performance for Azure Resource Inventory.
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Private/0.MainFunctions/Clear-AZSCMemory.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Private/0.MainFunctions/Clear-AZSCMemory.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC)

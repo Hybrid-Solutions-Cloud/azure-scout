@@ -14,7 +14,7 @@ mxfile/diagram/mxGraphModel document that opens cleanly in draw.io.
 This module is used for setting and managing files in the Draw.io Diagram.
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/PublicFunctions/Diagram/Set-AZSCDiagramFile.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/PublicFunctions/Diagram/Set-AZSCDiagramFile.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC)

@@ -829,6 +829,120 @@
       "ZONES": [
         "1"
       ]
+    },
+    {
+      "id": "/subscriptions/sub-00000001/resourceGroups/rg-databases/providers/microsoft.documentdb/mongoclusters/mongocluster-prod",
+      "NAME": "mongocluster-prod",
+      "TYPE": "microsoft.documentdb/mongoclusters",
+      "LOCATION": "eastus",
+      "RESOURCEGROUP": "rg-databases",
+      "subscriptionId": "sub-00000001",
+      "tags": {
+        "env": "test"
+      },
+      "PROPERTIES": {
+        "compute": {
+          "tier": "M30"
+        },
+        "provisioningState": "Succeeded",
+        "publicNetworkAccess": "Disabled",
+        "serverVersion": "7.0",
+        "highAvailability": {
+          "targetMode": "ZoneRedundantPreferred"
+        }
+      },
+      "SKU": null,
+      "ZONES": []
+    },
+    {
+      "id": "/subscriptions/sub-00000002/resourceGroups/rg-databases-2/providers/microsoft.documentdb/mongoclusters/mongocluster-dev",
+      "NAME": "mongocluster-dev",
+      "TYPE": "microsoft.documentdb/mongoclusters",
+      "LOCATION": "westeurope",
+      "RESOURCEGROUP": "rg-databases-2",
+      "subscriptionId": "sub-00000002",
+      "tags": {},
+      "PROPERTIES": {
+        "compute": {
+          "tier": "M10"
+        },
+        "provisioningState": "Succeeded",
+        "publicNetworkAccess": "Enabled",
+        "serverVersion": "6.0",
+        "highAvailability": {
+          "targetMode": "Disabled"
+        }
+      },
+      "SKU": null,
+      "ZONES": []
+    },
+    {
+      "id": "/subscriptions/sub-00000001/resourceGroups/rg-databases/providers/microsoft.documentdb/cassandraclusters/cassandra-prod",
+      "NAME": "cassandra-prod",
+      "TYPE": "microsoft.documentdb/cassandraclusters",
+      "LOCATION": "eastus",
+      "RESOURCEGROUP": "rg-databases",
+      "subscriptionId": "sub-00000001",
+      "tags": {
+        "env": "test"
+      },
+      "identity": {
+        "type": "SystemAssigned"
+      },
+      "PROPERTIES": {
+        "provisioningState": "Succeeded",
+        "cassandraVersion": "4.0",
+        "authenticationMethod": "Cassandra",
+        "cassandraAuditLoggingEnabled": true
+      },
+      "SKU": null,
+      "ZONES": []
+    },
+    {
+      "id": "/subscriptions/sub-00000002/resourceGroups/rg-databases-2/providers/microsoft.documentdb/cassandraclusters/cassandra-dev",
+      "NAME": "cassandra-dev",
+      "TYPE": "microsoft.documentdb/cassandraclusters",
+      "LOCATION": "westeurope",
+      "RESOURCEGROUP": "rg-databases-2",
+      "subscriptionId": "sub-00000002",
+      "tags": {},
+      "identity": {
+        "type": "None"
+      },
+      "PROPERTIES": {
+        "provisioningState": "Succeeded",
+        "cassandraVersion": "3.11",
+        "authenticationMethod": "None",
+        "cassandraAuditLoggingEnabled": false
+      },
+      "SKU": null,
+      "ZONES": []
+    },
+    {
+      "id": "/subscriptions/sub-00000001/resourceGroups/rg-databases/providers/AZSC/ARMChild/stnotadb-1/StorageTables/scoutinventory",
+      "NAME": "stnotadb/scoutinventory",
+      "TYPE": "AZSC/ARMChild/StorageTables",
+      "LOCATION": "westeurope",
+      "RESOURCEGROUP": "rg-databases-2",
+      "subscriptionId": "sub-00000001",
+      "PARENTNAME": "stnotadb",
+      "PROPERTIES": {
+        "metadata": {
+          "createdBy": "scout-fixture"
+        }
+      }
+    },
+    {
+      "id": "/subscriptions/sub-00000001/resourceGroups/rg-databases/providers/AZSC/ARMChild/stnotadb-1/StorageTables/auditlog",
+      "NAME": "stnotadb/auditlog",
+      "TYPE": "AZSC/ARMChild/StorageTables",
+      "LOCATION": "westeurope",
+      "RESOURCEGROUP": "rg-databases-2",
+      "subscriptionId": "sub-00000001",
+      "PARENTNAME": "stnotadb",
+      "PROPERTIES": {
+        "metadata": {}
+      }
     }
   ]
 }

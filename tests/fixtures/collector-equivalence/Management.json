@@ -32,6 +32,18 @@
       "ServiceID": "svc-2"
     },
     {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.automanage/configurationprofiles/automanageconfigurationprofiles-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.automanage/configurationprofiles/automanageconfigurationprofiles-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.automanage/configurationprofiles/automanageconfigurationprofiles-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
       "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.automation/automationaccounts/automationaccounts-t1e-1",
       "ServiceID": "svc-1"
     },
@@ -56,6 +68,30 @@
       "ServiceID": "svc-2"
     },
     {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/backupinstances-t1e-1/BackupInstances/backupinstances-t1e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/backupinstances-t1f-1/BackupInstances/backupinstances-t1f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/backupinstances-t1f-1/BackupInstances/backupinstances-t1f-2",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Governance/budgets-t1e-1/Budget/budgets-t1e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Governance/budgets-t1f-1/Budget/budgets-t1f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Governance/budgets-t1f-1/Budget/budgets-t1f-2",
+      "ServiceID": "svc-2"
+    },
+    {
       "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Management/customroledefinitions-t1e-1/RoleDefinition/customroledefinitions-t1e-2",
       "ServiceID": "svc-1"
     },
@@ -68,63 +104,15 @@
       "ServiceID": "svc-2"
     },
     {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/devops/agentpools/devopsagentpools-t1e-1",
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.easm/workspaces/defendereasmworkspaces-t1e-1",
       "ServiceID": "svc-1"
     },
     {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/devops/agentpools/devopsagentpools-t1f-1",
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.easm/workspaces/defendereasmworkspaces-t1f-1",
       "ServiceID": "svc-1"
     },
     {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/devops/agentpools/devopsagentpools-t1f-1",
-      "ServiceID": "svc-2"
-    },
-    {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/devops/pipelines/devopspipelines-t1e-1",
-      "ServiceID": "svc-1"
-    },
-    {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/devops/pipelines/devopspipelines-t1f-1",
-      "ServiceID": "svc-1"
-    },
-    {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/devops/pipelines/devopspipelines-t1f-1",
-      "ServiceID": "svc-2"
-    },
-    {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/devops/projects/devopsprojects-t1e-1",
-      "ServiceID": "svc-1"
-    },
-    {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/devops/projects/devopsprojects-t1f-1",
-      "ServiceID": "svc-1"
-    },
-    {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/devops/projects/devopsprojects-t1f-1",
-      "ServiceID": "svc-2"
-    },
-    {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/devops/repositories/devopsrepositories-t1e-1",
-      "ServiceID": "svc-1"
-    },
-    {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/devops/repositories/devopsrepositories-t1f-1",
-      "ServiceID": "svc-1"
-    },
-    {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/devops/repositories/devopsrepositories-t1f-1",
-      "ServiceID": "svc-2"
-    },
-    {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/devops/serviceconnections/devopsserviceconnections-t1e-1",
-      "ServiceID": "svc-1"
-    },
-    {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/devops/serviceconnections/devopsserviceconnections-t1f-1",
-      "ServiceID": "svc-1"
-    },
-    {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/devops/serviceconnections/devopsserviceconnections-t1f-1",
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.easm/workspaces/defendereasmworkspaces-t1f-1",
       "ServiceID": "svc-2"
     },
     {
@@ -152,6 +140,30 @@
       "ServiceID": "svc-2"
     },
     {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.solutions/applications/managedapplications-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.solutions/applications/managedapplications-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.solutions/applications/managedapplications-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.dashboard/grafana/managedgrafana-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.dashboard/grafana/managedgrafana-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.dashboard/grafana/managedgrafana-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
       "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Management/managementgroups-t1e-1/ManagementGroup/managementgroups-t1e-2",
       "ServiceID": "svc-1"
     },
@@ -161,6 +173,18 @@
     },
     {
       "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Management/managementgroups-t1f-1/ManagementGroup/managementgroups-t1f-2",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Governance/policyassignments-t1e-1/PolicyAssignment/policyassignments-t1e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Governance/policyassignments-t1f-1/PolicyAssignment/policyassignments-t1f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Governance/policyassignments-t1f-1/PolicyAssignment/policyassignments-t1f-2",
       "ServiceID": "svc-2"
     },
     {
@@ -212,66 +236,6 @@
       "ServiceID": "svc-2"
     },
     {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/Microsoft.Consumption/reservationRecommendations/reservationrecom-t1e-1",
-      "ServiceID": "svc-1"
-    },
-    {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/Microsoft.Consumption/reservationRecommendations/reservationrecom-t1f-1",
-      "ServiceID": "svc-1"
-    },
-    {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/Microsoft.Consumption/reservationRecommendations/reservationrecom-t1f-1",
-      "ServiceID": "svc-2"
-    },
-    {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/Microsoft.Support/supportTickets/supporttickets-t1e-1",
-      "ServiceID": "svc-1"
-    },
-    {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/Microsoft.Support/supportTickets/supporttickets-t1f-1",
-      "ServiceID": "svc-1"
-    },
-    {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/Microsoft.Support/supportTickets/supporttickets-t1f-1",
-      "ServiceID": "svc-2"
-    },
-    {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/backupinstances-t1e-1/BackupInstances/backupinstances-t1e-2",
-      "ServiceID": "svc-1"
-    },
-    {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/backupinstances-t1f-1/BackupInstances/backupinstances-t1f-2",
-      "ServiceID": "svc-1"
-    },
-    {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/backupinstances-t1f-1/BackupInstances/backupinstances-t1f-2",
-      "ServiceID": "svc-2"
-    },
-    {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Governance/budgets-t1e-1/Budget/budgets-t1e-2",
-      "ServiceID": "svc-1"
-    },
-    {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Governance/budgets-t1f-1/Budget/budgets-t1f-2",
-      "ServiceID": "svc-1"
-    },
-    {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Governance/budgets-t1f-1/Budget/budgets-t1f-2",
-      "ServiceID": "svc-2"
-    },
-    {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Governance/policyassignments-t1e-1/PolicyAssignment/policyassignments-t1e-2",
-      "ServiceID": "svc-1"
-    },
-    {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Governance/policyassignments-t1f-1/PolicyAssignment/policyassignments-t1f-2",
-      "ServiceID": "svc-1"
-    },
-    {
-      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Governance/policyassignments-t1f-1/PolicyAssignment/policyassignments-t1f-2",
-      "ServiceID": "svc-2"
-    },
-    {
       "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Governance/resourcelocks-t1e-1/ResourceLock/resourcelocks-t1e-2",
       "ServiceID": "svc-1"
     },
@@ -281,6 +245,18 @@
     },
     {
       "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Governance/resourcelocks-t1f-1/ResourceLock/resourcelocks-t1f-2",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.migrate/movecollections/resourcemovercollections-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.migrate/movecollections/resourcemovercollections-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.migrate/movecollections/resourcemovercollections-t1f-1",
       "ServiceID": "svc-2"
     }
   ],
@@ -306,14 +282,14 @@
               {
                 "scoreHistory": [
                   {
-                    "date": "2026-01-15T10:30:00Z",
+                    "date": "2026-01-15T10:30:00.0000000Z",
                     "score": "res-value",
                     "impactedResourceCount": "res-value",
                     "consumptionUnits": "res-value",
                     "potentialScoreIncrease": "res-value"
                   },
                   {
-                    "date": "2026-01-15T10:30:00Z",
+                    "date": "2026-01-15T10:30:00.0000000Z",
                     "score": "res-value",
                     "impactedResourceCount": "res-value",
                     "consumptionUnits": "res-value",
@@ -325,14 +301,14 @@
               {
                 "scoreHistory": [
                   {
-                    "date": "2026-01-15T10:30:00Z",
+                    "date": "2026-01-15T10:30:00.0000000Z",
                     "score": "res-value",
                     "impactedResourceCount": "res-value",
                     "consumptionUnits": "res-value",
                     "potentialScoreIncrease": "res-value"
                   },
                   {
-                    "date": "2026-01-15T10:30:00Z",
+                    "date": "2026-01-15T10:30:00.0000000Z",
                     "score": "res-value",
                     "impactedResourceCount": "res-value",
                     "consumptionUnits": "res-value",
@@ -343,7 +319,7 @@
               }
             ],
             "lastRefreshedScore": {
-              "date": "2026-01-15T10:30:00Z",
+              "date": "2026-01-15T10:30:00.0000000Z",
               "score": "res-value"
             }
           },
@@ -363,14 +339,14 @@
               {
                 "scoreHistory": [
                   {
-                    "date": "2026-01-15T10:30:00Z",
+                    "date": "2026-01-15T10:30:00.0000000Z",
                     "score": "res-value",
                     "impactedResourceCount": "res-value",
                     "consumptionUnits": "res-value",
                     "potentialScoreIncrease": "res-value"
                   },
                   {
-                    "date": "2026-01-15T10:30:00Z",
+                    "date": "2026-01-15T10:30:00.0000000Z",
                     "score": "res-value",
                     "impactedResourceCount": "res-value",
                     "consumptionUnits": "res-value",
@@ -382,14 +358,14 @@
               {
                 "scoreHistory": [
                   {
-                    "date": "2026-01-15T10:30:00Z",
+                    "date": "2026-01-15T10:30:00.0000000Z",
                     "score": "res-value",
                     "impactedResourceCount": "res-value",
                     "consumptionUnits": "res-value",
                     "potentialScoreIncrease": "res-value"
                   },
                   {
-                    "date": "2026-01-15T10:30:00Z",
+                    "date": "2026-01-15T10:30:00.0000000Z",
                     "score": "res-value",
                     "impactedResourceCount": "res-value",
                     "consumptionUnits": "res-value",
@@ -400,7 +376,7 @@
               }
             ],
             "lastRefreshedScore": {
-              "date": "2026-01-15T10:30:00Z",
+              "date": "2026-01-15T10:30:00.0000000Z",
               "score": "res-value"
             }
           },
@@ -421,14 +397,14 @@
               {
                 "scoreHistory": [
                   {
-                    "date": "2026-01-15T10:30:00Z",
+                    "date": "2026-01-15T10:30:00.0000000Z",
                     "score": "res-value",
                     "impactedResourceCount": "res-value",
                     "consumptionUnits": "res-value",
                     "potentialScoreIncrease": "res-value"
                   },
                   {
-                    "date": "2026-01-15T10:30:00Z",
+                    "date": "2026-01-15T10:30:00.0000000Z",
                     "score": "res-value",
                     "impactedResourceCount": "res-value",
                     "consumptionUnits": "res-value",
@@ -440,14 +416,14 @@
               {
                 "scoreHistory": [
                   {
-                    "date": "2026-01-15T10:30:00Z",
+                    "date": "2026-01-15T10:30:00.0000000Z",
                     "score": "res-value",
                     "impactedResourceCount": "res-value",
                     "consumptionUnits": "res-value",
                     "potentialScoreIncrease": "res-value"
                   },
                   {
-                    "date": "2026-01-15T10:30:00Z",
+                    "date": "2026-01-15T10:30:00.0000000Z",
                     "score": "res-value",
                     "impactedResourceCount": "res-value",
                     "consumptionUnits": "res-value",
@@ -458,7 +434,7 @@
               }
             ],
             "lastRefreshedScore": {
-              "date": "2026-01-15T10:30:00Z",
+              "date": "2026-01-15T10:30:00.0000000Z",
               "score": "res-value"
             }
           },
@@ -476,14 +452,14 @@
               {
                 "scoreHistory": [
                   {
-                    "date": "2026-01-15T10:30:00Z",
+                    "date": "2026-01-15T10:30:00.0000000Z",
                     "score": "res-value",
                     "impactedResourceCount": "res-value",
                     "consumptionUnits": "res-value",
                     "potentialScoreIncrease": "res-value"
                   },
                   {
-                    "date": "2026-01-15T10:30:00Z",
+                    "date": "2026-01-15T10:30:00.0000000Z",
                     "score": "res-value",
                     "impactedResourceCount": "res-value",
                     "consumptionUnits": "res-value",
@@ -495,14 +471,14 @@
               {
                 "scoreHistory": [
                   {
-                    "date": "2026-01-15T10:30:00Z",
+                    "date": "2026-01-15T10:30:00.0000000Z",
                     "score": "res-value",
                     "impactedResourceCount": "res-value",
                     "consumptionUnits": "res-value",
                     "potentialScoreIncrease": "res-value"
                   },
                   {
-                    "date": "2026-01-15T10:30:00Z",
+                    "date": "2026-01-15T10:30:00.0000000Z",
                     "score": "res-value",
                     "impactedResourceCount": "res-value",
                     "consumptionUnits": "res-value",
@@ -513,7 +489,7 @@
               }
             ],
             "lastRefreshedScore": {
-              "date": "2026-01-15T10:30:00Z",
+              "date": "2026-01-15T10:30:00.0000000Z",
               "score": "res-value"
             }
           },
@@ -533,14 +509,14 @@
               {
                 "scoreHistory": [
                   {
-                    "date": "2026-01-15T10:30:00Z",
+                    "date": "2026-01-15T10:30:00.0000000Z",
                     "score": "res-value",
                     "impactedResourceCount": "res-value",
                     "consumptionUnits": "res-value",
                     "potentialScoreIncrease": "res-value"
                   },
                   {
-                    "date": "2026-01-15T10:30:00Z",
+                    "date": "2026-01-15T10:30:00.0000000Z",
                     "score": "res-value",
                     "impactedResourceCount": "res-value",
                     "consumptionUnits": "res-value",
@@ -552,14 +528,14 @@
               {
                 "scoreHistory": [
                   {
-                    "date": "2026-01-15T10:30:00Z",
+                    "date": "2026-01-15T10:30:00.0000000Z",
                     "score": "res-value",
                     "impactedResourceCount": "res-value",
                     "consumptionUnits": "res-value",
                     "potentialScoreIncrease": "res-value"
                   },
                   {
-                    "date": "2026-01-15T10:30:00Z",
+                    "date": "2026-01-15T10:30:00.0000000Z",
                     "score": "res-value",
                     "impactedResourceCount": "res-value",
                     "consumptionUnits": "res-value",
@@ -570,7 +546,7 @@
               }
             ],
             "lastRefreshedScore": {
-              "date": "2026-01-15T10:30:00Z",
+              "date": "2026-01-15T10:30:00.0000000Z",
               "score": "res-value"
             }
           },
@@ -590,14 +566,14 @@
               {
                 "scoreHistory": [
                   {
-                    "date": "2026-01-15T10:30:00Z",
+                    "date": "2026-01-15T10:30:00.0000000Z",
                     "score": "res-value",
                     "impactedResourceCount": "res-value",
                     "consumptionUnits": "res-value",
                     "potentialScoreIncrease": "res-value"
                   },
                   {
-                    "date": "2026-01-15T10:30:00Z",
+                    "date": "2026-01-15T10:30:00.0000000Z",
                     "score": "res-value",
                     "impactedResourceCount": "res-value",
                     "consumptionUnits": "res-value",
@@ -609,14 +585,14 @@
               {
                 "scoreHistory": [
                   {
-                    "date": "2026-01-15T10:30:00Z",
+                    "date": "2026-01-15T10:30:00.0000000Z",
                     "score": "res-value",
                     "impactedResourceCount": "res-value",
                     "consumptionUnits": "res-value",
                     "potentialScoreIncrease": "res-value"
                   },
                   {
-                    "date": "2026-01-15T10:30:00Z",
+                    "date": "2026-01-15T10:30:00.0000000Z",
                     "score": "res-value",
                     "impactedResourceCount": "res-value",
                     "consumptionUnits": "res-value",
@@ -627,7 +603,7 @@
               }
             ],
             "lastRefreshedScore": {
-              "date": "2026-01-15T10:30:00Z",
+              "date": "2026-01-15T10:30:00.0000000Z",
               "score": "res-value"
             }
           },
@@ -831,11 +807,152 @@
         }
       ]
     },
+    "AutomanageConfigurationProfiles": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "overrides": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "configuration": {
+              "Antimalware": "res-value",
+              "Backup": "res-value",
+              "WindowsPatchSettings": "res-value",
+              "LinuxPatchSettings": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.automanage/configurationprofiles/automanageconfigurationprofiles-t1a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "automanageconfigurationprofiles-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.automanage/configurationprofiles"
+        },
+        {
+          "PROPERTIES": {
+            "overrides": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "configuration": {
+              "Antimalware": "res-value",
+              "Backup": "res-value",
+              "WindowsPatchSettings": "res-value",
+              "LinuxPatchSettings": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.automanage/configurationprofiles/automanageconfigurationprofiles-t1b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "automanageconfigurationprofiles-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.automanage/configurationprofiles"
+        },
+        {
+          "PROPERTIES": {
+            "overrides": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "configuration": {
+              "Antimalware": "res-value",
+              "Backup": "res-value",
+              "WindowsPatchSettings": "res-value",
+              "LinuxPatchSettings": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.automanage/configurationprofiles/automanageconfigurationprofiles-t1c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "automanageconfigurationprofiles-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.automanage/configurationprofiles"
+        },
+        {
+          "PROPERTIES": {
+            "overrides": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "configuration": {
+              "Antimalware": "res-value",
+              "Backup": "res-value",
+              "WindowsPatchSettings": "res-value",
+              "LinuxPatchSettings": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.automanage/configurationprofiles/automanageconfigurationprofiles-t1d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "automanageconfigurationprofiles-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.automanage/configurationprofiles"
+        },
+        {
+          "PROPERTIES": {
+            "overrides": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "configuration": {
+              "Antimalware": "res-value",
+              "Backup": "res-value",
+              "WindowsPatchSettings": "res-value",
+              "LinuxPatchSettings": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.automanage/configurationprofiles/automanageconfigurationprofiles-t1e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "automanageconfigurationprofiles-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.automanage/configurationprofiles"
+        },
+        {
+          "PROPERTIES": {
+            "overrides": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "configuration": {
+              "Antimalware": "res-value",
+              "Backup": "res-value",
+              "WindowsPatchSettings": "res-value",
+              "LinuxPatchSettings": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.automanage/configurationprofiles/automanageconfigurationprofiles-t1f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "automanageconfigurationprofiles-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.automanage/configurationprofiles"
+        }
+      ]
+    },
     "AutomationAccounts": {
       "resources": [
         {
           "properties": {
-            "creationTime": "2026-01-15T10:30:00Z",
+            "creationTime": "2026-01-15T10:30:00.0000000Z",
             "State": "res-value",
             "sku": {
               "name": "res-value"
@@ -863,7 +980,7 @@
         },
         {
           "properties": {
-            "creationTime": "2026-01-15T10:30:00Z",
+            "creationTime": "2026-01-15T10:30:00.0000000Z",
             "State": "res-value",
             "sku": {
               "name": "res-value"
@@ -892,7 +1009,7 @@
         },
         {
           "properties": {
-            "creationTime": "2026-01-15T10:30:00Z",
+            "creationTime": "2026-01-15T10:30:00.0000000Z",
             "State": "res-value",
             "sku": {
               "name": "res-value"
@@ -908,7 +1025,7 @@
         },
         {
           "properties": {
-            "creationTime": "2026-01-15T10:30:00Z",
+            "creationTime": "2026-01-15T10:30:00.0000000Z",
             "State": "res-value",
             "sku": {
               "name": "res-value"
@@ -936,7 +1053,7 @@
         },
         {
           "properties": {
-            "creationTime": "2026-01-15T10:30:00Z",
+            "creationTime": "2026-01-15T10:30:00.0000000Z",
             "State": "res-value",
             "sku": {
               "name": "res-value"
@@ -964,7 +1081,7 @@
         },
         {
           "properties": {
-            "creationTime": "2026-01-15T10:30:00Z",
+            "creationTime": "2026-01-15T10:30:00.0000000Z",
             "State": "res-value",
             "sku": {
               "name": "res-value"
@@ -1023,9 +1140,9 @@
           "properties": {
             "policyid": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.recoveryservices/vaults/backup-t1a-1/backuppolicies/backup-t1a-2",
             "vaultid": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
-            "lastbackuptime": "2026-01-15T10:30:00Z",
-            "lastrecoverypoint": "2026-01-15T10:30:00Z",
-            "latestrecoverypointinsecondaryregion": "2026-01-15T10:30:00Z",
+            "lastbackuptime": "2026-01-15T10:30:00.0000000Z",
+            "lastrecoverypoint": "2026-01-15T10:30:00.0000000Z",
+            "latestrecoverypointinsecondaryregion": "2026-01-15T10:30:00.0000000Z",
             "backupmanagementtype": "res-value",
             "friendlyname": "res-value",
             "configuredmaximumretention": "res-value",
@@ -1076,9 +1193,9 @@
           "properties": {
             "policyid": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.recoveryservices/vaults/backup-t1b-1/backuppolicies/backup-t1b-2",
             "vaultid": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
-            "lastbackuptime": "2026-01-15T10:30:00Z",
-            "lastrecoverypoint": "2026-01-15T10:30:00Z",
-            "latestrecoverypointinsecondaryregion": "2026-01-15T10:30:00Z",
+            "lastbackuptime": "2026-01-15T10:30:00.0000000Z",
+            "lastrecoverypoint": "2026-01-15T10:30:00.0000000Z",
+            "latestrecoverypointinsecondaryregion": "2026-01-15T10:30:00.0000000Z",
             "backupmanagementtype": "res-value",
             "friendlyname": "res-value",
             "configuredmaximumretention": "res-value",
@@ -1151,9 +1268,9 @@
           "properties": {
             "policyid": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.recoveryservices/vaults/backup-t1d-1/backuppolicies/backup-t1d-2",
             "vaultid": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
-            "lastbackuptime": "2026-01-15T10:30:00Z",
-            "lastrecoverypoint": "2026-01-15T10:30:00Z",
-            "latestrecoverypointinsecondaryregion": "2026-01-15T10:30:00Z",
+            "lastbackuptime": "2026-01-15T10:30:00.0000000Z",
+            "lastrecoverypoint": "2026-01-15T10:30:00.0000000Z",
+            "latestrecoverypointinsecondaryregion": "2026-01-15T10:30:00.0000000Z",
             "backupmanagementtype": "res-value",
             "friendlyname": "res-value",
             "configuredmaximumretention": "res-value",
@@ -1203,9 +1320,9 @@
           "properties": {
             "policyid": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.recoveryservices/vaults/backup-t1e-1/backuppolicies/backup-t1e-2",
             "vaultid": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
-            "lastbackuptime": "2026-01-15T10:30:00Z",
-            "lastrecoverypoint": "2026-01-15T10:30:00Z",
-            "latestrecoverypointinsecondaryregion": "2026-01-15T10:30:00Z",
+            "lastbackuptime": "2026-01-15T10:30:00.0000000Z",
+            "lastrecoverypoint": "2026-01-15T10:30:00.0000000Z",
+            "latestrecoverypointinsecondaryregion": "2026-01-15T10:30:00.0000000Z",
             "backupmanagementtype": "res-value",
             "friendlyname": "res-value",
             "configuredmaximumretention": "res-value",
@@ -1255,9 +1372,9 @@
           "properties": {
             "policyid": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.recoveryservices/vaults/backup-t1f-1/backuppolicies/backup-t1f-2",
             "vaultid": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
-            "lastbackuptime": "2026-01-15T10:30:00Z",
-            "lastrecoverypoint": "2026-01-15T10:30:00Z",
-            "latestrecoverypointinsecondaryregion": "2026-01-15T10:30:00Z",
+            "lastbackuptime": "2026-01-15T10:30:00.0000000Z",
+            "lastrecoverypoint": "2026-01-15T10:30:00.0000000Z",
+            "latestrecoverypointinsecondaryregion": "2026-01-15T10:30:00.0000000Z",
             "backupmanagementtype": "res-value",
             "friendlyname": "res-value",
             "configuredmaximumretention": "res-value",
@@ -1454,8 +1571,8 @@
           "Amount": "res-value",
           "Currency": "res-value",
           "Time Grain": "res-value",
-          "Start Date": "2026-01-15T10:30:00Z",
-          "End Date": "2026-01-15T10:30:00Z",
+          "Start Date": "2026-01-15T10:30:00.0000000Z",
+          "End Date": "2026-01-15T10:30:00.0000000Z",
           "Current Spend": "res-value",
           "Forecast Spend": "res-value",
           "Budget Used %": "res-value",
@@ -1473,8 +1590,8 @@
               "Amount": "Amount value",
               "Currency": "Currency value",
               "Time Grain": "Time Grain value",
-              "Start Date": "2026-01-15T10:30:00Z",
-              "End Date": "2026-01-15T10:30:00Z",
+              "Start Date": "2026-01-15T10:30:00.0000000Z",
+              "End Date": "2026-01-15T10:30:00.0000000Z",
               "Current Spend": "Current Spend value",
               "Forecast Spend": "Forecast Spend value",
               "Budget Used %": "Budget Used % value",
@@ -1493,8 +1610,8 @@
           "Amount": "res-value",
           "Currency": "res-value",
           "Time Grain": "res-value",
-          "Start Date": "2026-01-15T10:30:00Z",
-          "End Date": "2026-01-15T10:30:00Z",
+          "Start Date": "2026-01-15T10:30:00.0000000Z",
+          "End Date": "2026-01-15T10:30:00.0000000Z",
           "Current Spend": "res-value",
           "Forecast Spend": "res-value",
           "Budget Used %": "res-value",
@@ -1512,8 +1629,8 @@
               "Amount": "Amount value",
               "Currency": "Currency value",
               "Time Grain": "Time Grain value",
-              "Start Date": "2026-01-15T10:30:00Z",
-              "End Date": "2026-01-15T10:30:00Z",
+              "Start Date": "2026-01-15T10:30:00.0000000Z",
+              "End Date": "2026-01-15T10:30:00.0000000Z",
               "Current Spend": "Current Spend value",
               "Forecast Spend": "Forecast Spend value",
               "Budget Used %": "Budget Used % value",
@@ -1533,8 +1650,8 @@
           "Amount": "res-value",
           "Currency": "res-value",
           "Time Grain": "res-value",
-          "Start Date": "2026-01-15T10:30:00Z",
-          "End Date": "2026-01-15T10:30:00Z",
+          "Start Date": "2026-01-15T10:30:00.0000000Z",
+          "End Date": "2026-01-15T10:30:00.0000000Z",
           "Current Spend": "res-value",
           "Forecast Spend": "res-value",
           "Budget Used %": "res-value",
@@ -1552,8 +1669,8 @@
               "Amount": "Amount value",
               "Currency": "Currency value",
               "Time Grain": "Time Grain value",
-              "Start Date": "2026-01-15T10:30:00Z",
-              "End Date": "2026-01-15T10:30:00Z",
+              "Start Date": "2026-01-15T10:30:00.0000000Z",
+              "End Date": "2026-01-15T10:30:00.0000000Z",
               "Current Spend": "Current Spend value",
               "Forecast Spend": "Forecast Spend value",
               "Budget Used %": "Budget Used % value",
@@ -1570,8 +1687,8 @@
           "Amount": "res-value",
           "Currency": "res-value",
           "Time Grain": "res-value",
-          "Start Date": "2026-01-15T10:30:00Z",
-          "End Date": "2026-01-15T10:30:00Z",
+          "Start Date": "2026-01-15T10:30:00.0000000Z",
+          "End Date": "2026-01-15T10:30:00.0000000Z",
           "Current Spend": "res-value",
           "Forecast Spend": "res-value",
           "Budget Used %": "res-value",
@@ -1589,8 +1706,8 @@
               "Amount": "Amount value",
               "Currency": "Currency value",
               "Time Grain": "Time Grain value",
-              "Start Date": "2026-01-15T10:30:00Z",
-              "End Date": "2026-01-15T10:30:00Z",
+              "Start Date": "2026-01-15T10:30:00.0000000Z",
+              "End Date": "2026-01-15T10:30:00.0000000Z",
               "Current Spend": "Current Spend value",
               "Forecast Spend": "Forecast Spend value",
               "Budget Used %": "Budget Used % value",
@@ -1609,8 +1726,8 @@
           "Amount": "res-value",
           "Currency": "res-value",
           "Time Grain": "res-value",
-          "Start Date": "2026-01-15T10:30:00Z",
-          "End Date": "2026-01-15T10:30:00Z",
+          "Start Date": "2026-01-15T10:30:00.0000000Z",
+          "End Date": "2026-01-15T10:30:00.0000000Z",
           "Current Spend": "res-value",
           "Forecast Spend": "res-value",
           "Budget Used %": "res-value",
@@ -1628,8 +1745,8 @@
               "Amount": "Amount value",
               "Currency": "Currency value",
               "Time Grain": "Time Grain value",
-              "Start Date": "2026-01-15T10:30:00Z",
-              "End Date": "2026-01-15T10:30:00Z",
+              "Start Date": "2026-01-15T10:30:00.0000000Z",
+              "End Date": "2026-01-15T10:30:00.0000000Z",
               "Current Spend": "Current Spend value",
               "Forecast Spend": "Forecast Spend value",
               "Budget Used %": "Budget Used % value",
@@ -1648,8 +1765,8 @@
           "Amount": "res-value",
           "Currency": "res-value",
           "Time Grain": "res-value",
-          "Start Date": "2026-01-15T10:30:00Z",
-          "End Date": "2026-01-15T10:30:00Z",
+          "Start Date": "2026-01-15T10:30:00.0000000Z",
+          "End Date": "2026-01-15T10:30:00.0000000Z",
           "Current Spend": "res-value",
           "Forecast Spend": "res-value",
           "Budget Used %": "res-value",
@@ -1667,8 +1784,8 @@
               "Amount": "Amount value",
               "Currency": "Currency value",
               "Time Grain": "Time Grain value",
-              "Start Date": "2026-01-15T10:30:00Z",
-              "End Date": "2026-01-15T10:30:00Z",
+              "Start Date": "2026-01-15T10:30:00.0000000Z",
+              "End Date": "2026-01-15T10:30:00.0000000Z",
               "Current Spend": "Current Spend value",
               "Forecast Spend": "Forecast Spend value",
               "Budget Used %": "Budget Used % value",
@@ -1710,15 +1827,47 @@
           "Description": "res-value",
           "RoleType": "res-value",
           "IsCustom": "res-value",
-          "CreatedOn": "2026-01-15T10:30:00Z",
-          "UpdatedOn": "2026-01-15T10:30:00Z",
+          "CreatedOn": "2026-01-15T10:30:00.0000000Z",
+          "UpdatedOn": "2026-01-15T10:30:00.0000000Z",
           "CreatedBy": "res-value",
           "UpdatedBy": "res-value",
           "TYPE": "AZSC/Management/RoleDefinition",
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "RESOURCEGROUP": "rg-fixture-01",
           "LOCATION": "eastus",
-          "PROPERTIES": {},
+          "PROPERTIES": [
+            {
+              "Actions": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "NotActions": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "DataActions": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "NotDataActions": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "AssignableScopes": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "Id": "Id value",
+              "Name": "Name value",
+              "Description": "Description value",
+              "RoleType": "RoleType value",
+              "IsCustom": "IsCustom value",
+              "CreatedOn": "2026-01-15T10:30:00.0000000Z",
+              "UpdatedOn": "2026-01-15T10:30:00.0000000Z",
+              "CreatedBy": "CreatedBy value",
+              "UpdatedBy": "UpdatedBy value"
+            }
+          ],
           "tags": {
             "env": "prod"
           }
@@ -1749,15 +1898,47 @@
           "Description": "res-value",
           "RoleType": "res-value",
           "IsCustom": "res-value",
-          "CreatedOn": "2026-01-15T10:30:00Z",
-          "UpdatedOn": "2026-01-15T10:30:00Z",
+          "CreatedOn": "2026-01-15T10:30:00.0000000Z",
+          "UpdatedOn": "2026-01-15T10:30:00.0000000Z",
           "CreatedBy": "res-value",
           "UpdatedBy": "res-value",
           "TYPE": "AZSC/Management/RoleDefinition",
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "RESOURCEGROUP": "rg-fixture-01",
           "LOCATION": "eastus",
-          "PROPERTIES": {},
+          "PROPERTIES": [
+            {
+              "Actions": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "NotActions": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "DataActions": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "NotDataActions": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "AssignableScopes": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "Id": "Id value",
+              "Name": "Name value",
+              "Description": "Description value",
+              "RoleType": "RoleType value",
+              "IsCustom": "IsCustom value",
+              "CreatedOn": "2026-01-15T10:30:00.0000000Z",
+              "UpdatedOn": "2026-01-15T10:30:00.0000000Z",
+              "CreatedBy": "CreatedBy value",
+              "UpdatedBy": "UpdatedBy value"
+            }
+          ],
           "tags": {
             "env": "prod",
             "owner": "platform"
@@ -1789,15 +1970,47 @@
           "Description": "res-value",
           "RoleType": "res-value",
           "IsCustom": "res-value",
-          "CreatedOn": "2026-01-15T10:30:00Z",
-          "UpdatedOn": "2026-01-15T10:30:00Z",
+          "CreatedOn": "2026-01-15T10:30:00.0000000Z",
+          "UpdatedOn": "2026-01-15T10:30:00.0000000Z",
           "CreatedBy": "res-value",
           "UpdatedBy": "res-value",
           "TYPE": "AZSC/Management/RoleDefinition",
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "RESOURCEGROUP": "rg-fixture-01",
           "LOCATION": "eastus",
-          "PROPERTIES": {},
+          "PROPERTIES": [
+            {
+              "Actions": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "NotActions": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "DataActions": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "NotDataActions": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "AssignableScopes": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "Id": "Id value",
+              "Name": "Name value",
+              "Description": "Description value",
+              "RoleType": "RoleType value",
+              "IsCustom": "IsCustom value",
+              "CreatedOn": "2026-01-15T10:30:00.0000000Z",
+              "UpdatedOn": "2026-01-15T10:30:00.0000000Z",
+              "CreatedBy": "CreatedBy value",
+              "UpdatedBy": "UpdatedBy value"
+            }
+          ],
           "tags": {}
         },
         {
@@ -1826,15 +2039,47 @@
           "Description": "res-value",
           "RoleType": "res-value",
           "IsCustom": "res-value",
-          "CreatedOn": "2026-01-15T10:30:00Z",
-          "UpdatedOn": "2026-01-15T10:30:00Z",
+          "CreatedOn": "2026-01-15T10:30:00.0000000Z",
+          "UpdatedOn": "2026-01-15T10:30:00.0000000Z",
           "CreatedBy": "res-value",
           "UpdatedBy": "res-value",
           "TYPE": "AZSC/Management/RoleDefinition",
           "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
           "RESOURCEGROUP": "rg-fixture-01",
           "LOCATION": "eastus",
-          "PROPERTIES": {},
+          "PROPERTIES": [
+            {
+              "Actions": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "NotActions": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "DataActions": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "NotDataActions": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "AssignableScopes": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "Id": "Id value",
+              "Name": "Name value",
+              "Description": "Description value",
+              "RoleType": "RoleType value",
+              "IsCustom": "IsCustom value",
+              "CreatedOn": "2026-01-15T10:30:00.0000000Z",
+              "UpdatedOn": "2026-01-15T10:30:00.0000000Z",
+              "CreatedBy": "CreatedBy value",
+              "UpdatedBy": "UpdatedBy value"
+            }
+          ],
           "tags": {
             "env": "dev"
           }
@@ -1865,15 +2110,47 @@
           "Description": "res-value",
           "RoleType": "res-value",
           "IsCustom": "res-value",
-          "CreatedOn": "2026-01-15T10:30:00Z",
-          "UpdatedOn": "2026-01-15T10:30:00Z",
+          "CreatedOn": "2026-01-15T10:30:00.0000000Z",
+          "UpdatedOn": "2026-01-15T10:30:00.0000000Z",
           "CreatedBy": "res-value",
           "UpdatedBy": "res-value",
           "TYPE": "AZSC/Management/RoleDefinition",
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "RESOURCEGROUP": "rg-fixture-01",
           "LOCATION": "eastus",
-          "PROPERTIES": {},
+          "PROPERTIES": [
+            {
+              "Actions": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "NotActions": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "DataActions": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "NotDataActions": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "AssignableScopes": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "Id": "Id value",
+              "Name": "Name value",
+              "Description": "Description value",
+              "RoleType": "RoleType value",
+              "IsCustom": "IsCustom value",
+              "CreatedOn": "2026-01-15T10:30:00.0000000Z",
+              "UpdatedOn": "2026-01-15T10:30:00.0000000Z",
+              "CreatedBy": "CreatedBy value",
+              "UpdatedBy": "UpdatedBy value"
+            }
+          ],
           "tags": {
             "env": "prod"
           }
@@ -1904,18 +2181,143 @@
           "Description": "res-value",
           "RoleType": "res-value",
           "IsCustom": "res-value",
-          "CreatedOn": "2026-01-15T10:30:00Z",
-          "UpdatedOn": "2026-01-15T10:30:00Z",
+          "CreatedOn": "2026-01-15T10:30:00.0000000Z",
+          "UpdatedOn": "2026-01-15T10:30:00.0000000Z",
           "CreatedBy": "res-value",
           "UpdatedBy": "res-value",
           "TYPE": "AZSC/Management/RoleDefinition",
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "RESOURCEGROUP": "rg-fixture-01",
           "LOCATION": "eastus",
-          "PROPERTIES": {},
+          "PROPERTIES": [
+            {
+              "Actions": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "NotActions": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "DataActions": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "NotDataActions": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "AssignableScopes": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "Id": "Id value",
+              "Name": "Name value",
+              "Description": "Description value",
+              "RoleType": "RoleType value",
+              "IsCustom": "IsCustom value",
+              "CreatedOn": "2026-01-15T10:30:00.0000000Z",
+              "UpdatedOn": "2026-01-15T10:30:00.0000000Z",
+              "CreatedBy": "CreatedBy value",
+              "UpdatedBy": "UpdatedBy value"
+            }
+          ],
           "tags": {
             "env": "prod"
           }
+        }
+      ]
+    },
+    "DefenderEasmWorkspaces": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "dataPlaneEndpoint": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.easm/workspaces/defendereasmworkspaces-t1a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "defendereasmworkspaces-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.easm/workspaces"
+        },
+        {
+          "PROPERTIES": {
+            "dataPlaneEndpoint": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.easm/workspaces/defendereasmworkspaces-t1b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "defendereasmworkspaces-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.easm/workspaces"
+        },
+        {
+          "PROPERTIES": {
+            "dataPlaneEndpoint": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.easm/workspaces/defendereasmworkspaces-t1c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "defendereasmworkspaces-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.easm/workspaces"
+        },
+        {
+          "PROPERTIES": {
+            "dataPlaneEndpoint": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.easm/workspaces/defendereasmworkspaces-t1d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "defendereasmworkspaces-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.easm/workspaces"
+        },
+        {
+          "PROPERTIES": {
+            "dataPlaneEndpoint": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.easm/workspaces/defendereasmworkspaces-t1e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "defendereasmworkspaces-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.easm/workspaces"
+        },
+        {
+          "PROPERTIES": {
+            "dataPlaneEndpoint": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.easm/workspaces/defendereasmworkspaces-t1f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "defendereasmworkspaces-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.easm/workspaces"
         }
       ]
     },
@@ -2144,7 +2546,7 @@
           "PROPERTIES": {
             "maintenanceWindow": {
               "recurEvery": "res-value",
-              "startDateTime": "2026-01-15T10:30:00Z",
+              "startDateTime": "2026-01-15T10:30:00.0000000Z",
               "duration": "res-value",
               "timeZone": "res-value"
             },
@@ -2213,7 +2615,7 @@
           "PROPERTIES": {
             "maintenanceWindow": {
               "recurEvery": "res-value",
-              "startDateTime": "2026-01-15T10:30:00Z",
+              "startDateTime": "2026-01-15T10:30:00.0000000Z",
               "duration": "res-value",
               "timeZone": "res-value"
             },
@@ -2283,7 +2685,7 @@
           "PROPERTIES": {
             "maintenanceWindow": {
               "recurEvery": "res-value",
-              "startDateTime": "2026-01-15T10:30:00Z",
+              "startDateTime": "2026-01-15T10:30:00.0000000Z",
               "duration": "res-value",
               "timeZone": "res-value"
             },
@@ -2350,7 +2752,7 @@
           "PROPERTIES": {
             "maintenanceWindow": {
               "recurEvery": "res-value",
-              "startDateTime": "2026-01-15T10:30:00Z",
+              "startDateTime": "2026-01-15T10:30:00.0000000Z",
               "duration": "res-value",
               "timeZone": "res-value"
             },
@@ -2419,7 +2821,7 @@
           "PROPERTIES": {
             "maintenanceWindow": {
               "recurEvery": "res-value",
-              "startDateTime": "2026-01-15T10:30:00Z",
+              "startDateTime": "2026-01-15T10:30:00.0000000Z",
               "duration": "res-value",
               "timeZone": "res-value"
             },
@@ -2488,7 +2890,7 @@
           "PROPERTIES": {
             "maintenanceWindow": {
               "recurEvery": "res-value",
-              "startDateTime": "2026-01-15T10:30:00Z",
+              "startDateTime": "2026-01-15T10:30:00.0000000Z",
               "duration": "res-value",
               "timeZone": "res-value"
             },
@@ -2555,6 +2957,270 @@
         }
       ]
     },
+    "ManagedApplications": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "managedResourceGroupId": "res-value",
+            "applicationDefinitionId": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "managedBy": "res-value",
+          "PLAN": {
+            "name": "res-value",
+            "publisher": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.solutions/applications/managedapplications-t1a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "managedapplications-t1a",
+          "LOCATION": "res-value",
+          "KIND": "res-value",
+          "TYPE": "microsoft.solutions/applications"
+        },
+        {
+          "PROPERTIES": {
+            "managedResourceGroupId": "res-value",
+            "applicationDefinitionId": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "managedBy": "res-value",
+          "PLAN": {
+            "name": "res-value",
+            "publisher": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.solutions/applications/managedapplications-t1b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "managedapplications-t1b",
+          "LOCATION": "res-value",
+          "KIND": "res-value",
+          "TYPE": "microsoft.solutions/applications"
+        },
+        {
+          "PROPERTIES": {
+            "managedResourceGroupId": "res-value",
+            "applicationDefinitionId": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "managedBy": "res-value",
+          "PLAN": {
+            "name": "res-value",
+            "publisher": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.solutions/applications/managedapplications-t1c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "managedapplications-t1c",
+          "LOCATION": "res-value",
+          "KIND": "res-value",
+          "TYPE": "microsoft.solutions/applications"
+        },
+        {
+          "PROPERTIES": {
+            "managedResourceGroupId": "res-value",
+            "applicationDefinitionId": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "managedBy": "res-value",
+          "PLAN": {
+            "name": "res-value",
+            "publisher": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.solutions/applications/managedapplications-t1d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "managedapplications-t1d",
+          "LOCATION": "res-value",
+          "KIND": "res-value",
+          "TYPE": "microsoft.solutions/applications"
+        },
+        {
+          "PROPERTIES": {
+            "managedResourceGroupId": "res-value",
+            "applicationDefinitionId": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "managedBy": "res-value",
+          "PLAN": {
+            "name": "res-value",
+            "publisher": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.solutions/applications/managedapplications-t1e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "managedapplications-t1e",
+          "LOCATION": "res-value",
+          "KIND": "res-value",
+          "TYPE": "microsoft.solutions/applications"
+        },
+        {
+          "PROPERTIES": {
+            "managedResourceGroupId": "res-value",
+            "applicationDefinitionId": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "managedBy": "res-value",
+          "PLAN": {
+            "name": "res-value",
+            "publisher": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.solutions/applications/managedapplications-t1f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "managedapplications-t1f",
+          "LOCATION": "res-value",
+          "KIND": "res-value",
+          "TYPE": "microsoft.solutions/applications"
+        }
+      ]
+    },
+    "ManagedGrafana": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "publicNetworkAccess": "res-value",
+            "zoneRedundancy": "res-value",
+            "apiKey": "res-value",
+            "provisioningState": "res-value",
+            "endpoint": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "SKU": {
+            "name": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.dashboard/grafana/managedgrafana-t1a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "managedgrafana-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.dashboard/grafana"
+        },
+        {
+          "PROPERTIES": {
+            "publicNetworkAccess": "res-value",
+            "zoneRedundancy": "res-value",
+            "apiKey": "res-value",
+            "provisioningState": "res-value",
+            "endpoint": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "SKU": {
+            "name": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.dashboard/grafana/managedgrafana-t1b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "managedgrafana-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.dashboard/grafana"
+        },
+        {
+          "PROPERTIES": {
+            "publicNetworkAccess": "res-value",
+            "zoneRedundancy": "res-value",
+            "apiKey": "res-value",
+            "provisioningState": "res-value",
+            "endpoint": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "SKU": {
+            "name": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.dashboard/grafana/managedgrafana-t1c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "managedgrafana-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.dashboard/grafana"
+        },
+        {
+          "PROPERTIES": {
+            "publicNetworkAccess": "res-value",
+            "zoneRedundancy": "res-value",
+            "apiKey": "res-value",
+            "provisioningState": "res-value",
+            "endpoint": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "SKU": {
+            "name": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.dashboard/grafana/managedgrafana-t1d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "managedgrafana-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.dashboard/grafana"
+        },
+        {
+          "PROPERTIES": {
+            "publicNetworkAccess": "res-value",
+            "zoneRedundancy": "res-value",
+            "apiKey": "res-value",
+            "provisioningState": "res-value",
+            "endpoint": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "SKU": {
+            "name": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.dashboard/grafana/managedgrafana-t1e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "managedgrafana-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.dashboard/grafana"
+        },
+        {
+          "PROPERTIES": {
+            "publicNetworkAccess": "res-value",
+            "zoneRedundancy": "res-value",
+            "apiKey": "res-value",
+            "provisioningState": "res-value",
+            "endpoint": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "SKU": {
+            "name": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.dashboard/grafana/managedgrafana-t1f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "managedgrafana-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.dashboard/grafana"
+        }
+      ]
+    },
     "ManagementGroups": {
       "resources": [
         {
@@ -2574,7 +3240,20 @@
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "RESOURCEGROUP": "rg-fixture-01",
           "LOCATION": "eastus",
-          "PROPERTIES": {},
+          "PROPERTIES": [
+            {
+              "Management Group ID": "Management Group ID value",
+              "Display Name": "Display Name value",
+              "Display Name (Raw)": "Display Name (Raw) value",
+              "Full Path": "Full Path value",
+              "Hierarchy Depth": "Hierarchy Depth value",
+              "Parent Management Group": "Parent Management Group value",
+              "Tenant ID": "Tenant ID value",
+              "Direct Child MGs": "Direct Child MGs value",
+              "Direct Subscriptions": "Direct Subscriptions value",
+              "Direct Subscription Names": "Direct Subscription Names value"
+            }
+          ],
           "tags": {
             "env": "prod"
           }
@@ -2596,7 +3275,20 @@
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "RESOURCEGROUP": "rg-fixture-01",
           "LOCATION": "eastus",
-          "PROPERTIES": {},
+          "PROPERTIES": [
+            {
+              "Management Group ID": "Management Group ID value",
+              "Display Name": "Display Name value",
+              "Display Name (Raw)": "Display Name (Raw) value",
+              "Full Path": "Full Path value",
+              "Hierarchy Depth": "Hierarchy Depth value",
+              "Parent Management Group": "Parent Management Group value",
+              "Tenant ID": "Tenant ID value",
+              "Direct Child MGs": "Direct Child MGs value",
+              "Direct Subscriptions": "Direct Subscriptions value",
+              "Direct Subscription Names": "Direct Subscription Names value"
+            }
+          ],
           "tags": {
             "env": "prod",
             "owner": "platform"
@@ -2619,7 +3311,20 @@
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "RESOURCEGROUP": "rg-fixture-01",
           "LOCATION": "eastus",
-          "PROPERTIES": {},
+          "PROPERTIES": [
+            {
+              "Management Group ID": "Management Group ID value",
+              "Display Name": "Display Name value",
+              "Display Name (Raw)": "Display Name (Raw) value",
+              "Full Path": "Full Path value",
+              "Hierarchy Depth": "Hierarchy Depth value",
+              "Parent Management Group": "Parent Management Group value",
+              "Tenant ID": "Tenant ID value",
+              "Direct Child MGs": "Direct Child MGs value",
+              "Direct Subscriptions": "Direct Subscriptions value",
+              "Direct Subscription Names": "Direct Subscription Names value"
+            }
+          ],
           "tags": {}
         },
         {
@@ -2639,7 +3344,20 @@
           "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
           "RESOURCEGROUP": "rg-fixture-01",
           "LOCATION": "eastus",
-          "PROPERTIES": {},
+          "PROPERTIES": [
+            {
+              "Management Group ID": "Management Group ID value",
+              "Display Name": "Display Name value",
+              "Display Name (Raw)": "Display Name (Raw) value",
+              "Full Path": "Full Path value",
+              "Hierarchy Depth": "Hierarchy Depth value",
+              "Parent Management Group": "Parent Management Group value",
+              "Tenant ID": "Tenant ID value",
+              "Direct Child MGs": "Direct Child MGs value",
+              "Direct Subscriptions": "Direct Subscriptions value",
+              "Direct Subscription Names": "Direct Subscription Names value"
+            }
+          ],
           "tags": {
             "env": "dev"
           }
@@ -2661,7 +3379,20 @@
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "RESOURCEGROUP": "rg-fixture-01",
           "LOCATION": "eastus",
-          "PROPERTIES": {},
+          "PROPERTIES": [
+            {
+              "Management Group ID": "Management Group ID value",
+              "Display Name": "Display Name value",
+              "Display Name (Raw)": "Display Name (Raw) value",
+              "Full Path": "Full Path value",
+              "Hierarchy Depth": "Hierarchy Depth value",
+              "Parent Management Group": "Parent Management Group value",
+              "Tenant ID": "Tenant ID value",
+              "Direct Child MGs": "Direct Child MGs value",
+              "Direct Subscriptions": "Direct Subscriptions value",
+              "Direct Subscription Names": "Direct Subscription Names value"
+            }
+          ],
           "tags": {
             "env": "prod"
           }
@@ -2683,7 +3414,20 @@
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "RESOURCEGROUP": "rg-fixture-01",
           "LOCATION": "eastus",
-          "PROPERTIES": {},
+          "PROPERTIES": [
+            {
+              "Management Group ID": "Management Group ID value",
+              "Display Name": "Display Name value",
+              "Display Name (Raw)": "Display Name (Raw) value",
+              "Full Path": "Full Path value",
+              "Hierarchy Depth": "Hierarchy Depth value",
+              "Parent Management Group": "Parent Management Group value",
+              "Tenant ID": "Tenant ID value",
+              "Direct Child MGs": "Direct Child MGs value",
+              "Direct Subscriptions": "Direct Subscriptions value",
+              "Direct Subscription Names": "Direct Subscription Names value"
+            }
+          ],
           "tags": {
             "env": "prod"
           }
@@ -2951,7 +3695,7 @@
           "IsCompliant": "res-value",
           "PolicyDefinitionAction": "res-value",
           "PolicyDefinitionCategory": "res-value",
-          "Timestamp": "2026-01-15T10:30:00Z",
+          "Timestamp": "2026-01-15T10:30:00.0000000Z",
           "ManagementGroupIds": [
             "res-item-0",
             "res-item-1"
@@ -2963,21 +3707,7 @@
           "PROPERTIES": {
             "PolicyComplianceStates": [
               {
-                "SubscriptionName": "res-value",
-                "SubscriptionId": "res-value",
-                "ResourceId": "res-value",
-                "ResourceType": "res-value",
-                "ResourceLocation": "res-value",
-                "ResourceGroup": "res-value",
-                "PolicyAssignmentId": "res-value",
-                "PolicyDefinitionId": "res-value",
-                "PolicySetDefinitionId": "res-value",
-                "ComplianceState": "res-value",
-                "IsCompliant": "res-value",
-                "PolicyDefinitionAction": "res-value",
-                "PolicyDefinitionCategory": "res-value",
-                "Timestamp": "2026-01-15T10:30:00Z",
-                "ManagementGroupIds": "res-value"
+                "Name": "res-value"
               }
             ]
           },
@@ -3001,7 +3731,7 @@
           "IsCompliant": "res-value",
           "PolicyDefinitionAction": "res-value",
           "PolicyDefinitionCategory": "res-value",
-          "Timestamp": "2026-01-15T10:30:00Z",
+          "Timestamp": "2026-01-15T10:30:00.0000000Z",
           "ManagementGroupIds": [
             "res-item-0",
             "res-item-1"
@@ -3013,21 +3743,7 @@
           "PROPERTIES": {
             "PolicyComplianceStates": [
               {
-                "SubscriptionName": "res-value",
-                "SubscriptionId": "res-value",
-                "ResourceId": "res-value",
-                "ResourceType": "res-value",
-                "ResourceLocation": "res-value",
-                "ResourceGroup": "res-value",
-                "PolicyAssignmentId": "res-value",
-                "PolicyDefinitionId": "res-value",
-                "PolicySetDefinitionId": "res-value",
-                "ComplianceState": "res-value",
-                "IsCompliant": "res-value",
-                "PolicyDefinitionAction": "res-value",
-                "PolicyDefinitionCategory": "res-value",
-                "Timestamp": "2026-01-15T10:30:00Z",
-                "ManagementGroupIds": "res-value"
+                "Name": "res-value"
               }
             ]
           },
@@ -3052,7 +3768,7 @@
           "IsCompliant": "res-value",
           "PolicyDefinitionAction": "res-value",
           "PolicyDefinitionCategory": "res-value",
-          "Timestamp": "2026-01-15T10:30:00Z",
+          "Timestamp": "2026-01-15T10:30:00.0000000Z",
           "ManagementGroupIds": [
             "res-item-0",
             "res-item-1"
@@ -3064,21 +3780,7 @@
           "PROPERTIES": {
             "PolicyComplianceStates": [
               {
-                "SubscriptionName": "res-value",
-                "SubscriptionId": "res-value",
-                "ResourceId": "res-value",
-                "ResourceType": "res-value",
-                "ResourceLocation": "res-value",
-                "ResourceGroup": "res-value",
-                "PolicyAssignmentId": "res-value",
-                "PolicyDefinitionId": "res-value",
-                "PolicySetDefinitionId": "res-value",
-                "ComplianceState": "res-value",
-                "IsCompliant": "res-value",
-                "PolicyDefinitionAction": "res-value",
-                "PolicyDefinitionCategory": "res-value",
-                "Timestamp": "2026-01-15T10:30:00Z",
-                "ManagementGroupIds": "res-value"
+                "Name": "res-value"
               }
             ]
           },
@@ -3100,7 +3802,7 @@
           "IsCompliant": "res-value",
           "PolicyDefinitionAction": "res-value",
           "PolicyDefinitionCategory": "res-value",
-          "Timestamp": "2026-01-15T10:30:00Z",
+          "Timestamp": "2026-01-15T10:30:00.0000000Z",
           "ManagementGroupIds": [
             "res-item-0",
             "res-item-1"
@@ -3112,21 +3814,7 @@
           "PROPERTIES": {
             "PolicyComplianceStates": [
               {
-                "SubscriptionName": "res-value",
-                "SubscriptionId": "res-value",
-                "ResourceId": "res-value",
-                "ResourceType": "res-value",
-                "ResourceLocation": "res-value",
-                "ResourceGroup": "res-value",
-                "PolicyAssignmentId": "res-value",
-                "PolicyDefinitionId": "res-value",
-                "PolicySetDefinitionId": "res-value",
-                "ComplianceState": "res-value",
-                "IsCompliant": "res-value",
-                "PolicyDefinitionAction": "res-value",
-                "PolicyDefinitionCategory": "res-value",
-                "Timestamp": "2026-01-15T10:30:00Z",
-                "ManagementGroupIds": "res-value"
+                "Name": "res-value"
               }
             ]
           },
@@ -3150,7 +3838,7 @@
           "IsCompliant": "res-value",
           "PolicyDefinitionAction": "res-value",
           "PolicyDefinitionCategory": "res-value",
-          "Timestamp": "2026-01-15T10:30:00Z",
+          "Timestamp": "2026-01-15T10:30:00.0000000Z",
           "ManagementGroupIds": [
             "res-item-0",
             "res-item-1"
@@ -3162,21 +3850,7 @@
           "PROPERTIES": {
             "PolicyComplianceStates": [
               {
-                "SubscriptionName": "res-value",
-                "SubscriptionId": "res-value",
-                "ResourceId": "res-value",
-                "ResourceType": "res-value",
-                "ResourceLocation": "res-value",
-                "ResourceGroup": "res-value",
-                "PolicyAssignmentId": "res-value",
-                "PolicyDefinitionId": "res-value",
-                "PolicySetDefinitionId": "res-value",
-                "ComplianceState": "res-value",
-                "IsCompliant": "res-value",
-                "PolicyDefinitionAction": "res-value",
-                "PolicyDefinitionCategory": "res-value",
-                "Timestamp": "2026-01-15T10:30:00Z",
-                "ManagementGroupIds": "res-value"
+                "Name": "res-value"
               }
             ]
           },
@@ -3200,7 +3874,7 @@
           "IsCompliant": "res-value",
           "PolicyDefinitionAction": "res-value",
           "PolicyDefinitionCategory": "res-value",
-          "Timestamp": "2026-01-15T10:30:00Z",
+          "Timestamp": "2026-01-15T10:30:00.0000000Z",
           "ManagementGroupIds": [
             "res-item-0",
             "res-item-1"
@@ -3212,21 +3886,7 @@
           "PROPERTIES": {
             "PolicyComplianceStates": [
               {
-                "SubscriptionName": "res-value",
-                "SubscriptionId": "res-value",
-                "ResourceId": "res-value",
-                "ResourceType": "res-value",
-                "ResourceLocation": "res-value",
-                "ResourceGroup": "res-value",
-                "PolicyAssignmentId": "res-value",
-                "PolicyDefinitionId": "res-value",
-                "PolicySetDefinitionId": "res-value",
-                "ComplianceState": "res-value",
-                "IsCompliant": "res-value",
-                "PolicyDefinitionAction": "res-value",
-                "PolicyDefinitionCategory": "res-value",
-                "Timestamp": "2026-01-15T10:30:00Z",
-                "ManagementGroupIds": "res-value"
+                "Name": "res-value"
               }
             ]
           },
@@ -3239,22 +3899,30 @@
     "PolicyDefinitions": {
       "resources": [
         {
-          "Properties": {
-            "Parameters": "res-value",
-            "Metadata": {
-              "category": "res-value",
-              "version": "res-value"
-            },
-            "PolicyRule": {
-              "then": {
-                "effect": "res-value"
-              }
-            },
-            "DisplayName": "res-value",
-            "Description": "res-value",
-            "PolicyType": "res-value",
-            "Mode": "res-value"
-          },
+          "Properties": [
+            {
+              "Properties": {
+                "Parameters": "res-value",
+                "Metadata": {
+                  "category": "res-value",
+                  "version": "res-value"
+                },
+                "PolicyRule": {
+                  "then": {
+                    "effect": "res-value"
+                  }
+                },
+                "DisplayName": "res-value",
+                "Description": "res-value",
+                "PolicyType": "res-value",
+                "Mode": "res-value"
+              },
+              "PolicyDefinitionId": "PolicyDefinitionId value",
+              "Name": "Name value",
+              "ManagementGroupName": "ManagementGroupName value",
+              "SubscriptionId": "SubscriptionId value"
+            }
+          ],
           "PolicyDefinitionId": "res-value",
           "NAME": "policydefinitions-t1a",
           "ManagementGroupName": "res-value",
@@ -3268,22 +3936,30 @@
           }
         },
         {
-          "Properties": {
-            "Parameters": "res-value",
-            "Metadata": {
-              "category": "res-value",
-              "version": "res-value"
-            },
-            "PolicyRule": {
-              "then": {
-                "effect": "res-value"
-              }
-            },
-            "DisplayName": "res-value",
-            "Description": "res-value",
-            "PolicyType": "res-value",
-            "Mode": "res-value"
-          },
+          "Properties": [
+            {
+              "Properties": {
+                "Parameters": "res-value",
+                "Metadata": {
+                  "category": "res-value",
+                  "version": "res-value"
+                },
+                "PolicyRule": {
+                  "then": {
+                    "effect": "res-value"
+                  }
+                },
+                "DisplayName": "res-value",
+                "Description": "res-value",
+                "PolicyType": "res-value",
+                "Mode": "res-value"
+              },
+              "PolicyDefinitionId": "PolicyDefinitionId value",
+              "Name": "Name value",
+              "ManagementGroupName": "ManagementGroupName value",
+              "SubscriptionId": "SubscriptionId value"
+            }
+          ],
           "PolicyDefinitionId": "res-value",
           "NAME": "policydefinitions-t1b",
           "ManagementGroupName": "res-value",
@@ -3298,22 +3974,30 @@
           }
         },
         {
-          "Properties": {
-            "Parameters": "res-value",
-            "Metadata": {
-              "category": "res-value",
-              "version": "res-value"
-            },
-            "PolicyRule": {
-              "then": {
-                "effect": "res-value"
-              }
-            },
-            "DisplayName": "res-value",
-            "Description": "res-value",
-            "PolicyType": "res-value",
-            "Mode": "res-value"
-          },
+          "Properties": [
+            {
+              "Properties": {
+                "Parameters": "res-value",
+                "Metadata": {
+                  "category": "res-value",
+                  "version": "res-value"
+                },
+                "PolicyRule": {
+                  "then": {
+                    "effect": "res-value"
+                  }
+                },
+                "DisplayName": "res-value",
+                "Description": "res-value",
+                "PolicyType": "res-value",
+                "Mode": "res-value"
+              },
+              "PolicyDefinitionId": "PolicyDefinitionId value",
+              "Name": "Name value",
+              "ManagementGroupName": "ManagementGroupName value",
+              "SubscriptionId": "SubscriptionId value"
+            }
+          ],
           "PolicyDefinitionId": "res-value",
           "NAME": "policydefinitions-t1c",
           "ManagementGroupName": "res-value",
@@ -3325,22 +4009,30 @@
           "tags": {}
         },
         {
-          "Properties": {
-            "Parameters": "res-value",
-            "Metadata": {
-              "category": "res-value",
-              "version": "res-value"
-            },
-            "PolicyRule": {
-              "then": {
-                "effect": "res-value"
-              }
-            },
-            "DisplayName": "res-value",
-            "Description": "res-value",
-            "PolicyType": "res-value",
-            "Mode": "res-value"
-          },
+          "Properties": [
+            {
+              "Properties": {
+                "Parameters": "res-value",
+                "Metadata": {
+                  "category": "res-value",
+                  "version": "res-value"
+                },
+                "PolicyRule": {
+                  "then": {
+                    "effect": "res-value"
+                  }
+                },
+                "DisplayName": "res-value",
+                "Description": "res-value",
+                "PolicyType": "res-value",
+                "Mode": "res-value"
+              },
+              "PolicyDefinitionId": "PolicyDefinitionId value",
+              "Name": "Name value",
+              "ManagementGroupName": "ManagementGroupName value",
+              "SubscriptionId": "SubscriptionId value"
+            }
+          ],
           "PolicyDefinitionId": "res-value",
           "NAME": "policydefinitions-t1d",
           "ManagementGroupName": "res-value",
@@ -3354,22 +4046,30 @@
           }
         },
         {
-          "Properties": {
-            "Parameters": "res-value",
-            "Metadata": {
-              "category": "res-value",
-              "version": "res-value"
-            },
-            "PolicyRule": {
-              "then": {
-                "effect": "res-value"
-              }
-            },
-            "DisplayName": "res-value",
-            "Description": "res-value",
-            "PolicyType": "res-value",
-            "Mode": "res-value"
-          },
+          "Properties": [
+            {
+              "Properties": {
+                "Parameters": "res-value",
+                "Metadata": {
+                  "category": "res-value",
+                  "version": "res-value"
+                },
+                "PolicyRule": {
+                  "then": {
+                    "effect": "res-value"
+                  }
+                },
+                "DisplayName": "res-value",
+                "Description": "res-value",
+                "PolicyType": "res-value",
+                "Mode": "res-value"
+              },
+              "PolicyDefinitionId": "PolicyDefinitionId value",
+              "Name": "Name value",
+              "ManagementGroupName": "ManagementGroupName value",
+              "SubscriptionId": "SubscriptionId value"
+            }
+          ],
           "PolicyDefinitionId": "res-value",
           "NAME": "policydefinitions-t1e",
           "ManagementGroupName": "res-value",
@@ -3383,22 +4083,30 @@
           }
         },
         {
-          "Properties": {
-            "Parameters": "res-value",
-            "Metadata": {
-              "category": "res-value",
-              "version": "res-value"
-            },
-            "PolicyRule": {
-              "then": {
-                "effect": "res-value"
-              }
-            },
-            "DisplayName": "res-value",
-            "Description": "res-value",
-            "PolicyType": "res-value",
-            "Mode": "res-value"
-          },
+          "Properties": [
+            {
+              "Properties": {
+                "Parameters": "res-value",
+                "Metadata": {
+                  "category": "res-value",
+                  "version": "res-value"
+                },
+                "PolicyRule": {
+                  "then": {
+                    "effect": "res-value"
+                  }
+                },
+                "DisplayName": "res-value",
+                "Description": "res-value",
+                "PolicyType": "res-value",
+                "Mode": "res-value"
+              },
+              "PolicyDefinitionId": "PolicyDefinitionId value",
+              "Name": "Name value",
+              "ManagementGroupName": "ManagementGroupName value",
+              "SubscriptionId": "SubscriptionId value"
+            }
+          ],
           "PolicyDefinitionId": "res-value",
           "NAME": "policydefinitions-t1f",
           "ManagementGroupName": "res-value",
@@ -3416,28 +4124,36 @@
     "PolicySetDefinitions": {
       "resources": [
         {
-          "Properties": {
-            "Parameters": "res-value",
-            "Metadata": {
-              "category": "res-value",
-              "version": "res-value"
-            },
-            "PolicyDefinitions": [
-              {
-                "policyDefinitionId": "res-value"
+          "Properties": [
+            {
+              "Properties": {
+                "Parameters": "res-value",
+                "Metadata": {
+                  "category": "res-value",
+                  "version": "res-value"
+                },
+                "PolicyDefinitions": [
+                  {
+                    "policyDefinitionId": "res-value"
+                  },
+                  {
+                    "policyDefinitionId": "res-value"
+                  }
+                ],
+                "PolicyDefinitionGroups": [
+                  "res-item-0",
+                  "res-item-1"
+                ],
+                "DisplayName": "res-value",
+                "Description": "res-value",
+                "PolicyType": "res-value"
               },
-              {
-                "policyDefinitionId": "res-value"
-              }
-            ],
-            "PolicyDefinitionGroups": [
-              "res-item-0",
-              "res-item-1"
-            ],
-            "DisplayName": "res-value",
-            "Description": "res-value",
-            "PolicyType": "res-value"
-          },
+              "PolicySetDefinitionId": "PolicySetDefinitionId value",
+              "Name": "Name value",
+              "ManagementGroupName": "ManagementGroupName value",
+              "SubscriptionId": "SubscriptionId value"
+            }
+          ],
           "PolicySetDefinitionId": "res-value",
           "NAME": "policysetdefinitions-t1a",
           "ManagementGroupName": "res-value",
@@ -3451,28 +4167,36 @@
           }
         },
         {
-          "Properties": {
-            "Parameters": "res-value",
-            "Metadata": {
-              "category": "res-value",
-              "version": "res-value"
-            },
-            "PolicyDefinitions": [
-              {
-                "policyDefinitionId": "res-value"
+          "Properties": [
+            {
+              "Properties": {
+                "Parameters": "res-value",
+                "Metadata": {
+                  "category": "res-value",
+                  "version": "res-value"
+                },
+                "PolicyDefinitions": [
+                  {
+                    "policyDefinitionId": "res-value"
+                  },
+                  {
+                    "policyDefinitionId": "res-value"
+                  }
+                ],
+                "PolicyDefinitionGroups": [
+                  "res-item-0",
+                  "res-item-1"
+                ],
+                "DisplayName": "res-value",
+                "Description": "res-value",
+                "PolicyType": "res-value"
               },
-              {
-                "policyDefinitionId": "res-value"
-              }
-            ],
-            "PolicyDefinitionGroups": [
-              "res-item-0",
-              "res-item-1"
-            ],
-            "DisplayName": "res-value",
-            "Description": "res-value",
-            "PolicyType": "res-value"
-          },
+              "PolicySetDefinitionId": "PolicySetDefinitionId value",
+              "Name": "Name value",
+              "ManagementGroupName": "ManagementGroupName value",
+              "SubscriptionId": "SubscriptionId value"
+            }
+          ],
           "PolicySetDefinitionId": "res-value",
           "NAME": "policysetdefinitions-t1b",
           "ManagementGroupName": "res-value",
@@ -3487,28 +4211,36 @@
           }
         },
         {
-          "Properties": {
-            "Parameters": "res-value",
-            "Metadata": {
-              "category": "res-value",
-              "version": "res-value"
-            },
-            "PolicyDefinitions": [
-              {
-                "policyDefinitionId": "res-value"
+          "Properties": [
+            {
+              "Properties": {
+                "Parameters": "res-value",
+                "Metadata": {
+                  "category": "res-value",
+                  "version": "res-value"
+                },
+                "PolicyDefinitions": [
+                  {
+                    "policyDefinitionId": "res-value"
+                  },
+                  {
+                    "policyDefinitionId": "res-value"
+                  }
+                ],
+                "PolicyDefinitionGroups": [
+                  "res-item-0",
+                  "res-item-1"
+                ],
+                "DisplayName": "res-value",
+                "Description": "res-value",
+                "PolicyType": "res-value"
               },
-              {
-                "policyDefinitionId": "res-value"
-              }
-            ],
-            "PolicyDefinitionGroups": [
-              "res-item-0",
-              "res-item-1"
-            ],
-            "DisplayName": "res-value",
-            "Description": "res-value",
-            "PolicyType": "res-value"
-          },
+              "PolicySetDefinitionId": "PolicySetDefinitionId value",
+              "Name": "Name value",
+              "ManagementGroupName": "ManagementGroupName value",
+              "SubscriptionId": "SubscriptionId value"
+            }
+          ],
           "PolicySetDefinitionId": "res-value",
           "NAME": "policysetdefinitions-t1c",
           "ManagementGroupName": "res-value",
@@ -3520,28 +4252,36 @@
           "tags": {}
         },
         {
-          "Properties": {
-            "Parameters": "res-value",
-            "Metadata": {
-              "category": "res-value",
-              "version": "res-value"
-            },
-            "PolicyDefinitions": [
-              {
-                "policyDefinitionId": "res-value"
+          "Properties": [
+            {
+              "Properties": {
+                "Parameters": "res-value",
+                "Metadata": {
+                  "category": "res-value",
+                  "version": "res-value"
+                },
+                "PolicyDefinitions": [
+                  {
+                    "policyDefinitionId": "res-value"
+                  },
+                  {
+                    "policyDefinitionId": "res-value"
+                  }
+                ],
+                "PolicyDefinitionGroups": [
+                  "res-item-0",
+                  "res-item-1"
+                ],
+                "DisplayName": "res-value",
+                "Description": "res-value",
+                "PolicyType": "res-value"
               },
-              {
-                "policyDefinitionId": "res-value"
-              }
-            ],
-            "PolicyDefinitionGroups": [
-              "res-item-0",
-              "res-item-1"
-            ],
-            "DisplayName": "res-value",
-            "Description": "res-value",
-            "PolicyType": "res-value"
-          },
+              "PolicySetDefinitionId": "PolicySetDefinitionId value",
+              "Name": "Name value",
+              "ManagementGroupName": "ManagementGroupName value",
+              "SubscriptionId": "SubscriptionId value"
+            }
+          ],
           "PolicySetDefinitionId": "res-value",
           "NAME": "policysetdefinitions-t1d",
           "ManagementGroupName": "res-value",
@@ -3555,28 +4295,36 @@
           }
         },
         {
-          "Properties": {
-            "Parameters": "res-value",
-            "Metadata": {
-              "category": "res-value",
-              "version": "res-value"
-            },
-            "PolicyDefinitions": [
-              {
-                "policyDefinitionId": "res-value"
+          "Properties": [
+            {
+              "Properties": {
+                "Parameters": "res-value",
+                "Metadata": {
+                  "category": "res-value",
+                  "version": "res-value"
+                },
+                "PolicyDefinitions": [
+                  {
+                    "policyDefinitionId": "res-value"
+                  },
+                  {
+                    "policyDefinitionId": "res-value"
+                  }
+                ],
+                "PolicyDefinitionGroups": [
+                  "res-item-0",
+                  "res-item-1"
+                ],
+                "DisplayName": "res-value",
+                "Description": "res-value",
+                "PolicyType": "res-value"
               },
-              {
-                "policyDefinitionId": "res-value"
-              }
-            ],
-            "PolicyDefinitionGroups": [
-              "res-item-0",
-              "res-item-1"
-            ],
-            "DisplayName": "res-value",
-            "Description": "res-value",
-            "PolicyType": "res-value"
-          },
+              "PolicySetDefinitionId": "PolicySetDefinitionId value",
+              "Name": "Name value",
+              "ManagementGroupName": "ManagementGroupName value",
+              "SubscriptionId": "SubscriptionId value"
+            }
+          ],
           "PolicySetDefinitionId": "res-value",
           "NAME": "policysetdefinitions-t1e",
           "ManagementGroupName": "res-value",
@@ -3590,28 +4338,36 @@
           }
         },
         {
-          "Properties": {
-            "Parameters": "res-value",
-            "Metadata": {
-              "category": "res-value",
-              "version": "res-value"
-            },
-            "PolicyDefinitions": [
-              {
-                "policyDefinitionId": "res-value"
+          "Properties": [
+            {
+              "Properties": {
+                "Parameters": "res-value",
+                "Metadata": {
+                  "category": "res-value",
+                  "version": "res-value"
+                },
+                "PolicyDefinitions": [
+                  {
+                    "policyDefinitionId": "res-value"
+                  },
+                  {
+                    "policyDefinitionId": "res-value"
+                  }
+                ],
+                "PolicyDefinitionGroups": [
+                  "res-item-0",
+                  "res-item-1"
+                ],
+                "DisplayName": "res-value",
+                "Description": "res-value",
+                "PolicyType": "res-value"
               },
-              {
-                "policyDefinitionId": "res-value"
-              }
-            ],
-            "PolicyDefinitionGroups": [
-              "res-item-0",
-              "res-item-1"
-            ],
-            "DisplayName": "res-value",
-            "Description": "res-value",
-            "PolicyType": "res-value"
-          },
+              "PolicySetDefinitionId": "PolicySetDefinitionId value",
+              "Name": "Name value",
+              "ManagementGroupName": "ManagementGroupName value",
+              "SubscriptionId": "SubscriptionId value"
+            }
+          ],
           "PolicySetDefinitionId": "res-value",
           "NAME": "policysetdefinitions-t1f",
           "ManagementGroupName": "res-value",
@@ -3911,6 +4667,123 @@
           "tags": {
             "env": "prod"
           }
+        }
+      ]
+    },
+    "ResourceMoverCollections": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "sourceRegion": "res-value",
+            "targetRegion": "res-value",
+            "moveType": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "IDENTITY": {
+            "type": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.migrate/movecollections/resourcemovercollections-t1a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "resourcemovercollections-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.migrate/movecollections"
+        },
+        {
+          "PROPERTIES": {
+            "sourceRegion": "res-value",
+            "targetRegion": "res-value",
+            "moveType": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "IDENTITY": {
+            "type": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.migrate/movecollections/resourcemovercollections-t1b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "resourcemovercollections-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.migrate/movecollections"
+        },
+        {
+          "PROPERTIES": {
+            "sourceRegion": "res-value",
+            "targetRegion": "res-value",
+            "moveType": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "IDENTITY": {
+            "type": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.migrate/movecollections/resourcemovercollections-t1c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "resourcemovercollections-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.migrate/movecollections"
+        },
+        {
+          "PROPERTIES": {
+            "sourceRegion": "res-value",
+            "targetRegion": "res-value",
+            "moveType": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "IDENTITY": {
+            "type": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.migrate/movecollections/resourcemovercollections-t1d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "resourcemovercollections-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.migrate/movecollections"
+        },
+        {
+          "PROPERTIES": {
+            "sourceRegion": "res-value",
+            "targetRegion": "res-value",
+            "moveType": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "IDENTITY": {
+            "type": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.migrate/movecollections/resourcemovercollections-t1e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "resourcemovercollections-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.migrate/movecollections"
+        },
+        {
+          "PROPERTIES": {
+            "sourceRegion": "res-value",
+            "targetRegion": "res-value",
+            "moveType": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "IDENTITY": {
+            "type": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.migrate/movecollections/resourcemovercollections-t1f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "resourcemovercollections-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.migrate/movecollections"
         }
       ]
     }

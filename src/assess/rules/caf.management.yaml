@@ -33,7 +33,7 @@ rules:
     title: "Backup coverage across the VM estate meets minimum threshold"
     severity: high
     query: "$.management.recoveryVaults[*].backupItems[*]"
-    assert: { type: percentageAtLeast, value: 80, denominatorQuery: "$.compute.virtualMachines[*]" }
+    assert: { type: percentageAtLeast, value: 80, denominatorQuery: "$.compute.virtualMachines[*]", numeratorKey: sourceResourceId, denominatorKey: id }
     remediation: "Onboard remaining virtual machines to a Recovery Services vault backup policy until coverage reaches at least 80% of the compute estate."
     manual: false
 

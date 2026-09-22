@@ -1,4 +1,6 @@
 #Requires -Modules Pester
+[Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssignments', '', Justification = 'ManifestPath/ModulePath are assigned in BeforeAll and consumed by sibling It blocks via Pester''s shared scope -- PSScriptAnalyzer''s static analysis cannot see across those scriptblocks.')]
+param()
 
 <#
 .SYNOPSIS
@@ -17,8 +19,8 @@
 
 BeforeAll {
     $ModuleRoot = Split-Path -Parent $PSScriptRoot
-    $ManifestPath = Join-Path $ModuleRoot 'AzureScout.psd1'
-    $ModulePath   = Join-Path $ModuleRoot 'AzureScout.psm1'
+    $ManifestPath = Join-Path -Path $ModuleRoot -ChildPath 'AzureScout.psd1'
+    $ModulePath   = Join-Path -Path $ModuleRoot -ChildPath 'AzureScout.psm1'
 }
 
 Describe 'Module Manifest Tests' {
@@ -45,7 +47,7 @@ Describe 'Module Manifest Tests' {
         # holding is that the manifest and the changelog agree.
         $Manifest = Test-ModuleManifest -Path $ManifestPath -ErrorAction Stop
 
-        $changelogPath = Join-Path (Split-Path -Parent $PSScriptRoot) 'CHANGELOG.md'
+        $changelogPath = Join-Path -Path (Split-Path -Parent $PSScriptRoot) -ChildPath 'CHANGELOG.md'
         $changelogPath | Should -Exist
 
         $newest = Select-String -Path $changelogPath -Pattern '^## \[(\d+\.\d+\.\d+)\]' |
@@ -84,5 +86,25 @@ Describe 'Module Import Tests' {
         Import-Module $ManifestPath -Force -ErrorAction Stop
         $Commands = Get-Command -Module AzureScout
         $Commands.Name | Should -Contain 'Invoke-AzureScout'
+    }
+
+    It 'resolves every function declared by the manifest from this repository module' {
+        Remove-Module AzureScout -Force -ErrorAction SilentlyContinue
+        Import-Module $ManifestPath -Force -ErrorAction Stop
+        $module = Get-Module AzureScout | Where-Object ModuleBase -eq $ModuleRoot | Select-Object -First 1
+        $declared = (Import-PowerShellDataFile -Path $ManifestPath).FunctionsToExport
+
+        $module | Should -Not -BeNullOrEmpty
+        foreach ($name in $declared) {
+            $module.ExportedCommands.ContainsKey($name) | Should -BeTrue -Because "'$name' is declared public"
+        }
+    }
+
+    It 'exports the documented cache-pruning command and not the deleted job waiter' {
+        Import-Module $ManifestPath -Force -ErrorAction Stop
+        $module = Get-Module AzureScout | Where-Object ModuleBase -eq $ModuleRoot | Select-Object -First 1
+
+        $module.ExportedCommands.ContainsKey('Clear-AZSCCacheFolder') | Should -BeTrue
+        $module.ExportedCommands.ContainsKey('Wait-AZSCJob') | Should -BeFalse
     }
 }

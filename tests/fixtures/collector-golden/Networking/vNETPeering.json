@@ -3,7 +3,7 @@
   "Category": "Networking",
   "Name": "vNETPeering",
   "FixturePath": "tests/fixtures/collector-equivalence/Networking.json",
-  "FixtureSha256": "ef0dda055f4d35746417ac0d6115f76721bc7adcb1a40671707442d8fe22f7be",
+  "FixtureSha256": "1147a9d5a79986dc0f2be0d88266bb68e3965f51134e498006256d9263bcee80",
   "Rows": [
     "Address Space=s:res-item-0|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/virtualnetworks/vnetpeering-t1a-1|Location=s:res-value|Peering Address Space=s:res-item-0|Peering Allow Forwarded Traffic=s:res-value|Peering Allow Gateway Transit=s:res-value|Peering Allow Virtual Network Access=s:res-value|Peering Do Not Verify Remote Gateways=s:res-value|Peering Name=s:res-value|Peering State=s:res-value|Peering Use Remote Gateways=s:res-value|Peering VNet=s:seg8|Resource Group=s:res-value|Resource U=j:1|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod|VNET Name=s:vnetpeering-t1a|Zone=s:res-value",
     "Address Space=s:res-item-0|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/virtualnetworks/vnetpeering-t1a-1|Location=s:res-value|Peering Address Space=s:res-item-1|Peering Allow Forwarded Traffic=s:res-value|Peering Allow Gateway Transit=s:res-value|Peering Allow Virtual Network Access=s:res-value|Peering Do Not Verify Remote Gateways=s:res-value|Peering Name=s:res-value|Peering State=s:res-value|Peering Use Remote Gateways=s:res-value|Peering VNet=s:seg8|Resource Group=s:res-value|Resource U=j:0|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod|VNET Name=s:vnetpeering-t1a|Zone=s:res-value",

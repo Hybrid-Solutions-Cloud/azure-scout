@@ -1,3 +1,7 @@
+#Requires -Version 7.0
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
 <#
 .Synopsis
 Process orchestration for Azure Resource Inventory
@@ -6,7 +10,7 @@ Process orchestration for Azure Resource Inventory
 This module orchestrates the processing of resources for Azure Resource Inventory.
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Private/0.MainFunctions/Start-AZSCProcessOrchestration.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Private/0.MainFunctions/Start-AZSCProcessOrchestration.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC)
@@ -23,7 +27,9 @@ function Start-AZSCProcessOrchestration {
     # It only ever shrank the parallel job batch size to keep CPU and memory in check; with the
     # jobs gone (AB#5649) there is no batch to shrink, and peak memory is now one category at a
     # time regardless. It still applies to the extraction phase, which does its own throttling.
-    Param($Subscriptions, $Resources, $Retirements, $DefaultPath, $File, $Heavy, $InTag, $Automation, $Category)
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'File', Justification = "Declared to match this function's call signature -- callers invoke it with this named/positional argument; removing the parameter would break them even though this implementation does not need the value.")]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'Heavy', Justification = "Declared to match this function's call signature -- callers invoke it with this named/positional argument; removing the parameter would break them even though this implementation does not need the value.")]
+    Param($Subscriptions, $Resources, $Advisories, $Retirements, $DefaultPath, $File, $Heavy, $InTag, $Automation, $Category, $CollectionHealth)
     # ── StrictMode boundary (AB#5633) ────────────────────────────────────────────────
     # This is the v1 inventory engine, forked from microsoft/ARI. It was written without
     # StrictMode and carries ~800 property reads that are only valid without it -- chained
@@ -81,7 +87,12 @@ function Start-AZSCProcessOrchestration {
                 Write-Output ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Processing Resources')
             }
 
-        $ProcessingSummary = Invoke-ScoutProcessing -Resources $Resources -Retirements $Retirements -Subscriptions $Subscriptions -DefaultPath $DefaultPath -InTag $InTag -Unsupported $Unsupported -Category $Category
+        # Advisor recommendation rows are returned separately because the supplemental Advisor
+        # report consumes them as a distinct dataset. Two declarative operational collectors also
+        # join those rows to VMs/Arc machines in their SetupPreamble, so include them in the
+        # in-memory processing envelope without changing the extraction result contract.
+        $ProcessingResources = @(@($Resources) + @($Advisories))
+        $ProcessingSummary = Invoke-ScoutProcessing -Resources $ProcessingResources -Retirements $Retirements -Subscriptions $Subscriptions -DefaultPath $DefaultPath -InTag $InTag -Unsupported $Unsupported -Category $Category -CollectionHealth $CollectionHealth
 
         Remove-Variable -Name Unsupported -ErrorAction SilentlyContinue
 

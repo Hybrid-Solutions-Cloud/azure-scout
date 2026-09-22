@@ -92,14 +92,51 @@ function Get-ScoutFixtureSha256 {
     [OutputType([string])]
     param(
         [Parameter(Mandatory)]
-        [string]$Path
+        [string]$Path,
+
+        [Parameter()]
+        [ValidateSet('LF', 'CRLF')]
+        [string]$LineEnding = 'LF'
     )
 
     if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) {
         throw "Collector fixture not found: $Path"
     }
 
-    return (Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash.ToLowerInvariant()
+    # Git may materialise text fixtures with LF or CRLF depending on the runner.
+    # Canonicalise only the line-ending bytes so every other fixture byte,
+    # including an intentional UTF-8 BOM, remains part of its identity.
+    $SourceBytes = [System.IO.File]::ReadAllBytes((Resolve-Path -LiteralPath $Path).Path)
+    $CanonicalStream = [System.IO.MemoryStream]::new($SourceBytes.Length)
+    try {
+        for ($Index = 0; $Index -lt $SourceBytes.Length; $Index++) {
+            if ($SourceBytes[$Index] -eq 13 -or $SourceBytes[$Index] -eq 10) {
+                if ($SourceBytes[$Index] -eq 13 -and
+                    ($Index + 1) -lt $SourceBytes.Length -and
+                    $SourceBytes[$Index + 1] -eq 10) {
+                    $Index++
+                }
+                if ($LineEnding -eq 'CRLF') {
+                    $CanonicalStream.WriteByte(13)
+                }
+                $CanonicalStream.WriteByte(10)
+                continue
+            }
+            $CanonicalStream.WriteByte($SourceBytes[$Index])
+        }
+        $Bytes = $CanonicalStream.ToArray()
+    }
+    finally {
+        $CanonicalStream.Dispose()
+    }
+
+    $Sha256 = [System.Security.Cryptography.SHA256]::Create()
+    try {
+        return ([System.BitConverter]::ToString($Sha256.ComputeHash($Bytes))).Replace('-', '').ToLowerInvariant()
+    }
+    finally {
+        $Sha256.Dispose()
+    }
 }
 
 function Import-ScoutGoldenOutput {
@@ -137,7 +174,11 @@ function Import-ScoutGoldenOutput {
 
     if (-not [string]::IsNullOrWhiteSpace($FixturePath)) {
         $ActualHash = Get-ScoutFixtureSha256 -Path $FixturePath
-        if ($Golden.FixtureSha256 -ne $ActualHash) {
+        # Records created before canonical hashing may contain the historical
+        # Windows CRLF digest. Accept that equivalent identity while all new
+        # capture output uses the cross-platform LF digest.
+        $LegacyCrLfHash = Get-ScoutFixtureSha256 -Path $FixturePath -LineEnding CRLF
+        if ($Golden.FixtureSha256 -notin @($ActualHash, $LegacyCrLfHash)) {
             throw "Golden collector output '$Path' was captured from fixture hash '$($Golden.FixtureSha256)', but '$FixturePath' is '$ActualHash'. Regenerate the golden output from the current fixture."
         }
     }

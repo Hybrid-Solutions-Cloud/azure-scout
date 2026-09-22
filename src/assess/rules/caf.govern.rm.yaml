@@ -10,6 +10,6 @@ rules:
     # policies specifically, so this evidences policy-assignment existence generally, the
     # same existence-proxy limitation CAF-GOV-01/CGOV-SC-02 already document.
     query: "$.governance.policyAssignments[*]"
-    assert: { type: countGreaterThan, value: 0 }
+    assert: { type: countGreaterThan, value: 0, gate: "$.governance.policyAssignmentsAvailable" }
     remediation: "Confirm tag-enforcement policies specifically (not just any policy assignment) are in place and monitored -- see $.tags on collected resources for actual tag coverage."
     manual: false

@@ -80,8 +80,13 @@ function Get-ScoutEntraQueryCatalog {
             Permission   = 'RoleManagement.Read.Directory'
         },
         @{
+            # AB#7190. Graph v1.0 rejects TWO $expand items with nested $select on this endpoint
+            # with 400 Bad Request -- one navigation property per $expand is the service's limit,
+            # observed live (owner's run: '[SKIP] PIM Assignments: 400'). roleDefinition is the
+            # expand worth keeping (it names the role); the principal side already flows through
+            # principalId, which is this row's NameProperty and what downstream joins use.
             Name         = 'PIM Assignments'
-            Uri          = '/v1.0/roleManagement/directory/roleAssignments?$expand=principal($select=id,displayName),roleDefinition($select=id,displayName)'
+            Uri          = '/v1.0/roleManagement/directory/roleAssignments?$expand=roleDefinition($select=id,displayName)'
             Type         = 'entra/pimassignments'
             NameProperty = 'principalId'
             Permission   = 'RoleManagement.Read.Directory'
@@ -129,6 +134,25 @@ function Get-ScoutEntraQueryCatalog {
             Permission   = 'Policy.Read.All'
         },
         @{
+            # AB#7098 -- Microsoft Entra External ID, the second named Identity gap
+            # (docs/reference/service-coverage-gap.md). This is the tenant-wide DEFAULT
+            # cross-tenant access configuration -- b2b collaboration/direct connect and inbound
+            # trust settings applied to every external organization NOT covered by a specific
+            # 'Cross-Tenant Access' (above) partner override. GA in v1.0, distinct from both the
+            # partner list above and 'Security Policies' (authorizationPolicy) below, and
+            # currently uncollected: this is the actual "is our tenant open to external/guest
+            # identities by default" surface, not a narrower per-partner or per-invite setting.
+            # `/v1.0/policies/externalIdentitiesPolicy` (the self-service tenant-leave toggle)
+            # was considered and rejected -- it is /beta-only and does not carry the B2B/guest
+            # access posture this Story's owner named as the reason this item matters.
+            Name         = 'External Identities'
+            Uri          = '/v1.0/policies/crossTenantAccessPolicy/default'
+            Type         = 'entra/externalidentities'
+            NameProperty = 'isServiceDefault'
+            SingleObject = $true
+            Permission   = 'Policy.Read.All'
+        },
+        @{
             Name         = 'Security Policies'
             Uri          = '/v1.0/policies/authorizationPolicy'
             Type         = 'entra/securitypolicies'
@@ -142,6 +166,45 @@ function Get-ScoutEntraQueryCatalog {
             Type         = 'entra/riskyusers'
             NameProperty = 'userPrincipalName'
             Permission   = 'IdentityRiskyUser.Read.All'
+            # Azure CLI's delegated Graph token does not carry this granular scope. A supported
+            # directory role is necessary but cannot compensate for a missing OAuth scope.
+            RequireDelegatedScope = $true
+            DelegatedRoles = @('Global Reader', 'Security Operator', 'Security Reader', 'Security Administrator')
+            LicensedFeature = 'AAD_PREMIUM_P2'
+            LicensedProduct = 'Microsoft Entra ID P2'
+        },
+        @{
+            # AB#7097. The tenant-wide toggle for Verified ID as an authentication method --
+            # whether it is enabled, and which groups are in/out of scope. This is genuinely
+            # under graph.microsoft.com (Invoke-AZSCGraphRequest's fixed base URL and single
+            # Graph-audience token both hold), unlike the Verified ID Admin API (issuer DIDs,
+            # authorities, contracts), which is served from a DIFFERENT host
+            # (verifiedid.did.msidentity.com) under a DIFFERENT OAuth resource
+            # (6a8b4b39-c021-437c-b060-5a14a3fd65f3) that this codebase's Graph token helper does
+            # not acquire. Reaching that surface needs a second token audience threaded through
+            # every entra/* collector's shared infrastructure -- out of scope for one collector.
+            Name         = 'Verified ID Authentication Method'
+            Uri          = '/v1.0/policies/authenticationMethodsPolicy/authenticationMethodConfigurations/VerifiableCredentials'
+            Type         = 'entra/verifiedidconfiguration'
+            NameProperty = 'id'
+            SingleObject = $true
+            Permission   = 'Policy.Read.AuthenticationMethod'
+            RequireDelegatedScope = $true
+            DelegatedRoles = @('Global Reader', 'Authentication Policy Administrator')
+        },
+        @{
+            # AB#7097. Verified ID profiles (recovery / onboarding usage, Face Check config,
+            # accepted issuer) -- the tenant-configured objects a Verified ID deployment actually
+            # produces via the Entra admin center, GA under graph.microsoft.com. See the note
+            # above the authentication-method entry for the admin-API (DID/authority) surface
+            # this catalog deliberately does not reach.
+            Name         = 'Verified ID Profiles'
+            Uri          = '/v1.0/identity/verifiedId/profiles'
+            Type         = 'entra/verifiedidprofiles'
+            NameProperty = 'name'
+            Permission   = 'VerifiedId-Profile.Read.All'
+            RequireDelegatedScope = $true
+            DelegatedRoles = @('Authentication Policy Administrator')
         },
         @{
             # No collector consumes this. It is kept in the catalog rather than deleted so the
@@ -152,6 +215,8 @@ function Get-ScoutEntraQueryCatalog {
             Type         = 'entra/identityproviders'
             NameProperty = 'displayName'
             Permission   = 'IdentityProvider.Read.All'
+            Collect      = $false
+            AvailabilityReason = 'No released Scout collector consumes this dataset.'
         },
         @{
             # Same: queried, normalised, and read by nothing.
@@ -161,6 +226,8 @@ function Get-ScoutEntraQueryCatalog {
             NameProperty = 'displayName'
             SingleObject = $true
             Permission   = 'Policy.Read.All'
+            Collect      = $false
+            AvailabilityReason = 'No released Scout collector consumes this dataset.'
         }
     )
 }

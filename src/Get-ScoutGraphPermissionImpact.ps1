@@ -43,15 +43,22 @@ function Get-ScoutGraphPermissionImpact {
 
     if ([string]::IsNullOrWhiteSpace($CollectorRoot)) {
         $moduleRoot   = Split-Path -Parent $PSScriptRoot
-        $CollectorRoot = Join-Path $moduleRoot 'manifests' 'collectors'
+        $CollectorRoot = Join-Path -Path $moduleRoot -ChildPath 'manifests' -AdditionalChildPath 'collectors'
     }
 
     # Same standalone-dot-source contract as the pre-flight that calls this.
     if (-not (Get-Command Get-ScoutEntraQueryCatalog -ErrorAction SilentlyContinue)) {
-        . (Join-Path $PSScriptRoot 'collect/Get-ScoutEntraQueryCatalog.ps1')
+        . (Join-Path -Path $PSScriptRoot -ChildPath 'collect/Get-ScoutEntraQueryCatalog.ps1')
     }
 
-    $catalog = @(Get-ScoutEntraQueryCatalog)
+    # Disabled catalog entries remain in extraction outcomes so reports can explain that they
+    # were Not assessed, but they are not released collection work and must not appear in the
+    # permission audit as permissions an operator should consider granting.
+    $catalog = @(
+        Get-ScoutEntraQueryCatalog | Where-Object {
+            -not $_.ContainsKey('Collect') -or [bool]$_.Collect
+        }
+    )
 
     # type -> collectors that read it. Built once from the manifests rather than asked per
     # permission, because the tree is ~240 files and this runs inside an interactive pre-flight.

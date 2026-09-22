@@ -210,6 +210,54 @@
     {
       "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Governance/roleassignments-t1f-1/RoleAssignment/roleassignments-t1f-2",
       "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/verifiedidconfiguration/verifiedidconfiguration-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/verifiedidconfiguration/verifiedidconfiguration-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/verifiedidconfiguration/verifiedidconfiguration-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/verifiedidprofiles/verifiedidprofiles-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/verifiedidprofiles/verifiedidprofiles-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/verifiedidprofiles/verifiedidprofiles-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/externalidentities/externalidentities-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/externalidentities/externalidentities-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/externalidentities/externalidentities-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azureactivedirectory/ciamdirectories/ciamdirectories-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azureactivedirectory/ciamdirectories/ciamdirectories-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azureactivedirectory/ciamdirectories/ciamdirectories-t1f-1",
+      "ServiceID": "svc-2"
     }
   ],
   "unsupported": [
@@ -528,6 +576,171 @@
           "tags": {
             "env": "prod"
           }
+        }
+      ]
+    },
+    "CIAMDirectories": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "createTenantProperties": {
+              "displayName": "res-value",
+              "countryCode": "res-value"
+            },
+            "domainName": "res-value",
+            "billingConfig": {
+              "billingType": "res-value",
+              "effectiveStartDateUtc": "res-value"
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azureactivedirectory/ciamdirectories/ciamdirectories-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "ciamdirectories-t1a",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value"
+          },
+          "TYPE": "microsoft.azureactivedirectory/ciamdirectories"
+        },
+        {
+          "PROPERTIES": {
+            "createTenantProperties": {
+              "displayName": "res-value",
+              "countryCode": "res-value"
+            },
+            "domainName": "res-value",
+            "billingConfig": {
+              "billingType": "res-value",
+              "effectiveStartDateUtc": "res-value"
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azureactivedirectory/ciamdirectories/ciamdirectories-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "ciamdirectories-t1b",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value"
+          },
+          "TYPE": "microsoft.azureactivedirectory/ciamdirectories"
+        },
+        {
+          "PROPERTIES": {
+            "createTenantProperties": {
+              "displayName": "res-value",
+              "countryCode": "res-value"
+            },
+            "domainName": "res-value",
+            "billingConfig": {
+              "billingType": "res-value",
+              "effectiveStartDateUtc": "res-value"
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azureactivedirectory/ciamdirectories/ciamdirectories-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "ciamdirectories-t1c",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value"
+          },
+          "TYPE": "microsoft.azureactivedirectory/ciamdirectories"
+        },
+        {
+          "PROPERTIES": {
+            "createTenantProperties": {
+              "displayName": "res-value",
+              "countryCode": "res-value"
+            },
+            "domainName": "res-value",
+            "billingConfig": {
+              "billingType": "res-value",
+              "effectiveStartDateUtc": "res-value"
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.azureactivedirectory/ciamdirectories/ciamdirectories-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "ciamdirectories-t1d",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value"
+          },
+          "TYPE": "microsoft.azureactivedirectory/ciamdirectories"
+        },
+        {
+          "PROPERTIES": {
+            "createTenantProperties": {
+              "displayName": "res-value",
+              "countryCode": "res-value"
+            },
+            "domainName": "res-value",
+            "billingConfig": {
+              "billingType": "res-value",
+              "effectiveStartDateUtc": "res-value"
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azureactivedirectory/ciamdirectories/ciamdirectories-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "ciamdirectories-t1e",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value"
+          },
+          "TYPE": "microsoft.azureactivedirectory/ciamdirectories"
+        },
+        {
+          "PROPERTIES": {
+            "createTenantProperties": {
+              "displayName": "res-value",
+              "countryCode": "res-value"
+            },
+            "domainName": "res-value",
+            "billingConfig": {
+              "billingType": "res-value",
+              "effectiveStartDateUtc": "res-value"
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azureactivedirectory/ciamdirectories/ciamdirectories-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "ciamdirectories-t1f",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value",
+            "tier": "res-value"
+          },
+          "TYPE": "microsoft.azureactivedirectory/ciamdirectories"
         }
       ]
     },
@@ -1248,6 +1461,279 @@
           "tenantId": "res-value",
           "NAME": "domains-t1f",
           "TYPE": "entra/domains",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        }
+      ]
+    },
+    "ExternalIdentities": {
+      "resources": [
+        {
+          "properties": {
+            "b2bCollaborationInbound": {
+              "applications": {
+                "accessType": "res-value"
+              }
+            },
+            "b2bCollaborationOutbound": {
+              "applications": {
+                "accessType": "res-value"
+              }
+            },
+            "b2bDirectConnectInbound": {
+              "applications": {
+                "accessType": "res-value"
+              }
+            },
+            "b2bDirectConnectOutbound": {
+              "applications": {
+                "accessType": "res-value"
+              }
+            },
+            "inboundTrust": {
+              "isMfaAccepted": "res-value",
+              "isCompliantDeviceAccepted": "res-value",
+              "isHybridAzureADJoinedDeviceAccepted": "res-value"
+            },
+            "tenantRestrictions": {
+              "usersAndGroups": {
+                "accessType": "res-value"
+              }
+            },
+            "isServiceDefault": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/externalidentities/externalidentities-t1a-1",
+          "tenantId": "res-value",
+          "NAME": "externalidentities-t1a",
+          "TYPE": "entra/externalidentities",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "properties": {
+            "b2bCollaborationInbound": {
+              "applications": {
+                "accessType": "res-value"
+              }
+            },
+            "b2bCollaborationOutbound": {
+              "applications": {
+                "accessType": "res-value"
+              }
+            },
+            "b2bDirectConnectInbound": {
+              "applications": {
+                "accessType": "res-value"
+              }
+            },
+            "b2bDirectConnectOutbound": {
+              "applications": {
+                "accessType": "res-value"
+              }
+            },
+            "inboundTrust": {
+              "isMfaAccepted": "res-value",
+              "isCompliantDeviceAccepted": "res-value",
+              "isHybridAzureADJoinedDeviceAccepted": "res-value"
+            },
+            "tenantRestrictions": {
+              "usersAndGroups": {
+                "accessType": "res-value"
+              }
+            },
+            "isServiceDefault": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/externalidentities/externalidentities-t1b-1",
+          "tenantId": "res-value",
+          "NAME": "externalidentities-t1b",
+          "TYPE": "entra/externalidentities",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          }
+        },
+        {
+          "properties": {
+            "b2bCollaborationInbound": {
+              "applications": {
+                "accessType": "res-value"
+              }
+            },
+            "b2bCollaborationOutbound": {
+              "applications": {
+                "accessType": "res-value"
+              }
+            },
+            "b2bDirectConnectInbound": {
+              "applications": {
+                "accessType": "res-value"
+              }
+            },
+            "b2bDirectConnectOutbound": {
+              "applications": {
+                "accessType": "res-value"
+              }
+            },
+            "inboundTrust": {
+              "isMfaAccepted": "res-value",
+              "isCompliantDeviceAccepted": "res-value",
+              "isHybridAzureADJoinedDeviceAccepted": "res-value"
+            },
+            "tenantRestrictions": {
+              "usersAndGroups": {
+                "accessType": "res-value"
+              }
+            },
+            "isServiceDefault": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/externalidentities/externalidentities-t1c-1",
+          "tenantId": "res-value",
+          "NAME": "externalidentities-t1c",
+          "TYPE": "entra/externalidentities",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "properties": {
+            "b2bCollaborationInbound": {
+              "applications": {
+                "accessType": "res-value"
+              }
+            },
+            "b2bCollaborationOutbound": {
+              "applications": {
+                "accessType": "res-value"
+              }
+            },
+            "b2bDirectConnectInbound": {
+              "applications": {
+                "accessType": "res-value"
+              }
+            },
+            "b2bDirectConnectOutbound": {
+              "applications": {
+                "accessType": "res-value"
+              }
+            },
+            "inboundTrust": {
+              "isMfaAccepted": "res-value",
+              "isCompliantDeviceAccepted": "res-value",
+              "isHybridAzureADJoinedDeviceAccepted": "res-value"
+            },
+            "tenantRestrictions": {
+              "usersAndGroups": {
+                "accessType": "res-value"
+              }
+            },
+            "isServiceDefault": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/entra/externalidentities/externalidentities-t1d-1",
+          "tenantId": "res-value",
+          "NAME": "externalidentities-t1d",
+          "TYPE": "entra/externalidentities",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "dev"
+          }
+        },
+        {
+          "properties": {
+            "b2bCollaborationInbound": {
+              "applications": {
+                "accessType": "res-value"
+              }
+            },
+            "b2bCollaborationOutbound": {
+              "applications": {
+                "accessType": "res-value"
+              }
+            },
+            "b2bDirectConnectInbound": {
+              "applications": {
+                "accessType": "res-value"
+              }
+            },
+            "b2bDirectConnectOutbound": {
+              "applications": {
+                "accessType": "res-value"
+              }
+            },
+            "inboundTrust": {
+              "isMfaAccepted": "res-value",
+              "isCompliantDeviceAccepted": "res-value",
+              "isHybridAzureADJoinedDeviceAccepted": "res-value"
+            },
+            "tenantRestrictions": {
+              "usersAndGroups": {
+                "accessType": "res-value"
+              }
+            },
+            "isServiceDefault": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/externalidentities/externalidentities-t1e-1",
+          "tenantId": "res-value",
+          "NAME": "externalidentities-t1e",
+          "TYPE": "entra/externalidentities",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "properties": {
+            "b2bCollaborationInbound": {
+              "applications": {
+                "accessType": "res-value"
+              }
+            },
+            "b2bCollaborationOutbound": {
+              "applications": {
+                "accessType": "res-value"
+              }
+            },
+            "b2bDirectConnectInbound": {
+              "applications": {
+                "accessType": "res-value"
+              }
+            },
+            "b2bDirectConnectOutbound": {
+              "applications": {
+                "accessType": "res-value"
+              }
+            },
+            "inboundTrust": {
+              "isMfaAccepted": "res-value",
+              "isCompliantDeviceAccepted": "res-value",
+              "isHybridAzureADJoinedDeviceAccepted": "res-value"
+            },
+            "tenantRestrictions": {
+              "usersAndGroups": {
+                "accessType": "res-value"
+              }
+            },
+            "isServiceDefault": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/externalidentities/externalidentities-t1f-1",
+          "tenantId": "res-value",
+          "NAME": "externalidentities-t1f",
+          "TYPE": "entra/externalidentities",
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "RESOURCEGROUP": "rg-fixture-01",
           "LOCATION": "eastus",
@@ -2979,6 +3465,354 @@
           "tenantId": "res-value",
           "NAME": "users-t1f",
           "TYPE": "entra/users",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        }
+      ]
+    },
+    "VerifiedIDConfiguration": {
+      "resources": [
+        {
+          "properties": {
+            "excludeTargets": [
+              {
+                "id": "res-value"
+              },
+              {
+                "id": "res-value"
+              }
+            ],
+            "state": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/verifiedidconfiguration/verifiedidconfiguration-t1a-1",
+          "tenantId": "res-value",
+          "NAME": "verifiedidconfiguration-t1a",
+          "TYPE": "entra/verifiedidconfiguration",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "properties": {
+            "excludeTargets": [
+              {
+                "id": "res-value"
+              },
+              {
+                "id": "res-value"
+              }
+            ],
+            "state": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/verifiedidconfiguration/verifiedidconfiguration-t1b-1",
+          "tenantId": "res-value",
+          "NAME": "verifiedidconfiguration-t1b",
+          "TYPE": "entra/verifiedidconfiguration",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          }
+        },
+        {
+          "properties": {
+            "excludeTargets": [
+              {
+                "id": "res-value"
+              },
+              {
+                "id": "res-value"
+              }
+            ],
+            "state": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/verifiedidconfiguration/verifiedidconfiguration-t1c-1",
+          "tenantId": "res-value",
+          "NAME": "verifiedidconfiguration-t1c",
+          "TYPE": "entra/verifiedidconfiguration",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "properties": {
+            "excludeTargets": [
+              {
+                "id": "res-value"
+              },
+              {
+                "id": "res-value"
+              }
+            ],
+            "state": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/entra/verifiedidconfiguration/verifiedidconfiguration-t1d-1",
+          "tenantId": "res-value",
+          "NAME": "verifiedidconfiguration-t1d",
+          "TYPE": "entra/verifiedidconfiguration",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "dev"
+          }
+        },
+        {
+          "properties": {
+            "excludeTargets": [
+              {
+                "id": "res-value"
+              },
+              {
+                "id": "res-value"
+              }
+            ],
+            "state": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/verifiedidconfiguration/verifiedidconfiguration-t1e-1",
+          "tenantId": "res-value",
+          "NAME": "verifiedidconfiguration-t1e",
+          "TYPE": "entra/verifiedidconfiguration",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "properties": {
+            "excludeTargets": [
+              {
+                "id": "res-value"
+              },
+              {
+                "id": "res-value"
+              }
+            ],
+            "state": "res-value"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/verifiedidconfiguration/verifiedidconfiguration-t1f-1",
+          "tenantId": "res-value",
+          "NAME": "verifiedidconfiguration-t1f",
+          "TYPE": "entra/verifiedidconfiguration",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        }
+      ]
+    },
+    "VerifiedIDProfiles": {
+      "resources": [
+        {
+          "properties": {
+            "verifiedIdProfileConfiguration": {
+              "acceptedIssuer": "res-value"
+            },
+            "verifiedIdUsageConfigurations": [
+              {
+                "purpose": "res-value"
+              },
+              {
+                "purpose": "res-value"
+              }
+            ],
+            "faceCheckConfiguration": {
+              "state": "res-value"
+            },
+            "name": "res-value",
+            "description": "res-value",
+            "state": "res-value",
+            "priority": "res-value",
+            "verifierDid": "res-value",
+            "lastModifiedDateTime": "2026-01-15T10:30:00Z"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/verifiedidprofiles/verifiedidprofiles-t1a-1",
+          "tenantId": "res-value",
+          "NAME": "verifiedidprofiles-t1a",
+          "TYPE": "entra/verifiedidprofiles",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "properties": {
+            "verifiedIdProfileConfiguration": {
+              "acceptedIssuer": "res-value"
+            },
+            "verifiedIdUsageConfigurations": [
+              {
+                "purpose": "res-value"
+              },
+              {
+                "purpose": "res-value"
+              }
+            ],
+            "faceCheckConfiguration": {
+              "state": "res-value"
+            },
+            "name": "res-value",
+            "description": "res-value",
+            "state": "res-value",
+            "priority": "res-value",
+            "verifierDid": "res-value",
+            "lastModifiedDateTime": "2026-01-15T10:30:00Z"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/verifiedidprofiles/verifiedidprofiles-t1b-1",
+          "tenantId": "res-value",
+          "NAME": "verifiedidprofiles-t1b",
+          "TYPE": "entra/verifiedidprofiles",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          }
+        },
+        {
+          "properties": {
+            "verifiedIdProfileConfiguration": {
+              "acceptedIssuer": "res-value"
+            },
+            "verifiedIdUsageConfigurations": [
+              {
+                "purpose": "res-value"
+              },
+              {
+                "purpose": "res-value"
+              }
+            ],
+            "faceCheckConfiguration": {
+              "state": "res-value"
+            },
+            "name": "res-value",
+            "description": "res-value",
+            "state": "res-value",
+            "priority": "res-value",
+            "verifierDid": "res-value",
+            "lastModifiedDateTime": "2026-01-15T10:30:00Z"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/verifiedidprofiles/verifiedidprofiles-t1c-1",
+          "tenantId": "res-value",
+          "NAME": "verifiedidprofiles-t1c",
+          "TYPE": "entra/verifiedidprofiles",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {}
+        },
+        {
+          "properties": {
+            "verifiedIdProfileConfiguration": {
+              "acceptedIssuer": "res-value"
+            },
+            "verifiedIdUsageConfigurations": [
+              {
+                "purpose": "res-value"
+              },
+              {
+                "purpose": "res-value"
+              }
+            ],
+            "faceCheckConfiguration": {
+              "state": "res-value"
+            },
+            "name": "res-value",
+            "description": "res-value",
+            "state": "res-value",
+            "priority": "res-value",
+            "verifierDid": "res-value",
+            "lastModifiedDateTime": "2026-01-15T10:30:00Z"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/entra/verifiedidprofiles/verifiedidprofiles-t1d-1",
+          "tenantId": "res-value",
+          "NAME": "verifiedidprofiles-t1d",
+          "TYPE": "entra/verifiedidprofiles",
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "dev"
+          }
+        },
+        {
+          "properties": {
+            "verifiedIdProfileConfiguration": {
+              "acceptedIssuer": "res-value"
+            },
+            "verifiedIdUsageConfigurations": [
+              {
+                "purpose": "res-value"
+              },
+              {
+                "purpose": "res-value"
+              }
+            ],
+            "faceCheckConfiguration": {
+              "state": "res-value"
+            },
+            "name": "res-value",
+            "description": "res-value",
+            "state": "res-value",
+            "priority": "res-value",
+            "verifierDid": "res-value",
+            "lastModifiedDateTime": "2026-01-15T10:30:00Z"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/verifiedidprofiles/verifiedidprofiles-t1e-1",
+          "tenantId": "res-value",
+          "NAME": "verifiedidprofiles-t1e",
+          "TYPE": "entra/verifiedidprofiles",
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "RESOURCEGROUP": "rg-fixture-01",
+          "LOCATION": "eastus",
+          "tags": {
+            "env": "prod"
+          }
+        },
+        {
+          "properties": {
+            "verifiedIdProfileConfiguration": {
+              "acceptedIssuer": "res-value"
+            },
+            "verifiedIdUsageConfigurations": [
+              {
+                "purpose": "res-value"
+              },
+              {
+                "purpose": "res-value"
+              }
+            ],
+            "faceCheckConfiguration": {
+              "state": "res-value"
+            },
+            "name": "res-value",
+            "description": "res-value",
+            "state": "res-value",
+            "priority": "res-value",
+            "verifierDid": "res-value",
+            "lastModifiedDateTime": "2026-01-15T10:30:00Z"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/verifiedidprofiles/verifiedidprofiles-t1f-1",
+          "tenantId": "res-value",
+          "NAME": "verifiedidprofiles-t1f",
+          "TYPE": "entra/verifiedidprofiles",
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "RESOURCEGROUP": "rg-fixture-01",
           "LOCATION": "eastus",

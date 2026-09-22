@@ -35,7 +35,7 @@ $ErrorActionPreference = 'Stop'
 #>
 function Invoke-ScoutComplianceAssessment {
     [CmdletBinding()]
-    [OutputType([pscustomobject])]
+    [OutputType([System.Object[]])]
     param(
         [Parameter(Mandatory)] $Collect,
         [string] $Assessment = 'Assess: Compliance'

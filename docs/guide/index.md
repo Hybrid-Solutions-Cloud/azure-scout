@@ -12,7 +12,7 @@ Work through it in order the first time; after that, treat it as reference.
 | Page | What it answers |
 |---|---|
 | [Overview](./overview.md) | One command, two modes — inventory versus assessment, and which one you need |
-| [Prerequisites](./prerequisites.md) | PowerShell version, required modules, and the .NET SDK some report tiers need |
+| [Prerequisites](./prerequisites.md) | PowerShell version, required modules, and held-renderer development dependencies |
 | [Authentication](./authentication.md) | Five ways to sign in: interactive, device code, service principal with secret or certificate, and managed identity |
 | [Usage](./usage.md) | Scope, output formats, category filtering, and worked examples |
 

@@ -294,6 +294,42 @@
     {
       "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.operationalinsights/workspaces/workspaces-t1f-1",
       "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.dashboard/dashboards/azuredashboards-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.dashboard/dashboards/azuredashboards-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.dashboard/dashboards/azuredashboards-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.monitor/accounts/azuremonitorworkspaces-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.monitor/accounts/azuremonitorworkspaces-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.monitor/accounts/azuremonitorworkspaces-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/resourcediagnosticsettings-t1e-1/ResourceDiagnosticSettings/resourcediagnosticsettings-t1e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/resourcediagnosticsettings-t1f-1/ResourceDiagnosticSettings/resourcediagnosticsettings-t1f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/resourcediagnosticsettings-t1f-1/ResourceDiagnosticSettings/resourcediagnosticsettings-t1f-2",
+      "ServiceID": "svc-2"
     }
   ],
   "unsupported": [
@@ -1087,7 +1123,7 @@
       "resources": [
         {
           "PROPERTIES": {
-            "CreationDate": "2026-01-15T10:30:00.0000000Z",
+            "CreationDate": "2026-01-15T10:30:00Z",
             "SamplingPercentage": "res-value",
             "Application_Type": "res-value",
             "Flow_Type": "res-value",
@@ -1110,7 +1146,7 @@
         },
         {
           "PROPERTIES": {
-            "CreationDate": "2026-01-15T10:30:00.0000000Z",
+            "CreationDate": "2026-01-15T10:30:00Z",
             "SamplingPercentage": "res-value",
             "Application_Type": "res-value",
             "Flow_Type": "res-value",
@@ -1134,7 +1170,7 @@
         },
         {
           "PROPERTIES": {
-            "CreationDate": "2026-01-15T10:30:00.0000000Z",
+            "CreationDate": "2026-01-15T10:30:00Z",
             "SamplingPercentage": "res-value",
             "Application_Type": "res-value",
             "Flow_Type": "res-value",
@@ -1155,7 +1191,7 @@
         },
         {
           "PROPERTIES": {
-            "CreationDate": "2026-01-15T10:30:00.0000000Z",
+            "CreationDate": "2026-01-15T10:30:00Z",
             "SamplingPercentage": "res-value",
             "Application_Type": "res-value",
             "Flow_Type": "res-value",
@@ -1178,7 +1214,7 @@
         },
         {
           "PROPERTIES": {
-            "CreationDate": "2026-01-15T10:30:00.0000000Z",
+            "CreationDate": "2026-01-15T10:30:00Z",
             "SamplingPercentage": "res-value",
             "Application_Type": "res-value",
             "Flow_Type": "res-value",
@@ -1201,7 +1237,7 @@
         },
         {
           "PROPERTIES": {
-            "CreationDate": "2026-01-15T10:30:00.0000000Z",
+            "CreationDate": "2026-01-15T10:30:00Z",
             "SamplingPercentage": "res-value",
             "Application_Type": "res-value",
             "Flow_Type": "res-value",
@@ -1401,201 +1437,6 @@
         }
       ]
     },
-    "AppInsightsContinuousExport": {
-      "resources": [
-        {
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/appinsightscontinuousexport-t1a-parent",
-          "NAME": "appinsightscontinuousexport-t1a-parent",
-          "RESOURCEGROUP": "rg-fixture-01",
-          "LOCATION": "eastus",
-          "TYPE": "AZSC/FixtureParents"
-        },
-        {
-          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/appinsightscontinuousexport-t1a-parent",
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "DestinationStorageSubscriptionId": "res-value",
-          "RecordTypes": [
-            "res-item-0",
-            "res-item-1"
-          ],
-          "ExportId": "res-value",
-          "IsUserEnabled": "res-value",
-          "DestinationStorageLocationId": "res-value",
-          "DestinationAccountId": "res-value",
-          "DestinationContainerId": "res-value",
-          "ExportStatus": "res-value",
-          "LastSuccessTime": "2026-01-15T10:30:00.0000000Z",
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/appinsightscontinuousexport-t1a-1/AppInsightsContinuousExport/appinsightscontinuousexport-t1a-2",
-          "NAME": "appinsightscontinuousexport-t1a",
-          "TYPE": "AZSC/ARMChild/AppInsightsContinuousExport",
-          "RESOURCEGROUP": "rg-fixture-01",
-          "LOCATION": "eastus",
-          "PROPERTIES": {},
-          "tags": {
-            "env": "prod"
-          }
-        },
-        {
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/appinsightscontinuousexport-t1b-parent",
-          "NAME": "appinsightscontinuousexport-t1b-parent",
-          "RESOURCEGROUP": "rg-fixture-01",
-          "LOCATION": "eastus",
-          "TYPE": "AZSC/FixtureParents"
-        },
-        {
-          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/appinsightscontinuousexport-t1b-parent",
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "DestinationStorageSubscriptionId": "res-value",
-          "RecordTypes": [
-            "res-item-0",
-            "res-item-1"
-          ],
-          "ExportId": "res-value",
-          "IsUserEnabled": "res-value",
-          "DestinationStorageLocationId": "res-value",
-          "DestinationAccountId": "res-value",
-          "DestinationContainerId": "res-value",
-          "ExportStatus": "res-value",
-          "LastSuccessTime": "2026-01-15T10:30:00.0000000Z",
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/appinsightscontinuousexport-t1b-1/AppInsightsContinuousExport/appinsightscontinuousexport-t1b-2",
-          "NAME": "appinsightscontinuousexport-t1b",
-          "TYPE": "AZSC/ARMChild/AppInsightsContinuousExport",
-          "RESOURCEGROUP": "rg-fixture-01",
-          "LOCATION": "eastus",
-          "PROPERTIES": {},
-          "tags": {
-            "env": "prod",
-            "owner": "platform"
-          }
-        },
-        {
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/appinsightscontinuousexport-t1c-parent",
-          "NAME": "appinsightscontinuousexport-t1c-parent",
-          "RESOURCEGROUP": "rg-fixture-01",
-          "LOCATION": "eastus",
-          "TYPE": "AZSC/FixtureParents"
-        },
-        {
-          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/appinsightscontinuousexport-t1c-parent",
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "DestinationStorageSubscriptionId": "res-value",
-          "RecordTypes": [
-            "res-item-0",
-            "res-item-1"
-          ],
-          "ExportId": "res-value",
-          "IsUserEnabled": "res-value",
-          "DestinationStorageLocationId": "res-value",
-          "DestinationAccountId": "res-value",
-          "DestinationContainerId": "res-value",
-          "ExportStatus": "res-value",
-          "LastSuccessTime": "2026-01-15T10:30:00.0000000Z",
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/appinsightscontinuousexport-t1c-1/AppInsightsContinuousExport/appinsightscontinuousexport-t1c-2",
-          "NAME": "appinsightscontinuousexport-t1c",
-          "TYPE": "AZSC/ARMChild/AppInsightsContinuousExport",
-          "RESOURCEGROUP": "rg-fixture-01",
-          "LOCATION": "eastus",
-          "PROPERTIES": {},
-          "tags": {}
-        },
-        {
-          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/appinsightscontinuousexport-t1d-parent",
-          "NAME": "appinsightscontinuousexport-t1d-parent",
-          "RESOURCEGROUP": "rg-fixture-01",
-          "LOCATION": "eastus",
-          "TYPE": "AZSC/FixtureParents"
-        },
-        {
-          "PARENTID": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/appinsightscontinuousexport-t1d-parent",
-          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
-          "DestinationStorageSubscriptionId": "res-value",
-          "RecordTypes": [
-            "res-item-0",
-            "res-item-1"
-          ],
-          "ExportId": "res-value",
-          "IsUserEnabled": "res-value",
-          "DestinationStorageLocationId": "res-value",
-          "DestinationAccountId": "res-value",
-          "DestinationContainerId": "res-value",
-          "ExportStatus": "res-value",
-          "LastSuccessTime": "2026-01-15T10:30:00.0000000Z",
-          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/appinsightscontinuousexport-t1d-1/AppInsightsContinuousExport/appinsightscontinuousexport-t1d-2",
-          "NAME": "appinsightscontinuousexport-t1d",
-          "TYPE": "AZSC/ARMChild/AppInsightsContinuousExport",
-          "RESOURCEGROUP": "rg-fixture-01",
-          "LOCATION": "eastus",
-          "PROPERTIES": {},
-          "tags": {
-            "env": "dev"
-          }
-        },
-        {
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/appinsightscontinuousexport-t1e-parent",
-          "NAME": "appinsightscontinuousexport-t1e-parent",
-          "RESOURCEGROUP": "rg-fixture-01",
-          "LOCATION": "eastus",
-          "TYPE": "AZSC/FixtureParents"
-        },
-        {
-          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/appinsightscontinuousexport-t1e-parent",
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "DestinationStorageSubscriptionId": "res-value",
-          "RecordTypes": [
-            "res-item-0",
-            "res-item-1"
-          ],
-          "ExportId": "res-value",
-          "IsUserEnabled": "res-value",
-          "DestinationStorageLocationId": "res-value",
-          "DestinationAccountId": "res-value",
-          "DestinationContainerId": "res-value",
-          "ExportStatus": "res-value",
-          "LastSuccessTime": "2026-01-15T10:30:00.0000000Z",
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/appinsightscontinuousexport-t1e-1/AppInsightsContinuousExport/appinsightscontinuousexport-t1e-2",
-          "NAME": "appinsightscontinuousexport-t1e",
-          "TYPE": "AZSC/ARMChild/AppInsightsContinuousExport",
-          "RESOURCEGROUP": "rg-fixture-01",
-          "LOCATION": "eastus",
-          "PROPERTIES": {},
-          "tags": {
-            "env": "prod"
-          }
-        },
-        {
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/appinsightscontinuousexport-t1f-parent",
-          "NAME": "appinsightscontinuousexport-t1f-parent",
-          "RESOURCEGROUP": "rg-fixture-01",
-          "LOCATION": "eastus",
-          "TYPE": "AZSC/FixtureParents"
-        },
-        {
-          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/appinsightscontinuousexport-t1f-parent",
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "DestinationStorageSubscriptionId": "res-value",
-          "RecordTypes": [
-            "res-item-0",
-            "res-item-1"
-          ],
-          "ExportId": "res-value",
-          "IsUserEnabled": "res-value",
-          "DestinationStorageLocationId": "res-value",
-          "DestinationAccountId": "res-value",
-          "DestinationContainerId": "res-value",
-          "ExportStatus": "res-value",
-          "LastSuccessTime": "2026-01-15T10:30:00.0000000Z",
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/appinsightscontinuousexport-t1f-1/AppInsightsContinuousExport/appinsightscontinuousexport-t1f-2",
-          "NAME": "appinsightscontinuousexport-t1f",
-          "TYPE": "AZSC/ARMChild/AppInsightsContinuousExport",
-          "RESOURCEGROUP": "rg-fixture-01",
-          "LOCATION": "eastus",
-          "PROPERTIES": {},
-          "tags": {
-            "env": "prod"
-          }
-        }
-      ]
-    },
     "AppInsightsProactiveDetection": {
       "resources": [
         {
@@ -1618,7 +1459,7 @@
             "res-item-0",
             "res-item-1"
           ],
-          "LastUpdatedTime": "2026-01-15T10:30:00.0000000Z",
+          "LastUpdatedTime": "2026-01-15T10:30:00Z",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/appinsightsproactivedetection-t1a-1/AppInsightsProactiveDetection/appinsightsproactivedetection-t1a-2",
           "TYPE": "AZSC/ARMChild/AppInsightsProactiveDetection",
           "RESOURCEGROUP": "rg-fixture-01",
@@ -1648,7 +1489,7 @@
             "res-item-0",
             "res-item-1"
           ],
-          "LastUpdatedTime": "2026-01-15T10:30:00.0000000Z",
+          "LastUpdatedTime": "2026-01-15T10:30:00Z",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/appinsightsproactivedetection-t1b-1/AppInsightsProactiveDetection/appinsightsproactivedetection-t1b-2",
           "TYPE": "AZSC/ARMChild/AppInsightsProactiveDetection",
           "RESOURCEGROUP": "rg-fixture-01",
@@ -1679,7 +1520,7 @@
             "res-item-0",
             "res-item-1"
           ],
-          "LastUpdatedTime": "2026-01-15T10:30:00.0000000Z",
+          "LastUpdatedTime": "2026-01-15T10:30:00Z",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/appinsightsproactivedetection-t1c-1/AppInsightsProactiveDetection/appinsightsproactivedetection-t1c-2",
           "TYPE": "AZSC/ARMChild/AppInsightsProactiveDetection",
           "RESOURCEGROUP": "rg-fixture-01",
@@ -1707,7 +1548,7 @@
             "res-item-0",
             "res-item-1"
           ],
-          "LastUpdatedTime": "2026-01-15T10:30:00.0000000Z",
+          "LastUpdatedTime": "2026-01-15T10:30:00Z",
           "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/appinsightsproactivedetection-t1d-1/AppInsightsProactiveDetection/appinsightsproactivedetection-t1d-2",
           "TYPE": "AZSC/ARMChild/AppInsightsProactiveDetection",
           "RESOURCEGROUP": "rg-fixture-01",
@@ -1737,7 +1578,7 @@
             "res-item-0",
             "res-item-1"
           ],
-          "LastUpdatedTime": "2026-01-15T10:30:00.0000000Z",
+          "LastUpdatedTime": "2026-01-15T10:30:00Z",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/appinsightsproactivedetection-t1e-1/AppInsightsProactiveDetection/appinsightsproactivedetection-t1e-2",
           "TYPE": "AZSC/ARMChild/AppInsightsProactiveDetection",
           "RESOURCEGROUP": "rg-fixture-01",
@@ -1767,7 +1608,7 @@
             "res-item-0",
             "res-item-1"
           ],
-          "LastUpdatedTime": "2026-01-15T10:30:00.0000000Z",
+          "LastUpdatedTime": "2026-01-15T10:30:00Z",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/appinsightsproactivedetection-t1f-1/AppInsightsProactiveDetection/appinsightsproactivedetection-t1f-2",
           "TYPE": "AZSC/ARMChild/AppInsightsProactiveDetection",
           "RESOURCEGROUP": "rg-fixture-01",
@@ -1989,147 +1830,6 @@
           "LOCATION": "res-value",
           "KIND": "standard",
           "TYPE": "microsoft.insights/webtests"
-        }
-      ]
-    },
-    "AppInsightsWorkItems": {
-      "resources": [
-        {
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/appinsightsworkitems-t1a-parent",
-          "NAME": "appinsightsworkitems-t1a-parent",
-          "RESOURCEGROUP": "rg-fixture-01",
-          "LOCATION": "eastus",
-          "TYPE": "AZSC/FixtureParents"
-        },
-        {
-          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/appinsightsworkitems-t1a-parent",
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/appinsightsworkitems-t1a-1/AppInsightsWorkItems/appinsightsworkitems-t1a-2",
-          "ConfigDisplayName": "res-value",
-          "IsDefault": "res-value",
-          "ConfigProperties": "res-value",
-          "NAME": "appinsightsworkitems-t1a",
-          "TYPE": "AZSC/ARMChild/AppInsightsWorkItems",
-          "RESOURCEGROUP": "rg-fixture-01",
-          "LOCATION": "eastus",
-          "PROPERTIES": {},
-          "tags": {
-            "env": "prod"
-          }
-        },
-        {
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/appinsightsworkitems-t1b-parent",
-          "NAME": "appinsightsworkitems-t1b-parent",
-          "RESOURCEGROUP": "rg-fixture-01",
-          "LOCATION": "eastus",
-          "TYPE": "AZSC/FixtureParents"
-        },
-        {
-          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/appinsightsworkitems-t1b-parent",
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/appinsightsworkitems-t1b-1/AppInsightsWorkItems/appinsightsworkitems-t1b-2",
-          "ConfigDisplayName": "res-value",
-          "IsDefault": "res-value",
-          "ConfigProperties": "res-value",
-          "NAME": "appinsightsworkitems-t1b",
-          "TYPE": "AZSC/ARMChild/AppInsightsWorkItems",
-          "RESOURCEGROUP": "rg-fixture-01",
-          "LOCATION": "eastus",
-          "PROPERTIES": {},
-          "tags": {
-            "env": "prod",
-            "owner": "platform"
-          }
-        },
-        {
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/appinsightsworkitems-t1c-parent",
-          "NAME": "appinsightsworkitems-t1c-parent",
-          "RESOURCEGROUP": "rg-fixture-01",
-          "LOCATION": "eastus",
-          "TYPE": "AZSC/FixtureParents"
-        },
-        {
-          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/appinsightsworkitems-t1c-parent",
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/appinsightsworkitems-t1c-1/AppInsightsWorkItems/appinsightsworkitems-t1c-2",
-          "ConfigDisplayName": "res-value",
-          "IsDefault": "res-value",
-          "ConfigProperties": "res-value",
-          "NAME": "appinsightsworkitems-t1c",
-          "TYPE": "AZSC/ARMChild/AppInsightsWorkItems",
-          "RESOURCEGROUP": "rg-fixture-01",
-          "LOCATION": "eastus",
-          "PROPERTIES": {},
-          "tags": {}
-        },
-        {
-          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/appinsightsworkitems-t1d-parent",
-          "NAME": "appinsightsworkitems-t1d-parent",
-          "RESOURCEGROUP": "rg-fixture-01",
-          "LOCATION": "eastus",
-          "TYPE": "AZSC/FixtureParents"
-        },
-        {
-          "PARENTID": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/appinsightsworkitems-t1d-parent",
-          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
-          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/appinsightsworkitems-t1d-1/AppInsightsWorkItems/appinsightsworkitems-t1d-2",
-          "ConfigDisplayName": "res-value",
-          "IsDefault": "res-value",
-          "ConfigProperties": "res-value",
-          "NAME": "appinsightsworkitems-t1d",
-          "TYPE": "AZSC/ARMChild/AppInsightsWorkItems",
-          "RESOURCEGROUP": "rg-fixture-01",
-          "LOCATION": "eastus",
-          "PROPERTIES": {},
-          "tags": {
-            "env": "dev"
-          }
-        },
-        {
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/appinsightsworkitems-t1e-parent",
-          "NAME": "appinsightsworkitems-t1e-parent",
-          "RESOURCEGROUP": "rg-fixture-01",
-          "LOCATION": "eastus",
-          "TYPE": "AZSC/FixtureParents"
-        },
-        {
-          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/appinsightsworkitems-t1e-parent",
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/appinsightsworkitems-t1e-1/AppInsightsWorkItems/appinsightsworkitems-t1e-2",
-          "ConfigDisplayName": "res-value",
-          "IsDefault": "res-value",
-          "ConfigProperties": "res-value",
-          "NAME": "appinsightsworkitems-t1e",
-          "TYPE": "AZSC/ARMChild/AppInsightsWorkItems",
-          "RESOURCEGROUP": "rg-fixture-01",
-          "LOCATION": "eastus",
-          "PROPERTIES": {},
-          "tags": {
-            "env": "prod"
-          }
-        },
-        {
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/appinsightsworkitems-t1f-parent",
-          "NAME": "appinsightsworkitems-t1f-parent",
-          "RESOURCEGROUP": "rg-fixture-01",
-          "LOCATION": "eastus",
-          "TYPE": "AZSC/FixtureParents"
-        },
-        {
-          "PARENTID": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/FixtureParents/appinsightsworkitems-t1f-parent",
-          "subscriptionId": "00000000-0000-0000-0000-000000000001",
-          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/appinsightsworkitems-t1f-1/AppInsightsWorkItems/appinsightsworkitems-t1f-2",
-          "ConfigDisplayName": "res-value",
-          "IsDefault": "res-value",
-          "ConfigProperties": "res-value",
-          "NAME": "appinsightsworkitems-t1f",
-          "TYPE": "AZSC/ARMChild/AppInsightsWorkItems",
-          "RESOURCEGROUP": "rg-fixture-01",
-          "LOCATION": "eastus",
-          "PROPERTIES": {},
-          "tags": {
-            "env": "prod"
-          }
         }
       ]
     },
@@ -2505,6 +2205,228 @@
           "NAME": "autoscalesettings-t1f",
           "LOCATION": "res-value",
           "TYPE": "microsoft.insights/autoscalesettings"
+        }
+      ]
+    },
+    "AzureDashboards": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.dashboard/dashboards/azuredashboards-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "azuredashboards-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.dashboard/dashboards"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.dashboard/dashboards/azuredashboards-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "azuredashboards-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.dashboard/dashboards"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.dashboard/dashboards/azuredashboards-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "azuredashboards-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.dashboard/dashboards"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.dashboard/dashboards/azuredashboards-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "azuredashboards-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.dashboard/dashboards"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.dashboard/dashboards/azuredashboards-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "azuredashboards-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.dashboard/dashboards"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.dashboard/dashboards/azuredashboards-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "azuredashboards-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.dashboard/dashboards"
+        }
+      ]
+    },
+    "AzureMonitorWorkspaces": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "defaultIngestionSettings": {
+              "dataCollectionEndpointResourceId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+              "dataCollectionRuleResourceId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            },
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value",
+            "metrics": {
+              "prometheusQueryEndpoint": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.monitor/accounts/azuremonitorworkspaces-t1a-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "azuremonitorworkspaces-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.monitor/accounts"
+        },
+        {
+          "PROPERTIES": {
+            "defaultIngestionSettings": {
+              "dataCollectionEndpointResourceId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+              "dataCollectionRuleResourceId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            },
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value",
+            "metrics": {
+              "prometheusQueryEndpoint": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.monitor/accounts/azuremonitorworkspaces-t1b-1",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "azuremonitorworkspaces-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.monitor/accounts"
+        },
+        {
+          "PROPERTIES": {
+            "defaultIngestionSettings": {
+              "dataCollectionEndpointResourceId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+              "dataCollectionRuleResourceId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            },
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value",
+            "metrics": {
+              "prometheusQueryEndpoint": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.monitor/accounts/azuremonitorworkspaces-t1c-1",
+          "tags": {},
+          "RESOURCEGROUP": "res-value",
+          "NAME": "azuremonitorworkspaces-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.monitor/accounts"
+        },
+        {
+          "PROPERTIES": {
+            "defaultIngestionSettings": {
+              "dataCollectionEndpointResourceId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+              "dataCollectionRuleResourceId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            },
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value",
+            "metrics": {
+              "prometheusQueryEndpoint": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.monitor/accounts/azuremonitorworkspaces-t1d-1",
+          "tags": {
+            "env": "dev"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "azuremonitorworkspaces-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.monitor/accounts"
+        },
+        {
+          "PROPERTIES": {
+            "defaultIngestionSettings": {
+              "dataCollectionEndpointResourceId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+              "dataCollectionRuleResourceId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            },
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value",
+            "metrics": {
+              "prometheusQueryEndpoint": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.monitor/accounts/azuremonitorworkspaces-t1e-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "azuremonitorworkspaces-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.monitor/accounts"
+        },
+        {
+          "PROPERTIES": {
+            "defaultIngestionSettings": {
+              "dataCollectionEndpointResourceId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32",
+              "dataCollectionRuleResourceId": "seg0/seg1/seg2/seg3/seg4/seg5/seg6/seg7/seg8/seg9/seg10/seg11/seg12/seg13/seg14/seg15/seg16/seg17/seg18/seg19/seg20/seg21/seg22/seg23/seg24/seg25/seg26/seg27/seg28/seg29/seg30/seg31/seg32"
+            },
+            "provisioningState": "res-value",
+            "publicNetworkAccess": "res-value",
+            "metrics": {
+              "prometheusQueryEndpoint": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.monitor/accounts/azuremonitorworkspaces-t1f-1",
+          "tags": {
+            "env": "prod"
+          },
+          "RESOURCEGROUP": "res-value",
+          "NAME": "azuremonitorworkspaces-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.monitor/accounts"
         }
       ]
     },
@@ -4406,7 +4328,7 @@
             "displayName": "res-value",
             "category": "res-value",
             "version": "res-value",
-            "timeModified": "2026-01-15T10:30:00.0000000Z"
+            "timeModified": "2026-01-15T10:30:00Z"
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "tags": {
@@ -4425,7 +4347,7 @@
             "displayName": "res-value",
             "category": "res-value",
             "version": "res-value",
-            "timeModified": "2026-01-15T10:30:00.0000000Z"
+            "timeModified": "2026-01-15T10:30:00Z"
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "tags": {
@@ -4445,7 +4367,7 @@
             "displayName": "res-value",
             "category": "res-value",
             "version": "res-value",
-            "timeModified": "2026-01-15T10:30:00.0000000Z"
+            "timeModified": "2026-01-15T10:30:00Z"
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "tags": {},
@@ -4462,7 +4384,7 @@
             "displayName": "res-value",
             "category": "res-value",
             "version": "res-value",
-            "timeModified": "2026-01-15T10:30:00.0000000Z"
+            "timeModified": "2026-01-15T10:30:00Z"
           },
           "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
           "tags": {
@@ -4481,7 +4403,7 @@
             "displayName": "res-value",
             "category": "res-value",
             "version": "res-value",
-            "timeModified": "2026-01-15T10:30:00.0000000Z"
+            "timeModified": "2026-01-15T10:30:00Z"
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "tags": {
@@ -4500,7 +4422,7 @@
             "displayName": "res-value",
             "category": "res-value",
             "version": "res-value",
-            "timeModified": "2026-01-15T10:30:00.0000000Z"
+            "timeModified": "2026-01-15T10:30:00Z"
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "tags": {
@@ -4521,8 +4443,8 @@
           "properties": {
             "SourceResource": {
               "properties": {
-                "impactStartTime": "2026-01-15T10:30:00.0000000Z",
-                "impactMitigationTime": "2026-01-15T10:30:00.0000000Z",
+                "impactStartTime": "2026-01-15T10:30:00Z",
+                "impactMitigationTime": "2026-01-15T10:30:00Z",
                 "impact": {
                   "impactedRegions": {
                     "impactedSubscriptions": [
@@ -4565,8 +4487,8 @@
           "properties": {
             "SourceResource": {
               "properties": {
-                "impactStartTime": "2026-01-15T10:30:00.0000000Z",
-                "impactMitigationTime": "2026-01-15T10:30:00.0000000Z",
+                "impactStartTime": "2026-01-15T10:30:00Z",
+                "impactMitigationTime": "2026-01-15T10:30:00Z",
                 "impact": {
                   "impactedRegions": {
                     "impactedSubscriptions": [
@@ -4610,8 +4532,8 @@
           "properties": {
             "SourceResource": {
               "properties": {
-                "impactStartTime": "2026-01-15T10:30:00.0000000Z",
-                "impactMitigationTime": "2026-01-15T10:30:00.0000000Z",
+                "impactStartTime": "2026-01-15T10:30:00Z",
+                "impactMitigationTime": "2026-01-15T10:30:00Z",
                 "impact": {
                   "impactedRegions": {
                     "impactedSubscriptions": [
@@ -4652,8 +4574,8 @@
           "properties": {
             "SourceResource": {
               "properties": {
-                "impactStartTime": "2026-01-15T10:30:00.0000000Z",
-                "impactMitigationTime": "2026-01-15T10:30:00.0000000Z",
+                "impactStartTime": "2026-01-15T10:30:00Z",
+                "impactMitigationTime": "2026-01-15T10:30:00Z",
                 "impact": {
                   "impactedRegions": {
                     "impactedSubscriptions": [
@@ -4696,8 +4618,8 @@
           "properties": {
             "SourceResource": {
               "properties": {
-                "impactStartTime": "2026-01-15T10:30:00.0000000Z",
-                "impactMitigationTime": "2026-01-15T10:30:00.0000000Z",
+                "impactStartTime": "2026-01-15T10:30:00Z",
+                "impactMitigationTime": "2026-01-15T10:30:00Z",
                 "impact": {
                   "impactedRegions": {
                     "impactedSubscriptions": [
@@ -4740,8 +4662,8 @@
           "properties": {
             "SourceResource": {
               "properties": {
-                "impactStartTime": "2026-01-15T10:30:00.0000000Z",
-                "impactMitigationTime": "2026-01-15T10:30:00.0000000Z",
+                "impactStartTime": "2026-01-15T10:30:00Z",
+                "impactMitigationTime": "2026-01-15T10:30:00Z",
                 "impact": {
                   "impactedRegions": {
                     "impactedSubscriptions": [
@@ -5854,7 +5776,7 @@
       "resources": [
         {
           "PROPERTIES": {
-            "createdDate": "2026-01-15T10:30:00.0000000Z",
+            "createdDate": "2026-01-15T10:30:00Z",
             "workspaceCapping": {
               "dailyQuotaGb": "res-value"
             },
@@ -5877,7 +5799,7 @@
         },
         {
           "PROPERTIES": {
-            "createdDate": "2026-01-15T10:30:00.0000000Z",
+            "createdDate": "2026-01-15T10:30:00Z",
             "workspaceCapping": {
               "dailyQuotaGb": "res-value"
             },
@@ -5901,7 +5823,7 @@
         },
         {
           "PROPERTIES": {
-            "createdDate": "2026-01-15T10:30:00.0000000Z",
+            "createdDate": "2026-01-15T10:30:00Z",
             "workspaceCapping": {
               "dailyQuotaGb": "res-value"
             },
@@ -5922,7 +5844,7 @@
         },
         {
           "PROPERTIES": {
-            "createdDate": "2026-01-15T10:30:00.0000000Z",
+            "createdDate": "2026-01-15T10:30:00Z",
             "workspaceCapping": {
               "dailyQuotaGb": "res-value"
             },
@@ -5945,7 +5867,7 @@
         },
         {
           "PROPERTIES": {
-            "createdDate": "2026-01-15T10:30:00.0000000Z",
+            "createdDate": "2026-01-15T10:30:00Z",
             "workspaceCapping": {
               "dailyQuotaGb": "res-value"
             },
@@ -5968,7 +5890,7 @@
         },
         {
           "PROPERTIES": {
-            "createdDate": "2026-01-15T10:30:00.0000000Z",
+            "createdDate": "2026-01-15T10:30:00Z",
             "workspaceCapping": {
               "dailyQuotaGb": "res-value"
             },

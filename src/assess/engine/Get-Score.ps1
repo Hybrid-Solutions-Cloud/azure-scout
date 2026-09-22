@@ -72,14 +72,16 @@ function Get-Score {
         # Weighted average of area scores by AreaWeight (AB#5087).
         $wsum = ($_.Group | ForEach-Object { $_.Weight } | Measure-Object -Sum).Sum
         $wnum = ($_.Group | ForEach-Object { $_.Score * $_.Weight } | Measure-Object -Sum).Sum
-        # AB#6817 -- same rule at the framework roll-up: the headline score names the version
-        # it was measured against, taken from whichever area under it carries one.
-        $fv = $_.Group | Where-Object { $_.Version } | Select-Object -First 1
+        # A framework can contain areas sourced from different published baselines. Preserve
+        # the complete distinct set; selecting the first area falsely labeled the whole score
+        # with an arbitrary design-area version.
+        $frameworkVersions = @($_.Group | ForEach-Object { $_.Version } | Where-Object { $_ } | Sort-Object -Unique)
         $fwScore = if ($wsum -gt 0) { [math]::Round($wnum / $wsum, 0, [System.MidpointRounding]::AwayFromZero) } else { $null }
         [pscustomobject]@{
             Framework     = $_.Name
             Score         = $fwScore
-            Version       = if ($fv) { $fv.Version } else { $null }
+            Version       = if ($frameworkVersions.Count -gt 0) { $frameworkVersions -join '; ' } else { $null }
+            Versions      = $frameworkVersions
             MaturityLevel = if ($maturityAvailable) { Get-MaturityLevel -Score $fwScore } else { $null }
             Unknown       = ($_.Group | Measure-Object Unknown -Sum).Sum
             Error         = ($_.Group | Measure-Object Error -Sum).Sum

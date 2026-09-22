@@ -38,11 +38,11 @@ $ErrorActionPreference = 'Stop'
 
 $RepoRoot = Split-Path -Parent $PSScriptRoot
 if ([string]::IsNullOrWhiteSpace($OutputPath)) {
-    $OutputPath = Join-Path $RepoRoot 'docs' 'reference' 'framework-coverage.md'
+    $OutputPath = Join-Path -Path $RepoRoot -ChildPath 'docs' -AdditionalChildPath 'reference', 'framework-coverage.md'
 }
 
-$FrameworkDir = Join-Path $RepoRoot 'docs' 'frameworks'
-$RulesText = (Get-ChildItem -LiteralPath (Join-Path $RepoRoot 'src' 'assess' 'rules') -Filter '*.yaml' -File |
+$FrameworkDir = Join-Path -Path $RepoRoot -ChildPath 'docs' -AdditionalChildPath 'frameworks'
+$RulesText = (Get-ChildItem -LiteralPath (Join-Path -Path $RepoRoot -ChildPath 'src' -AdditionalChildPath 'assess', 'rules') -Filter '*.yaml' -File |
         ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw }) -join "`n"
 
 # An enumerated item id: two or three uppercase segments then a number, e.g. WAF-CO-01,

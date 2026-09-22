@@ -8,8 +8,82 @@
 #>
 
 BeforeAll {
+    # Invoke-Collect always performs these two non-ARG sweeps. Keep fake
+    # subscriptions and tenants inside the test process.
+    function Get-ScoutDefenderPlanSweep {
+        param([object[]] $Subscriptions)
+        $null = $Subscriptions
+        return @()
+    }
+
+    function Get-ScoutExternalIdentitiesPolicy {
+        param([string] $TenantID)
+        $null = $TenantID
+        return [pscustomobject]@{ Collected = $false }
+    }
+
+    # Get-ScoutRawInventory performs these non-ARG phases by default. Keep this unit suite
+    # offline and phase-local: tests that own one of these helpers define a narrower shadow in
+    # their It block, while the helper-lifetime tests explicitly remove the command they need to
+    # exercise through the dynamic loader.
+    function Get-ScoutApiResources {
+        param(
+            [object[]] $Subscriptions,
+            [string] $AzureEnvironment,
+            [switch] $SkipPolicy,
+            [switch] $DefinitionsOnly,
+            [switch] $SkipManagedIdentities
+        )
+        $null = $Subscriptions, $AzureEnvironment, $SkipPolicy, $DefinitionsOnly, $SkipManagedIdentities
+        return @()
+    }
+
+    function ConvertTo-ScoutManagementGroupHierarchy {
+        param($Root)
+        $null = $Root
+        return @()
+    }
+
+    function Get-ScoutTenantWideResource {
+        param([object[]] $ApiResources)
+        $null = $ApiResources
+        return @()
+    }
+
+    function ConvertTo-ScoutArcSiteResource {
+        param([object[]] $ApiResources)
+        $null = $ApiResources
+        return @()
+    }
+
+    function ConvertTo-ScoutAvdAzureLocalSessionHost {
+        param([object[]] $Resources)
+        $null = $Resources
+        return @()
+    }
+
+    function Get-ScoutOutageResource {
+        param([object[]] $Resources)
+        $null = $Resources
+        return @()
+    }
+
+    function Get-ScoutGovernanceDataset {
+        param([object[]] $Subscriptions, [string] $ManagementGroupId)
+        $null = $Subscriptions, $ManagementGroupId
+        return [pscustomobject]@{
+            roleAssignments   = @()
+            roleDefinitions   = @()
+            policyAssignments = @()
+            budgets           = @()
+            resourceLocks     = @()
+        }
+    }
+
     $root = Split-Path $PSScriptRoot -Parent
-    function Import-Module { param([Parameter(ValueFromRemainingArguments)] $Rest) }
+    function Import-Module {         [Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Intentional local override of a built-in cmdlet to stub Azure/PowerShell calls for the test -- this is the point of the mock.')]
+        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([Parameter(ValueFromRemainingArguments)] $Rest) }
     . "$root/src/collect/Get-ScoutRawInventory.ps1"
     . "$root/src/collect/ConvertFrom-ScoutInventory.ps1"
     . "$root/src/collect/Invoke-Collect.ps1"
@@ -20,11 +94,63 @@ BeforeAll {
     }
 }
 
+Describe 'Get-ScoutRawInventory -- optional helper lifetime' {
+    AfterAll {
+        # The helper-lifetime cases must begin without this command so they can exercise the
+        # loader. Install the suite's inert converter only after that contract is proven.
+        Set-Item Function:script:ConvertTo-ScoutGovernanceResource -Force -Value {
+            param([object] $Governance, [object[]] $Subscriptions)
+            $null = $Governance, $Subscriptions
+            return @()
+        }
+    }
+
+    It 'keeps a dynamically dot-sourced helper for the phase and removes it before returning' {
+        Remove-Item Function:script:Get-ScoutArmChildResource -ErrorAction SilentlyContinue
+        function Search-AzGraph {
+            param([string] $Query, [Parameter(ValueFromRemainingArguments)] $Rest)
+            $null = $Query
+            $null = $Rest
+            return @()
+        }
+
+        $result = Get-ScoutRawInventory `
+            -IncludeArmChildResources `
+            -ArmChildDataset @('KeyVaultSecrets', 'KeyVaultKeys') `
+            -WarningAction SilentlyContinue
+
+        Get-Command Get-ScoutArmChildResource -CommandType Function -ErrorAction SilentlyContinue |
+            Should -BeNullOrEmpty
+        @($result.CollectionHealth | Where-Object {
+                $_.PSObject.Properties['Source'] -and [string]$_.Source -eq 'ARM Child' -and
+                $_.PSObject.Properties['Operation'] -and [string]$_.Operation -eq 'Sweep'
+            }).Count | Should -Be 0
+    }
+
+    It 'loads private companion functions for the opted-in phase and removes the complete set afterward' {
+        Remove-Item Function:script:ConvertTo-ScoutGovernanceResource -ErrorAction SilentlyContinue
+        Remove-Item Function:script:Get-ScoutGovernanceValue -ErrorAction SilentlyContinue
+        function Search-AzGraph { param([Parameter(ValueFromRemainingArguments)]$Rest) $null = $Rest; @() }
+        function Get-ScoutGovernanceDataset {
+            param([Parameter(ValueFromRemainingArguments)]$Rest)
+            $null = $Rest
+            [pscustomobject]@{ roleAssignments=@(); roleDefinitions=@(); policyAssignments=@(); budgets=@(); resourceLocks=@() }
+        }
+
+        $result = Get-ScoutRawInventory -WarningAction SilentlyContinue
+
+        @($result.CollectionHealth | Where-Object Dataset -eq 'Governance').Count | Should -Be 0
+        Get-Command ConvertTo-ScoutGovernanceResource -CommandType Function -ErrorAction SilentlyContinue | Should -BeNullOrEmpty
+        Get-Command Get-ScoutGovernanceValue -CommandType Function -ErrorAction SilentlyContinue | Should -BeNullOrEmpty
+    }
+}
+
 Describe 'Get-ScoutRawInventory -- table coverage' {
     It 'always queries resources, networkresources and resourcecontainers' {
         $script:queries = @()
         function Search-AzGraph {
-            param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
             $script:queries += $Query
             return @()
         }
@@ -37,7 +163,8 @@ Describe 'Get-ScoutRawInventory -- table coverage' {
     It 'does not query SupportResources/recoveryservicesresources/desktopvirtualizationresources/advisorresources/securityresources unless asked' {
         $script:queries = @()
         function Search-AzGraph {
-            param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
             $script:queries += $Query
             return @()
         }
@@ -52,7 +179,8 @@ Describe 'Get-ScoutRawInventory -- table coverage' {
     It 'queries every extra table when every -Include switch is supplied' {
         $script:queries = @()
         function Search-AzGraph {
-            param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
             $script:queries += $Query
             return @()
         }
@@ -64,13 +192,58 @@ Describe 'Get-ScoutRawInventory -- table coverage' {
         ($script:queries -join "`n") | Should -Match '(?m)^securityresources\b'
     }
 
+    It 'projects only report-consumed Defender fields and uses a payload-safe page size' {
+        $script:securityQuery = $null
+        $script:securityFirst = $null
+        function Search-AzGraph {
+            param([string] $Query, [int] $First, [Parameter(ValueFromRemainingArguments)] $Rest)
+            $null = $Rest
+            if ($Query -match '^securityresources\b') {
+                $script:securityQuery = $Query
+                $script:securityFirst = $First
+            }
+            return @()
+        }
+
+        Get-ScoutRawInventory -IncludeSecurityCenter | Out-Null
+
+        $script:securityFirst | Should -Be 200
+        $script:securityQuery | Should -Match '\|\s*project\s+id,name,type,tenantId,resourceGroup,subscriptionId,properties=bag_pack'
+        $script:securityQuery | Should -Match 'resourceDetails'
+        $script:securityQuery | Should -Match 'remediationDescription'
+        $script:securityQuery | Should -Not -Match '\|\s*project\s+\$columns'
+    }
+
     It 'returns the Start-AZTIGraphExtraction-compatible shape' {
-        function Search-AzGraph { param([Parameter(ValueFromRemainingArguments)] $Rest) return @() }
+        function Search-AzGraph {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([Parameter(ValueFromRemainingArguments)] $Rest) return @() }
         $result = Get-ScoutRawInventory
         $result.PSObject.Properties.Name | Should -Contain 'Resources'
         $result.PSObject.Properties.Name | Should -Contain 'ResourceContainers'
         $result.PSObject.Properties.Name | Should -Contain 'Advisories'
         $result.PSObject.Properties.Name | Should -Contain 'Security'
+    }
+
+    It 'derives query scope only from enabled subscription container rows' {
+        $script:scopedCalls = [System.Collections.Generic.List[object]]::new()
+        function Search-AzGraph {
+            param([string] $Query, [string[]] $Subscription, [Parameter(ValueFromRemainingArguments)] $Rest)
+            $null = $Rest
+            if ($Query -match '^resourcecontainers\b') {
+                return @(
+                    [pscustomobject]@{ id='/subscriptions/enabled-sub'; name='Enabled'; type='microsoft.resources/subscriptions'; subscriptionId='enabled-sub'; properties=[pscustomobject]@{ state='Enabled' } }
+                    [pscustomobject]@{ id='/subscriptions/disabled-sub'; name='Disabled'; type='microsoft.resources/subscriptions'; subscriptionId='disabled-sub'; properties=[pscustomobject]@{ state='Disabled' } }
+                )
+            }
+            $script:scopedCalls.Add(@($Subscription))
+            return @()
+        }
+
+        $result = Get-ScoutRawInventory
+
+        @($script:scopedCalls).Count | Should -BeGreaterThan 0
+        foreach ($scope in $script:scopedCalls) { @($scope) | Should -Be @('enabled-sub') }
+        @($result.ResourceContainers | Where-Object subscriptionId -eq 'disabled-sub').Count | Should -Be 1
     }
 
     It 'does not invoke optional non-ARG helpers unless their switches are supplied' {
@@ -80,7 +253,8 @@ Describe 'Get-ScoutRawInventory -- table coverage' {
         function Get-ScoutArmChildResource { $script:armChildCalls++ }
         function Get-ScoutSubscriptionSecurityPolicySweep { $script:subscriptionSweepCalls++ }
         function Get-ScoutOperationalCollectorEnrichment { $script:operationalEnrichmentCalls++ }
-        function Search-AzGraph { param([Parameter(ValueFromRemainingArguments)] $Rest) return @() }
+        function Search-AzGraph {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([Parameter(ValueFromRemainingArguments)] $Rest) return @() }
 
         Get-ScoutRawInventory | Out-Null
 
@@ -95,10 +269,15 @@ Describe 'Get-ScoutRawInventory -- table coverage' {
         # datasets it produces are what a governance assessment scores, and an assessment reading
         # an empty array reports a false pass. There is no switch to supply.
         $script:tenantWideCalls = 0
-        function Get-ScoutTenantWideResource { param([object[]] $ApiResources) $script:tenantWideCalls++ }
-        function Get-ScoutApiResources { param([Parameter(ValueFromRemainingArguments)] $Rest) @() }
-        function ConvertTo-ScoutManagementGroupHierarchy { param($Root) @() }
-        function Search-AzGraph { param([Parameter(ValueFromRemainingArguments)] $Rest) return @() }
+        function Get-ScoutTenantWideResource {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([object[]] $ApiResources) $script:tenantWideCalls++ }
+        function Get-ScoutApiResources {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+            [Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '', Justification = 'Name matches the real collector/API/fixture noun (often already plural in the product surface, e.g. ManagementGroups); renaming would break the shadow/mocked signature or the fixture-name convention used across this suite.')]
+param([Parameter(ValueFromRemainingArguments)] $Rest) @() }
+        function ConvertTo-ScoutManagementGroupHierarchy {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param($Root) @() }
+        function Search-AzGraph {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([Parameter(ValueFromRemainingArguments)] $Rest) return @() }
 
         Get-ScoutRawInventory | Out-Null
 
@@ -109,7 +288,8 @@ Describe 'Get-ScoutRawInventory -- table coverage' {
 Describe 'Get-ScoutRawInventory -- optional synthetic resource envelopes' {
     BeforeEach {
         function Search-AzGraph {
-            param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
             if ($Query -match '^resourcecontainers\b') { return @((New-MockSubscriptionRow -Id 'sub-1')) }
             if ($Query -match '^resources\b') {
                 return @([pscustomobject]@{
@@ -125,7 +305,8 @@ Describe 'Get-ScoutRawInventory -- optional synthetic resource envelopes' {
     It 'appends ARM child rows exactly once when requested' {
         $script:armChildInputs = @()
         function Get-ScoutArmChildResource {
-            param([object[]] $Resources)
+            param([object[]] $Resources, [string[]] $Dataset, [System.Collections.IList] $CollectionHealth)
+            $null = $Dataset, $CollectionHealth
             $script:armChildInputs += , @($Resources)
             [pscustomobject]@{ id = 'synthetic-child'; type = 'AZSC/ARMChild/MLComputes'; properties = @() }
         }
@@ -134,6 +315,71 @@ Describe 'Get-ScoutRawInventory -- optional synthetic resource envelopes' {
 
         $script:armChildInputs.Count | Should -Be 1
         @($result.Resources | Where-Object id -eq 'synthetic-child').Count | Should -Be 1
+    }
+
+    It 'merges ARM-child failures into source health without dropping successful rows' {
+        function Get-ScoutArmChildResource {
+            param([object[]] $Resources, [string[]] $Dataset, [System.Collections.IList] $CollectionHealth)
+            $null = $Resources, $Dataset
+            [void]$CollectionHealth.Add([pscustomobject]@{
+                    Dataset = 'MLComputes'; Status = 'Unavailable'; Reason = 'simulated child denial'
+                    ResourceTypes = @('AZSC/ARMChild/MLComputes')
+                })
+            [pscustomobject]@{ id = 'synthetic-child'; type = 'AZSC/ARMChild/MLComputes'; properties = @() }
+        }
+
+        $result = Get-ScoutRawInventory -IncludeArmChildResources -ArmChildDataset MLComputes
+
+        @($result.Resources | Where-Object id -eq 'synthetic-child').Count | Should -Be 1
+        $health = @($result.CollectionHealth | Where-Object SourceDataset -eq 'MLComputes')
+        @($health).Count | Should -Be 1
+        $health[0].Dataset | Should -Be 'Resources'
+        $health[0].Source | Should -Be 'ARM Child'
+        $health[0].Status | Should -Be 'Unavailable'
+        $health[0].Collectors | Should -Contain 'AI/MLComputes'
+    }
+
+    It 'records source health when the ARM-child helper fails before returning per-dataset health' {
+        function Get-ScoutArmChildResource {
+            param([object[]] $Resources, [string[]] $Dataset, [System.Collections.IList] $CollectionHealth)
+            $null = $Resources, $Dataset, $CollectionHealth
+            throw 'simulated helper failure'
+        }
+
+        $result = Get-ScoutRawInventory -IncludeArmChildResources -ArmChildDataset KeyVaultKeys -WarningAction SilentlyContinue
+
+        $health = @($result.CollectionHealth | Where-Object { $_.Source -eq 'ARM Child' -and $_.Operation -eq 'Sweep' })
+        @($health).Count | Should -Be 1
+        $health[0].Dataset | Should -Be 'Resources'
+        $health[0].SourceDataset | Should -Be 'KeyVaultKeys'
+        $health[0].Status | Should -Be 'Failed'
+        $health[0].ResourceTypes | Should -Be @('AZSC/ARMChild/KeyVaultKeys')
+        $health[0].Collectors | Should -Contain 'Security/KeyVaultKeys'
+    }
+
+    It 'propagates a Key Vault child denial into a fail-closed Security assessment' {
+        function Get-ScoutArmChildResource {
+            param([object[]] $Resources, [string[]] $Dataset, [System.Collections.IList] $CollectionHealth)
+            $null = $Resources, $Dataset
+            [void]$CollectionHealth.Add([pscustomobject]@{
+                    Dataset = 'KeyVaultKeys'; Operation = 'KeyVaultKeys'; Status = 'Unavailable'
+                    Reason = 'simulated Key Vault child denial'; ResourceTypes = @('AZSC/ARMChild/KeyVaultKeys')
+                })
+        }
+
+        $raw = Get-ScoutRawInventory -IncludeArmChildResources -ArmChildDataset KeyVaultKeys
+        $mapped = @($raw.CollectionHealth | Where-Object SourceDataset -eq 'KeyVaultKeys')
+        @($mapped).Count | Should -Be 1
+        $mapped[0].Collectors | Should -Contain 'Security/KeyVaultKeys'
+
+        $caught = $null
+        try {
+            Invoke-Collect -FromInventory $raw -Categories Security -Scope ArmOnly -WarningAction SilentlyContinue | Out-Null
+        }
+        catch { $caught = $_ }
+
+        $caught | Should -Not -BeNullOrEmpty
+        $caught.Exception.Data['AzureScoutFailureKind'] | Should -Be 'AssessmentSourceUnavailable'
     }
 
     It 'appends one subscription security/policy envelope per resolved subscription when requested' {
@@ -156,14 +402,77 @@ Describe 'Get-ScoutRawInventory -- optional synthetic resource envelopes' {
         @($result.Resources | Where-Object type -eq 'AZSC/Subscription/SecurityPolicySweep').Count | Should -Be 1
     }
 
+    It 'maps each failed subscription sweep dataset only to its owning collector' -TestCases @(
+        @{ Dataset = 'DefenderAlerts'; Collector = 'Security/DefenderAlerts' }
+        @{ Dataset = 'DefenderAssessments'; Collector = 'Security/DefenderAssessments' }
+        @{ Dataset = 'DefenderPricing'; Collector = 'Security/DefenderPricing' }
+        @{ Dataset = 'DefenderSecureScores'; Collector = 'Security/DefenderSecureScore' }
+        @{ Dataset = 'DefenderSecureScoreControls'; Collector = 'Security/DefenderSecureScore' }
+        @{ Dataset = 'SubscriptionDiagnosticSettings'; Collector = 'Monitor/SubscriptionDiagnosticSettings' }
+        @{ Dataset = 'PolicyComplianceStates'; Collector = 'Management/PolicyComplianceStates' }
+    ) {
+        param($Dataset, $Collector)
+        function Get-ScoutSubscriptionSecurityPolicySweep {
+            param([object[]] $Subscriptions)
+            $statuses = [ordered]@{
+                DefenderAlerts = 'Success'; DefenderAssessments = 'Success'; DefenderPricing = 'Success'
+                DefenderSecureScores = 'Success'; DefenderSecureScoreControls = 'Skipped'
+                SubscriptionDiagnosticSettings = 'Success'; PolicyComplianceStates = 'Success'
+            }
+            $statuses[$Dataset] = 'Unavailable'
+            [pscustomobject]@{
+                id = 'sweep-sub-1'; type = 'AZSC/Subscription/SecurityPolicySweep'
+                subscriptionId = $Subscriptions[0].id; subscriptionName = $Subscriptions[0].name
+                properties = [pscustomobject]@{
+                    CollectionStatus = [pscustomobject]$statuses
+                    CollectionErrors = @([pscustomobject]@{ Dataset = $Dataset; Message = "simulated $Dataset denial" })
+                }
+            }
+        }
+
+        $result = Get-ScoutRawInventory -IncludeSubscriptionSecurityPolicy
+        $health = @($result.CollectionHealth | Where-Object Dataset -like "SecurityPolicy/$Dataset*")
+
+        $health.Count | Should -Be 1
+        $health[0].Status | Should -Be 'Unavailable'
+        $health[0].Reason | Should -Be "simulated $Dataset denial"
+        @($health[0].Collectors) | Should -Be @($Collector)
+        @($result.CollectionHealth | Where-Object { $_.Collectors -contains 'Security/DefenderAlerts' -and $Dataset -ne 'DefenderAlerts' }).Count | Should -Be 0
+    }
+
+    It 'does not report dependent secure-score controls as failed when no secure score exists' {
+        function Get-ScoutSubscriptionSecurityPolicySweep {
+            param([object[]] $Subscriptions)
+            [pscustomobject]@{
+                id = 'sweep-sub-1'; type = 'AZSC/Subscription/SecurityPolicySweep'
+                subscriptionId = $Subscriptions[0].id; subscriptionName = $Subscriptions[0].name
+                properties = [pscustomobject]@{
+                    CollectionStatus = [pscustomobject]@{
+                        DefenderAlerts = 'Success'; DefenderAssessments = 'Success'; DefenderPricing = 'Success'
+                        DefenderSecureScores = 'Success'; DefenderSecureScoreControls = 'Skipped'
+                        SubscriptionDiagnosticSettings = 'Success'; PolicyComplianceStates = 'Success'
+                    }
+                    CollectionErrors = @()
+                }
+            }
+        }
+
+        $result = Get-ScoutRawInventory -IncludeSubscriptionSecurityPolicy
+
+        @($result.CollectionHealth | Where-Object Dataset -like 'SecurityPolicy/DefenderSecureScoreControls*').Count | Should -Be 0
+    }
+
     It 'feeds API results into tenant-wide envelopes without changing assessment-shaped rows' {
         $script:apiSubscriptions = @()
         function Get-ScoutApiResources {
-            param([object[]] $Subscriptions, [string] $AzureEnvironment)
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+            [Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '', Justification = 'Name matches the real collector/API/fixture noun (often already plural in the product surface, e.g. ManagementGroups); renaming would break the shadow/mocked signature or the fixture-name convention used across this suite.')]
+param([object[]] $Subscriptions, [string] $AzureEnvironment)
             $script:apiSubscriptions += , @($Subscriptions)
             [pscustomobject]@{ PolicyDefinitions = @([pscustomobject]@{ id = 'policy-1' }); PolicySetDefinitions = @() }
         }
-        function ConvertTo-ScoutManagementGroupHierarchy { param($Root) @() }
+        function ConvertTo-ScoutManagementGroupHierarchy {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param($Root) @() }
         function Get-ScoutTenantWideResource {
             param([object[]] $ApiResources)
             @(
@@ -201,6 +510,27 @@ Describe 'Get-ScoutRawInventory -- optional synthetic resource envelopes' {
         $script:operationalInputs[0].Subscriptions[0].id | Should -Be 'sub-1'
         @($result.Resources | Where-Object type -eq 'AZSC/Operational/VirtualMachine').Count | Should -Be 1
     }
+
+    It 'merges operational per-dataset failures into collector health while retaining envelopes' {
+        function Get-ScoutOperationalCollectorEnrichment {
+            param([object[]] $Resources, [object[]] $Subscriptions, [System.Collections.IList] $CollectionHealth)
+            $null = $Resources, $Subscriptions
+            [void]$CollectionHealth.Add([pscustomobject]@{
+                    Dataset = 'Operational/VirtualMachine.EstimatedCost'; Source = 'Operational enrichment'
+                    SourceDataset = 'VirtualMachine.EstimatedCost'; Status = 'Unavailable'; Reason = 'simulated 429'
+                    ResourceTypes = @('AZSC/Operational/VirtualMachine'); Collectors = @('Compute/VirtualMachine')
+                })
+            [pscustomobject]@{ id = 'operational-vm'; type = 'AZSC/Operational/VirtualMachine'; properties = @{} }
+        }
+
+        $result = Get-ScoutRawInventory -IncludeOperationalCollectorEnrichment
+
+        @($result.Resources | Where-Object id -eq 'operational-vm').Count | Should -Be 1
+        $health = @($result.CollectionHealth | Where-Object SourceDataset -eq 'VirtualMachine.EstimatedCost')
+        $health.Count | Should -Be 1
+        $health[0].Reason | Should -Be 'simulated 429'
+        $health[0].Collectors | Should -Be @('Compute/VirtualMachine')
+    }
 }
 
 Describe 'Get-ScoutRawInventory -- SkipToken paging' {
@@ -211,7 +541,8 @@ Describe 'Get-ScoutRawInventory -- SkipToken paging' {
         # pattern) -- Add-Member on an array instance reproduces that shape for the mock.
         $script:callNumber = 0
         function Search-AzGraph {
-            param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
             if ($Query -notmatch '^resources\b') { return @() }
             $script:callNumber++
             if ($script:callNumber -eq 1) {
@@ -234,7 +565,8 @@ Describe 'Get-ScoutRawInventory -- subscription batching' {
         $ids = 1..2500 | ForEach-Object { "sub-$_" }
         $script:batchSizes = @()
         function Search-AzGraph {
-            param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
             if ($Query -match '^resources\b') { $script:batchSizes += @($Subscription).Count }
             return @()
         }
@@ -245,7 +577,8 @@ Describe 'Get-ScoutRawInventory -- subscription batching' {
 
     It 'derives the subscription list from resourcecontainers when none is supplied' {
         function Search-AzGraph {
-            param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
             if ($Query -match '^resourcecontainers\b') {
                 return @((New-MockSubscriptionRow -Id 'aaa'), (New-MockSubscriptionRow -Id 'bbb'))
             }
@@ -263,7 +596,8 @@ Describe 'Get-ScoutRawInventory -- subscription batching' {
         # either way, which is exactly why this one checks the -Subscription argument.
         $script:resourceCallSubscriptions = @()
         function Search-AzGraph {
-            param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
             if ($Query -match '^resourcecontainers\b') {
                 return @((New-MockSubscriptionRow -Id 'aaa'), (New-MockSubscriptionRow -Id 'bbb'))
             }
@@ -277,11 +611,33 @@ Describe 'Get-ScoutRawInventory -- subscription batching' {
 }
 
 Describe 'Get-ScoutRawInventory -- throttling and error resilience' {
+    It 'halves an oversized ARG page and retries without losing the dataset' {
+        $script:securityPageSizes = @()
+        function Search-AzGraph {
+            param([string] $Query, [int] $First, [Parameter(ValueFromRemainingArguments)] $Rest)
+            $null = $Rest
+            if ($Query -match '^securityresources\b') {
+                $script:securityPageSizes += $First
+                if ($script:securityPageSizes.Count -eq 1) {
+                    throw 'ResponsePayloadTooLarge: response payload size exceeded 16777216 bytes'
+                }
+                return @([pscustomobject]@{ id = 'assessment-1'; properties = [pscustomobject]@{} })
+            }
+            return @()
+        }
+
+        $result = Get-ScoutRawInventory -IncludeSecurityCenter
+
+        $script:securityPageSizes | Should -Be @(200, 100)
+        @($result.Security).Count | Should -Be 1
+    }
+
     It 'retries a throttled (429) response with backoff before succeeding' {
         $script:attempts = 0
         Mock Start-Sleep { }
         function Search-AzGraph {
-            param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
             if ($Query -match '^resources\b') {
                 $script:attempts++
                 if ($script:attempts -lt 2) { throw 'Status: 429 (Too Many Requests)' }
@@ -296,16 +652,147 @@ Describe 'Get-ScoutRawInventory -- throttling and error resilience' {
 
     It 'warns and skips (without throwing) a non-throttling failure' {
         function Search-AzGraph {
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
+            if ($Query -match '^resources\b') { throw 'AuthorizationFailed: access denied' }
+            return @()
+        }
+        $result = Get-ScoutRawInventory -WarningVariable w -WarningAction SilentlyContinue
+        ($w -join "`n") | Should -Match 'AuthorizationFailed'
+        $health = @($result.CollectionHealth | Where-Object Dataset -eq 'Resources')
+        $health.Count | Should -Be 1
+        $health[0].Status | Should -Be 'Unavailable'
+        @($health[0].ResourceTypes) | Should -BeNullOrEmpty
+        @($health[0].Collectors) | Should -Contain 'Compute/VirtualMachine'
+        @($health[0].Collectors) | Should -Contain 'Storage/PartnerStorage'
+        @($health[0].Collectors) | Should -Contain 'Storage/BlobContainers'
+        @($health[0].Collectors) | Should -Not -Contain 'General/SupportTickets'
+        @($health[0].Collectors) | Should -Not -Contain 'Management/AdvisorScore'
+        @($health[0].Collectors) | Should -Not -Contain 'General/ReservationRecom'
+        @($health[0].Collectors) | Should -Contain 'Identity/ManagedIds'
+    }
+
+    It 'records the exact selected types when a filtered resources query fails' {
+        function Search-AzGraph {
+            [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function declares the real cmdlet signature for offline binding.')]
             param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
             if ($Query -match '^resources\b') { throw 'AuthorizationFailed: access denied' }
             return @()
         }
-        Get-ScoutRawInventory -WarningVariable w -WarningAction SilentlyContinue | Out-Null
-        ($w -join "`n") | Should -Match 'AuthorizationFailed'
+
+        $result = Get-ScoutRawInventory -ResourceTypes @(
+            'microsoft.compute/virtualmachines'
+            'microsoft.storage/storageaccounts'
+        ) -WarningAction SilentlyContinue
+
+        $health = @($result.CollectionHealth | Where-Object Dataset -eq 'Resources')
+        $health.Count | Should -Be 1
+        @($health[0].ResourceTypes | Sort-Object) | Should -Be @(
+            'microsoft.compute/virtualmachines'
+            'microsoft.storage/storageaccounts'
+        )
+        @($health[0].Collectors) | Should -Contain 'Storage/BlobContainers'
+        @($health[0].Collectors) | Should -Not -Contain 'Storage/PartnerStorage'
+    }
+
+    It 'maps a failed <Dataset> source only to its real collector consumers' -ForEach @(
+        @{
+            Dataset = 'Subscriptions and Resource Groups'; FailurePattern = '^resourcecontainers\b'; InvokeArgs = @{}
+            ExpectedCollectors = @('Management/AllSubscriptions'); ExcludedCollectors = @('Compute/VirtualMachine')
+            ExpectedTypes = @('microsoft.resources/subscriptions', 'microsoft.resources/subscriptions/resourcegroups')
+        }
+        @{
+            Dataset = 'Network Resources'; FailurePattern = '^networkresources\b'
+            InvokeArgs = @{ ResourceTypes = @('microsoft.network/virtualnetworks') }
+            ExpectedCollectors = @('Networking/VirtualNetwork', 'Networking/vNETPeering')
+            ExcludedCollectors = @('Networking/PublicIP', 'Security/DdosProtectionPlans')
+            ExpectedTypes = @('microsoft.network/virtualnetworks')
+        }
+        @{
+            Dataset = 'SupportTickets'; FailurePattern = '^SupportResources\b'; InvokeArgs = @{ IncludeSupportResources = $true }
+            ExpectedCollectors = @('General/SupportTickets'); ExcludedCollectors = @('Compute/VirtualMachine')
+            ExpectedTypes = @('microsoft.support/supporttickets')
+        }
+        @{
+            Dataset = 'Backup Items'; FailurePattern = '^recoveryservicesresources\b'; InvokeArgs = @{ IncludeBackupResources = $true }
+            ExpectedCollectors = @('Compute/VMOperationalData', 'Hybrid/ArcServerOperationalData', 'Management/Backup')
+            ExcludedCollectors = @('Compute/VirtualMachine', 'Hybrid/ARCServers')
+            ExpectedTypes = @('microsoft.recoveryservices/vaults/backuppolicies', 'microsoft.recoveryservices/vaults/backupfabrics/protectioncontainers/protecteditems')
+        }
+        @{
+            Dataset = 'Virtual Desktop'; FailurePattern = '^desktopvirtualizationresources\b'; InvokeArgs = @{ IncludeDesktopVirtualization = $true }
+            ExpectedCollectors = @('Compute/AVD', 'Compute/AVDApplications', 'Compute/AVDAzureLocal')
+            ExcludedCollectors = @('General/SupportTickets')
+            ExpectedTypes = @('microsoft.desktopvirtualization/hostpools', 'AZSC/ARMChild/AVDApplications')
+        }
+        @{
+            Dataset = 'Update Manager: Assessments'; FailurePattern = '^patchassessmentresources\b'; InvokeArgs = @{ IncludeUpdateManagerResources = $true }
+            ExpectedCollectors = @('Compute/VMOperationalData', 'Hybrid/ArcServerOperationalData')
+            ExcludedCollectors = @('Compute/VirtualMachine', 'Hybrid/ARCServers')
+            ExpectedTypes = @('microsoft.compute/virtualmachines/patchassessmentresults')
+        }
+        @{
+            Dataset = 'Update Manager: Installations'; FailurePattern = '^patchinstallationresources\b'; InvokeArgs = @{ IncludeUpdateManagerResources = $true }
+            ExpectedCollectors = @(); ExcludedCollectors = @('Compute/VirtualMachine', 'Compute/VMOperationalData')
+            ExpectedTypes = @('microsoft.compute/virtualmachines/patchinstallationresults')
+        }
+        @{
+            Dataset = 'Advisories'; FailurePattern = '^advisorresources\b'; InvokeArgs = @{ IncludeAdvisories = $true }
+            ExpectedCollectors = @('Compute/VMOperationalData', 'Hybrid/ArcServerOperationalData')
+            ExcludedCollectors = @('Management/AdvisorScore', 'Compute/VirtualMachine')
+            ExpectedTypes = @('microsoft.advisor/recommendations')
+        }
+        @{
+            Dataset = 'Security Center'; FailurePattern = '^securityresources\b'; InvokeArgs = @{ IncludeSecurityCenter = $true }
+            ExpectedCollectors = @(); ExcludedCollectors = @('Assess: Security', 'Security/Vault')
+            ExpectedTypes = @('microsoft.security/assessments')
+        }
+        @{
+            Dataset = 'Retirements'; FailurePattern = 'ServiceID\s*=\s*case'; InvokeArgs = @{ IncludeRetirements = $true }
+            ExpectedCollectors = @('Compute/VirtualMachine', 'Storage/PartnerStorage')
+            ExcludedCollectors = @('General/SupportTickets', 'Management/AdvisorScore')
+            ExpectedTypes = @()
+        }
+    ) {
+        param($Dataset, $FailurePattern, $InvokeArgs, $ExpectedCollectors, $ExcludedCollectors, $ExpectedTypes)
+
+        $script:rawFailurePattern = $FailurePattern
+        function Search-AzGraph {
+            [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function declares the real cmdlet signature for offline binding.')]
+            param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
+            if ($Query -match $script:rawFailurePattern) { throw 'AuthorizationFailed: source unavailable' }
+            return @()
+        }
+
+        $result = Get-ScoutRawInventory @InvokeArgs -WarningAction SilentlyContinue
+        $health = @($result.CollectionHealth | Where-Object Dataset -eq $Dataset)
+
+        $health.Count | Should -Be 1
+        foreach ($collector in @($ExpectedCollectors)) { @($health[0].Collectors) | Should -Contain $collector }
+        foreach ($collector in @($ExcludedCollectors)) { @($health[0].Collectors) | Should -Not -Contain $collector }
+        foreach ($type in @($ExpectedTypes)) { @($health[0].ResourceTypes) | Should -Contain $type }
+    }
+
+    It 'records unavailable retirement evidence when the file-backed query cannot be read' {
+        function Search-AzGraph {
+            [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function declares the real cmdlet signature for offline binding.')]
+            param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
+            return @()
+        }
+
+        $missingPath = Join-Path $TestDrive 'missing-retirement-query.kql'
+        $result = Get-ScoutRawInventory -IncludeRetirements -RetirementQueryPath $missingPath -WarningAction SilentlyContinue
+        $health = @($result.CollectionHealth | Where-Object Dataset -eq 'Retirements')
+
+        $health.Count | Should -Be 1
+        $health[0].Status | Should -Be 'Unavailable'
+        @($health[0].Collectors) | Should -Contain 'Compute/VirtualMachine'
+        @($health[0].Collectors) | Should -Contain 'Storage/PartnerStorage'
     }
 
     It 'warns with a diagnostic hint when literally nothing came back' {
-        function Search-AzGraph { param([Parameter(ValueFromRemainingArguments)] $Rest) return @() }
+        function Search-AzGraph {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([Parameter(ValueFromRemainingArguments)] $Rest) return @() }
         Get-ScoutRawInventory -WarningVariable warnings -WarningAction SilentlyContinue | Out-Null
         ($warnings -join "`n") | Should -Match 'zero resources'
     }
@@ -319,7 +806,8 @@ Describe 'Get-ScoutRawInventory -- Invoke-Collect -FromInventory interoperabilit
 
     It 'produces a row set Invoke-Collect can shape without going back to Resource Graph' {
         function Search-AzGraph {
-            param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
             if ($Query -match '^resourcecontainers\b') {
                 return @([pscustomobject]@{
                         id = '/subscriptions/aaa'; name = 'demo-sub'; type = 'microsoft.resources/subscriptions'
@@ -358,12 +846,169 @@ Describe 'Get-ScoutRawInventory -- Invoke-Collect -FromInventory interoperabilit
         $collect.networking.virtualNetworks[0].peeringCount | Should -Be 1
         $collect.networking.virtualNetworks[0].ddosEnabled | Should -BeFalse
     }
+
+    It 'stops assessment scoring instead of turning a failed core raw dataset into an empty estate' {
+        $script:typedFallbackCalls = 0
+        function Search-AzGraph {
+            [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function declares the real cmdlet signature for offline binding.')]
+            param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
+            $script:typedFallbackCalls++
+            throw 'no typed query should run after a required raw-source failure'
+        }
+        $raw = [pscustomobject]@{
+            Resources = @()
+            ResourceContainers = @(New-MockSubscriptionRow -Id 'aaa')
+            CollectionHealth = @([pscustomobject]@{
+                    Dataset = 'Resources'; Status = 'Unavailable'; Reason = 'simulated failure'
+                    ResourceTypes = @(); Collectors = @('Compute/VirtualMachine')
+                })
+        }
+
+        {
+            Invoke-Collect -FromInventory $raw -Categories 'Compute' -Scope ArmOnly -WarningAction SilentlyContinue
+        } | Should -Throw '*assessment scoring stopped because required inventory datasets are unavailable*'
+        $script:typedFallbackCalls | Should -Be 0
+    }
+
+    It 'fails closed when the entire default inventory pass fails instead of returning typed empty data' {
+        $script:typedFallbackCalls = 0
+        function Get-ScoutRawInventory { throw 'simulated systemic raw failure' }
+        function Search-AzGraph {
+            [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function declares the real cmdlet signature for offline binding.')]
+            param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
+            $script:typedFallbackCalls++
+            return @()
+        }
+
+        $caught = $null
+        try {
+            Invoke-Collect -Categories 'AI' -Scope ArmOnly -WarningAction SilentlyContinue | Out-Null
+        }
+        catch { $caught = $_ }
+
+        $caught | Should -Not -BeNullOrEmpty
+        $caught.Exception.Data['AzureScoutFailureKind'] | Should -Be 'AssessmentSourceUnavailable'
+        $caught.Exception.Message | Should -Match 'required inventory pass failed'
+        $script:typedFallbackCalls | Should -Be 0
+    }
+
+    It 'does not block an AI-only assessment when an unselected backup source is unavailable' {
+        function Search-AzGraph {
+            [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function declares the real cmdlet signature for offline binding.')]
+            param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
+            return @()
+        }
+        $raw = [pscustomobject]@{
+            Resources = @()
+            ResourceContainers = @(New-MockSubscriptionRow -Id 'aaa')
+            CollectionHealth = @([pscustomobject]@{
+                    Dataset = 'Backup Items'; Status = 'Unavailable'; Reason = 'simulated failure'
+                    ResourceTypes = @(); Collectors = @('Compute/VMOperationalData')
+                })
+        }
+
+        {
+            Invoke-Collect -FromInventory $raw -Categories 'AI' -Scope ArmOnly -WarningAction SilentlyContinue
+        } | Should -Not -Throw
+    }
+
+    It 'blocks a Compute assessment when its backup evidence source is unavailable' {
+        $raw = [pscustomobject]@{
+            Resources = @()
+            ResourceContainers = @(New-MockSubscriptionRow -Id 'aaa')
+            CollectionHealth = @([pscustomobject]@{
+                    Dataset = 'Backup Items'; Status = 'Unavailable'; Reason = 'simulated failure'
+                    ResourceTypes = @(); Collectors = @('Compute/VMOperationalData')
+                })
+        }
+
+        {
+            Invoke-Collect -FromInventory $raw -Categories 'Compute' -Scope ArmOnly -WarningAction SilentlyContinue
+        } | Should -Throw '*assessment scoring stopped because required inventory datasets are unavailable*'
+    }
+
+    It 'fails closed when selected Key Vault child evidence is unavailable' {
+        $raw = [pscustomobject]@{
+            Resources = @()
+            ResourceContainers = @(New-MockSubscriptionRow -Id 'aaa')
+            CollectionHealth = @([pscustomobject]@{
+                    Dataset = 'Resources'; Source = 'ARM Child'; SourceDataset = 'KeyVaultKeys'
+                    Status = 'Unavailable'; Reason = 'simulated Key Vault child denial'
+                    ResourceTypes = @('AZSC/ARMChild/KeyVaultKeys'); Collectors = @('Security/KeyVaultKeys')
+                })
+        }
+
+        $caught = $null
+        try {
+            Invoke-Collect -FromInventory $raw -Categories 'Security' -Scope ArmOnly -WarningAction SilentlyContinue | Out-Null
+        }
+        catch { $caught = $_ }
+
+        $caught | Should -Not -BeNullOrEmpty
+        $caught.Exception.Data['AzureScoutFailureKind'] | Should -Be 'AssessmentSourceUnavailable'
+        $caught.Exception.Message | Should -Match 'Resources'
+    }
+
+    It 'does not block Identity when explicit Resources health names only a Compute collector' {
+        $raw = [pscustomobject]@{
+            Resources = @()
+            ResourceContainers = @(New-MockSubscriptionRow -Id 'aaa')
+            CollectionHealth = @([pscustomobject]@{
+                    Dataset = 'Resources'; Status = 'Unavailable'; Reason = 'simulated Compute-only failure'
+                    ResourceTypes = @('microsoft.compute/virtualmachines'); Collectors = @('Compute/VirtualMachine')
+                })
+        }
+
+        {
+            Invoke-Collect -FromInventory $raw -Categories 'Identity' -Scope ArmOnly -WarningAction SilentlyContinue
+        } | Should -Not -Throw
+    }
+
+    It 'conservatively blocks a legacy Resources health record without collector ownership' {
+        $raw = [pscustomobject]@{
+            Resources = @()
+            ResourceContainers = @(New-MockSubscriptionRow -Id 'aaa')
+            CollectionHealth = @([pscustomobject]@{
+                    Dataset = 'Resources'; Status = 'Unavailable'; Reason = 'legacy source failure'
+                    ResourceTypes = @('microsoft.compute/virtualmachines')
+                })
+        }
+
+        {
+            Invoke-Collect -FromInventory $raw -Categories 'Identity' -Scope ArmOnly -WarningAction SilentlyContinue
+        } | Should -Throw '*assessment scoring stopped because required inventory datasets are unavailable*'
+    }
+
+    It 'keeps the failed-source evidence during offline inventory rendering without making calls' {
+        $script:offlineCalls = 0
+        function Search-AzGraph {
+            [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function declares the real cmdlet signature for offline binding.')]
+            param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
+            $script:offlineCalls++
+            throw 'offline rendering must not query Azure'
+        }
+        $raw = [pscustomobject]@{
+            Resources = @()
+            ResourceContainers = @(New-MockSubscriptionRow -Id 'aaa')
+            CollectionHealth = @([pscustomobject]@{
+                    Dataset = 'Resources'; Status = 'Unavailable'; Reason = 'simulated raw failure'
+                    ResourceTypes = @(); Collectors = @('Compute/VirtualMachine')
+                })
+        }
+
+        $collect = Invoke-Collect -FromInventory $raw -OfflineFromInventory -Categories 'Compute' -Scope ArmOnly -WarningAction SilentlyContinue
+
+        $script:offlineCalls | Should -Be 0
+        @($collect._meta.collectionHealth).Count | Should -Be 1
+        $collect._meta.collectionHealth[0].Dataset | Should -Be 'Resources'
+    }
 }
 
 Describe 'Get-ScoutRawInventory -- management group scoping' {
     It 'passes -ManagementGroup on the tenant-wide call when no subscription list is known yet' {
         function Search-AzGraph {
-            param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGroup, [string[]] $Subscription, [string] $ErrorAction)
             if ($Query -match '^resourcecontainers\b') { $script:sawMg = $ManagementGroup }
             return @()
         }

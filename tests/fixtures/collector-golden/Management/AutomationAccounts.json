@@ -3,7 +3,7 @@
   "Category": "Management",
   "Name": "AutomationAccounts",
   "FixturePath": "tests/fixtures/collector-equivalence/Management.json",
-  "FixtureSha256": "16835ef6a8271300edd32cad2f54a9b253903b1e865e5195aa1de712a06a405a",
+  "FixtureSha256": "5205b49897e87cdc85834b288856fc19c7e903a752d00d85d7cfbb09863d69fc",
   "Rows": [
     "Automation Account Created Time=s:2026-01-15 10:30|Automation Account Name=s:automationaccounts-t1a|Automation Account SKU=s:res-value|Automation Account State=s:res-value|ID=<null>|Last Modified Time=<null>|Location=s:res-value|Resource Group=s:res-value|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|Runbook Description=<null>|Runbook Name=<null>|Runbook State=<null>|Runbook Type=<null>|Subscription=s:sub-fixture-01|Tag Name=s:|Tag Value=s:",
     "Automation Account Created Time=s:2026-01-15 10:30|Automation Account Name=s:automationaccounts-t1b|Automation Account SKU=s:res-value|Automation Account State=s:res-value|ID=<null>|Last Modified Time=<null>|Location=s:res-value|Resource Group=s:res-value|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|Runbook Description=<null>|Runbook Name=<null>|Runbook State=<null>|Runbook Type=<null>|Subscription=s:sub-fixture-01|Tag Name=s:|Tag Value=s:",

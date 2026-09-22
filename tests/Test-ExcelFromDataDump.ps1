@@ -47,10 +47,10 @@ $ErrorActionPreference = 'Stop'
 $RepoRoot = Split-Path $PSScriptRoot -Parent
 
 if (-not $DataDumpPath) {
-    $DataDumpPath = Join-Path $RepoRoot 'tests' 'datadump'
+    $DataDumpPath = Join-Path -Path $RepoRoot -ChildPath 'tests' -AdditionalChildPath 'datadump'
 }
 if (-not $OutputPath) {
-    $OutputPath = Join-Path $RepoRoot 'tests' 'test-output'
+    $OutputPath = Join-Path -Path $RepoRoot -ChildPath 'tests' -AdditionalChildPath 'test-output'
 }
 
 # ── Validate Prerequisites ───────────────────────────────────────────────
@@ -59,7 +59,7 @@ Write-Host "  AzureScout — Excel Report Test Harness" -ForegroundColor Cyan
 Write-Host "═══════════════════════════════════════════════════════════`n" -ForegroundColor DarkCyan
 
 # Find the JSON report file — prefer the synthetic sample if present
-$SampleFile = Join-Path $DataDumpPath 'sample-report.json'
+$SampleFile = Join-Path -Path $DataDumpPath -ChildPath 'sample-report.json'
 if (Test-Path $SampleFile) {
     $JsonFile = Get-Item $SampleFile
 } else {
@@ -74,7 +74,7 @@ Write-Host "  Source JSON:  " -NoNewline -ForegroundColor Gray
 Write-Host $JsonFile.Name -ForegroundColor White
 
 # Import the module
-$ModulePath = Join-Path $RepoRoot 'AzureScout.psm1'
+$ModulePath = Join-Path -Path $RepoRoot -ChildPath 'AzureScout.psm1'
 if (-not (Test-Path $ModulePath)) {
     Write-Error "Cannot find AzureScout.psm1 at $RepoRoot"
     return
@@ -109,8 +109,8 @@ Write-Host ($Metadata.scope ?? 'N/A') -ForegroundColor White
 # ── Prepare Output Folders ───────────────────────────────────────────────
 Write-Host "`n  Preparing output folders..." -ForegroundColor Gray
 
-$ReportCache  = Join-Path $OutputPath 'ReportCache'
-$DiagramCache = Join-Path $OutputPath 'DiagramCache'
+$ReportCache  = Join-Path -Path $OutputPath -ChildPath 'ReportCache'
+$DiagramCache = Join-Path -Path $OutputPath -ChildPath 'DiagramCache'
 
 # Clean previous test output
 if (Test-Path $ReportCache)  { Remove-Item $ReportCache  -Recurse -Force }
@@ -130,7 +130,7 @@ function ConvertTo-PascalCase {
 }
 
 # Build the retired collector folder map for key validation
-$RetiredCollectorPath = Join-Path $RepoRoot 'retired-collector-scripts'
+$RetiredCollectorPath = Join-Path -Path $RepoRoot -ChildPath 'retired-collector-scripts'
 $ModuleFolders = Get-ChildItem -Path $RetiredCollectorPath -Directory
 
 # Map of lowercase folder name → actual folder name (for matching JSON keys)
@@ -177,7 +177,7 @@ if ($ReportData.arm) {
         }
 
         if ($cacheObj.Count -gt 0) {
-            $CacheFile = Join-Path $ReportCache "$folderName.json"
+            $CacheFile = Join-Path -Path $ReportCache -ChildPath "$folderName.json"
             $cacheObj | ConvertTo-Json -Depth 40 | Out-File -FilePath $CacheFile -Encoding utf8
             $CacheFilesCreated++
             Write-Host "    [+] $folderName.json ($($cacheObj.Count) modules)" -ForegroundColor Green
@@ -201,7 +201,7 @@ if ($ReportData.entra) {
     }
 
     if ($entraObj.Count -gt 0) {
-        $CacheFile = Join-Path $ReportCache "Identity.json"
+        $CacheFile = Join-Path -Path $ReportCache -ChildPath "Identity.json"
         $entraObj | ConvertTo-Json -Depth 40 | Out-File -FilePath $CacheFile -Encoding utf8
         $CacheFilesCreated++
         Write-Host "    [+] Identity.json ($($entraObj.Count) modules)" -ForegroundColor Green
@@ -210,15 +210,15 @@ if ($ReportData.entra) {
 
 # Write extra cache files (Advisory, Policy, Security) if present in JSON
 if ($ReportData.advisory) {
-    $ReportData.advisory | ConvertTo-Json -Depth 40 | Out-File (Join-Path $ReportCache 'Advisory.json') -Encoding utf8
+    $ReportData.advisory | ConvertTo-Json -Depth 40 | Out-File (Join-Path -Path $ReportCache -ChildPath 'Advisory.json') -Encoding utf8
     Write-Host "    [+] Advisory.json" -ForegroundColor Green
 }
 if ($ReportData.policy) {
-    $ReportData.policy | ConvertTo-Json -Depth 40 | Out-File (Join-Path $ReportCache 'Policy.json') -Encoding utf8
+    $ReportData.policy | ConvertTo-Json -Depth 40 | Out-File (Join-Path -Path $ReportCache -ChildPath 'Policy.json') -Encoding utf8
     Write-Host "    [+] Policy.json" -ForegroundColor Green
 }
 if ($ReportData.security) {
-    $ReportData.security | ConvertTo-Json -Depth 40 | Out-File (Join-Path $ReportCache 'SecurityCenter.json') -Encoding utf8
+    $ReportData.security | ConvertTo-Json -Depth 40 | Out-File (Join-Path -Path $ReportCache -ChildPath 'SecurityCenter.json') -Encoding utf8
     Write-Host "    [+] SecurityCenter.json" -ForegroundColor Green
 }
 
@@ -265,7 +265,7 @@ Write-Host "    [+] ExtraData.Subscriptions ($($SubJobData.Count) synthetic rows
 # ── Set Up Excel File Path ───────────────────────────────────────────────
 $Timestamp = Get-Date -Format 'yyyy-MM-dd_HH_mm'
 $FileName  = "AzureScout_TestReport_$Timestamp.xlsx"
-$File      = Join-Path $OutputPath $FileName
+$File      = Join-Path -Path $OutputPath -ChildPath $FileName
 
 Write-Host "`n  Output file:  " -NoNewline -ForegroundColor Gray
 Write-Host $File -ForegroundColor White

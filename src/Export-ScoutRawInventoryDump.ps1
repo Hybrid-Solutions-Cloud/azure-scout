@@ -20,8 +20,8 @@ $ErrorActionPreference = 'Stop'
     Two properties matter and both are enforced by where this is called from:
 
       - It runs BEFORE the processing phase, so nothing has been filtered by a manifest yet.
-      - It writes to the RUN folder, not `ReportCache`, so `Clear-AZSCCacheFolder` -- which
-        Invoke-AzureScout runs unconditionally at the end of every run -- does not delete it.
+      - It writes to the RUN folder alongside the other retained evidence. Invoke-AzureScout does
+        not delete raw or processed discovery data when a scan completes.
 
 .PARAMETER ExtractionData
     The object returned by `Start-AZSCExtractionOrchestration`.

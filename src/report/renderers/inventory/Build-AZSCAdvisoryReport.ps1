@@ -1,3 +1,7 @@
+#Requires -Version 7.0
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
 <#
 .Synopsis
 Module for Advisory Report
@@ -6,7 +10,7 @@ Module for Advisory Report
 This script processes and creates the Advisory sheet in the Excel report.
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Private/3.ReportingFunctions/Build-AZSCAdvisoryReport.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Private/3.ReportingFunctions/Build-AZSCAdvisoryReport.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC)

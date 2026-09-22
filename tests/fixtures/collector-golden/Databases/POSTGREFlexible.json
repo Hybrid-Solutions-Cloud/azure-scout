@@ -3,7 +3,7 @@
   "Category": "Databases",
   "Name": "POSTGREFlexible",
   "FixturePath": "tests/fixtures/databases-collector-input.json",
-  "FixtureSha256": "0eb3c4a919d8cc0d6bd5a89f1644dde080c2fe2de1741a4a0ace3a12eee943ca",
+  "FixtureSha256": "57835b14fb5f75c1d56a0bfed6bcafaf3377173fd0ffa6d15c781b67a0f5931d",
   "Rows": [
     "AD Authentication=s:Enabled|ADMIN Login=s:pgflexadmin|Availability Zone=s:2|Backup Retention (Days)=j:7|Computer Size=s:Standard_D4s_v3|Computer Tier=s:GeneralPurpose|Data Encryption=s:SystemManaged|Delegated Subnet=s:pg-subnet|Delegated VNET=s:vnet-pg|FQDN=s:pg-flex-prod.postgres.database.azure.com|Geo-Redundant Backup=s:Disabled|High Availability=s:Healthy|ID=s:/subscriptions/sub-00000001/resourceGroups/rg-databases/providers/Microsoft.DBforPostgreSQL/flexibleServers/pg-flex-prod|Location=s:eastus|Name=s:pg-flex-prod|Password Authentication=s:Enabled|Private DNS Zone=s:pg.postgres.database.azure.com|Public Network Access=s:Disabled|Replication Capacity=j:5|Replication Role=s:Primary|Resource Group=s:rg-databases|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|Storage Size (GB)=j:256|Subscription=s:Scout Sample Subscription 1|Tag Name=s:env|Tag Value=s:test|Version=s:15.4"
   ],

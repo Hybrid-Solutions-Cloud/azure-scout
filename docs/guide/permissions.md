@@ -15,18 +15,20 @@ See the [Overview](./overview.md).
 
 ## Overview
 
-AzureScout requires two categories of permissions:
+AzureScout requires three categories of permissions:
 
 1. **ARM (Azure Resource Manager)** — RBAC role assignments on subscriptions
-2. **Microsoft Graph API** — Application or delegated permissions for Entra ID data
+2. **Key Vault metadata** — the metadata-only `Key Vault Reader` role when secret/key inventory is required
+3. **Microsoft Graph API** — Application or delegated permissions for Entra ID data
 
 ## ARM Permissions
 
 | Permission | Scope | Purpose |
 |------------|-------|---------|
-| `Reader` | Subscription(s), or the tenant-root management group | Enumerate resources, read properties — covers every ARM collector Scout has |
+| `Reader` | Subscription(s), or the tenant-root management group | Enumerate resources and read ARM properties |
+| `Key Vault Reader` | Each Key Vault, or an inherited scope that contains it | List secret/key metadata (names, tags, lifecycle attributes); cannot read secret values |
 
-**One role is the whole ARM ask.** Azure's `Reader` role is `Actions: */read` with an empty
+Azure's `Reader` role is the whole **ARM control-plane** ask. It is `Actions: */read` with an empty
 `NotActions` — a single wildcard over every control-plane read. There is no ARM collector in
 Scout that needs more than this, including roughly 130 of them that reach Azure through Azure
 Resource Graph (`Microsoft.ResourceGraph/resources/read` — also inside `Reader`'s `*/read`, so
@@ -63,20 +65,22 @@ The pre-flight checker no longer asks for any of the three, and `Test-AZSCPermis
 reports them as missing.
 :::
 
-::: tip Key Vault secrets, keys and certificates never need a data-plane grant
-`KeyVaultSecrets` and `KeyVaultKeys` (AB#6822) read `Microsoft.KeyVault/vaults/secrets` and
-`.../keys` — **ARM control-plane list operations** that return metadata only: id, `contentType`,
-and the `attributes` block (`enabled`, `exp`, `nbf`, `created`, `updated`). `Reader` on the vault
-is sufficient; reading a secret's or key's **value** is a separate data-plane operation against
-`<vault>.vault.azure.net` that needs a Key Vault access policy or data-plane RBAC role, and Scout
-never makes that call. A Key Vault certificate has no ARM list endpoint of its own — it is
+::: tip Key Vault object inventory needs metadata permission, never secret-value permission
+`KeyVaultSecrets` and `KeyVaultKeys` use the Key Vault LIST operations, which return metadata
+only: id, `contentType`, tags and the `attributes` block (`enabled`, `exp`, `nbf`, `created`,
+`updated`). Generic ARM `Reader` is not sufficient for a complete list: ARM sees only objects
+created as deployable ARM child resources. Assign built-in **`Key Vault Reader`** to supply
+`Microsoft.KeyVault/vaults/secrets/readMetadata/action` and the equivalent key metadata read.
+That role explicitly cannot read secret contents or private key material. Scout never invokes
+GET-secret, and it whitelists list-response fields before writing raw inventory. A Key Vault
+certificate has no separate list in Scout — it is
 materialised as a secret whose `contentType` is `application/x-pkcs12` or `application/x-pem-file`,
 and that secret's `attributes.exp` **is** the certificate's expiry, so certificate expiry is
 already present in the `KeyVaultSecrets` worksheet's `Kind`/`Expires` columns rather than a
 separate collector. See `src/collect/Get-ScoutArmChildResource.ps1` for the exact calls.
 :::
 
-::: tip Cost data is not gated on a role at all
+::: tip Cost data needs no additional role beyond Reader
 `Microsoft.CostManagement/query/read` is inside `Reader`'s `*/read`. If cost data still comes
 back empty with `Reader` assigned, the cause is a **billing setting**, not a permission: EA
 **"AO view charges"** or MCA **"Azure charges"** (the current name; older documentation calls it
@@ -108,6 +112,8 @@ is called out rather than requested:
 | `AdministrativeUnit.Read.All` | Application or Delegated | Read administrative units |
 | `Domain.Read.All` | Application or Delegated | Read verified domains |
 | `IdentityRiskyUser.Read.All` | Application or Delegated | Read risky-user signals — **also requires an Entra ID P2 licence**; a P1 tenant with the permission granted still returns nothing |
+| `Policy.Read.AuthenticationMethod` | Application or Delegated | Read the Verified ID authentication-method configuration (AB#7097) |
+| `VerifiedId-Profile.Read.All` | Application or Delegated | Read Verified ID profiles (AB#7097) |
 
 ::: warning `IdentityProvider.Read.All` is queried but no collector reads the result — do not grant it
 Scout's pre-flight now derives criticality from which collectors actually consume a permission,
@@ -119,14 +125,44 @@ consumed sign-in logs.
 :::
 
 If you're signing in as a **user** instead of a service principal, the equivalent least-privilege
-grant is two Entra **directory roles** — `Directory Readers` + Entra `Security Reader` — not the
-application permissions above. Azure RBAC, Entra directory roles, and Graph application
-permissions are three separate systems with different scoping and approvers; pick the directory
-roles or the app permissions based on whether Scout runs as a user or a service principal, don't
-mix them. `Directory Readers` + `Security Reader` covers 14 of the 15 Entra collectors; the
-fifteenth, `CrossTenantAccess`, needs `Security Administrator`, `Tenant Governance Administrator`,
-or `Global Reader` — evaluate the first two before reaching for `Global Reader`, which Microsoft
-classifies as a privileged role. See [Assessment Permissions](../assessment/assessment-permissions.md).
+grant is Entra **directory roles** — not the application permissions above. Azure RBAC, Entra
+directory roles, and Graph application permissions are three separate systems with different
+scoping and approvers; pick the directory roles or the app permissions based on whether Scout runs
+as a user or a service principal, don't mix them.
+
+`Directory Readers` + `Security Reader` covers most Entra collectors; the following need
+additional roles of their own, evaluated least-privileged first:
+
+- `CrossTenantAccess` needs `Security Administrator` or `Tenant Governance Administrator` —
+  evaluate both before reaching for `Global Reader`, which Microsoft classifies as a privileged
+  role.
+- `VerifiedIDConfiguration` (reads `Policy.Read.AuthenticationMethod`, AB#7097) needs
+  `Authentication Policy Administrator` (or `Global Reader`, but `Authentication Policy
+  Administrator` is the less-privileged of the two, and `Security Reader` does **not** cover this
+  endpoint despite covering most of the rest).
+- `VerifiedIDProfiles` (reads `VerifiedId-Profile.Read.All`, AB#7097) needs `Authentication Policy
+  Administrator` — Microsoft's documented least-privileged role for this endpoint.
+
+`Authentication Policy Administrator` covers both Verified ID collectors, so the full user-auth
+grant is three directory roles: `Directory Readers` + `Security Reader` + `Authentication Policy
+Administrator`, plus one of `Security Administrator` / `Tenant Governance Administrator` for
+`CrossTenantAccess`. See [Assessment Permissions](../assessment/assessment-permissions.md).
+
+::: danger The two Verified ID collectors cannot run when the current delegated token lacks their scopes
+Scout acquires its user-mode Graph token from the same selected Az context used for ARM collection.
+That first-party client's delegated-scope set is fixed by Microsoft — `Get-AzAccessToken` cannot
+request an arbitrary extra scope — and the commonly issued user token does **not** include
+`Policy.Read.AuthenticationMethod` or `VerifiedId-Profile.Read.All` (measured live 2026-08-08;
+the set is `Directory.AccessAsUser.All`, `User.Read.All`, `Group.ReadWrite.All`,
+`Application.ReadWrite.All`, `AuditLog.Read.All` and a few others). The older endpoints keep
+working because `Directory.AccessAsUser.All` covers them; the newer granular surfaces
+(`authenticationMethodsPolicy`, `identity/verifiedId`) do not honour it and return 403 for
+**every** user — a Global Administrator included. **No directory role fixes this.** To populate
+`Identity/VerifiedIDConfiguration` and `Identity/VerifiedIDProfiles`, run Scout as a service
+principal with those two application permissions granted and admin-consented; under user
+sign-in the pre-flight reports them `UNAVAILABLE WITH CURRENT DELEGATED SIGN-IN` and the report marks them
+*Not assessed* (AB#7187).
+:::
 
 ## Licence tiers — what a permission cannot buy you
 
@@ -223,7 +259,7 @@ narrower model — do not conflate the two:
 | | Inventory mode (`Test-AZSCPermissions`) | Assessment mode (`Test-ScoutPermission`) |
 |---|---|---|
 | ARM scope | `Reader` on each target **subscription** | `Reader` at the **tenant-root management group** |
-| Graph | Up to 9 permissions, required for `-Scope All`/`EntraOnly` | Not required by any assessment out of the box — governance data (`LandingZone`, `Management`, `Identity`, `Governance`, `Policy`) is collected natively via ARM/Resource Graph. 4 Graph permissions apply **only** if you opt one of those 5 into the legacy `AzGovViz` ingestor instead |
+| Graph | Up to 9 permissions, required for `-Scope All`/`EntraOnly` | Not required by any assessment out of the box — governance data (`CAF: Azure Landing Zone`, `Management`, `Identity`, `Scout: Governance Baseline`, `Policy`) is collected natively via ARM/Resource Graph. 4 Graph permissions apply **only** if you opt one of those 5 into the legacy `AzGovViz` ingestor instead |
 | Live-validated? | Yes — both ARM and Graph checks call live endpoints | ARM check is live; the 4 Graph permissions are listed as an **unverified checklist** (`Ok = $null`), not actually tested |
 
 Full matrix (every assessment, minimum RBAC, which need Graph, and the

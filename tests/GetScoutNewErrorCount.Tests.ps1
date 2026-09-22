@@ -22,16 +22,16 @@ Describe 'Get-ScoutNewErrorCount (AB#402)' {
     }
 
     It 'returns 0 when nothing new was recorded' {
-        foreach ($i in 1..5) { try { throw "seed $i" } catch { } }
+        foreach ($i in 1..5) { try { throw "seed $i" } catch { $null = $_ } }
         $sentinel = $Error[0]
 
         Get-ScoutNewErrorCount $sentinel | Should -Be 0
     }
 
     It 'counts only the records added after the sentinel' {
-        foreach ($i in 1..5) { try { throw "seed $i" } catch { } }
+        foreach ($i in 1..5) { try { throw "seed $i" } catch { $null = $_ } }
         $sentinel = $Error[0]
-        foreach ($i in 1..3) { try { throw "new $i" } catch { } }
+        foreach ($i in 1..3) { try { throw "new $i" } catch { $null = $_ } }
 
         Get-ScoutNewErrorCount $sentinel | Should -Be 3
     }
@@ -39,17 +39,17 @@ Describe 'Get-ScoutNewErrorCount (AB#402)' {
     It 'treats an empty starting buffer as "everything is new"' {
         Get-ScoutNewErrorCount $null | Should -Be 0
 
-        try { throw 'first ever' } catch { }
+        try { throw 'first ever' } catch { $null = $_ }
         Get-ScoutNewErrorCount $null | Should -Be 1
     }
 
     It 'still detects a new error once the ring buffer has saturated' {
         # This is the case the count-delta technique got wrong.
-        foreach ($i in 1..300) { try { throw "filler $i" } catch { } }
+        foreach ($i in 1..300) { try { throw "filler $i" } catch { $null = $_ } }
         $saturatedCount = $Error.Count
         $sentinel       = $Error[0]
 
-        try { throw 'the error that must not be missed' } catch { }
+        try { throw 'the error that must not be missed' } catch { $null = $_ }
 
         # The count cannot rise -- which is exactly why the old technique went blind.
         $Error.Count | Should -Be $saturatedCount
@@ -59,10 +59,10 @@ Describe 'Get-ScoutNewErrorCount (AB#402)' {
     }
 
     It 'reports the whole visible buffer when the sentinel has aged out' {
-        try { throw 'about to age out' } catch { }
+        try { throw 'about to age out' } catch { $null = $_ }
         $sentinel = $Error[0]
 
-        foreach ($i in 1..300) { try { throw "flood $i" } catch { } }
+        foreach ($i in 1..300) { try { throw "flood $i" } catch { $null = $_ } }
 
         # Every record still visible postdates the sentinel, so all of them are new.
         Get-ScoutNewErrorCount $sentinel | Should -Be $Error.Count

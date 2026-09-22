@@ -1,3 +1,7 @@
+#Requires -Version 7.0
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
 <#
 .Synopsis
     Execute a Microsoft Graph REST API request with automatic pagination and throttle handling.
@@ -28,11 +32,20 @@
 .PARAMETER MaxRetries
     Maximum number of retries for transient errors (429, 5xx). Default: 5.
 
+.PARAMETER SuppressFailureWarning
+    Do not write the final warning before rethrowing a failed request. Intended for callers such
+    as the permission audit that catch the exception and emit a more specific structured result.
+
+.PARAMETER TenantID
+    Optional tenant ID to scope the underlying Graph token to. See Get-AZSCGraphToken --
+    without this, the token comes from az CLI's ambient default tenant, which is not
+    necessarily the tenant being audited or collected against.
+
 .OUTPUTS
     [PSObject[]] Aggregated .value array, or the raw response for single-object endpoints.
 
 .LINK
-    https://github.com/thisismydemo/azure-scout
+    https://github.com/Hybrid-Solutions-Cloud/azure-scout
 
 .COMPONENT
     This PowerShell Module is part of Azure Scout (AZSC)
@@ -54,10 +67,34 @@ function Invoke-AZSCGraphRequest {
 
         [switch]$SinglePage,
 
-        [int]$MaxRetries = 5
+        [int]$MaxRetries = 5,
+
+        [string]$TenantID,
+        [ValidateSet('AzureCloud', 'AzureUSGovernment', 'AzureChinaCloud')]
+        [string]$AzureEnvironment,
+
+        [switch]$SuppressFailureWarning
     )
 
-    $baseUrl = 'https://graph.microsoft.com'
+    if (-not $AzureEnvironment) {
+        try {
+            $azContext = Get-AzContext -ErrorAction SilentlyContinue
+            if ($azContext -and $azContext.PSObject.Properties.Name -contains 'Environment' -and
+                $azContext.Environment -and $azContext.Environment.PSObject.Properties.Name -contains 'Name') {
+                $AzureEnvironment = [string]$azContext.Environment.Name
+            }
+        }
+        catch { }
+    }
+    if ($AzureEnvironment -notin @('AzureCloud', 'AzureUSGovernment', 'AzureChinaCloud')) {
+        $AzureEnvironment = 'AzureCloud'
+    }
+
+    $baseUrl = switch ($AzureEnvironment) {
+        'AzureUSGovernment' { 'https://graph.microsoft.us' }
+        'AzureChinaCloud'   { 'https://microsoftgraph.chinacloudapi.cn' }
+        default             { 'https://graph.microsoft.com' }
+    }
 
     # Normalise URI — accept both relative ("/v1.0/users") and absolute URLs
     if ($Uri -notmatch '^https?://') {
@@ -73,7 +110,7 @@ function Invoke-AZSCGraphRequest {
     $currentUri = $fullUri
 
     do {
-        $headers = Get-AZSCGraphToken
+        $headers = Get-AZSCGraphToken -TenantID $TenantID -AzureEnvironment $AzureEnvironment
 
         $requestParams = @{
             Uri         = $currentUri
@@ -110,7 +147,9 @@ function Invoke-AZSCGraphRequest {
                 if ($statusCode -eq 429 -or ($statusCode -ge 500 -and $statusCode -lt 600)) {
                     $retryCount++
                     if ($retryCount -gt $MaxRetries) {
-                        Write-Warning "Graph API request failed after $MaxRetries retries: $($_.Exception.Message)"
+                        if (-not $SuppressFailureWarning) {
+                            Write-Warning "Graph API request failed after $MaxRetries retries: $($_.Exception.Message)"
+                        }
                         throw
                     }
 
@@ -125,6 +164,7 @@ function Invoke-AZSCGraphRequest {
                         }
                         catch {
                             # Header not present — use backoff
+                            Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + ' - Retry-After header not present: ' + $_.Exception.Message)
                         }
                     }
 
@@ -136,12 +176,14 @@ function Invoke-AZSCGraphRequest {
                     Start-Sleep -Seconds $retryAfter
 
                     # Refresh token in case it expired during wait
-                    $headers = Get-AZSCGraphToken
+                    $headers = Get-AZSCGraphToken -TenantID $TenantID
                     $requestParams['Headers'] = $headers
                 }
                 else {
                     # Non-retryable error — propagate
-                    Write-Warning "Graph API request failed: $($_.Exception.Message)"
+                    if (-not $SuppressFailureWarning) {
+                        Write-Warning "Graph API request failed: $($_.Exception.Message)"
+                    }
                     throw
                 }
             }

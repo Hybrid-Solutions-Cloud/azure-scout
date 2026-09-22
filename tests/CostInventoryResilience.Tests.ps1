@@ -9,19 +9,20 @@
 
 BeforeAll {
     $script:RepoRoot = Split-Path -Parent $PSScriptRoot
-    . (Join-Path $script:RepoRoot 'src/Write-AZTIRunLog.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/Write-AZTIRunLog.ps1')
     # AB#5648: Get-AZSCCostInventory is now a shim over src/collect's Get-ScoutCostInventory,
     # so the implementation has to be loaded for these assertions to exercise anything. The
     # assertions themselves are unchanged -- they are the AB#5636 contract, and running them
     # against the NEW path is the point: the guarantee has to survive the inversion.
-    . (Join-Path $script:RepoRoot 'src/collect/Get-ScoutCostInventory.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/collect/Get-ScoutCostInventory.ps1')
 
     # Pester cannot mock a command that does not exist, and the whole point of AB#5636 is
     # that Az.CostManagement may be absent. Stub it so the mocks below have something to
     # replace; the real module, when present, takes precedence outside these tests.
     if (-not (Get-Command Invoke-AzCostManagementQuery -ErrorAction SilentlyContinue)) {
         function global:Invoke-AzCostManagementQuery {
-            param($Type, $Scope, $Timeframe, $DatasetGranularity, $DatasetGrouping,
+                        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
+param($Type, $Scope, $Timeframe, $DatasetGranularity, $DatasetGrouping,
                   $DatasetAggregation, $TimePeriodFrom, $TimePeriodTo, $Debug)
         }
     }
@@ -94,7 +95,7 @@ Describe 'Cost dependency stays opt-in' {
         # already has Az.Accounts that leaves two versions side by side, and every subsequent
         # Import-Module dies with a stack overflow inside Az.Accounts' assembly-load-context
         # resolver. Observed on a working machine, caused by exactly this line. (AB#5636)
-        $Psm1 = Get-Content -Path (Join-Path $script:RepoRoot 'AzureScout.psm1')
+        $Psm1 = Get-Content -Path (Join-Path -Path $script:RepoRoot -ChildPath 'AzureScout.psm1')
         $Bootstrap = $Psm1 | Where-Object { $_ -notmatch '^\s*#' }
         ($Bootstrap -join "`n") | Should -Not -Match "'Az\.CostManagement'"
     }
@@ -102,7 +103,7 @@ Describe 'Cost dependency stays opt-in' {
     It 'documents Az.CostManagement as an optional prerequisite instead' {
         # Moved under docs/guide/ by the site reorganisation; the old top-level path no longer
         # exists, so this test was failing on a missing file rather than on missing content.
-        $Prereq = Get-Content -Raw -Path (Join-Path $script:RepoRoot 'docs/guide/prerequisites.md')
+        $Prereq = Get-Content -Raw -Path (Join-Path -Path $script:RepoRoot -ChildPath 'docs/guide/prerequisites.md')
         $Prereq | Should -Match 'Az\.CostManagement'
         $Prereq | Should -Match 'IncludeCosts'
     }
@@ -112,7 +113,7 @@ Describe 'The dead-code fallback is gone' {
 
     It 'no longer rethrows out of the cost collector' {
         foreach ($Relative in 'src/collect/Get-ScoutCostInventory.ps1') {
-            $Raw = Get-Content -Path (Join-Path $script:RepoRoot $Relative)
+            $Raw = Get-Content -Path (Join-Path -Path $script:RepoRoot -ChildPath $Relative)
             $Active = ($Raw | Where-Object { $_ -notmatch '^\s*#' }) -join "`n"
             $Active | Should -Not -Match 'throw \$_\.Exception\.Message' -Because "$Relative must not rethrow"
         }
@@ -121,7 +122,7 @@ Describe 'The dead-code fallback is gone' {
     It 'the catch block ends in an assignment, not a throw, in the implementation (AB#5648)' {
         # AST rather than text: the guarantee is that no catch statement anywhere in the cost
         # collector rethrows. A regex over source misses `throw $_` and `throw`.
-        $Path = Join-Path $script:RepoRoot 'src/collect/Get-ScoutCostInventory.ps1'
+        $Path = Join-Path -Path $script:RepoRoot -ChildPath 'src/collect/Get-ScoutCostInventory.ps1'
         $Ast = [System.Management.Automation.Language.Parser]::ParseFile($Path, [ref]$null, [ref]$null)
         $Catches = @($Ast.FindAll({ $args[0] -is [System.Management.Automation.Language.CatchClauseAst] }, $true))
         $Catches.Count | Should -BeGreaterThan 0 -Because 'the Cost Management call must be wrapped'

@@ -23,6 +23,23 @@ function Test-ScoutPermission {
         Fix   = 'Assign Reader at the tenant root management group scope.'
     }
 
+    # AB#7358. These assessments inspect key metadata collected by the Key Vault LIST operation.
+    # Generic ARM Reader can see deployable child resources but not the complete object list.
+    # Key Vault Reader supplies metadata list/read actions without secret-value or private-key
+    # access. The live collector still records per-vault health because a root assignment is only
+    # the recommended shape; customers may grant this role at individual vault scopes instead.
+    $KeyVaultMetadataAssessments = @('Workload: AVS', 'Microsoft: CASA')
+    if (@($Assessment | Where-Object { $_ -in $KeyVaultMetadataAssessments }).Count -gt 0) {
+        $keyVaultReader = Get-AzRoleAssignment `
+            -Scope "/providers/Microsoft.Management/managementGroups/$($ctx.Tenant.Id)" `
+            -SignInName $ctx.Account.Id -ErrorAction SilentlyContinue |
+            Where-Object RoleDefinitionName -eq 'Key Vault Reader'
+        $results += [pscustomobject]@{
+            Check = 'Key Vault Reader @ MG root'; Ok = [bool]$keyVaultReader
+            Fix   = 'Assign metadata-only Key Vault Reader at the tenant root management group or on every Key Vault in assessment scope. This role cannot read secret values.'
+        }
+    }
+
     # Graph app permissions needed when ingesting the governance visualizer.
     # Two independent guards here: (1) $Manifest itself can be $null (a caller
     # that never loaded manifests/assessments.psd1) -- indexing $null[$_] throws

@@ -3,7 +3,7 @@
   "Category": "Storage",
   "Name": "DiskEncryptionSets",
   "FixturePath": "tests/fixtures/collector-equivalence/Storage.json",
-  "FixtureSha256": "21d87eca8a056d36402a715706ee87476cf6fbba1e8704478d6c02bd45065e4b",
+  "FixtureSha256": "12cb3bb1b7c042854d935c1291641c4020fae08cf2bc17ee3bd0115dc8f9d4d6",
   "Rows": [
     "Auto Key Rotation=s:res-value|Encryption Type=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/diskencryptionsets/diskencryptionsets-t1a-1|Identity Type=s:res-value|Key Vault=s:seg8|Location=s:res-value|Name=s:diskencryptionsets-t1a|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",
     "Auto Key Rotation=s:res-value|Encryption Type=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/diskencryptionsets/diskencryptionsets-t1b-1|Identity Type=s:res-value|Key Vault=s:seg8|Location=s:res-value|Name=s:diskencryptionsets-t1b|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",

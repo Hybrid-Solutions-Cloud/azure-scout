@@ -3,7 +3,7 @@
   "Category": "IoT",
   "Name": "Maps",
   "FixturePath": "tests/fixtures/collector-equivalence/IoT.json",
-  "FixtureSha256": "720083765c4eaa2bbaa06f4cade1fb1914551d9650e83685f9723af0e206c909",
+  "FixtureSha256": "701dcf074e5e6dcdf66f6a9ac7d374f1170eb61db8c0d67a1276e63cde984ccc",
   "Rows": [
     "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.maps/accounts/maps-t1a-1|Local Auth Disabled=s:res-value|Location=s:res-value|Name=s:maps-t1a|Provisioning State=s:res-value|Resource Group=s:res-value|Resource Kind=s:microsoft.maps/accounts|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|SKU=s:res-value|SKU Tier=s:res-value|Storage Units=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod|Unique Id=s:res-value",
     "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.maps/accounts/maps-t2a-1/creators/maps-t2a-2|Local Auth Disabled=s:res-value|Location=s:res-value|Name=s:maps-t2a|Provisioning State=s:res-value|Resource Group=s:res-value|Resource Kind=s:microsoft.maps/accounts/creators|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|SKU=s:res-value|SKU Tier=s:res-value|Storage Units=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod|Unique Id=s:res-value",
