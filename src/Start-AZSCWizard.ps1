@@ -14,9 +14,6 @@ $ErrorActionPreference = 'Stop'
     The wizard runs five steps:
 
         1. Tenant      — show the signed-in context, or sign in / pick a tenant.
-                         When the account can reach more than one tenant, also
-                         offers scanning several selected tenants or every
-                         accessible tenant (AB#7105).
         2. Permissions — verify the account actually holds the rights the run
                          needs, and let the operator bail out before a long scan
                          fails halfway through.
@@ -87,7 +84,7 @@ function Start-AZSCWizard {
 
     $tenantId = $null
     $context = $null
-    $needsSignIn = $false
+    $selectTenant = $false
     try { $context = Get-AzContext -ErrorAction Stop } catch { $context = $null }
 
     if ($context -and $context.Tenant) {
@@ -97,20 +94,20 @@ function Start-AZSCWizard {
         Write-Host "  Tenant       : " -NoNewline -ForegroundColor DarkGray
         Write-Host $contextIdentity.TenantDisplayName -ForegroundColor Cyan
         Write-Host ''
-        if (Read-AZSCWizardConfirm -Prompt 'Use this signed-in account?' -Default $true) {
+        if (Read-AZSCWizardConfirm -Prompt 'Use this account and tenant?' -Default $true) {
             $tenantId = $context.Tenant.Id
         }
         else {
-            $needsSignIn = $true
+            $selectTenant = $true
         }
     }
     else {
         Write-Host '  No active Azure session found.' -ForegroundColor Yellow
         Write-Host ''
-        $needsSignIn = $true
+        $selectTenant = $true
     }
 
-    if ($needsSignIn) {
+    if ($selectTenant) {
         if ($PlatOS -eq 'Azure CloudShell') {
             Write-Host '  Running in Cloud Shell — using the ambient session.' -ForegroundColor DarkGray
             try { $tenantId = (Get-AzContext -ErrorAction Stop).Tenant.Id } catch { $tenantId = $null }
@@ -128,47 +125,44 @@ function Start-AZSCWizard {
         }
     }
 
-    # Discover once, then choose scope before asking for an individual tenant.
-    $accessibleTenants = @(Get-AZSCAccessibleTenant)
-    if (-not $tenantId) { return $null }
-    $tenantIds = @($tenantId)
-    $allAccessibleTenantsAnswer = $false
-    if ($accessibleTenants.Count -gt 1) {
-
-        Write-Host ''
-        Write-Host "  This account can directly reach $($accessibleTenants.Count) tenants." -ForegroundColor DarkGray
-        $tenantScope = Read-AZSCWizardChoice -Title 'How many tenants do you want to scan?' -Items @(
-            [pscustomobject]@{ Label = "One tenant (choose next)";                      Value = 'Single' }
-            [pscustomobject]@{ Label = 'Choose specific tenants from the list';                  Value = 'Select' }
-            [pscustomobject]@{ Label = "Every accessible tenant ($($accessibleTenants.Count))";  Value = 'All' }
-        )
-        if ($null -eq $tenantScope) { return $null }
-
-        if ($tenantScope -eq 'All') {
-            $allAccessibleTenantsAnswer = $true
-        }
-        elseif ($tenantScope -eq 'Single') {
-            $tenantId = Read-AZSCWizardChoice -Title 'Select the tenant to scan' -Items @(
-                $accessibleTenants | ForEach-Object { [pscustomobject]@{ Label = "$($_.Name) ($($_.Id))"; Value = $_.Id } }
-            )
-            if (-not $tenantId) { return $null }
-            $tenantIds = @($tenantId)
-        }
-        elseif ($tenantScope -eq 'Select') {
+    # A declined context means tenant selection, never subscription selection.
+    # Enumerate every tenant available to the newly authenticated user and let
+    # the operator choose even when only one is currently visible.
+    if ($selectTenant -and $tenantId) {
+        $signedInContext = $null
+        try { $signedInContext = Get-AzContext -ErrorAction Stop } catch { $signedInContext = $null }
+        if ($signedInContext) {
+            $signedInIdentity = Resolve-AZSCContextIdentity -Context $signedInContext
             Write-Host ''
-            $tenantLabelMap = @{}
-            $tenantLabels = @($accessibleTenants | ForEach-Object {
-                $label = if ($_.Name) { "$($_.Name)  ($($_.Id))" } else { $_.Id }
-                $tenantLabelMap[$label] = $_.Id
-                $label
-            })
-            $defaultLabel = @($tenantLabels | Where-Object { $tenantLabelMap[$_] -eq $tenantId })
-            $chosenLabels = Read-AZSCWizardChecklist -Title 'Select the tenants to scan' -Items $tenantLabels -DefaultSelected $defaultLabel
-            if ($null -eq $chosenLabels) { return $null }
-            $tenantIds = @($chosenLabels | ForEach-Object { $tenantLabelMap[$_] })
-            if ($tenantIds.Count -eq 0) { return $null }
-            $tenantId = $tenantIds[0]
+            Write-Host '  Signed in as : ' -NoNewline -ForegroundColor DarkGray
+            Write-Host $signedInIdentity.AccountDisplayName -ForegroundColor Cyan
         }
+
+        $tenants = @(Get-AZSCAccessibleTenant)
+        if ($tenants.Count -eq 0 -and $signedInContext -and $signedInContext.Tenant) {
+            $tenants = @([pscustomobject]@{
+                    Id   = [string]$signedInContext.Tenant.Id
+                    Name = if ($signedInIdentity) { [string]$signedInIdentity.TenantDisplayName } else { '' }
+                })
+        }
+
+        if ($tenants.Count -gt 0) {
+            Write-Host ''
+            Write-Host '  Available tenants for this account:' -ForegroundColor DarkGray
+            $tenantChoice = Read-AZSCWizardChoice -Title 'Select the tenant to scan' -Items @(
+                $tenants | ForEach-Object {
+                    $label = if ($_.Name) { "$($_.Name)  ($($_.Id))" } else { $_.Id }
+                    [pscustomobject]@{ Label = $label; Value = $_.Id }
+                }
+            )
+            if ($null -eq $tenantChoice) { return $null }
+            $tenantId = $tenantChoice
+        }
+    }
+
+    if (-not $tenantId) {
+        Write-Host '  Could not determine a tenant to scan.' -ForegroundColor Red
+        return $null
     }
 
     # ── Step 2: permissions ──────────────────────────────────────────────────
@@ -177,7 +171,7 @@ function Start-AZSCWizard {
     # selected. Running an ARM audit here and the selected-scope audit after confirmation made
     # every guided run enumerate subscriptions/providers twice. Defer the one authoritative
     # audit to Invoke-AzureScout after all answers are known (AB#7279).
-    Write-Host '  Access will be validated once per tenant after you confirm the selected run scope.' -ForegroundColor DarkGray
+    Write-Host '  Access will be validated once after you confirm the selected run scope.' -ForegroundColor DarkGray
     Write-Host ''
 
     $scopeAnswer = 'ArmOnly'
@@ -198,12 +192,7 @@ function Start-AZSCWizard {
         $scopeAnswer = 'All'
     }
 
-    $answers = if ($allAccessibleTenantsAnswer) {
-        @{ AllAccessibleTenants = [switch]$true }
-    }
-    else {
-        @{ TenantID = if ($tenantIds.Count -gt 1) { $tenantIds } else { $tenantId } }
-    }
+    $answers = @{ TenantID = $tenantId }
     if ($scopeAnswer -eq 'All') { $answers.Scope = 'All' }
     $runBoth = ($mode -eq 'Both')
     $wantsInventory = ($mode -in @('Inventory', 'Both'))
@@ -236,11 +225,11 @@ function Start-AZSCWizard {
         $answers.Category = if ($categories.Count -eq $inventoryCategories.Count) { @('All') } else { $categories }
 
         Write-Host ''
-        $extras = Read-AZSCWizardChecklist -Title 'Optional report and enrichment features' -Items @(
-            'Show resource tags in Excel', 'Security Center findings', 'Cost data', 'Quota usage', 'Network diagrams'
-        ) -DefaultSelected @('Show resource tags in Excel')
+        $extras = Read-AZSCWizardChecklist -Title 'Optional inventory data (slower, but richer)' -Items @(
+            'Resource tags', 'Security Center findings', 'Cost data', 'Quota usage', 'Network diagrams'
+        ) -DefaultSelected @('Resource tags')
         if ($null -eq $extras) { return $null }
-        if ($extras -contains 'Show resource tags in Excel') { $answers.IncludeTags = [switch]$true }
+        if ($extras -contains 'Resource tags')             { $answers.IncludeTags = [switch]$true }
         if ($extras -contains 'Security Center findings')  { $answers.SecurityCenter = [switch]$true }
         if ($extras -contains 'Cost data') {
             # Cost data silently comes back empty later in the run if Az.CostManagement isn't

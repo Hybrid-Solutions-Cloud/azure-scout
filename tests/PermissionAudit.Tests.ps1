@@ -27,8 +27,6 @@ BeforeAll {
     # Dot-source both scripts to inspect function metadata
     . $script:InvokeScript
     . $script:AuditScript
-    . (Join-Path -Path $script:ModuleRoot -ChildPath 'src' -AdditionalChildPath 'collect/Get-ScoutEntraQueryCatalog.ps1')
-    . (Join-Path -Path $script:ModuleRoot -ChildPath 'src' -AdditionalChildPath 'Get-ScoutGraphPermissionImpact.ps1')
 
     $script:InvokeCmd = Get-Command -Name Invoke-AzureScout         -ErrorAction SilentlyContinue
     $script:AuditCmd  = Get-Command -Name Invoke-AZSCPermissionAudit -ErrorAction SilentlyContinue
@@ -416,18 +414,13 @@ Describe 'Invoke-AZSCPermissionAudit — Entra audit survives null/scalar Graph 
 
         $partial = Invoke-AZSCPermissionAudit -IncludeEntraPermissions -TenantID '22222222-2222-2222-2222-222222222222' -OutputFormat Console
 
-        $exactScopeQueries = @(Get-ScoutEntraQueryCatalog | Where-Object {
-            $_.ContainsKey('RequireDelegatedScope') -and [bool]$_.RequireDelegatedScope
-        })
-        $impact = @(Get-ScoutGraphPermissionImpact)
-        $expectedCollectors = @(
-            foreach ($query in $exactScopeQueries) {
-                @($impact | Where-Object Permission -eq $query.Permission)[0].Collectors
-            }
-        ) | Sort-Object -Unique
-
         $partial.OverallReadiness | Should -Be 'Partial'
-        @($partial.EmptyCollectors.Collector | Sort-Object) | Should -Be $expectedCollectors
+        @($partial.EmptyCollectors).Count | Should -Be 3
+        @($partial.EmptyCollectors.Collector | Sort-Object) | Should -Be @(
+            'Identity/RiskyUsers'
+            'Identity/VerifiedIDConfiguration'
+            'Identity/VerifiedIDProfiles'
+        )
 
         foreach ($permission in 'Application.Read.All', 'Group.Read.All', 'Policy.Read.All', 'User.Read.All') {
             $detail = @($partial.GraphDetails | Where-Object Check -eq "Graph: $permission")
@@ -436,11 +429,11 @@ Describe 'Invoke-AZSCPermissionAudit — Entra audit survives null/scalar Graph 
         }
         @($script:permissionProbeUris | Where-Object { $_ -like '/v1.0/users?*' }).Count | Should -Be 1
         @($script:permissionProbeUris | Where-Object { $_ -like '/v1.0/groups?*' }).Count | Should -Be 1
-        foreach ($query in $exactScopeQueries) {
-            $script:permissionProbeUris | Should -Not -Contain $query.Uri
-        }
+        $script:permissionProbeUris | Should -Not -Contain '/v1.0/policies/authenticationMethodsPolicy/authenticationMethodConfigurations/VerifiableCredentials'
+        $script:permissionProbeUris | Should -Not -Contain '/v1.0/identity/verifiedId/profiles'
+        $script:permissionProbeUris | Should -Not -Contain '/v1.0/identityProtection/riskyUsers'
 
-        foreach ($permission in @($exactScopeQueries.Permission | Sort-Object -Unique)) {
+        foreach ($permission in 'IdentityRiskyUser.Read.All', 'Policy.Read.AuthenticationMethod', 'VerifiedId-Profile.Read.All') {
             $detail = @($partial.GraphDetails | Where-Object Check -eq "Graph: $permission")
             $detail.Count | Should -Be 1
             $detail[0].Status | Should -Be 'Info'

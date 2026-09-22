@@ -49,9 +49,9 @@ need a consolidated view of their Azure environment.
 - Run isolation — a rescan never overwrites the previous run's data
 - Detailed file logging by default — collector/rule status, row/evidence counts, and phase timings
   are written without adding debug noise to the console
-- Retained evidence — `raw-inventory.json`, `ReportCache/Discovery.json`, `collector-rowcounts.json`,
+- Retained evidence — `raw-inventory.json`, `collector-rowcounts.json`,
   `collection-health.json`, `ReportCache`, and `DiagramCache` remain available after every run
-  until the operator explicitly prunes them; discovery/report payloads redact credential values
+  until the operator explicitly prunes them
 - Unattended execution via Azure Automation Account or GitHub Actions
 - Cross-platform (Windows, Linux, Mac)
 
@@ -102,12 +102,6 @@ Invoke-AzureScout -TenantID <your-tenant-id> -IncludeDevOps
 
 # Name this run's output folder
 Invoke-AzureScout -TenantID <your-tenant-id> -RunName 'Production-TenantA'
-
-# Scan every tenant the signed-in account can directly access (no Lighthouse)
-Invoke-AzureScout -AllAccessibleTenants -RunName 'Enterprise-Portfolio'
-
-# Or scan only a selected tenant subset
-Invoke-AzureScout -TenantID <tenant-a>,<tenant-b> -RunName 'Selected-Tenants'
 ```
 
 ## Category Quick Reference

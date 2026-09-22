@@ -52,9 +52,6 @@ Describe 'AB#6764 — every collected row reaches the raw artifact' {
             Security           = @()
             Retirements        = @()
             EntraResources     = @([pscustomobject]@{ id = 'u1'; TYPE = 'entra/users' })
-            EntraQueryOutcomes = @([pscustomobject]@{ Source = 'Microsoft Graph'; Name = 'Users'; Status = 'Success'; Count = 1; Uri = 'https://graph.microsoft.com/v1.0/users' })
-            CollectionHealth   = @([pscustomobject]@{ Source = 'ARM'; Dataset = 'Example'; Status = 'NotAssessed'; Reason = 'fixture' })
-            SourceOperations   = @([pscustomobject]@{ Source = 'Azure Resource Graph'; Dataset = 'Resources'; Status = 'Success'; Count = 3 })
         }
 
         $script:DumpPath = Export-ScoutRawInventoryDump -ExtractionData $script:Extraction -DefaultPath $script:Work
@@ -92,14 +89,11 @@ Describe 'AB#6764 — every collected row reaches the raw artifact' {
     It 'carries the other extraction sets too' {
         @($script:Dump.ResourceContainers).Count | Should -Be 1
         @($script:Dump.EntraResources).Count     | Should -Be 1
-        @($script:Dump.EntraQueryOutcomes).Count | Should -Be 1
-        @($script:Dump.CollectionHealth).Count   | Should -Be 1
-        @($script:Dump.SourceOperations).Count   | Should -Be 1
         $script:Dump.Counts.Resources            | Should -Be 3
     }
 
     It 'declares a schema so a later run can be diffed against it' {
-        $script:Dump.Schema | Should -Be 'azure-scout/raw-inventory/v2'
+        $script:Dump.Schema | Should -Be 'azure-scout/raw-inventory/v1'
     }
 
     It 'survives an extraction shape that omits half its properties' {
@@ -116,28 +110,6 @@ Describe 'AB#6764 — every collected row reaches the raw artifact' {
 
     It 'returns $null rather than throwing when there is nothing to dump' {
         Export-ScoutRawInventoryDump -ExtractionData $null -DefaultPath $script:Work | Should -BeNullOrEmpty
-    }
-
-    It 'streams a large resource set into valid JSON without a whole-document serializer call' {
-        $large = [pscustomobject]@{
-            Resources = @(1..10000 | ForEach-Object {
-                [pscustomobject]@{
-                    id = "/subscriptions/sub/resourceGroups/rg/providers/Microsoft.Example/widgets/$_"
-                    type = 'Microsoft.Example/widgets'
-                    properties = [pscustomobject]@{ ordinal = $_; nested = [pscustomobject]@{ retained = $true } }
-                }
-            })
-        }
-
-        $largePath = Export-ScoutRawInventoryDump -ExtractionData $large -DefaultPath $script:Work -FileName 'large.json'
-        $largeDump = Get-Content -Raw -LiteralPath $largePath | ConvertFrom-Json -Depth 100
-
-        @($largeDump.Resources).Count | Should -Be 10000
-        $largeDump.Resources[9999].properties.nested.retained | Should -BeTrue
-        @(Get-ChildItem -LiteralPath $script:Work -Filter 'large.json.*.tmp').Count | Should -Be 0
-
-        $source = Get-Content -Raw (Join-Path -Path $script:Root -ChildPath 'src/Export-ScoutRawInventoryDump.ps1')
-        $source | Should -Not -Match '\$payload\s*\|\s*ConvertTo-Json'
     }
 
     It 'is called before the processing phase filters anything' {
@@ -235,10 +207,8 @@ Describe 'AB#6765 — criticality is derived, not listed' {
         @($script:Impact.Queries) | Should -Not -Contain 'Security Defaults'
     }
 
-    It 'requests AuditLog.Read.All now that retained sign-in evidence is consumed' {
-        $auditImpact = @($script:Impact | Where-Object Permission -eq 'AuditLog.Read.All')[0]
-        $auditImpact.IsConsumed | Should -BeTrue
-        $auditImpact.Queries | Should -Contain 'Sign-ins (Last 30 Days)'
+    It 'no longer checks AuditLog.Read.All, which no collector has ever consumed' {
+        @($script:Impact.Permission) | Should -Not -Contain 'AuditLog.Read.All'
     }
 
     It 'has no hardcoded critical list left in the pre-flight' {
@@ -299,7 +269,7 @@ Describe 'AB#6765 — the query catalog is the single source both sides read' {
         }
     }
 
-    It 'covers the original queries plus evidence-complete identity datasets' {
-        @(Get-ScoutEntraQueryCatalog).Count | Should -Be 26
+    It 'still covers all twenty queries the extraction used to inline' {
+        @(Get-ScoutEntraQueryCatalog).Count | Should -Be 20
     }
 }

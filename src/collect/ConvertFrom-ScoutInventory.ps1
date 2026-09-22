@@ -268,36 +268,17 @@ function ConvertFrom-ScoutInventory {
         $rows.Add($resource)
     }
 
-    # Shape hundreds of typed datasets from one inventory pass without re-scanning the complete
-    # estate for every type. On the audited 50k-row run the old Select-ByType implementation
-    # repeated a PowerShell property walk millions of times before it reached the failing row.
-    $rowsByType = @{}
-    foreach ($row in $rows) {
-        $rowType = [string](Get-ScoutProp $row 'type')
-        if ([string]::IsNullOrWhiteSpace($rowType)) { continue }
-        $typeKey = $rowType.ToLowerInvariant()
-        if (-not $rowsByType.ContainsKey($typeKey)) {
-            $rowsByType[$typeKey] = [System.Collections.Generic.List[object]]::new()
-        }
-        $rowsByType[$typeKey].Add($row)
-    }
-
     $containers = @(@($ResourceContainers) | Where-Object { $null -ne $_ })
 
     function Select-ByType {
         param([string] $Type)
-        $key = $Type.ToLowerInvariant()
-        if (-not $rowsByType.ContainsKey($key)) { return }
-        return $rowsByType[$key]
+        return @($rows | Where-Object { [string] (Get-ScoutProp $_ 'type') -ieq $Type })
     }
 
     function Select-ByAnyType {
         param([string[]] $Types)
-        # Multi-type KQL projections preserve global ARG row order. Keep that contract for the
-        # handful of multi-type datasets; the high-volume single-type paths use the O(1) index.
-        $selectedTypes = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
-        foreach ($type in $Types) { [void]$selectedTypes.Add($type) }
-        return $rows | Where-Object { $selectedTypes.Contains([string](Get-ScoutProp $_ 'type')) }
+        $lowerTypes = @($Types | ForEach-Object { $_.ToLowerInvariant() })
+        return @($rows | Where-Object { $lowerTypes -contains ([string] (Get-ScoutProp $_ 'type')).ToLowerInvariant() })
     }
 
     $result = @{}
@@ -414,11 +395,9 @@ function ConvertFrom-ScoutInventory {
     # split the target resource id: [6] = provider, [7] = type.
     $result['privateEndpoints'] = @(
         Select-ByType 'microsoft.network/privateendpoints' | ForEach-Object {
-            $connections = @(Get-ScoutProp $_ 'properties.privateLinkServiceConnections')
-            $connection = if ($connections.Count -gt 0) { $connections[0] } else { $null }
+            $connection = @(Get-ScoutProp $_ 'properties.privateLinkServiceConnections')[0]
             if ($null -eq $connection) {
-                $manualConnections = @(Get-ScoutProp $_ 'properties.manualPrivateLinkServiceConnections')
-                $connection = if ($manualConnections.Count -gt 0) { $manualConnections[0] } else { $null }
+                $connection = @(Get-ScoutProp $_ 'properties.manualPrivateLinkServiceConnections')[0]
             }
             $targetResourceId = [string] (Get-ScoutProp $connection 'properties.privateLinkServiceId')
             $targetSegments = $targetResourceId -split '/'

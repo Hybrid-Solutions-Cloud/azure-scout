@@ -95,13 +95,6 @@ BeforeAll {
             [pscustomobject]@{ Name = "control-$script:currentSubscription" }
         }
 
-        function global:Get-AzRegulatoryComplianceStandard {
-            param($ErrorAction)
-            $null = $ErrorAction
-            if ($script:deniedDataset -eq 'DefenderRegulatoryStandards') { throw 'HTTP 403 AuthorizationFailed: regulatoryComplianceStandards/read denied' }
-            [pscustomobject]@{ Name = "standard-$script:currentSubscription" }
-        }
-
         function global:Get-AzDiagnosticSetting {
             param($ResourceId, $ErrorAction)
             $null = $ErrorAction
@@ -140,7 +133,6 @@ BeforeAll {
                 'Get-AzSecurityPricing',
                 'Get-AzSecuritySecureScore',
                 'Get-AzSecuritySecureScoreControl',
-                'Get-AzRegulatoryComplianceStandard',
                 'Get-AzDiagnosticSetting',
                 'Get-AzPolicyState',
                 'Invoke-AzRestMethod',
@@ -174,7 +166,6 @@ Describe 'Get-ScoutSubscriptionSecurityPolicySweep integration contract' {
         $results[0].properties.DefenderPricing[0].Name | Should -Be 'pricing-sub-1'
         $results[0].properties.DefenderSecureScores[0].Name | Should -Be 'score-sub-1'
         $results[0].properties.DefenderSecureScoreControls[0].Name | Should -Be 'control-sub-1'
-        $results[0].properties.DefenderRegulatoryStandards[0].Name | Should -Be 'standard-sub-1'
         $results[0].properties.SubscriptionDiagnosticSettings[0].ResourceId | Should -Be '/subscriptions/sub-1'
         $results[0].properties.PolicyComplianceStates[0].PolicyAssignmentName | Should -Be 'policy-sub-1'
         @($results[0].properties.CollectionErrors).Count | Should -Be 0
@@ -185,12 +176,10 @@ Describe 'Get-ScoutSubscriptionSecurityPolicySweep integration contract' {
             'DefenderPricing',
             'DefenderSecureScores',
             'DefenderSecureScoreControls',
-            'DefenderRegulatoryStandards',
             'SubscriptionDiagnosticSettings',
             'PolicyComplianceStates',
             'CollectionStatus',
             'CollectionErrors'
-            'SourceOperations'
         )
     }
 

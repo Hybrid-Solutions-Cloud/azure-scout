@@ -12,7 +12,7 @@
 RootModule = 'AzureScout.psm1'
 
 # Version number of this module.
-ModuleVersion = '3.17.0'
+ModuleVersion = '3.12.5'
 
 # Supported PSEditions
 CompatiblePSEditions = @('Core')
@@ -58,7 +58,6 @@ PowerShellVersion = '7.0'
 # Keep optional feature dependencies (for example Az.CostManagement) out of this list.
 # Declaring the core dependencies here lets Install-Module resolve them and makes a
 # source-tree Import-Module fail cleanly instead of installing software as a side effect.
-# The live progress renderer is built into AzureScout and has no external module dependency.
 RequiredModules = @(
     'ImportExcel'
     'Az.Accounts'
@@ -67,7 +66,6 @@ RequiredModules = @(
     'Az.Compute'
     'Az.Resources'
     'Az.Advisor'
-    'Microsoft.Graph.Authentication'
     'powershell-yaml'
 )
 
@@ -166,13 +164,18 @@ PrivateData = @{
         IconUri = 'https://raw.githubusercontent.com/Hybrid-Solutions-Cloud/azure-scout/main/docs/public/images/azurescout-icon.svg'
 
         # ReleaseNotes of this module
-        ReleaseNotes = 'v3.17.0 - Multi-tenant authentication reuse, scope-first setup, versioned resume and failed/selected-tenant retry. Complete processed report inventory, detail dialogs, CSV/JSON exports and evidence-driven diagrams. Normalization failures no longer silently substitute narrower evidence; partial runs and assessment-specific drift stay explicit. AB#9290. See CHANGELOG.md.'
+        ReleaseNotes = 'v3.12.5 - The compass keeps moving. Interactive inventory extraction now uses a real auto-refreshing PwshSpectreConsole progress host when the optional module is available, so the spinner and elapsed timer keep advancing during long blocking Azure calls. Phase labels use high-contrast foreground text with no colored background, native and CI-safe fallbacks remain intact, and -NoProgress suppresses interactive rendering explicitly. Progress failures cannot execute a collector twice. AB#405.'
 
         # Prerelease string of this module
         # Prerelease = ''
 
         # Flag to indicate whether the module requires explicit user acceptance for install/update/save
         # RequireLicenseAcceptance = $false
+
+        # Optional rich terminal progress. AzureScout remains fully functional on PowerShell 7.0
+        # without it; current PwshSpectreConsole releases require newer PowerShell versions, so it
+        # cannot be a hard RequiredModules dependency without breaking the supported engine floor.
+        ExternalModuleDependencies = @('PwshSpectreConsole')
 
     } # End of PSData hashtable
 

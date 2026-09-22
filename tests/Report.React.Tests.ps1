@@ -5,7 +5,7 @@
     Pester tests for src/report/renderers/Export-React.ps1 — the payload builder behind the
     React single-page report (ADO Feature AB#6928: AB#6929 payload contract, AB#6930 identity).
 
-    window.__SCOUT_DATA__ = { identity, meta, ran, inventory, discovery, entraResources, subscriptions,
+    window.__SCOUT_DATA__ = { identity, meta, ran, inventory, entraResources, subscriptions,
     assessments, resourceIndex, drift, costProjection } is the FULL contract this renderer is
     now responsible for (the front
     end never re-derives anything). These tests assert the contract's shape, the score-formula
@@ -72,21 +72,6 @@ BeforeAll {
     $script:Collect | Add-Member -NotePropertyName _meta -NotePropertyValue ([pscustomobject]@{
             scope = 'All'; managementGroupId = 'mg-test-01'; generatedOn = (Get-Date).ToString('o')
         }) -Force
-    $script:Collect | Add-Member -NotePropertyName discovery -NotePropertyValue ([pscustomobject]@{
-            Schema = 'azure-scout/discovery-completeness/v1'
-            Summary = [pscustomobject]@{ Resources = 1; Detailed = 1; GenericOnly = 0; Partial = 0; Unavailable = 0; Relationships = 1 }
-            Resources = @([pscustomobject]@{
-                    Id = '/subscriptions/sub-0001/resourceGroups/rg-hub/providers/Microsoft.Network/virtualNetworks/vnet-hub'
-                    Name = 'vnet-hub'; Type = 'microsoft.network/virtualnetworks'; ResourceGroup = 'rg-hub'
-                    DetailStatus = 'Detailed'; DetailReasons = @(); Exposure = 'Private'; RelationshipCount = 1
-                })
-            Relationships = @([pscustomobject]@{
-                    SourceId = '/subscriptions/sub-0001/resourceGroups/rg-hub/providers/Microsoft.Network/virtualNetworks/vnet-hub'
-                    TargetId = '/subscriptions/sub-0001/resourceGroups/rg-hub/providers/Microsoft.Network/virtualNetworks/vnet-spoke'
-                    RelationshipType = 'VNetPeering'; PropertyPath = 'properties.virtualNetworkPeerings[0].properties.remoteVirtualNetwork.id'
-                })
-            CollectionHealth = @()
-        }) -Force
 
     $script:OutDir = Join-Path -Path $script:Root -ChildPath 'tests' -AdditionalChildPath 'test-output', 'react'
     if (Test-Path $script:OutDir) { Remove-Item $script:OutDir -Recurse -Force }
@@ -116,9 +101,9 @@ Describe 'Export-React — payload contract shape (AB#6929)' {
         (Split-Path $script:ReportPath -Leaf) | Should -Be 'report-react.html'
     }
 
-    It 'carries exactly the eleven top-level contract keys' {
+    It 'carries exactly the ten top-level contract keys' {
         $keys = @($script:Payload.PSObject.Properties.Name | Sort-Object)
-        $keys | Should -Be (@('identity', 'meta', 'ran', 'inventory', 'discovery', 'entraResources', 'subscriptions', 'assessments', 'resourceIndex', 'drift', 'costProjection') | Sort-Object)
+        $keys | Should -Be (@('identity', 'meta', 'ran', 'inventory', 'entraResources', 'subscriptions', 'assessments', 'resourceIndex', 'drift', 'costProjection') | Sort-Object)
     }
 
     It 'identity carries every neutral-default field with no vendor name/URL leaking onto the report surface' {
@@ -476,36 +461,6 @@ Describe 'Export-React — resourceIndex + subscription attribution' {
         $noSub = @($script:Payload.resourceIndex.PSObject.Properties | Where-Object { -not $_.Value.subscriptionId })
         # Every resource in this fixture set is subscription-scoped -- none should be unattributable.
         $noSub.Count | Should -Be 0
-    }
-
-    It 'carries the universal discovery contract without double-counting it as inventory categories' {
-        $script:Payload.discovery.Schema | Should -Be 'azure-scout/discovery-completeness/v1'
-        $script:Payload.discovery.Resources.Count | Should -Be 1
-        $script:Payload.discovery.Relationships.Count | Should -Be 1
-        @($script:Payload.inventory.PSObject.Properties.Name) | Should -Not -Contain 'discovery.Resources'
-        $script:Html | Should -Match 'Discovery completeness'
-        $script:Html | Should -Match 'Universal ARM relationship evidence'
-    }
-
-    It 'renders when an arbitrary collected row uses a Boolean name field' {
-        # Azure service payloads are open-ended. A live tenant returned a feature/configuration
-        # row whose `name` field was Boolean; the recursive resource-index walk must ignore or
-        # stringify that value instead of calling a string method on System.Boolean and losing
-        # the entire React report.
-        $booleanNameCollect = $script:Collect | ConvertTo-Json -Depth 100 | ConvertFrom-Json -Depth 100
-        $booleanNameCollect | Add-Member -NotePropertyName rendererRegression -NotePropertyValue ([pscustomobject]@{
-                rows = @(
-                    [pscustomobject]@{
-                        name = $true
-                        id   = '/subscriptions/sub-0001/resourceGroups/rg-hub/providers/Contoso.Features/settings/example'
-                    }
-                )
-            }) -Force
-        $outputPath = Join-Path $script:OutDir 'boolean-name'
-
-        { Export-React -Findings $script:Scored -Collect $booleanNameCollect -OutputPath $outputPath } |
-            Should -Not -Throw
-        Join-Path $outputPath 'report-react.html' | Should -Exist
     }
 }
 

@@ -135,7 +135,6 @@ function Export-React {
 
     $metaSrc = Get-ReactSafeProp $Collect @('_meta')
     $subscriptions = @(Get-ReactSafeProp $Collect @('subscriptions'))
-    $discovery = Get-ReactSafeProp $Collect @('discovery')
 
     # `ran` drives the adaptive nav -- which top-level sections the shell even offers -- AND the
     # derived reportTitle default just below, so it is computed here, ahead of the identity block.
@@ -153,8 +152,7 @@ function Export-React {
     }
     $inventoryHasData = [bool]((Test-ReactHasRow (Get-ReactSafeProp $Collect @('subscriptions'))) -or
         (Test-ReactHasRow (Get-ReactSafeProp $Collect @('networking', 'virtualNetworks'))) -or
-        (Test-ReactHasRow (Get-ReactSafeProp $Collect @('compute', 'virtualMachines'))) -or
-        (Test-ReactHasRow (Get-ReactSafeProp $discovery @('Resources'))))
+        (Test-ReactHasRow (Get-ReactSafeProp $Collect @('compute', 'virtualMachines'))))
     $entraResourcesValue = Get-ReactSafeProp $Collect @('entraResources')
     $entraResources = if ($null -eq $entraResourcesValue) { @() } else { @($entraResourcesValue) }
     $allFindingsRows = @(Get-ReactSafeProp $Findings @('Findings'))
@@ -265,7 +263,6 @@ function Export-React {
         productName        = 'Azure Scout'
         productVersion     = $productVersion
         productUrl         = $productUrl
-        collectionHealth   = @(Get-ReactSafeProp $metaSrc @('collectionHealth'))
         # Lower-cased to match the front end's own state.mode / data-mode vocabulary
         # ('executive'/'consultant'/'data') verbatim -- see report-react.html.template's
         # loadPersisted(), which should prefer this over its current hardcoded 'executive'
@@ -308,12 +305,7 @@ function Export-React {
         if ($null -eq $Row -or $Row -isnot [pscustomobject]) { return }
         $n = Get-ReactRowProp $Row 'name'
         if (-not $n) { $n = Get-ReactRowProp $Row 'displayName' }
-        # Collect is a recursively walked, open-ended object graph. Some service payloads use
-        # `name` for a Boolean feature flag rather than a resource identity. Normalise before
-        # applying string methods so one such row cannot prevent the entire React report from
-        # rendering (observed live in the 2026-08-14 thisismydemo run).
-        $n = if ($null -eq $n) { '' } else { [string]$n }
-        if ([string]::IsNullOrWhiteSpace($n)) { return }
+        if (-not $n) { return }
         $rid = Get-ReactRowProp $Row 'id'
         if (-not $rid) { $rid = Get-ReactRowProp $Row 'ResourceId' }
         $sub = Get-ReactRowProp $Row 'subscriptionId'
@@ -440,8 +432,7 @@ function Export-React {
         $lookupName = if ($isJoinRow) { $null } else { Get-ReactRowProp $identitySource 'vnet' }
         if (-not $lookupName) { $lookupName = $name }
         if ((-not $subscriptionId -or -not $resourceGroup -or -not $resourceId) -and $lookupName) {
-            $lookupKey = ([string]$lookupName).ToLowerInvariant()
-            $hit = $collectNameIndex[$lookupKey]
+            $hit = $collectNameIndex[$lookupName.ToLowerInvariant()]
             if ($hit) {
                 if (-not $subscriptionId -and $hit.SubscriptionId) { $subscriptionId = $hit.SubscriptionId }
                 if (-not $resourceGroup -and $hit.ResourceGroup) { $resourceGroup = $hit.ResourceGroup }
@@ -1005,9 +996,11 @@ function Export-React {
     # ---- inventory{} -----------------------------------------------------------------------------
     # Generic recursive walker over $Collect: every array found (at any depth) becomes its own
     # inventory category keyed by its dotted path, so a category added to Collect tomorrow shows
-    # up here with no renderer change. `_meta` and `discovery` are excluded: discovery has its own
-    # completeness explorer. Retain every row for Data view, details and offline export;
-    # Consultant view limits presentation in the template, never the retained evidence.
+    # up here with no renderer change. `_meta` is the only excluded branch (run metadata, not
+    # inventory). Rows are capped so one enormous category (policy compliance can run into the
+    # thousands) doesn't bloat the embedded payload; `truncated` records the honest shown/actual
+    # split so the UI never presents a cap as a total (AB#6864's own rule, applied here too).
+    $inventoryRowCap = 300
     function Get-ReactInventoryLabel {
         param([string[]] $PathSegments)
         $titled = $PathSegments | ForEach-Object {
@@ -1023,12 +1016,12 @@ function Export-React {
         if ($Node -is [System.Collections.IEnumerable] -and $Node -isnot [string] -and $Node -isnot [System.Collections.IDictionary]) {
             $rows = @($Node)
             $key = ($PathSegments -join '.')
-            $shown = $rows
+            $shown = @($rows | Select-Object -First $inventoryRowCap)
             $inventory[$key] = [ordered]@{
                 label     = Get-ReactInventoryLabel -PathSegments $PathSegments
                 count     = $rows.Count
                 rows      = $shown
-                truncated = $null
+                truncated = if ($rows.Count -gt $inventoryRowCap) { [pscustomobject]@{ shown = $shown.Count; actual = $rows.Count } } else { $null }
             }
             return
         }
@@ -1040,19 +1033,10 @@ function Export-React {
         foreach ($p in $props) { Add-ReactInventoryCategory -Node $p.Value -PathSegments ($PathSegments + $p.Name) }
     }
     if ($Collect) {
-        foreach ($p in ($Collect.PSObject.Properties | Where-Object { $_.Name -notin @('_meta', '_reportInventory', 'discovery') })) {
+        foreach ($p in ($Collect.PSObject.Properties | Where-Object { $_.Name -ne '_meta' })) {
             Add-ReactInventoryCategory -Node $p.Value -PathSegments @($p.Name)
         }
     }
-    $processed = Get-ReactSafeProp $Collect @('_reportInventory')
-    if ($processed -is [System.Collections.IDictionary]) {
-        foreach ($key in $processed.Keys) { $inventory[$key] = $processed[$key] }
-    }
-    elseif ($processed) {
-        foreach ($property in $processed.PSObject.Properties) { $inventory[$property.Name] = $property.Value }
-    }
-    if (@($inventory.Keys | Where-Object { $inventory[$_].count -gt 0 }).Count -gt 0) { $ran.inventory = $true }
-    if (@($inventory.Keys | Where-Object { $_ -match '^(collected|domains)\.identity\.' -and $inventory[$_].count -gt 0 }).Count -gt 0) { $ran.entra = $true }
 
     # ---- costProjection{} -------------------------------------------------------------------------
     # AB#7093: a transparent trailing-30-day run-rate extrapolation over finops.costRows (the same
@@ -1152,7 +1136,6 @@ function Export-React {
         meta           = $meta
         ran            = $ran
         inventory      = $inventory
-        discovery      = $discovery
         subscriptions  = @($subscriptions | ForEach-Object {
             [pscustomobject]@{ id = (Get-ReactRowProp $_ 'id'); name = (Get-ReactRowProp $_ 'name'); state = (Get-ReactRowProp $_ 'state') }
         })

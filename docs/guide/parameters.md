@@ -10,8 +10,7 @@ description: Complete reference of all Invoke-AzureScout and Test-AZSCPermission
 
 | Parameter | Description |
 |-----------|-------------|
-| `-TenantID` | One or more target Entra tenant IDs. One value preserves the single-tenant run; multiple values create an umbrella run with one isolated folder per tenant. Alias: `-TenantList` |
-| `-AllAccessibleTenants` | Scan every tenant the signed-in user can directly access. This is explicit opt-in and does not use Azure Lighthouse. Aliases: `-AllTenants`, `-AllReachableTenants` |
+| `-TenantID` | Target Azure AD / Entra ID tenant ID |
 | `-SubscriptionID` | Limit to one or more specific subscription IDs (comma-separated or array) |
 | `-ResourceGroup` | Limit to one or more specific resource groups |
 | `-ManagementGroup` | Inventory all subscriptions under a management group |
@@ -54,7 +53,7 @@ See [Authentication](./authentication.md) for detailed examples of each method.
 | `-ReportName` | Custom report filename (default: `AzureScout_Report_<timestamp>`) |
 | `-ReportDir` | Base output directory (default: `C:\AzureScout\` on Windows, `$HOME/AzureScout/` on Linux/Mac) |
 | `-RunName` | Friendly name for this run's output folder instead of the generated timestamp, e.g. `-RunName 'Production-TenantA'`. Invalid path characters become `-` |
-| `-Force` | Write a single-tenant run directly into `-ReportDir`, overwriting in place. It is rejected for multi-tenant runs because the umbrella folder is a required isolation boundary; use `-RunName` instead |
+| `-Force` | Write directly into `-ReportDir`, overwriting any previous run in place. Without it, each run gets its own timestamped folder so a rerun cannot destroy the previous run's cache or report |
 | `-Lite` | Legacy compatibility switch for the held Excel renderer; it does not change a live React/JSON output |
 
 ### Azure DevOps

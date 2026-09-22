@@ -41,94 +41,7 @@ All collector definitions, source retirement, strict runtime contracts, and repo
 complete. The remaining release steps are package validation, broad test-suite completion, tag, and
 publication. Historical v2 entries below are retained as release history rather than current status.
 
-## Current Release — v3.17.0 — reliable tenant recovery and complete reports
-
-Version 3.17.0 reuses authentication across tenants, selects scan scope before individual tenants,
-and adds persisted failed/selected-tenant recovery. Reports retain complete collector evidence,
-with inventory detail dialogs, exports and evidence-driven diagrams. Normalization failure stops
-scoring instead of silently narrowing the evidence; drift retains assessment membership.
-See AB#9290 and [multi-tenant recovery](../how-to/multi-tenant-recovery.md).
-
-## Previous Release — v3.16.2 — hotfix: real multi-tenant runs no longer crash on launch
-
-Released 19 August 2026. A live enterprise run crashed immediately after confirmation with
-`Cannot find an overload for "Contains" and the argument count: "1".` `Invoke-AZSCMultiTenantRun`
-called a `Hashtable`-only `.Contains(name)` method on the real `$PSBoundParameters` type, which
-every existing test substituted with a hashtable literal or fully mocked away, so the defect
-shipped undetected in v3.16.0 and v3.16.1. Switched to `.ContainsKey(name)`, supported by both
-types, and added a regression test that builds a genuine `PSBoundParametersDictionary`. See
-CHANGELOG.md and AB#7105.
-
-## Previous Release — v3.16.1 — the menu offers it too
-
-Released 18 August 2026. The guided wizard now offers enterprise multi-tenant scanning whenever
-the signed-in account can reach more than one tenant: scan just the current tenant, choose
-specific tenants from a checklist, or scan every accessible tenant. `-AllAccessibleTenants` and
-multiple `-TenantID` values previously only worked when typed explicitly on the command line; a
-dispatch-ordering fix also means a wizard-driven multi-tenant answer now actually reaches the
-orchestrator. See CHANGELOG.md and AB#7105.
-
-## Previous Release — v3.16.0 — one account, every reachable tenant
-
-Released 17 August 2026. Enterprise operators can explicitly scan every Azure tenant reachable by
-the signed-in account or select several tenant IDs. Each umbrella run writes a self-contained root
-overview and JSON summary, then isolates every tenant's evidence and detailed React report in its
-own named folder. A tenant failure is recorded without stopping later tenants. This is direct account
-access and remains separate from Azure Lighthouse. See CHANGELOG.md and AB#332/AB#7105.
-
-## Previous Release — v3.15.0 — complete discovery evidence
-
-Released 17 August 2026. Raw evidence schema v2 retains each successful parent and child response
-with its source operation, query outcome, and collection-health record. Twenty-nine report collectors
-add Conditional Access impact, MFA and legacy-auth posture, Entra and Azure RBAC PIM, access reviews,
-hybrid identity, optional Okta, billing, Defender, Sentinel and Log Analytics retention, Entra log
-export, and normalized storage exposure. Unavailable or permission-limited evidence stays explicit;
-credentials and Key Vault secret values are never persisted. See CHANGELOG.md and AB#7441.
-
-## Previous Release — v3.14.0 — large tenants finish cleanly
-
-Released 15 August 2026. Raw inventory and discovery evidence now stream atomically instead of
-building whole JSON documents in memory, and indexed collector shaping avoids repeated scans of a
-large estate. Cost Management calls are subscription-batched, throttling guidance is honored, six
-invalid Resource Graph queries are corrected, and expected metric, storage, Search, Key Vault,
-management-group, and custom-role boundaries are reported precisely without dropping their parent
-resources. See CHANGELOG.md and AB#7366.
-
-## Previous Release — v3.13.0 — every resource accounted for
-
-Released 14 August 2026. Every unique resource discovered by Resource Graph now receives a
-report-visible completeness record. Full scans retain provider-level configuration and collect
-effective routes and NSGs per NIC; normalized exposure evidence and generic ARM relationships feed
-React, JSON, and Draw.io output. Permission or provider gaps remain attached to the affected resource
-instead of dropping it, and recursive redaction keeps credential values out of discovery and report
-payloads. See CHANGELOG.md and AB#7366/AB#7367.
-
-## Previous Release — v3.12.8 — partial evidence stays partial
-
-Released 14 August 2026. A metadata denial from one Key Vault no longer promotes a granular
-ARM-child gap into failure of the entire Azure resource dataset. Only rules that require incomplete
-Key Vault key evidence become `NotAssessed`; unrelated CAF/WAF checks continue scoring. Standard
-PowerShell progress is restored as the stable interactive default, with the experimental bordered
-renderer available only by explicit opt-in. See CHANGELOG.md and AB#405.
-
-## Previous Release — v3.12.7 — the report always comes home
-
-Released 14 August 2026. A combined run whose scored assessment stops safely because
-required evidence is unavailable now reuses the completed inventory to render React and JsonEvidence
-without another Azure call, writing the deliverable into the predictable `assessment-report` folder.
-React indexing tolerates open-ended Azure values, including Boolean `name` fields. The built-in
-progress renderer now shows a high-contrast bordered multi-phase ledger whose elapsed clock continues
-during blocking operations. See CHANGELOG.md and AB#405.
-
-## Previous Release — v3.12.6 — the progress display ships with Scout
-
-Released 13 August 2026. AzureScout ships a self-contained native live renderer with no third-party
-progress dependency. Its spinner, progress bar, phase text, and elapsed clock start during permission
-preflight and cover extraction, diagrams and supplemental processing, assessment and inventory
-rendering, and deterministic collector processing. CI, redirected, and `-NoProgress` runs keep their
-safe fallbacks. See CHANGELOG.md and AB#405.
-
-## Previous Release — v3.12.5 — the compass keeps moving
+## Current Release — v3.12.5 — the compass keeps moving
 
 Released 13 August 2026. Interactive inventory extraction now uses a real auto-refreshing optional
 Spectre progress host, keeping its spinner and elapsed clock moving during blocking Azure calls.
@@ -874,8 +787,7 @@ Focus: depth, breadth, and multi-tenant scenarios.
 
 | Feature | Description | Status |
 |---------|-------------|--------|
-| Enterprise direct-access tenant scanning | `-AllAccessibleTenants` enumerates every tenant the signed-in user can reach, while multiple `-TenantID` values select a subset. One umbrella run contains a root React overview and isolated per-tenant reports; one tenant failure does not block the others. This deliberately does not use Lighthouse. | :construction: Implemented for next release (AB#332, AB#7105) |
-| Azure Lighthouse delegated scanning | Discover and collect customer subscriptions delegated through Azure Lighthouse without switching the operator into each customer tenant. This remains a separate access model and backlog hierarchy. | :bulb: Idea (AB#323) |
+| Multi-tenant scanning (Lighthouse) | `-TenantID` accepts multiple tenant IDs. Authenticates to each tenant sequentially, runs the full extraction → processing → reporting pipeline per tenant. Supports combined workbook (with Tenant column) or separate per-tenant workbooks via `-MergeOutput` switch. Auth failure on one tenant does not block others. The run-isolation prerequisite shipped in v2.3.0 (AB#331). | :bulb: Idea (AB#323) |
 | Word document export (#22) | Shipped as `-OutputFormat Word` in assessment mode: `Export-Word` generates a self-contained `.docx` via OpenXML, no Python. | :white_check_mark: Done (v2.2.0, AB#333) |
 | PDF report export (#23) | Shipped as `-OutputFormat Pdf` in assessment mode: `Export-Pdf` is a hand-rolled, dependency-free renderer (cover, executive summary, per-area findings table, gaps, manual review). | :white_check_mark: Done (v2.2.0, AB#379/394/395) |
 | Cost anomaly detection | Shipped as the offline `Get-ScoutCostAnomaly` function (v2.2.0) — flags statistical outliers (spike/z-score/IQR) in an already-collected cost dataset; never calls Azure. | :white_check_mark: Done (v2.2.0, AB#324) |
@@ -999,7 +911,7 @@ static/React reports) *and* the web portal. Same capability, per-surface deliver
 - **Collector / pipeline resilience** (shared engine): per-subscription try/catch/continue, MG
   role-requirement hint, false RP-registration-error swallow, per-group firewall-parse-error
   logging, empty-data guard, pipeline-`HadErrors` warning capture (AB#397–402).
-- **Live-progress UX** — same feature, per-surface delivery: AzureScout's native TUI in the CLI,
+- **Live-progress UX** — same feature, per-surface delivery: Spectre.Console TUI in the CLI,
   browser progress in the web portal (AB#405).
 
 ## Long-term Vision

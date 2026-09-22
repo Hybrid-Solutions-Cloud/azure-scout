@@ -133,7 +133,7 @@ and imported the module:
 
 ```powershell
 # Install once, from the PowerShell Gallery
-Install-Module -Name AzureScout -Scope CurrentUser -Force -AllowClobber
+Install-Module -Name AzureScout
 
 # Or import from a local clone
 Import-Module ./AzureScout.psd1

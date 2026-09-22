@@ -127,11 +127,7 @@ $ResUCount = 1
                     $FinalSUBs = if ($FinalSUBs -like '* ,*') { $FinalSUBs -replace ".$" }else { $FinalSUBs }
                 }
 
-            # AB#7367: default rules are effective configuration too. Reporting only custom
-            # rules hid AllowVnetInBound/OutBound and DenyAllInBound/OutBound from the inventory.
-            $SecurityRules = @((Get-AZSCSafeProperty -InputObject $data -Path 'securityRules' -Enumerate)) +
-                @((Get-AZSCSafeProperty -InputObject $data -Path 'defaultSecurityRules' -Enumerate))
-            $SecurityRules = @($SecurityRules | Where-Object { $null -ne $_ })
+            $SecurityRules = $data.securityRules
             $SecurityRules = if (![string]::IsNullOrEmpty($SecurityRules)) { $SecurityRules }else { '0' }
 '@
 
@@ -146,12 +142,7 @@ $ResUCount = 1
             # sentinel already holds it, and Collector.SparsePayload.Tests.ps1 asserts it on a
             # hand-built sparse payload.
             Source = '$SecurityRules'
-            Preamble = @'
-$RulePriority = Get-AZSCSafeProperty -InputObject $2 -Path 'properties.priority'
-$RuleType = if ($2 -isnot [string] -and
-    (((Get-AZSCSafeProperty -InputObject $2 -Path 'id') -match '(?i)/defaultSecurityRules/') -or
-     (([string]$RulePriority -match '^\d+$') -and [int]$RulePriority -ge 65000))) { 'Default' } else { 'Custom' }
-'@
+            Preamble = ''
         }
     )
 
@@ -274,10 +265,6 @@ if (![string]::IsNullOrEmpty($2.properties.sourceAddressPrefixes))
             Expression = '$2.name'
         }
         @{
-            Name = 'Rule Type'
-            Expression = '$RuleType'
-        }
-        @{
             Name = 'Direction'
             Expression = '$2.properties.direction'
         }
@@ -355,7 +342,6 @@ if (![string]::IsNullOrEmpty($2.properties.sourceAddressPrefixes))
             'Retiring Date'
             'Orphaned'
             'Security Rules'
-            'Rule Type'
             'Direction'
             'Action'
             'Priority'

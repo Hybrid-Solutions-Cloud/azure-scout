@@ -150,11 +150,7 @@ Describe 'Start-AZSCEntraExtraction' {
 
     Context 'Known availability gates' {
         BeforeEach {
-            # Sign-in URIs embed a clock-derived cutoff. Share one catalog snapshot
-            # across extraction, mock lookup and assertions within each test.
-            $availabilityCatalog = @(Get-ScoutEntraQueryCatalog)
-            Mock Get-ScoutEntraQueryCatalog { $availabilityCatalog }
-            # Delegated user token with none of the granular exact-scope permissions.
+            # Delegated user token with none of the three granular exact-scope permissions.
             Mock Get-AZSCGraphToken {
                 @{ Authorization = 'Bearer e30.eyJzY3AiOiJVc2VyLlJlYWQuQWxsIEdyb3VwLlJlYWQuQWxsIn0.sig'; 'Content-Type' = 'application/json' }
             }
@@ -170,12 +166,7 @@ Describe 'Start-AZSCEntraExtraction' {
             foreach ($pattern in @('riskyUsers', 'VerifiableCredentials', 'verifiedId/profiles', 'identityProviders', 'identitySecurityDefaults')) {
                 Should -Invoke Invoke-AZSCGraphRequest -Times 0 -Scope It -ParameterFilter { $Uri -match $pattern }
             }
-            $catalog = @(Get-ScoutEntraQueryCatalog)
-            $expected = @($catalog | Where-Object {
-                    ($_.ContainsKey('RequireDelegatedScope') -and $_.RequireDelegatedScope) -or
-                    ($_.ContainsKey('Collect') -and -not $_.Collect)
-                }).Count
-            @($result.QueryOutcomes | Where-Object Status -eq 'NotAssessed').Count | Should -Be $expected
+            @($result.QueryOutcomes | Where-Object Status -eq 'NotAssessed').Count | Should -Be 5
         }
 
         It 'records actionable NotAssessed reasons without emitting warnings' {
@@ -196,7 +187,7 @@ Describe 'Start-AZSCEntraExtraction' {
             $result = Start-AZSCEntraExtraction -TenantID 'target-tenant'
 
             $gated = @(Get-ScoutEntraQueryCatalog | Where-Object { $_.ContainsKey('RequireDelegatedScope') -and $_.RequireDelegatedScope })
-            @($gated).Count | Should -BeGreaterThan 3
+            @($gated).Count | Should -Be 3
             foreach ($query in $gated) {
                 $outcome = @($result.QueryOutcomes | Where-Object Type -eq $query.Type)
                 $outcome.Count | Should -Be 1
@@ -207,10 +198,7 @@ Describe 'Start-AZSCEntraExtraction' {
         }
 
         It 'executes every exact-scope entry successfully when the delegated token contains all scopes' {
-            $allScopes = @('User.Read.All') + @(Get-ScoutEntraQueryCatalog | Where-Object {
-                    $_.ContainsKey('RequireDelegatedScope') -and $_.RequireDelegatedScope
-                } | ForEach-Object Permission | Sort-Object -Unique)
-            $payload = @{ scp = $allScopes -join ' ' } | ConvertTo-Json -Compress
+            $payload = @{ scp = 'User.Read.All IdentityRiskyUser.Read.All Policy.Read.AuthenticationMethod VerifiedId-Profile.Read.All' } | ConvertTo-Json -Compress
             $b64 = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($payload)).TrimEnd('=').Replace('+', '-').Replace('/', '_')
             Mock Get-AZSCGraphToken { @{ Authorization = "Bearer e30.$b64.sig"; 'Content-Type' = 'application/json' } }
             Mock Test-ScoutTenantLicence { $true }
@@ -227,10 +215,7 @@ Describe 'Start-AZSCEntraExtraction' {
         }
 
         It 'records a successful empty result for every exact-scope entry' {
-            $allScopes = @('User.Read.All') + @(Get-ScoutEntraQueryCatalog | Where-Object {
-                    $_.ContainsKey('RequireDelegatedScope') -and $_.RequireDelegatedScope
-                } | ForEach-Object Permission | Sort-Object -Unique)
-            $payload = @{ scp = $allScopes -join ' ' } | ConvertTo-Json -Compress
+            $payload = @{ scp = 'User.Read.All IdentityRiskyUser.Read.All Policy.Read.AuthenticationMethod VerifiedId-Profile.Read.All' } | ConvertTo-Json -Compress
             $b64 = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($payload)).TrimEnd('=').Replace('+', '-').Replace('/', '_')
             Mock Get-AZSCGraphToken { @{ Authorization = "Bearer e30.$b64.sig"; 'Content-Type' = 'application/json' } }
             Mock Test-ScoutTenantLicence { $true }
@@ -379,20 +364,6 @@ Describe 'Start-AZSCEntraExtraction' {
         It 'returns a QueryOutcomes property' {
             $result = Start-AZSCEntraExtraction -TenantID 'test-tenant'
             $result.PSObject.Properties.Name | Should -Contain 'QueryOutcomes'
-        }
-
-        It 'records the exact Graph source operation and timing for every query' {
-            $result = Start-AZSCEntraExtraction -TenantID 'tenant-test'
-
-            foreach ($outcome in @($result.QueryOutcomes)) {
-                $outcome.Source      | Should -Be 'Microsoft Graph'
-                $outcome.Operation   | Should -Be 'GET'
-                $outcome.Uri         | Should -Match '^(https://graph\.microsoft\.com)?/(v1\.0|beta)/'
-                $outcome.ApiVersion  | Should -Match '^(v1\.0|beta)$'
-                $outcome.Permission  | Should -Not -BeNullOrEmpty
-                $outcome.StartedAt   | Should -Not -BeNullOrEmpty
-                $outcome.CompletedAt | Should -Not -BeNullOrEmpty
-            }
         }
 
         It 'records one outcome per catalog query' {

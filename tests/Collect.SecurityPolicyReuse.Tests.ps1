@@ -76,9 +76,6 @@ BeforeAll {
                 DefenderAlerts = @([pscustomobject]@{ Id = "alert-$suffix"; AlertDisplayName = "alert-$suffix" })
                 DefenderAssessments = @([pscustomobject]@{ Id = "assessment-$suffix"; DisplayName = "assessment-$suffix" })
                 DefenderSecureScores = @([pscustomobject]@{ Id = "score-$suffix"; DisplayName = "score-$suffix" })
-                DefenderSecureScoreControls = @()
-                DefenderRegulatoryStandards = @()
-                SubscriptionDiagnosticSettings = @()
                 PolicyComplianceStates = @([pscustomobject]@{ Id = "policy-$suffix"; ComplianceState = 'Compliant' })
             }
         }
@@ -86,15 +83,11 @@ BeforeAll {
             [ordered]@{
                 DefenderPricing = @(); DefenderAlerts = @(); DefenderAssessments = @()
                 DefenderSecureScores = @(); PolicyComplianceStates = @()
-                DefenderSecureScoreControls = @(); DefenderRegulatoryStandards = @()
-                SubscriptionDiagnosticSettings = @()
             }
         }
         $data.CollectionStatus = [pscustomobject]@{
             DefenderPricing = $status; DefenderAlerts = $status; DefenderAssessments = $status
             DefenderSecureScores = $status; PolicyComplianceStates = $status
-            DefenderSecureScoreControls = $status; DefenderRegulatoryStandards = $status
-            SubscriptionDiagnosticSettings = $status
         }
         $data.CollectionErrors = if ($Mode -eq 'Unavailable') {
             @([pscustomobject]@{ Dataset = 'DefenderPricing'; Message = 'provider unavailable' })

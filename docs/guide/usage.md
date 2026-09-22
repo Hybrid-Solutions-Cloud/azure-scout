@@ -89,35 +89,9 @@ Full detail, including pruning old runs with `Clear-AZSCCacheFolder -OlderThan`,
 [Output Files & Formats](./output.md#run-isolation).
 
 Every run retains its complete evidence set: `raw-inventory.json` (everything the Resource Graph
-pass collected, before any manifest filtered it down), `ReportCache/Discovery.json` (one
-completeness record per resource plus generic ARM relationships), `collector-rowcounts.json`,
+pass collected, before any manifest filtered it down), `collector-rowcounts.json`,
 `collection-health.json`, and the complete `ReportCache`/`DiagramCache` trees. See
 [Output Files & Formats — evidence artifacts](./output.md#evidence-artifacts).
-Discovery/report payloads preserve sensitive field presence but replace credential values with
-`[REDACTED]`.
-
-## Enterprise tenant runs (direct account access)
-
-Use `-AllAccessibleTenants` when the signed-in user is already a member or guest with access in
-several Entra tenants. Azure Scout enumerates those tenants, runs the existing pipeline once per
-tenant, and contains an authentication or permission failure to that tenant. This path does **not**
-use Azure Lighthouse.
-
-```powershell
-# Every tenant visible to the signed-in account
-Invoke-AzureScout -AllAccessibleTenants -Scope All -RunName 'Enterprise-Portfolio'
-
-# Only a selected subset
-Invoke-AzureScout -TenantID '<tenant-a>','<tenant-b>' -Scope All -RunName 'Selected-Tenants'
-```
-
-A multi-tenant run creates one umbrella folder. Its root `report-react.html` (also copied as
-`index.html`) records what was selected, what was skipped, each tenant outcome, resource and
-subscription counts, and links to each detailed tenant report. `run-summary.json` exposes the same
-status for automation.
-
-The automatic enumeration switch is deliberately explicit: a bare `Invoke-AzureScout` remains a
-single-tenant run and cannot unexpectedly launch scans across every tenant the account can reach.
 
 ## Content Toggles
 
@@ -128,28 +102,9 @@ Switch parameters to include/exclude specific content:
 | `-SecurityCenter` | Include Microsoft Defender for Cloud findings |
 | `-IncludeTags` | Include resource tags in Excel worksheets |
 | `-IncludeDevOps` | Include Azure DevOps projects, pipelines, service connections, repositories, and agent pools |
-| `-IncludeOkta` | Include the separate Okta control plane; also requires an HTTPS `-OktaOrganizationUrl` and SecureString `-OktaApiToken` |
-| `-IncludeOnPremisesIdentity` | Include local Entra Connect and AD topology from a host with the required read-only modules |
 | `-SkipAdvisory` | Skip Azure Advisor recommendations |
 | `-SkipPolicy` | Skip Azure Policy compliance data |
 | `-SkipPermissionCheck` | Skip the pre-flight permission validation |
-
-Okta is explicitly opt-in. Supply its token without placing plaintext in shell history:
-
-```powershell
-$oktaToken = Read-Host 'Okta read-only API token' -AsSecureString
-Invoke-AzureScout -Scope All -IncludeOkta `
-  -OktaOrganizationUrl 'https://example.okta.com' -OktaApiToken $oktaToken
-```
-
-For Entra Connect/AD topology, run on a host that can read those local services and modules:
-
-```powershell
-Invoke-AzureScout -Scope All -IncludeOnPremisesIdentity
-```
-
-Unavailable local modules and denied Okta endpoints are recorded as coverage gaps; they are not
-reported as proof that the corresponding configuration is absent.
 
 ## Azure DevOps
 

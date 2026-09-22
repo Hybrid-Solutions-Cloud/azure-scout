@@ -75,7 +75,7 @@ Describe 'Azure context display identity' {
 }
 
 Describe 'Wizard tenant-first behavior' {
-    It 'keeps the confirmed tenant without re-authenticating or opening a tenant selector when only one tenant is accessible' {
+    It 'keeps the confirmed tenant without opening a tenant or subscription selector' {
         & $script:Module {
             Mock Write-Host {}
             Mock Get-AzContext {
@@ -91,57 +91,16 @@ Describe 'Wizard tenant-first behavior' {
                     TenantId           = 'tenant-one'
                 }
             }
-            Mock Read-AZSCWizardConfirm { $true } -ParameterFilter { $Prompt -eq 'Use this signed-in account?' }
+            Mock Read-AZSCWizardConfirm { $true } -ParameterFilter { $Prompt -eq 'Use this account and tenant?' }
             Mock Test-AZSCPermissions { [pscustomobject]@{ Details = @(); OverallReadiness = 'ARMOnly' } }
             Mock Read-AZSCWizardChoice { $null } -ParameterFilter { $Title -eq 'Choose a run type' }
-            # AB#7105 -- the confirmed-tenant path now enumerates accessible tenants once so the
-            # wizard can offer multi-tenant scanning; a single accessible tenant means no extra
-            # prompt is shown and the confirmed tenant is used as-is.
-            Mock Get-AZSCAccessibleTenant { @([pscustomobject]@{ Id = 'tenant-one'; Name = 'Tenant One' }) }
+            Mock Get-AZSCAccessibleTenant { throw 'confirmed tenant must not enumerate tenants' }
             Mock Connect-AZSCLoginSession { throw 'confirmed tenant must not authenticate again' }
 
             $null = Start-AZSCWizard -AzureEnvironment AzureCloud -PlatOS Windows
 
-            Should -Invoke Get-AZSCAccessibleTenant -Times 1 -Exactly
+            Should -Not -Invoke Get-AZSCAccessibleTenant
             Should -Not -Invoke Connect-AZSCLoginSession
-            Should -Not -Invoke Read-AZSCWizardChoice -ParameterFilter { $Title -eq 'How many tenants do you want to scan?' }
-        }
-    }
-
-    It 'offers multi-tenant scanning after a confirmed context when several tenants are accessible' {
-        & $script:Module {
-            Mock Write-Host {}
-            Mock Get-AzContext {
-                [pscustomobject]@{
-                    Account = [pscustomobject]@{ Id = 'operator@example.test' }
-                    Tenant  = [pscustomobject]@{ Id = 'tenant-one' }
-                }
-            }
-            Mock Resolve-AZSCContextIdentity {
-                [pscustomobject]@{
-                    AccountDisplayName = 'operator@example.test'
-                    TenantDisplayName  = 'Tenant One'
-                    TenantId           = 'tenant-one'
-                }
-            }
-            Mock Read-AZSCWizardConfirm { $true } -ParameterFilter { $Prompt -eq 'Use this signed-in account?' }
-            Mock Get-AZSCAccessibleTenant {
-                @(
-                    [pscustomobject]@{ Id = 'tenant-one'; Name = 'Tenant One' }
-                    [pscustomobject]@{ Id = 'tenant-two'; Name = 'Tenant Two' }
-                )
-            }
-            Mock Read-AZSCWizardChoice {
-                if ($Title -eq 'How many tenants do you want to scan?') { return 'All' }
-                if ($Title -eq 'Choose a run type') { return $null }
-            }
-            Mock Connect-AZSCLoginSession { throw 'confirmed tenant must not authenticate again' }
-
-            $result = Start-AZSCWizard -AzureEnvironment AzureCloud -PlatOS Windows
-
-            Should -Invoke Get-AZSCAccessibleTenant -Times 1 -Exactly
-            Should -Invoke Read-AZSCWizardChoice -Times 1 -Exactly -ParameterFilter { $Title -eq 'How many tenants do you want to scan?' }
-            $result | Should -BeNullOrEmpty
         }
     }
 
@@ -162,7 +121,7 @@ Describe 'Wizard tenant-first behavior' {
                 }
             }
             Mock Read-AZSCWizardConfirm {
-                if ($Prompt -eq 'Use this signed-in account?') { return $false }
+                if ($Prompt -eq 'Use this account and tenant?') { return $false }
                 if ($Prompt -like 'Sign in with a device code*') { return $false }
                 return $false
             }
@@ -174,7 +133,6 @@ Describe 'Wizard tenant-first behavior' {
                 )
             }
             Mock Read-AZSCWizardChoice {
-                if ($Title -eq 'How many tenants do you want to scan?') { return 'Single' }
                 if ($Title -eq 'Select the tenant to scan') { return 'tenant-two' }
                 if ($Title -eq 'Choose a run type') { return $null }
             }

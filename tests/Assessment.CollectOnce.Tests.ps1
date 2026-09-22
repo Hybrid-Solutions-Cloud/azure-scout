@@ -141,22 +141,6 @@ Describe 'assessment category evidence closure' {
         { Assert-ScoutAssessmentCollectProvenance -Collect $collect -RequiredCategories @('Identity') } |
             Should -Not -Throw
     }
-
-    It 'accepts scoped ARM-child health so dependent rules can become NotAssessed' {
-        $collect = [pscustomobject]@{
-            _meta = [pscustomobject]@{
-                categories = @('*')
-                collectionHealth = @([pscustomobject]@{
-                        Dataset = 'Resources'; Source = 'ARM Child'; SourceDataset = 'KeyVaultKeys'
-                        Status = 'Unavailable'; ResourceTypes = @('AZSC/ARMChild/KeyVaultKeys')
-                        Collectors = @('Security/KeyVaultKeys')
-                    })
-            }
-        }
-
-        { Assert-ScoutAssessmentCollectProvenance -Collect $collect -RequiredCategories @('*') } |
-            Should -Not -Throw
-    }
 }
 
 Describe 'AB#6775 — the combined run is reachable from the command line' {
@@ -364,7 +348,6 @@ Describe 'AB#6737 — the deferred assessment (and its PDF) renders after the di
     # nothing here executes the run.
     BeforeAll {
         $script:Source = Get-Content -Raw (Join-Path -Path $script:Root -ChildPath 'src/Invoke-AzureScout.ps1')
-        $script:DeferredRetargetPattern = 'if\s*\(\$deferredAssessArgs\)\s*\{\s*\$deferredAssessArgs\.OutputPath\s*=\s*\$DefaultPath\b'
 
         function Get-ScoutSourceIndex {
             param([string]$Pattern)
@@ -379,7 +362,7 @@ Describe 'AB#6737 — the deferred assessment (and its PDF) renders after the di
         # Start-AZSCExtraJobs (which builds the diagram synchronously, AB#5649), before the
         # deferred-assessment call this Describe block is really testing.
         $ddFileIdx      = Get-ScoutSourceIndex '\$DDFile = Join-Path \$DefaultPath \$DDName'
-        $extraJobsIdx   = Get-ScoutSourceIndex '(?m)^\s+Start-AZSCExtraJobs\b'
+        $extraJobsIdx   = Get-ScoutSourceIndex '\$ExtraData = Start-AZSCExtraJobs\b'
         $ddFileIdx | Should -BeLessThan $extraJobsIdx
     }
 
@@ -387,7 +370,7 @@ Describe 'AB#6737 — the deferred assessment (and its PDF) renders after the di
         # AB#6737 -- this used to be reversed: the deferred assessment (and its PDF, AB#379)
         # rendered before $DDFile existed at all, so a combined run could never have a diagram
         # ready in time to embed it.
-        $extraJobsIdx    = Get-ScoutSourceIndex '(?m)^\s+Start-AZSCExtraJobs\b'
+        $extraJobsIdx    = Get-ScoutSourceIndex '\$ExtraData = Start-AZSCExtraJobs\b'
         $deferredCallIdx = Get-ScoutSourceIndex 'Invoke-ScoutAssessmentCore @deferredAssessArgs -FromInventory \$ExtractionData'
         $extraJobsIdx | Should -BeLessThan $deferredCallIdx
     }
@@ -404,20 +387,14 @@ Describe 'AB#6737 — the deferred assessment (and its PDF) renders after the di
         # reassigns those variables, the same values reach both the diagram build and the
         # (now-later) assessment call unchanged.
         $unpackIdx    = Get-ScoutSourceIndex '\$Resources = \$ExtractionData\.Resources'
-        $extraJobsIdx = Get-ScoutSourceIndex '(?m)^\s+Start-AZSCExtraJobs\b'
+        $extraJobsIdx = Get-ScoutSourceIndex '\$ExtraData = Start-AZSCExtraJobs\b'
         $unpackIdx | Should -BeLessThan $extraJobsIdx
     }
 
-    It 'finishes processed collector evidence before rendering the deferred assessment' {
+    It 'runs the deferred assessment before Start-AZSCProcessOrchestration (kept close to the diagram build, not deferred further than needed)' {
         $deferredCallIdx = Get-ScoutSourceIndex 'Invoke-ScoutAssessmentCore @deferredAssessArgs -FromInventory \$ExtractionData'
         $processIdx      = Get-ScoutSourceIndex 'Start-AZSCProcessOrchestration -Subscriptions \$Subscriptions'
-        $processIdx | Should -BeLessThan $deferredCallIdx
-    }
-
-    It 'passes the same run cache to scored, inventory-only and partial fallback rendering' {
-        foreach ($argumentSet in @('deferredAssessArgs', 'deferredInventoryOutputArgs', 'inventoryFallbackArgs')) {
-            $script:Source | Should -Match ('Invoke-ScoutAssessmentCore @' + $argumentSet + ' -FromInventory \$ExtractionData -ReportCachePath \$ReportCache')
-        }
+        $deferredCallIdx | Should -BeLessThan $processIdx
     }
 }
 
@@ -443,21 +420,17 @@ Describe 'AB#7185 — the deferred assessment writes into the SAME run folder as
     }
 
     It 'retargets $deferredAssessArgs.OutputPath to $DefaultPath, guarded on $deferredAssessArgs being set' {
-        Get-ScoutSourceIndex $script:DeferredRetargetPattern | Out-Null
-    }
-
-    It 'reserves the predictable assessment-report folder for scored output or the safe inventory fallback' {
-        Get-ScoutSourceIndex '\$deferredAssessArgs\.ReservedRunPath\s*=\s*Join-Path\s+\$DefaultPath\s+''assessment-report''' | Out-Null
+        Get-ScoutSourceIndex 'if\s*\(\$deferredAssessArgs\)\s*\{\s*\$deferredAssessArgs\.OutputPath\s*=\s*\$DefaultPath\s*\}' | Out-Null
     }
 
     It 'retargets OutputPath after $DefaultPath is assigned from $ReportingPath, not before' {
         $defaultPathIdx = Get-ScoutSourceIndex '\$DefaultPath\s*=\s*\$ReportingPath\.DefaultPath'
-        $retargetIdx    = Get-ScoutSourceIndex $script:DeferredRetargetPattern
+        $retargetIdx    = Get-ScoutSourceIndex 'if\s*\(\$deferredAssessArgs\)\s*\{\s*\$deferredAssessArgs\.OutputPath\s*=\s*\$DefaultPath\s*\}'
         $defaultPathIdx | Should -BeLessThan $retargetIdx
     }
 
     It 'retargets OutputPath before the deferred Invoke-ScoutAssessmentCore call consumes it' {
-        $retargetIdx     = Get-ScoutSourceIndex $script:DeferredRetargetPattern
+        $retargetIdx     = Get-ScoutSourceIndex 'if\s*\(\$deferredAssessArgs\)\s*\{\s*\$deferredAssessArgs\.OutputPath\s*=\s*\$DefaultPath\s*\}'
         $deferredCallIdx = Get-ScoutSourceIndex 'Invoke-ScoutAssessmentCore @deferredAssessArgs -FromInventory \$ExtractionData'
         $retargetIdx | Should -BeLessThan $deferredCallIdx
     }

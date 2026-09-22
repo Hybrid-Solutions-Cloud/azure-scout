@@ -388,7 +388,7 @@ Describe 'Invoke-AzureScout wiring' {
     It 'initializes durable logging and the failure trap before permission preflight' {
         $startIndex = $script:EntryPoint.IndexOf('Start-AZSCRunLog -DefaultPath $DefaultPath')
         $trapIndex = $script:EntryPoint.IndexOf('trap {', $startIndex)
-        $preflightIndex = $script:EntryPoint.IndexOf('Test-AZSCPermissions -TenantID $TenantID')
+        $preflightIndex = $script:EntryPoint.IndexOf('$permResult = Test-AZSCPermissions')
         $startIndex | Should -BeGreaterThan -1
         $trapIndex | Should -BeGreaterThan $startIndex
         $preflightIndex | Should -BeGreaterThan $trapIndex
@@ -412,7 +412,7 @@ Describe 'Invoke-AzureScout wiring' {
 
         $timingStart = $raw.IndexOf('function Write-ScoutRawInventoryTiming')
         $startStart = $raw.IndexOf('function Write-ScoutRawInventoryStart')
-        $startEnd = $raw.IndexOf('$columns =', $startStart)
+        $startEnd = $raw.IndexOf('$tagProjection', $startStart)
         $timingSection = $raw.Substring($timingStart, $startStart - $timingStart)
         $startSection = $raw.Substring($startStart, $startEnd - $startStart)
         $lastPercent = -1

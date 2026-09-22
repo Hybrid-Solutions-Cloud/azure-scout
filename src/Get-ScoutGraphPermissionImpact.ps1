@@ -76,11 +76,7 @@ function Get-ScoutGraphPermissionImpact {
             if ($null -eq $definition -or -not $definition.ContainsKey('ResourceTypes')) { continue }
 
             $collectorName = '{0}/{1}' -f $file.Directory.Name, $file.BaseName
-            # SourceDependencies lets a correlation collector declare the retained datasets it
-            # consumes without pretending those source rows are themselves report rows.
-            foreach ($type in @($definition.ResourceTypes) + @(
-                    if ($definition.ContainsKey('SourceDependencies')) { $definition.SourceDependencies }
-                )) {
+            foreach ($type in @($definition.ResourceTypes)) {
                 if ([string]::IsNullOrWhiteSpace($type)) { continue }
                 $key = ([string] $type).ToLowerInvariant()
                 if (-not $byType.ContainsKey($key)) { $byType[$key] = [System.Collections.Generic.List[string]]::new() }

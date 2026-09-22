@@ -291,7 +291,7 @@ param(
         }
         try {
             $collect = Invoke-Collect -FromInventory $inventory -WarningAction SilentlyContinue
-            $collect.security.PSObject.Properties.Name | Should -Be @('defenderPlans', 'wafPolicies', 'ddosProtectionPlans', 'applicationSecurityGroups', 'defenderAlerts', 'defenderAssessments', 'defenderSecureScores', 'defenderRegulatoryStandards')
+            $collect.security.PSObject.Properties.Name | Should -Be @('defenderPlans', 'wafPolicies', 'ddosProtectionPlans', 'applicationSecurityGroups', 'defenderAlerts', 'defenderAssessments', 'defenderSecureScores')
         }
         finally {
             Remove-Item function:Search-AzGraph -ErrorAction SilentlyContinue
