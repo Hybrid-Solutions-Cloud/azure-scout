@@ -43,10 +43,7 @@ Function Start-AZSCGraphExtraction {
 
     <###################################################### Subscriptions ######################################################################>
 
-    if (Get-Command Write-ScoutProgress -ErrorAction SilentlyContinue) {
-        Write-ScoutProgress -Activity 'Azure Inventory' -Status '2% Complete.' -PercentComplete 2 -CurrentOperation 'Discovering subscriptions'
-    }
-    else { Write-Progress -Activity 'Azure Inventory' -Status '2% Complete.' -PercentComplete 2 -CurrentOperation 'Discovering subscriptions' }
+    Write-Progress -activity 'Azure Inventory' -Status '2% Complete.' -PercentComplete 2 -CurrentOperation 'Discovering Subscriptions..'
 
     if (![string]::IsNullOrEmpty($ManagementGroup)) {
         $Subscriptions = Get-AZSCManagementGroups -ManagementGroup $ManagementGroup -Subscriptions $Subscriptions
@@ -56,10 +53,7 @@ Function Start-AZSCGraphExtraction {
     $SubCount = [string]@($Subscri).Count
 
     Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + ' - ' + 'Number of Subscriptions Found: ' + $SubCount)
-    if (Get-Command Write-ScoutProgress -ErrorAction SilentlyContinue) {
-        Write-ScoutProgress -Activity 'Azure Inventory' -Status '3% Complete.' -PercentComplete 3 -CurrentOperation "$SubCount subscriptions found"
-    }
-    else { Write-Progress -Activity 'Azure Inventory' -Status '3% Complete.' -PercentComplete 3 -CurrentOperation "$SubCount subscriptions found" }
+    Write-Progress -activity 'Azure Inventory' -Status '3% Complete.' -PercentComplete 3 -CurrentOperation "$SubCount Subscriptions found.."
 
     # Preserved verbatim from the v1 contract: a resource-group filter is only meaningful
     # alongside an explicit subscription. Throw rather than Exit -- Exit kills the whole
@@ -69,10 +63,7 @@ Function Start-AZSCGraphExtraction {
         throw 'If using the -ResourceGroup parameter, the -SubscriptionID must also be provided.'
     }
 
-    if (Get-Command Write-ScoutProgress -ErrorAction SilentlyContinue) {
-        Write-ScoutProgress -Activity 'Azure Inventory' -Status '4% Complete.' -PercentComplete 4 -CurrentOperation 'Starting resource extraction'
-    }
-    else { Write-Progress -Activity 'Azure Inventory' -Status '4% Complete.' -PercentComplete 4 -CurrentOperation 'Starting resource extraction' }
+    Write-Progress -activity 'Azure Inventory' -Status '4% Complete.' -PercentComplete 4 -CurrentOperation 'Starting Resources extraction..'
 
     <######################################################## SINGLE COLLECTION PASS #######################################################>
 
@@ -152,10 +143,7 @@ Function Start-AZSCGraphExtraction {
     Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + ' - ' + 'Number of Security Center Advisors: ' + $Security.Count)
     Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + ' - ' + 'Number of Retirements: ' + $ResourceRetirements.Count)
 
-    if (Get-Command Write-ScoutProgress -ErrorAction SilentlyContinue) {
-        Write-ScoutProgress -Activity 'Azure Inventory' -Status 'Resource extraction complete' -PercentComplete 10
-    }
-    else { Write-Progress -Activity 'Azure Inventory' -Status 'Resource extraction complete' -PercentComplete 10 }
+    Write-Progress -activity 'Azure Inventory' -PercentComplete 10
 
     # Zero-resources guard: an (almost) empty result usually means a permission or scope
     # problem, not an empty tenant (AB#5080). Get-ScoutRawInventory raises its own version of

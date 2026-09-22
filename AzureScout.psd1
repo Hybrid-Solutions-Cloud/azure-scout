@@ -12,7 +12,7 @@
 RootModule = 'AzureScout.psm1'
 
 # Version number of this module.
-ModuleVersion = '3.12.5'
+ModuleVersion = '3.12.3'
 
 # Supported PSEditions
 CompatiblePSEditions = @('Core')
@@ -164,7 +164,7 @@ PrivateData = @{
         IconUri = 'https://raw.githubusercontent.com/Hybrid-Solutions-Cloud/azure-scout/main/docs/public/images/azurescout-icon.svg'
 
         # ReleaseNotes of this module
-        ReleaseNotes = 'v3.12.5 - The compass keeps moving. Interactive inventory extraction now uses a real auto-refreshing PwshSpectreConsole progress host when the optional module is available, so the spinner and elapsed timer keep advancing during long blocking Azure calls. Phase labels use high-contrast foreground text with no colored background, native and CI-safe fallbacks remain intact, and -NoProgress suppresses interactive rendering explicitly. Progress failures cannot execute a collector twice. AB#405.'
+        ReleaseNotes = 'v3.12.3 - Every collector tells the truth. ARM child discovery now works with supported Az.Accounts versions and records per-dataset failures instead of silently returning empty data. Risky Users, Verified ID, management-group, Defender, and Azure DevOps availability are classified from the real permission, licence, HTTP, and provider results. Operational collection emits bounded progress and durable heartbeats; run logs always receive a terminal status. A live HCS acceptance pass independently reconciled all 278 collector outcomes while retaining raw inventory, caches, health, and logs. AB#7279.'
 
         # Prerelease string of this module
         # Prerelease = ''
@@ -172,10 +172,8 @@ PrivateData = @{
         # Flag to indicate whether the module requires explicit user acceptance for install/update/save
         # RequireLicenseAcceptance = $false
 
-        # Optional rich terminal progress. AzureScout remains fully functional on PowerShell 7.0
-        # without it; current PwshSpectreConsole releases require newer PowerShell versions, so it
-        # cannot be a hard RequiredModules dependency without breaking the supported engine floor.
-        ExternalModuleDependencies = @('PwshSpectreConsole')
+        # External dependent modules of this module
+        # ExternalModuleDependencies = @()
 
     } # End of PSData hashtable
 

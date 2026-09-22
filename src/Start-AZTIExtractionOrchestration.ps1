@@ -229,10 +229,7 @@ function Start-AZSCExtractionOrchestration {
 
         if(![bool]$SkipAPIs -and $extractionPlan.IncludeApiResourceSweep)
             {
-                if (Get-Command Write-ScoutProgress -ErrorAction SilentlyContinue) {
-                    Write-ScoutProgress -Activity 'Azure Inventory' -Status '12% Complete.' -PercentComplete 12 -CurrentOperation 'Starting API extraction'
-                }
-                else { Write-Progress -Activity 'Azure Inventory' -Status '12% Complete.' -PercentComplete 12 -CurrentOperation 'Starting API extraction' }
+                Write-Progress -activity 'Azure Inventory' -Status "12% Complete." -PercentComplete 12 -CurrentOperation "Starting API Extraction.."
                 Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Getting API Resources.')
                 # The v3 collector implementation owns the ARM REST contract directly.  Do
                 # not route this through a legacy Modules shim: src/collect is now the single
@@ -283,10 +280,7 @@ function Start-AZSCExtractionOrchestration {
             {
                 Write-Host 'Gathering VM Extra Details: ' -NoNewline
                 Write-Host 'Quotas' -ForegroundColor Cyan
-                if (Get-Command Write-ScoutProgress -ErrorAction SilentlyContinue) {
-                    Write-ScoutProgress -Activity 'Azure Inventory' -Status '13% Complete.' -PercentComplete 13 -CurrentOperation 'Starting VM details extraction'
-                }
-                else { Write-Progress -Activity 'Azure Inventory' -Status '13% Complete.' -PercentComplete 13 -CurrentOperation 'Starting VM details extraction' }
+                Write-Progress -activity 'Azure Inventory' -Status "13% Complete." -PercentComplete 13 -CurrentOperation "Starting VM Details Extraction.."
 
                 $VMQuotas = Get-ScoutVmQuotas -Subscriptions $Subscriptions -Resources $Resources
 
@@ -318,10 +312,7 @@ function Start-AZSCExtractionOrchestration {
             Write-Warning 'TenantID is required for Entra ID extraction but was not provided. Skipping Entra extraction.'
         }
         else {
-            if (Get-Command Write-ScoutProgress -ErrorAction SilentlyContinue) {
-                Write-ScoutProgress -Activity 'Azure Inventory' -Status '15% Complete.' -PercentComplete 15 -CurrentOperation 'Starting Entra ID extraction'
-            }
-            else { Write-Progress -Activity 'Azure Inventory' -Status '15% Complete.' -PercentComplete 15 -CurrentOperation 'Starting Entra ID extraction' }
+            Write-Progress -activity 'Azure Inventory' -Status "15% Complete." -PercentComplete 15 -CurrentOperation "Starting Entra ID Extraction.."
             Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + ' - Starting Entra ID extraction for tenant: ' + $TenantID)
 
             $EntraData = Start-AZSCEntraExtraction -TenantID $TenantID
@@ -410,10 +401,7 @@ function Start-AZSCExtractionOrchestration {
     # Opt-in rather than scope-driven: Azure DevOps is a separate service with its own
     # authorization, and an inventory run should not fail or stall on it by default.
     if ($IncludeDevOps.IsPresent -and $extractionPlan.IncludeDevOps) {
-        if (Get-Command Write-ScoutProgress -ErrorAction SilentlyContinue) {
-            Write-ScoutProgress -Activity 'Azure Inventory' -Status '18% Complete.' -PercentComplete 18 -CurrentOperation 'Starting Azure DevOps extraction'
-        }
-        else { Write-Progress -Activity 'Azure Inventory' -Status '18% Complete.' -PercentComplete 18 -CurrentOperation 'Starting Azure DevOps extraction' }
+        Write-Progress -activity 'Azure Inventory' -Status "18% Complete." -PercentComplete 18 -CurrentOperation "Starting Azure DevOps Extraction.."
         Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + ' - Starting Azure DevOps extraction.')
 
         $DevOpsData = Start-AZSCDevOpsExtraction -TenantID $TenantID -Organization $DevOpsOrganization -Pat $DevOpsPat

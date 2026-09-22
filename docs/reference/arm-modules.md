@@ -6,7 +6,7 @@ description: Complete catalog of AzureScout inventory collectors across all 18 o
 
 ## Overview
 
-AzureScout ships **285 collector definitions** across **18 categories** — Microsoft's
+AzureScout ships **278 collector definitions** across **18 categories** — Microsoft's
 eighteen published service categories, as listed on the Azure portal's All services page.
 The `Identity` category queries Microsoft Graph rather than ARM; those collectors are also
 cataloged on the [Entra ID Modules](entra-modules.md) page.
@@ -32,13 +32,12 @@ claimed to be generated and was 15 collectors out of date.
 
 ## Module Catalog
 
-### AI (31 modules)
+### AI (30 modules)
 
 Cognitive Services, Azure OpenAI, Machine Learning, AI Foundry, Bot Services, and AI Search.
 
 | Module | Resource Type |
 |--------|---------------|
-| AIFoundryAccountProjects | `microsoft.cognitiveservices/accounts/projects` |
 | AIFoundryHubs | `microsoft.machinelearningservices/workspaces` *(filtered)* |
 | AIFoundryProjects | `microsoft.machinelearningservices/workspaces` *(filtered)* |
 | AppliedAIServices | `microsoft.cognitiveservices/accounts` *(filtered)* |
@@ -115,7 +114,7 @@ Virtual machines, scale sets, availability sets, and the Azure Virtual Desktop e
 | VMOperationalData | `microsoft.compute/virtualmachines` |
 | VMWare | `Microsoft.AVS/privateClouds` |
 
-### Containers (8 modules)
+### Containers (6 modules)
 
 AKS, ARO, Container Apps, container instances, and container registries.
 
@@ -125,8 +124,6 @@ AKS, ARO, Container Apps, container instances, and container registries.
 | ARO | `microsoft.redhatopenshift/openshiftclusters` |
 | ContainerApp | `microsoft.app/containerapps` |
 | ContainerAppEnv | `microsoft.app/managedenvironments` |
-| ContainerAppJobs | `microsoft.app/jobs` |
-| ContainerAppManagedCertificates | `microsoft.app/managedenvironments/managedcertificates` |
 | ContainerGroups | `microsoft.containerinstance/containergroups` |
 | ContainerRegistries | `microsoft.containerregistry/registries` |
 
@@ -152,7 +149,7 @@ Azure SQL, Cosmos DB, MySQL, PostgreSQL, MariaDB, and Redis.
 | SQLVM | `microsoft.sqlvirtualmachine/sqlvirtualmachines` |
 | StorageTables | `AZSC/ARMChild/StorageTables` |
 
-### DevOps (19 modules)
+### DevOps (18 modules)
 
 Chaos Studio, Dev Box and Dev Centers, DevTest and Lab Services, Load Testing, Managed DevOps Pools, and Playwright workspaces.
 
@@ -176,7 +173,6 @@ Chaos Studio, Dev Box and Dev Centers, DevTest and Lab Services, Load Testing, M
 | ManagedDevOpsPools | `microsoft.devopsinfrastructure/pools` |
 | ManagedGrafana | `microsoft.dashboard/grafana` |
 | PlaywrightTesting | `microsoft.azureplaywrightservice/accounts` |
-| VisualStudioAccounts | `microsoft.visualstudio/account` |
 
 ### General (5 modules)
 
@@ -213,7 +209,7 @@ Azure Arc, Azure Local, VMware Solution, and the hybrid data services.
 | StorageContainers | `microsoft.azurestackhci/storagecontainers` |
 | VirtualMachines | `AZSC/ARMChild/AzureLocalVirtualMachineInstances` |
 
-### Identity (21 modules)
+### Identity (20 modules)
 
 Entra ID via Microsoft Graph — users, groups, app registrations, Conditional Access, and PIM.
 
@@ -221,7 +217,6 @@ Entra ID via Microsoft Graph — users, groups, app registrations, Conditional A
 |--------|---------------|
 | AdminUnits | `entra/administrativeunits` |
 | AppRegistrations | `entra/applications` |
-| CIAMDirectories | `microsoft.azureactivedirectory/ciamdirectories` |
 | ConditionalAccess | `entra/conditionalaccesspolicies` |
 | CrossTenantAccess | `entra/crosstenantaccess` |
 | DirectoryRoles | `entra/directoryroles` |
@@ -311,7 +306,7 @@ Azure Migrate projects, assessments and discovery sites; Database Migration Serv
 | DataBox | `microsoft.databox/jobs` |
 | StackEdge | `microsoft.databoxedge/databoxedgedevices` |
 
-### Monitor (24 modules)
+### Monitor (22 modules)
 
 Alert rules, Application Insights, data collection rules, diagnostic settings, and Log Analytics.
 
@@ -324,8 +319,6 @@ Alert rules, Application Insights, data collection rules, diagnostic settings, a
 | AppInsightsProactiveDetection | `AZSC/ARMChild/AppInsightsProactiveDetection` |
 | AppInsightsWebTests | `microsoft.insights/webtests` *(filtered)* |
 | AutoscaleSettings | `microsoft.insights/autoscalesettings` |
-| AzureDashboards | `microsoft.dashboard/dashboards` |
-| AzureMonitorWorkspaces | `microsoft.monitor/accounts` |
 | DataCollectionEndpoints | `microsoft.insights/datacollectionendpoints` |
 | DataCollectionRules | `microsoft.insights/datacollectionrules` |
 | LAWorkspaceLinkedServices | `AZSC/ARMChild/LAWorkspaceLinkedServices` |

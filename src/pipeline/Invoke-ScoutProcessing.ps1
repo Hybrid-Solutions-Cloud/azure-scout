@@ -230,14 +230,8 @@ function Invoke-ScoutProcessing {
 
         foreach ($Collector in $Group.Group) {
             $Percent = [math]::Round((($Done / $Total) * 100))
-            if (Get-Command -Name 'Write-ScoutProgress' -ErrorAction SilentlyContinue) {
-                Write-ScoutProgress -Id 1 -Activity 'Processing inventory' -Status "$Percent% Complete." `
-                    -PercentComplete $Percent -CurrentOperation "$CategoryName / $($Collector.Name)"
-            }
-            else {
-                Write-Progress -Id 1 -Activity 'Processing inventory' -Status "$Percent% Complete." `
-                    -PercentComplete $Percent -CurrentOperation "$CategoryName / $($Collector.Name)"
-            }
+            Write-Progress -Id 1 -Activity 'Processing inventory' -Status "$Percent% Complete." `
+                -PercentComplete $Percent -CurrentOperation "$CategoryName / $($Collector.Name)"
 
             $Result = Invoke-ScoutCollector -Collector $Collector -Context $Context
 
@@ -310,12 +304,7 @@ function Invoke-ScoutProcessing {
         if (Get-Command -Name 'Clear-AZSCMemory' -ErrorAction SilentlyContinue) { Clear-AZSCMemory }
     }
 
-    if (Get-Command -Name 'Write-ScoutProgress' -ErrorAction SilentlyContinue) {
-        Write-ScoutProgress -Id 1 -Activity 'Processing inventory' -Status '100% Complete.' -Completed
-    }
-    else {
-        Write-Progress -Id 1 -Activity 'Processing inventory' -Status '100% Complete.' -Completed
-    }
+    Write-Progress -Id 1 -Activity 'Processing inventory' -Status '100% Complete.' -Completed
 
     # AB#6766 -- write the row-count artifact before anything can clear the cache. Sorted by
     # category then collector so two runs diff cleanly; a hash-ordered file would show every

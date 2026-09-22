@@ -231,21 +231,17 @@ param(
                 Resources = @(
                     [pscustomobject]@{
                         id = '.../vaults/kv1/secrets/s1'; type = 'AZSC/ARMChild/KeyVaultSecrets'
-                        properties = [pscustomobject]@{
-                            contentType = 'text/plain'; attributes = [pscustomobject]@{ enabled = $true; exp = $null }
-                        }
+                        contentType = 'text/plain'; attributes = [pscustomobject]@{ enabled = $true; exp = $null }
                         PARENTID = '.../vaults/kv1'; PARENTNAME = 'kv1'; subscriptionId = 'sub1'; RESOURCEGROUP = 'rg1'
                     }
                     [pscustomobject]@{
                         id = '.../vaults/kv1/secrets/cert1'; type = 'AZSC/ARMChild/KeyVaultSecrets'
-                        properties = [pscustomobject]@{
-                            contentType = 'application/x-pkcs12'; attributes = [pscustomobject]@{ enabled = $true; exp = 1234567890 }
-                        }
+                        contentType = 'application/x-pkcs12'; attributes = [pscustomobject]@{ enabled = $true; exp = 1234567890 }
                         PARENTID = '.../vaults/kv1'; PARENTNAME = 'kv1'; subscriptionId = 'sub1'; RESOURCEGROUP = 'rg1'
                     }
                     [pscustomobject]@{
                         id = '.../vaults/kv1/keys/k1'; type = 'AZSC/ARMChild/KeyVaultKeys'
-                        properties = [pscustomobject]@{ attributes = [pscustomobject]@{ enabled = $true } }
+                        attributes = [pscustomobject]@{ enabled = $true }
                         PARENTID = '.../vaults/kv1'; PARENTNAME = 'kv1'; subscriptionId = 'sub1'; RESOURCEGROUP = 'rg1'
                     }
                 )
@@ -263,8 +259,6 @@ param([Parameter(ValueFromRemainingArguments)] $Rest); return @() }
         $collect.domains.security.keyVaultSecrets.Count | Should -Be 2
         $collect.domains.security.keyVaultKeys.Count | Should -Be 1
         ($collect.domains.security.keyVaultSecrets | Where-Object id -match 'cert1').contentType | Should -Be 'application/x-pkcs12'
-        ($collect.domains.security.keyVaultSecrets | Where-Object id -match 'cert1').enabled | Should -BeTrue
-        ($collect.domains.security.keyVaultSecrets | Where-Object id -match 'cert1').expires | Should -Be 1234567890
         $collect.domains.security.keyVaultKeys[0].keyVaultName | Should -Be 'kv1'
     }
 }

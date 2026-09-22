@@ -1303,19 +1303,15 @@ Function Start-AZSCDiagramNetwork {
 
                         $NameString = -join ((65..90) + (97..122) | Get-Random -Count 20 | ForEach-Object {[char]$_})
 
-                        $SubnetJob = Start-ThreadJob -Name ('Job_'+$NameString) -ScriptBlock {
+                        Start-ThreadJob -Name ('Job_'+$NameString) -ScriptBlock {
                             Write-Output ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Calling Subnet function')
 
                             Import-Module $($args[7])
 
                             Build-AZSCDiagramSubnet -SubnetLocation $($args[0]) -VNET $($args[1]) -IDNum $($args[2]) -DiagramCache $($args[3]) -ContainerID $($args[4]) -Job $($args[5])-LogFile $($args[6])
-                        } -ArgumentList $subloc,$VNET,$IDNum,$DiagramCache,$ContID,$Job,$LogFile,$AZSCModule
+                        } -ArgumentList $subloc,$VNET,$IDNum,$DiagramCache,$ContID,$Job,$LogFile,$AZSCModule | Out-Null
 
-                        # Own the actual PSJob object. The former code stored its already-prefixed
-                        # name, then cleanup prefixed `Job_` a second time and tried to resolve a
-                        # runspace variable that the Start-ThreadJob path never created. That
-                        # aborted subnet-fragment merging with `Job_Job_* cannot be retrieved`.
-                        $Script:jobs += $SubnetJob
+                        $Script:jobs += ('Job_'+$NameString)
 
                         <#
                         New-Variable -Name ('Run_'+$NameString) -Scope Script
@@ -1361,9 +1357,15 @@ Function Start-AZSCDiagramNetwork {
         }
 
         Function Remove-AZSCDiagramJob {
-            foreach($Job in $Script:jobs)
+            foreach($job in $Script:jobs)
             {
-                Remove-Job -Job $Job -Force -ErrorAction SilentlyContinue
+                if((get-variable -name ('Job_'+$job) -Scope Script).Value.IsCompleted -eq $true)
+                    {
+                        #((get-variable -name ('Run_'+$job)).Value).EndInvoke((get-variable -name ('Job_'+$job)).Value)
+                        ((get-variable -name ('Run_'+$job)).Value).Dispose()
+                        Remove-Variable -Name ('Run_'+$job) -Scope Script -Force
+                        Remove-Variable -Name ('Job_'+$job) -Scope Script -Force
+                    }
             }
         }
         <# Function to create the Label of Version #>
@@ -1376,11 +1378,11 @@ Function Start-AZSCDiagramNetwork {
         }
 
         Function Get-AZSCDiagramJobLog {
-            Param($Jobs)
+            Param($JobNames)
 
-            Foreach ($Job in $Jobs)
+            Foreach ($JobName in $JobNames)
                 {
-                    $LogEntries = Receive-Job -Job $Job
+                    $LogEntries = Receive-Job -Name $JobName
                     Foreach ($LogEntry in $LogEntries)
                         {
                             Write-Output $LogEntry
@@ -1504,11 +1506,11 @@ Function Start-AZSCDiagramNetwork {
                         {
                             Write-Output ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Waiting Job2 to complete')
 
-                            Wait-Job -Job $Script:jobs | Out-Null
+                            Get-job -Name $Script:jobs | Wait-Job | Out-Null
 
                             Write-Output ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Getting Subnet Job Logs')
 
-                            Get-AZSCDiagramJobLog -Jobs $Script:jobs
+                            Get-AZSCDiagramJobLog -JobNames $Script:jobs
 
                             Write-Output ('DrawIONetwork - '+(get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - Removing Jobs')
 
