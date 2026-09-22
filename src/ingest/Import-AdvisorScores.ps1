@@ -86,15 +86,48 @@ function Import-AdvisorScores {
 
     try {
         $subs = (Get-AzSubscription -TenantId $tenantId | Where-Object State -eq 'Enabled')
+        $failed = [System.Collections.Generic.List[string]]::new()
+
         $recs = foreach ($s in $subs) {
-            $switchParams = @{ Subscription = $s.Id }
-            $subscriptionTenantId = if ($s.PSObject.Properties.Name -contains 'TenantId') { $s.TenantId } else { $tenantId }
-            if ($subscriptionTenantId) { $switchParams['Tenant'] = $subscriptionTenantId }
-            Set-AzContext @switchParams | Out-Null
-            Get-AzAdvisorRecommendation | Select-Object Category, Impact, ImpactedField, ImpactedValue,
-                @{ n = 'Subscription'; e = { $s.Name } }, ShortDescriptionProblem, ShortDescriptionSolution
+            # AB#6894. The try/catch is PER SUBSCRIPTION. It used to wrap the whole loop, so one
+            # bad subscription cost the Advisor data for every other subscription in the tenant --
+            # and, with no catch at all, surfaced as a raw stack trace from inside Az.Advisor's
+            # generated code in the middle of an otherwise healthy run.
+            #
+            # The specific failure seen in the field is Az.Advisor 3.0.0 raising
+            #   "Expected '{' or '['. Was String: The."
+            # from Advisor.Autorest\custom\Get-AzAdvisorRecommendation.ps1. That is a JSON parser
+            # meeting a plain-text body: Azure answered with an error sentence beginning "The ..."
+            # (most often the Microsoft.Advisor resource provider not being registered on that
+            # subscription, or Advisor having produced no assessment for it yet) and the generated
+            # cmdlet tries to deserialise it as JSON regardless. It is a defect in Az.Advisor, not
+            # something Scout can prevent -- but it is entirely something Scout can contain.
+            try {
+                $switchParams = @{ Subscription = $s.Id }
+                $subscriptionTenantId = if ($s.PSObject.Properties.Name -contains 'TenantId') { $s.TenantId } else { $tenantId }
+                if ($subscriptionTenantId) { $switchParams['Tenant'] = $subscriptionTenantId }
+                Set-AzContext @switchParams -ErrorAction Stop | Out-Null
+
+                Get-AzAdvisorRecommendation -ErrorAction Stop | Select-Object Category, Impact, ImpactedField, ImpactedValue,
+                    @{ n = 'Subscription'; e = { $s.Name } }, ShortDescriptionProblem, ShortDescriptionSolution
+            }
+            catch {
+                $failed.Add($s.Name)
+                $hint = if ($_.Exception.Message -match "Expected '\{' or '\['") {
+                    "Azure returned a non-JSON response and Az.Advisor $(try { (Get-Module Az.Advisor).Version } catch { '3.x' }) could not parse it. Usually the Microsoft.Advisor resource provider is not registered on this subscription, or Advisor has not produced an assessment for it yet."
+                }
+                else { $_.Exception.Message }
+                Write-Warning "Import-AdvisorScores: skipping Advisor recommendations for subscription '$($s.Name)'. $hint Every other subscription is unaffected, and Advisor-derived findings for this one are reported as Not assessed."
+            }
         }
+
         $Collect | Add-Member -NotePropertyName advisor -NotePropertyValue (@($recs)) -Force
+
+        # Say it once, plainly, at the end. A per-subscription warning scrolls past; a summary
+        # naming the count is what tells a reader the report's Advisor coverage is partial.
+        if ($failed.Count -gt 0) {
+            Write-Warning "Import-AdvisorScores: Advisor data is missing for $($failed.Count) of $(@($subs).Count) subscription(s): $($failed -join ', '). Run 'Register-AzResourceProvider -ProviderNamespace Microsoft.Advisor' on those subscriptions, or pass -SkipAdvisory to omit Advisor entirely."
+        }
     }
     finally {
         if ($originalSubscriptionId) {

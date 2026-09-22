@@ -271,7 +271,12 @@ function Invoke-ScoutAssessmentCore {
     }
 
     # ---- REPORT ----
-    $reporters = if ($OutputFormat -contains 'All') { @('PowerBi', 'Html', 'Pptx', 'Excel', 'Json', 'JsonEvidence', 'React', 'Pdf', 'Word', 'EChartsDashboard') } else { $OutputFormat }
+    # AB#6863. GovernanceReport was missing from this list. Export-Report dispatches it and the
+    # renderer is fully implemented and tested, but no production caller ever reached it through
+    # the All path -- so the only surface carrying the 1-10 CAF Govern domain maturity score never
+    # rendered on a default run. A renderer that exists, passes its tests and is unreachable is
+    # indistinguishable from one that was never written.
+    $reporters = if ($OutputFormat -contains 'All') { @('PowerBi', 'Html', 'Pptx', 'Excel', 'Json', 'JsonEvidence', 'React', 'Pdf', 'Word', 'EChartsDashboard', 'GovernanceReport') } else { $OutputFormat }
     $reporterIndex = 0
     foreach ($r in $reporters) {
         $reporterIndex++

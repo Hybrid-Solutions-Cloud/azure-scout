@@ -44,6 +44,7 @@ export default defineConfig({
         items: [
           { text: 'Guide index', link: '/guide/' },
           { text: 'Overview', link: '/guide/overview' },
+          { text: 'Customer overview & required access', link: '/guide/azure-scout-overview-and-access' },
           { text: 'Prerequisites & Required Modules', link: '/guide/prerequisites' },
           { text: 'Authentication', link: '/guide/authentication' },
           { text: 'Usage Guide', link: '/guide/usage' },
