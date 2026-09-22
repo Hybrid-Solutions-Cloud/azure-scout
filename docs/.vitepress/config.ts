@@ -44,7 +44,6 @@ export default defineConfig({
         items: [
           { text: 'Guide index', link: '/guide/' },
           { text: 'Overview', link: '/guide/overview' },
-          { text: 'Customer overview & required access', link: '/guide/azure-scout-overview-and-access' },
           { text: 'Prerequisites & Required Modules', link: '/guide/prerequisites' },
           { text: 'Authentication', link: '/guide/authentication' },
           { text: 'Usage Guide', link: '/guide/usage' },
@@ -93,7 +92,6 @@ export default defineConfig({
           { text: 'Category Structure', link: '/reference/category-structure' },
           { text: 'Category Reference', link: '/reference/category-reference' },
           { text: 'Validation Matrix', link: '/reference/validation-matrix' },
-          { text: 'React Report Section Contract', link: '/reference/react-report-section-contract' },
         ],
       },
       {

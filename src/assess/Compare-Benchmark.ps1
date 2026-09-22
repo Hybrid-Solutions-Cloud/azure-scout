@@ -49,10 +49,7 @@ function Compare-Benchmark {
     }
 
     # required policy assignments (leverages the visualizer's ALZ checker if present)
-    # ForEach-Object (not dotted member-enumeration) because an EMPTY policyAssignments
-    # array throws "property 'properties' cannot be found" under StrictMode — dotted
-    # access on an empty collection hits the array object itself, not its (zero) elements.
-    $assigned = @(@($Collect.governance.policyAssignments) | ForEach-Object { $_.properties.displayName })
+    $assigned = @($Collect.governance.policyAssignments.properties.displayName)
     foreach ($p in $Benchmark.requiredPolicyAssignments) {
         $present = ($assigned -match $p).Count -gt 0
         $findings += [pscustomobject]@{
