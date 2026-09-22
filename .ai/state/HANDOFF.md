@@ -1,105 +1,140 @@
 # Handoff
 
-## Session 2026-08-01 — Epic AB#6450 "Enhance the reporting engine with new formats"
+## Session 2026-08-02 — Epic AB#6450 "Enhance the reporting engine with new formats"
 
-Branch **`feat/ab6450-reporting-v2`** off `main` (`10d2dd6`). **Eight commits, not merged,
-not pushed.** Working tree clean at `180e8c0`.
+Started with the epic plan in DRAFT, `pmo/research/` empty, and **CI red on `main` since v3.2.0**.
+Ended with **six PRs merged, `main` green at 2745/0, and Phase 0 complete.**
 
-### The finding that framed the epic
-
-The reports were not a styling problem. `Invoke-Rule.ps1` already attached `EvidenceCount`,
-up to 25 matched Azure objects, and a `Remediation` string to every finding — and **Word,
-PDF and PPTX read none of the three**. Every table in all three documents was
-`Id / Severity / Status / Title`. The data needed to write "60 of 198 storage accounts had
-public network access enabled" was present at render time and discarded.
-
-Research input: the seven reference deliverables attached to User Story AB#6443 (a 5,600-line
-Word governance report, an 11-slide executive deck, a 13-tab gap workbook) were downloaded
-and read in full before any code. Structure recorded in `docs/design/reporting-engine-v2.md`.
-
-### Architecture
-
-One `Build-ScoutReportModel` derives the report **once** — engagement metadata, inventory
-tiles, 1–10 domain maturity with rubric, key risk indicators, prioritised focus areas, a
-consolidated gap register, evidence projected to resource grain with a triage verdict, and a
-three-phase roadmap — into a versioned `report-model.json`. Renderers became presentation
-only. Called from `Invoke-ScoutAssessmentCore.ps1` before the reporter loop and passed via
-`Export-Report -Model`. **`$Model` is optional in every renderer** — each falls back to its
-pre-v2 sections rather than failing, because the renderer test harnesses dot-source one file
-at a time.
-
-### Shipped
-
-| Commit | Items | Summary |
-|---|---|---|
-| `c2cdb10` | 6450, 6853, 6863, 6864 | Design doc + engine contract. Evidence truncation made explicit (`EvidenceTruncated`/`EvidenceCap`); four optional rule keys (`targetState`/`owner`/`effort`/`phase`); `GovernanceReport` was missing from the `All` list **and both ValidateSets**, so a shipped, tested renderer was unreachable by any route. |
-| `027cb42` | 6852, 6855, 6856 | `Build-ScoutReportModel` + Word v2 (15 sections, names affected resources). |
-| `d7b30dd` | 6853 | All 18 `caf.govern.*` rules annotated. |
-| `1d228c3` | 6858 | PPTX executive readout — 7 new slides. |
-| `bc0ed97` | 6860 | Power BI `fact_evidence` at resource grain + 5 dimensions. |
-| `a12642d` | 6857 | Excel workbook — Cover, verdict legend, contents index, per-gap tabs. |
-| `3783a7e` | 6854 | **Narrative engine.** |
-| `180e8c0` | 6858 | Lint fix. |
-
-### The narrative engine is the notable result
-
-The owner challenged mid-session whether this was a genuinely new process or the old
-approach repackaged. On prose specifically the challenge was right, and the answer must not
-be relitigated:
-
-**A per-rule template cannot write the sentences that matter.** Decompose the reference
-report's prose and every sentence carrying weight is **comparative or aggregate** — "the
-four-point gap", "the highest of the seven", "hygiene, not architecture", "60 of 198". None
-of those facts lives on a single rule; they are properties of the run as a whole.
-
-So `Build-ScoutNarrative.ps1` is a **fact-derivation layer**, not a sentence library.
-`Get-ScoutNarrativeFact` derives strongest/weakest domain and the spread, which domains carry
-the severe findings versus which are clean, the concentration ratio of the top three gaps,
-distinct subscriptions touched, largest blast radius. **A sentence whose supporting fact
-cannot be derived is not emitted** — not hedged, not placeholdered.
-
-Grammar is load-bearing, not cosmetic: "1 domain(s) are excluded" tells a reader a machine
-wrote it and they discount the analysis with it. There is a test asserting zero `(s)` in any
-output.
-
-### Verification
-
-405 tests passing, 0 failing — 162 across the six new v2 test files, 243 across the
-pre-existing report and assessment files. `Build-ScoutNarrative.ps1` and
-`Build-ScoutReportModel.ps1` both lint at **0 findings** under the repo's own
-`PSScriptAnalyzerSettings.psd1`. **No live Azure run has been done against this branch.**
-
-### Board
-
-Closed: AB#6852, 6853, 6854, 6855, 6856, 6857, 6858, 6860, 6861. Resolved: AB#6863, 6864.
-Still Active: **AB#6862** (Word and PPTX now render evidence and remediation; the PDF
-renderer does not — comment added, deliberately left open).
-
-### Still open
-
-| Item | Why |
+| PR | What |
 |---|---|
-| **Figures — no work item yet** | The reference report has 9 (risk heatmap, MG hierarchy, maturity radar, inventory charts). The generated Word document has zero images. Not started. Create the item before building. |
-| AB#6859 — PDF v2 | The only renderer still on v1, and the only one still discarding evidence. Should follow AB#6737 so the architecture diagram can embed. |
-| AB#6737 | drawio → JPEG rasterisation; blocks the PDF diagram. |
-| AB#379 | html2canvas PNG capture in PDF. |
-| **Rule depth** | Scout has **18** Cloud Governance rules; the reference covers 101 subscriptions across 7 domains with per-subscription tables. A perfect renderer over 18 rules yields a good 12-page document, not a 40-page one. This is the real ceiling and it is rule-authoring work, not renderer work. Stated plainly to the owner. |
+| #210 | CI recovery + a real UTC date defect |
+| #211 | Site logos |
+| #212 | Quality bar, reference teardown, board structure |
+| #213 | **Phase 0 — three real tenants measured** |
+| #214 | **Clause R-01 — a report set per assessment** |
+| #215 | Correction of a false Phase 0 finding |
 
-### Gotchas found this session
+---
 
-- **A single-row table collapses through PowerShell's output stream.**
-  `$rows = foreach (...) { , @(cells) }` yields the row's own cells as the top-level
-  collection when there is exactly ONE row, so every one-row table rendered as empty cells —
-  invisible, because `Export-Word`'s catch falls back to HTML rather than reporting.
-  Normalised in `Add-ScoutDocxGridTable`.
-- **`return @()` from an accessor enumerates to nothing**, so a collected-but-empty array came
-  back `$null` and rendered as "not collected". The unary comma fixes emptiness but
-  double-wraps a non-empty array for `@()` callers, and **`Write-Output -NoEnumerate` returns
-  a `List[object]` wrapper on PS7** (that broke 54 tests at once — every scalar came out as a
-  collection). Resolution: presence and value are **separate questions** —
-  `Test-ScoutModelPath` walks the property bag; `Get-ScoutModelProp` returns values plainly.
-- **`$Rule.manual` throws under StrictMode** when a Hashtable rule omits the key. `severity`,
-  `remediation` and `manual` now read through `Get-ScoutRuleKey`.
-- **Pester evaluates a `Describe`'s `-Skip:` during DISCOVERY**, before any `BeforeAll` body
-  runs. A flag set in `BeforeAll` is `$null` when `-Skip:` is read, so the whole file skips
-  silently while reporting success. Probe at file scope.
+### 1. CI recovery (#210)
+
+15 failures, five causes. One was a **real product defect**: `[datetime]'1970-01-01Z'` resolves to
+**local** time, so Key Vault `Expires`/`Created`/`Updated`/`NotBefore` shifted by a day with the
+running machine's timezone — the same tenant scanned from Chicago and London disagreed about when
+a key expires. Fixed to `[datetime]::UnixEpoch` at all seven spec sites; verified identical under
+UTC / America/Chicago / Asia/Tokyo. It is also why the goldens passed locally and failed in CI.
+
+Second real defect: `Invoke-Assessment` read `$set.Weight` and `$set.FrameworkVersion` unguarded
+on the `Add-Member` chain decorating **every** finding, so one rule file without a
+`frameworkVersion:` key took down the whole assessment under StrictMode.
+
+The rest were stale contracts (collector count 241→242, the retired `Modules/` root, AB#6801's
+added ArcSites call, `docs/prerequisites.md` moving under `docs/guide/`).
+
+### 2. Phase 0 — the result that reframes the epic (#213)
+
+Three real tenants, one identical command, every format.
+
+| | `tppoc` | `hcs` | `ptlmgmt` |
+|---|--:|--:|--:|
+| Subscriptions | **9** | **2** | **8** |
+| Run time | 27.9 min | 9.1 min | 15.1 min |
+| Findings | 304 | 304 | 304 |
+| **Word paragraphs** | **1,803** | **1,803** | **1,803** |
+| **Word tables** | **36** | **36** | **36** |
+| Findings with evidence | 36 | 36 | **9** |
+
+**Three unrelated estates produce documents within 258 bytes of each other.** The scoring
+underneath differs correctly per tenant, so the engine works — the document renders the **rule
+set**, not the estate.
+
+Measured on `word/document.xml`: **0** `/subscriptions/<guid>`, **0** `resourceGroups/` in every
+report. **Not one Azure resource is named anywhere.**
+
+**Zero automatic conformance clauses pass.** The `.docx` package has **three parts**; **0 of
+1,803 paragraphs carry a style**. `report.pbit` is 4,689 B and its authored `Report/Layout` is
+**2,190 B**.
+
+Full critique: `pmo/research/baseline/`.
+
+### 3. Clause R-01 shipped (#214)
+
+`Invoke-ScoutAssessmentCore` now accumulates `$findingsByAssessment` alongside `$allFindings` and
+renders each selected assessment into `assessments/<slug>/` with its own format set. Merged
+run-root set **kept**; each assessment **scored independently**; only splits when >1 assessment
+ran; renderer failure contained per assessment. `tests/Report.PerAssessmentContract.Tests.ps1`,
+14 tests.
+
+### 4. A finding I got wrong, and corrected (#215)
+
+I reported eight `_dash_src_*` sheets shipping visible to clients. **There are four and all four
+are hidden** — `Export-Excel.ps1` already passes `HideSheet`. AB#6891 closed as not-a-defect.
+
+Cause: I read the sheet list from `xl/workbook.xml` **without checking each sheet's `state`
+attribute**. Hidden sheets are still listed there. **Check `state` before calling a sheet
+visible.** AB#6890 was re-verified the same way and **is** real — 35 of 39 sheets are visible and
+the unselected-assessment tabs are among them.
+
+---
+
+## Board
+
+Epic AB#6450 now has **7 Features and 18 Stories** (AB#6865–6889); AB#6450 and AB#6449 had no
+description at all and were backfilled. Every item carries acceptance criteria bound to a clause
+id in `docs/design/report-conformance.md`. **No child may close on "a file came out"** — that is
+the failure mode that let 103 report items close green.
+
+Done: AB#6865/6866/6867/6868 (Phase 0), AB#6873 (R4 teardown), AB#6879 (R-01).
+Open bug: **AB#6890**. Closed not-a-defect: AB#6891.
+
+## Next, in the order Phase 0 argues for
+
+1. **Evidence projection at resource grain** — *this outranks the template work.* Only 9–36 of
+   304 findings carry evidence, so no renderer can name a resource in a table that has none.
+   Needs a new Feature; the useful code is on the unmerged `feat/ab6450-reporting-v2` branch
+   (`Build-ScoutReportModel.ps1`, gap register, triage verdicts).
+2. **AB#6880** — the cross-assessment executive roll-up (`R-03`).
+3. **AB#6874** — styles/cover/headers (`W-01`…`W-09`). `W-01`/`W-02` are the keystone: styles
+   unlock nav pane, TOC, numbering and rebranding in one move.
+4. **AB#6888** — write `tests/Report.Conformance.Tests.ps1`. Expect red at first; that is the point.
+5. **AB#6890** — rule-glob leakage into the workbook.
+6. R1/R2/R3 spikes (AB#6870–6872), incl. the AzViz/AzGovViz/D2 evaluation.
+
+## Scope caveat to state on the epic
+
+~60% of every report is `Manual` or `Unknown` (141–148 Manual, 31–45 Unknown of 304). That is the
+225-of-395 `manual: true` ceiling, owned by **Epic AB#6454**. Clause `W-17` requires a conformant
+report to say "Not assessed" plainly, so this is correct behaviour — AB#6450 must not be judged
+against a bar its inputs cannot reach.
+
+## Gotchas found this session
+
+- **`Az.Accounts 5.5.0` declares `-AccessToken` as `[String]`.** Passing a `SecureString`
+  stringifies to `System.Security.SecureString`; Az then warns *"The access token is invalid"* and
+  reports **0 subscriptions** — indistinguishable from a permissions failure. Verify the token
+  against ARM REST before believing a permissions story.
+- **`Select-Object -Unique` returns a scalar** for a one-element result; `.Count` then throws
+  under StrictMode. Wrap in `@()`.
+- **The collector generator strips comments hand-added to a generated manifest.**
+  `Collector.VanishingParent.Tests.ps1` requires the AB#6845 decision comment *next to its loop in
+  the manifest*, so the generator now emits a per-loop `Comment` from the spec.
+- **ADO rejects `System.AreaPath`** when the create URL uses the project GUID. Omit AreaPath and
+  IterationPath — they default to the project root.
+- **VitePress resolves relative links at build time**; `/pmo` is unpublished, so a link out of
+  `docs/` into it fails the docs build. Run `npm run docs:build` after adding any docs page.
+- **Local suite ≠ CI.** Locally ~56 failures vs CI's 15: ~40 are the *installed* AzureScout module
+  colliding with the repo copy, 7 more are a live Az context. Judge against CI; reproduce a CI
+  failure by running the single test file in isolation.
+- **GitHub App tokens expire in ~1h.** Re-mint via HCS MCP `get_auth_token`; push by temporarily
+  rewriting the remote to `https://x-access-token:<tok>@github.com/...`.
+
+## How to re-run a baseline
+
+Runner script lives in the session scratchpad (`baseline-run.ps1`). Env: `SCOUT_REPO`,
+`SCOUT_TENANT`, `SCOUT_APPID` (the token's `appid` claim), `SCOUT_OUT`, `SCOUT_TOKEN` from
+HCS MCP `get_auth_token -provider azure -scope <alias>`. It issues:
+
+```powershell
+Invoke-AzureScout -TenantID $t -InventoryAndAssessment `
+  -Assessment 'LandingZone','Assess: Cloud Governance' -OutputFormat All -ReportDir $out
+```

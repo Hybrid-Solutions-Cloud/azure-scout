@@ -7,6 +7,76 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.3.0] - 2026-08-03 — Epic AB#6450: the reports become deliverables
+
+Every report Scout produced was, in the owner's words, *"not worth putting in front of an
+executive"*. **103 report work items on this board were already Closed** — every one of them
+accepted on "a file came out", not one carrying an acceptance criterion naming a required section
+or a reader. This release fixes the output *and* fixes the reason it stayed broken.
+
+### The quality bar, and the test that enforces it
+
+- `docs/design/report-conformance.md` is now **normative**: 40 numbered clauses across Word,
+  PowerPoint, Excel, diagrams, Power BI and the run contract.
+- `tests/Report.Conformance.Tests.ps1` asserts every `automatic` clause **against an emitted
+  package read back off disk** — never against intent. **A renderer item may no longer be closed
+  on the existence of a file.**
+- The four `judged` clauses are deliberately *not* automated. Faking them would recreate the
+  false-green problem the bar exists to prevent.
+
+### Word — from three package parts to a document
+
+Phase 0 measured the root defect: the `.docx` contained **three parts** and **0 of 1,803
+paragraphs carried a style**. That one fact explained the missing navigation pane, the impossible
+TOC, the absent cross-references and the un-rebrandable output.
+
+- Real **styles**, **numbering** (chapters are numbered, so a cross-reference means something),
+  and a **theme** carrying the palette — rebranding is now swapping a colour scheme.
+- **Header and footer** referenced by the section properties, with `PAGE`/`NUMPAGES` as real
+  fields rather than text that would be wrong the moment anyone edited the file.
+- A real **TOC field**, a **cover** naming client, assessment, scan date and classification, and a
+  **Document Information** block stating provenance and version.
+- Chapters take the reference deliverable's shape: **scorecard → current state → findings →
+  action items**. Tables over 30 rows move to an appendix with a pointer.
+
+### Figures, with no new dependency
+
+The diagram pipeline emitted `.drawio` and nothing else, so **no document could embed a figure**.
+AzViz, Graphviz, D2, a headless browser and ImageMagick were all rejected on one test: *a report
+that silently loses its figures because a native binary is missing is worse than one that never
+promised them.* Figures are now rasterised to PNG in managed code and embedded as image parts.
+
+### Power BI — a project, not a blank canvas
+
+The old output was four CSVs and a `.pbit` whose authored layout was **2,190 bytes**. It is now a
+**PBIP project**: TMDL semantic model, four real relationships, eleven DAX measures, a date
+dimension, and authored report pages. Verified with Microsoft's own TMDL parser and opened in
+Power BI Desktop.
+
+### Deck and workbook
+
+- The deck states **what was not assessed** and carries exactly **one** "act on this first" slide
+  naming a specific item; it is bounded at 15 slides by construction.
+- The workbook gains a **Cover** with scope, legend and a per-tab record count; every evidence row
+  carries its **full ARM resource id** (or "None matched", which is not the same as blank) and a
+  **triage verdict** seeded for review rather than guessed.
+
+### Correctness
+
+- **"Not assessed" is honoured everywhere** — excluded from the compliance denominator, given its
+  own scorecard column and its own figure segment, never rendered as a zero or a pass.
+- **Two defects only a real multi-tenant run could find.** Scout's `Export-Excel` shared a name
+  with the cmdlet exported by ImportExcel — which that renderer imports — so ImportExcel's command
+  shadowed ours and **every per-assessment workbook silently failed**. Renamed to
+  `Export-ScoutEvidenceWorkbook`. `Get-ScoutExcelProp` also threw on evidence rows that are not
+  objects. Both were live while the conformance suite was green.
+
+### Known limitation
+
+The Power BI report **pages render as placeholders**: the model loads and the pages exist, but the
+visuals show no data. Clause `B-05` is **not** met and is not claimed. The remaining work is the
+visual bindings, not the model.
+
 ## [3.2.0] - 2026-08-01 — Epic AB#6454: deep governance and compliance analytics
 
 Scout goes from **one real assessment to roughly twenty-eight**, and from **one enumerated source

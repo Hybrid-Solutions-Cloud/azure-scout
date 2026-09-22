@@ -9,21 +9,6 @@ $ErrorActionPreference = 'Stop'
 .NOTES
     Supports the seven assert types. Tracks ADO Story AB#5030.
 
-    AB#6864 (Feature AB#6449, Epic AB#6450): the Evidence payload is capped, so every finding
-    also carries `EvidenceTruncated` and `EvidenceCap`. Before this, a finding with 198 matches
-    rendered identically to one with 26 in any renderer that walked `Evidence` to name the
-    affected resources -- `EvidenceCount` held the truth but nothing told the renderer that the
-    array beside it was a partial list. That is the same "empty is indistinguishable from none
-    found" class the audit calls out repeatedly, one level down. A renderer must state the
-    truncation rather than present a partial list as complete.
-
-    AB#6853 (Feature AB#6449, Epic AB#6450): four optional rule keys are carried through onto the
-    finding -- `targetState` (the condition that closes the gap, as distinct from `remediation`,
-    which is the action), `owner` (the accountable function), `effort` (S|M|L|XL) and `phase`
-    (1|2|3, which 30-day remediation window it belongs to). All four are optional and default to
-    $null; no existing rule file is invalidated. They exist so the report model can build a gap
-    register and a phased roadmap without a renderer inventing either.
-
     AB#6826 (Feature AB#6749, Epic AB#6454) added an eighth, orthogonal concept: an optional
     `assert.gate` JSONPath. When present, the rule's Status is 'NotAssessed' (and the normal
     query/assert evaluation never runs) whenever the gate resolves to NO matches at all, OR
@@ -40,32 +25,6 @@ $ErrorActionPreference = 'Stop'
     silently matches nothing in EITHER state -- found by this feature's own manual gate test,
     not by a live run.
 #>
-# The most rows of matched evidence a finding will carry. EvidenceCount always holds the true
-# total; EvidenceTruncated says whether the array beside it is the whole story (AB#6864).
-$Script:ScoutRuleEvidenceCap = 25
-
-function Get-ScoutRuleKey {
-    <#
-    .SYNOPSIS
-        Read an OPTIONAL rule key regardless of whether the rule arrived as a Hashtable
-        (ConvertFrom-Yaml's shape) or a pscustomobject (the shape test fixtures build).
-
-    .NOTES
-        Dotting a key that is entirely absent throws PropertyNotFoundException under
-        Set-StrictMode -Version Latest (AB#6835), which is why the four AB#6853 keys cannot
-        simply be read as $Rule.owner -- most rule files will never declare them.
-    #>
-    param($Rule, [Parameter(Mandatory)][string] $Name, $Default = $null)
-    if ($null -eq $Rule) { return $Default }
-    if ($Rule -is [System.Collections.IDictionary]) {
-        if ($Rule.Contains($Name) -and $null -ne $Rule[$Name]) { return $Rule[$Name] }
-        return $Default
-    }
-    $p = $Rule.PSObject.Properties[$Name]
-    if ($p -and $null -ne $p.Value) { return $p.Value }
-    return $Default
-}
-
 function Invoke-Rule {
     param(
         [Parameter(Mandatory)] $Rule,
@@ -76,20 +35,11 @@ function Invoke-Rule {
 
     $status = 'Unknown'; $evidenceCount = 0; $evidence = @()
 
-    # ---- AB#6853: the four optional roadmap/gap-register keys, read once ----
-    $targetState = Get-ScoutRuleKey -Rule $Rule -Name 'targetState'
-    $ruleOwner   = Get-ScoutRuleKey -Rule $Rule -Name 'owner'
-    $ruleEffort  = Get-ScoutRuleKey -Rule $Rule -Name 'effort'
-    $rulePhase   = Get-ScoutRuleKey -Rule $Rule -Name 'phase'
-
-    # `severity`, `remediation` and `manual` are likewise optional in practice: every rule file
-    # in src/assess/rules happens to declare all three, but a rule that omits one used to take
-    # down the whole run with PropertyNotFoundException rather than degrading -- dotting an
-    # absent Hashtable key throws under Set-StrictMode -Version Latest. Read them through the
-    # same accessor, which is the only reason a rule author can now leave `manual:` off.
-    $ruleSeverity    = Get-ScoutRuleKey -Rule $Rule -Name 'severity'
-    $ruleRemediation = Get-ScoutRuleKey -Rule $Rule -Name 'remediation'
-    $ruleManual      = [bool](Get-ScoutRuleKey -Rule $Rule -Name 'manual' -Default $false)
+    # AB#6892. Initialised here, not at the point of use, because the early `return`s below
+    # (gate failure, query failure, not-assessed) build their own finding object and every one of
+    # them must still be able to say what it was going to look for. $null means "not applicable
+    # to this rule", which is distinct from 0.
+    $denominator = $null
 
     # ---- AB#6826: optional gate, checked before manual/query evaluation ----
     $gatePath = $null
@@ -111,10 +61,8 @@ function Invoke-Rule {
             Write-Warning "Rule $($Rule.id): gate query '$gatePath' failed: $_"
             return [pscustomobject]@{
                 Id = $Rule.id; Title = $Rule.title; Framework = $Framework; Area = $Area
-                Severity = $ruleSeverity; Status = 'Error'; EvidenceCount = 0; Evidence = @()
-                EvidenceTruncated = $false; EvidenceCap = $Script:ScoutRuleEvidenceCap
-                Remediation = $ruleRemediation; Manual = $ruleManual
-                TargetState = $targetState; Owner = $ruleOwner; Effort = $ruleEffort; Phase = $rulePhase
+                Severity = $Rule.severity; Status = 'Error'; EvidenceCount = 0; Evidence = @()
+                Remediation = $Rule.remediation; Manual = [bool]$Rule.manual
             }
         }
         $gateOpen = $true
@@ -132,10 +80,8 @@ function Invoke-Rule {
         if (-not $gateOpen) {
             return [pscustomobject]@{
                 Id = $Rule.id; Title = $Rule.title; Framework = $Framework; Area = $Area
-                Severity = $ruleSeverity; Status = 'NotAssessed'; EvidenceCount = 0; Evidence = @()
-                EvidenceTruncated = $false; EvidenceCap = $Script:ScoutRuleEvidenceCap
-                Remediation = $ruleRemediation; Manual = $ruleManual
-                TargetState = $targetState; Owner = $ruleOwner; Effort = $ruleEffort; Phase = $rulePhase
+                Severity = $Rule.severity; Status = 'NotAssessed'; EvidenceCount = 0; Evidence = @()
+                Remediation = $Rule.remediation; Manual = [bool]$Rule.manual
             }
         }
     }
@@ -148,7 +94,7 @@ function Invoke-Rule {
                elseif ($Rule -is [System.Collections.IDictionary]) { $Rule.Contains('join') -and $null -ne $Rule['join'] }
                else { $null -ne $Rule.PSObject.Properties['join'] -and $null -ne $Rule.join }
 
-    if ($ruleManual -or $Rule.assert.type -eq 'manual') {
+    if ($Rule.manual -or $Rule.assert.type -eq 'manual') {
         # pre-fill with any evidence the scan DID find, then hand to the human
         if ($Rule.query) {
             $evidence = Resolve-JsonPath -InputObject $Collect -Path $Rule.query
@@ -176,16 +122,12 @@ function Invoke-Rule {
             Write-Warning "Rule $($Rule.id): $(if ($hasJoin) { 'join' } else { "query '$($Rule.query)'" }) failed: $_"
             return [pscustomobject]@{
                 Id = $Rule.id; Title = $Rule.title; Framework = $Framework; Area = $Area
-                Severity = $ruleSeverity; Status = 'Error'; EvidenceCount = 0; Evidence = @()
-                EvidenceTruncated = $false; EvidenceCap = $Script:ScoutRuleEvidenceCap
-                Remediation = $ruleRemediation; Manual = $ruleManual
-                TargetState = $targetState; Owner = $ruleOwner; Effort = $ruleEffort; Phase = $rulePhase
+                Severity = $Rule.severity; Status = 'Error'; EvidenceCount = 0; Evidence = @()
+                Remediation = $Rule.remediation; Manual = [bool]$Rule.manual
             }
         }
         $evidenceCount = $matches.Count
-        # Cap the payload, but never silently -- $evidenceTruncated below tells a renderer that
-        # the array it is about to enumerate is a partial list (AB#6864).
-        $evidence = $matches | Select-Object -First $Script:ScoutRuleEvidenceCap
+        $evidence = $matches | Select-Object -First 25    # cap evidence payload
         # ConvertFrom-Yaml returns `assert:` as a Hashtable (test fixtures often use a
         # pscustomobject instead), and 'exists'/'notExists' rules legitimately omit a
         # `value:` key. Accessing a missing key/property via dot-notation throws
@@ -208,6 +150,10 @@ function Invoke-Rule {
             'notExists'         { $status = ($evidenceCount -eq   0) ? 'Pass' : 'Fail' }
             'percentageAtLeast' {
                 $denom = (Resolve-JsonPath -InputObject $Collect -Path $Rule.assert.denominatorQuery).Count
+                # AB#6892: surfaced on the finding so a renderer can say "17 of 198", which is the
+                # supporting number the reference deliverable carries on every risk row. Without
+                # it the reader gets a percentage with nothing behind it.
+                $denominator = $denom
                 # No denominator = nothing collected for this dimension -> Unknown,
                 # NOT a 0% Fail, which would be misleading (AB#5085).
                 if ($denom -le 0) { $status = 'Unknown' }
@@ -223,22 +169,36 @@ function Invoke-Rule {
         }
     }
 
+    # AB#6892 -- WHAT WAS SEARCHED, always, even when nothing was found.
+    #
+    # Phase 0 measured that 42 of 57 FAILING controls carried zero evidence, and no report named a
+    # single Azure resource across three real tenants. That is not a renderer defect. An `exists`
+    # rule fails precisely BECAUSE its query returned nothing, so its evidence list is empty by
+    # construction -- there is no resource to name, and there never will be.
+    #
+    # What makes such a finding actionable is not a resource list but the SCOPE: what was looked
+    # for, where, and how many candidates existed. "No Purview account was found in any of the 9
+    # subscriptions scanned" is actionable. "Data governance coverage: Fail" is decoration.
+    #
+    # So every finding now carries the query it ran and the assertion it applied, and the
+    # percentage rules carry their denominator. Renderers can state the scope of a nil result
+    # instead of rendering an empty table.
+    $searchedPath = if ($hasJoin) { '(join)' } else { [string]$Rule.query }
+    $assertType = if ($Rule.assert) { [string]$Rule.assert.type } else { $null }
+
     [pscustomobject]@{
-        Id                = $Rule.id
-        Title             = $Rule.title
-        Framework         = $Framework
-        Area              = $Area
-        Severity          = $ruleSeverity
-        Status            = $status
-        EvidenceCount     = $evidenceCount
-        Evidence          = $evidence
-        EvidenceTruncated = ($evidenceCount -gt $Script:ScoutRuleEvidenceCap)
-        EvidenceCap       = $Script:ScoutRuleEvidenceCap
-        Remediation       = $ruleRemediation
-        Manual            = $ruleManual
-        TargetState       = $targetState
-        Owner             = $ruleOwner
-        Effort            = $ruleEffort
-        Phase             = $rulePhase
+        Id            = $Rule.id
+        Title         = $Rule.title
+        Framework     = $Framework
+        Area          = $Area
+        Severity      = $Rule.severity
+        Status        = $status
+        EvidenceCount = $evidenceCount
+        Evidence      = $evidence
+        SearchedPath  = $searchedPath
+        AssertType    = $assertType
+        Denominator   = $denominator
+        Remediation   = $Rule.remediation
+        Manual        = [bool]$Rule.manual
     }
 }
