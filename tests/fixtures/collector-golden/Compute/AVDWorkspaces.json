@@ -3,7 +3,7 @@
   "Category": "Compute",
   "Name": "AVDWorkspaces",
   "FixturePath": "tests/fixtures/collector-equivalence/Compute.json",
-  "FixtureSha256": "aa18793f47f540f92ff8475c80e3cdf8c12d9024112002190eb908b46fe52c4b",
+  "FixtureSha256": "243cf6b3a93bc017d70f468e868afd6a90d787cb38a4ec1e482391d73f186997",
   "Rows": [
     "Application Groups=s:res-item-0; res-item-1|Application Groups Count=j:2|Description=s:res-value|Friendly Name=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.desktopvirtualization/workspaces/avdworkspaces-t1a-1|Location=s:res-value|Name=s:avdworkspaces-t1a|Private Endpoints=j:2|Provisioning State=s:res-value|Public Network Access=s:res-value|Resource Group=s:res-value|Resource U=j:1|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",
     "Application Groups=s:res-item-0; res-item-1|Application Groups Count=j:2|Description=s:res-value|Friendly Name=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.desktopvirtualization/workspaces/avdworkspaces-t1b-1|Location=s:res-value|Name=s:avdworkspaces-t1b|Private Endpoints=j:2|Provisioning State=s:res-value|Public Network Access=s:res-value|Resource Group=s:res-value|Resource U=j:1|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",

@@ -8,8 +8,9 @@ description: The contract a section of the React report must satisfy — the v6 
 Describes the **v6** information architecture shipped in v3.5.0.
 
 ::: danger The React report is the one supported deliverable
-Word, PDF, Excel, PowerPoint, Power BI, the standalone HTML renderer and the Markdown-file
-renderer are **on hold** (**AB#6922**) and are not emitted. They are being rebuilt to generate
+Word, PDF, Excel, PowerPoint, Power BI, standalone HTML, ECharts dashboard, Markdown-file,
+AsciiDoc, and governance-report renderers are **on hold** (**AB#6922**) and are not emitted in
+any run mode. They are being rebuilt to generate
 *from* this report rather than alongside it. Export to Markdown, JSON, CSV, PDF (print) or a
 standalone HTML copy **from the report page itself**. `Json` / `JsonEvidence` are data, not
 documents, and are never held. See [Report tiers](../assessment/configuration.md#report-tiers).

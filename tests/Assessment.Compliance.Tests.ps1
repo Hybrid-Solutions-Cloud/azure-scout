@@ -87,14 +87,29 @@ Describe 'AB#6793 — three states, so unassessed never reads as passed' {
         $finding.Status | Should -Not -Be 'Fail'
     }
 
-    It 'excludes NotAssessed from the compliance percentage denominator' {
-        # 1 Pass (policy-a) + 1 Fail (policy-b) scorable; policy-c (NotAssessed) must not enter
-        # the denominator, so the percentage is exactly 50, not 33 (which is what counting all
-        # three controls would produce).
-        $script:Scored.CompliancePercent | Should -Be 50
+    It 'withholds the headline when only a fraction of the initiative was observed' {
+        # Three distinct controls were returned for a 223-control initiative. Reporting 50%
+        # from only the one pass and one fail would present partial evidence as full coverage.
+        $script:Scored.CompliancePercent | Should -BeNullOrEmpty
         $script:Scored.Pass | Should -Be 1
         $script:Scored.Fail | Should -Be 1
-        $script:Scored.NotAssessed | Should -Be 1
+        $script:Scored.ObservedControlCount | Should -Be 3
+        $script:Scored.ExpectedControlCount | Should -Be 223
+        $script:Scored.UnobservedControlCount | Should -Be 220
+        $script:Scored.NotAssessed | Should -Be 221
+        $script:Scored.CoverageComplete | Should -BeFalse
+    }
+
+    It 'scores a complete observed set while excluding explicit NotAssessed controls' {
+        $completeInitiative = [pscustomobject]@{
+            Id = $script:Mcsb.Id; DisplayName = $script:Mcsb.DisplayName
+            Version = $script:Mcsb.Version; PolicyCount = 3
+        }
+        $complete = Get-ScoutComplianceScore -Collect $script:Collect -Initiative $completeInitiative
+
+        $complete.CompliancePercent | Should -Be 50
+        $complete.NotAssessed | Should -Be 1
+        $complete.CoverageComplete | Should -BeTrue
     }
 
     It 'a deliberately unassigned initiative (definition known, zero compliance rows) is never offered as scored' {
@@ -217,7 +232,7 @@ Describe 'AB#6794 — every assigned regulatory initiative is its own assessment
     It 'a real MCSB run reports no findings, not a crash, when nothing is assigned at all' {
         $empty = [pscustomobject]@{ domains = [pscustomobject]@{ management = [pscustomobject]@{ policyComplianceStates = @(); policyInitiatives = @() } } }
 
-        { $result = @(Invoke-ScoutComplianceAssessment -Collect $empty -WarningAction SilentlyContinue) } | Should -Not -Throw
+        { $null = @(Invoke-ScoutComplianceAssessment -Collect $empty -WarningAction SilentlyContinue) } | Should -Not -Throw
         @(Invoke-ScoutComplianceAssessment -Collect $empty -WarningAction SilentlyContinue).Count | Should -Be 0
     }
 }
@@ -225,7 +240,7 @@ Describe 'AB#6794 — every assigned regulatory initiative is its own assessment
 Describe 'AB#6795 — the assessment registry is clean' {
 
     BeforeAll {
-        $script:Manifest = Import-PowerShellDataFile (Join-Path $script:Root 'manifests/assessments.psd1')
+        $script:Manifest = Import-PowerShellDataFile (Join-Path -Path $script:Root -ChildPath 'manifests/assessments.psd1')
     }
 
     It 'has no Estate entry — a full-estate inventory pull is not an assessment' {
@@ -236,13 +251,13 @@ Describe 'AB#6795 — the assessment registry is clean' {
         $script:Manifest.Keys | Should -Not -Contain 'Policy'
     }
 
-    It 'still has Governance, the entry Policy duplicated' {
-        $script:Manifest.Keys | Should -Contain 'Governance'
+    It 'still has the Governance baseline, the entry Policy duplicated' {
+        $script:Manifest.Keys | Should -Contain 'Scout: Governance Baseline'
     }
 
-    It 'names UpdateManager and Monitoring as subsets in their own description' {
-        $script:Manifest.UpdateManager.Description | Should -Match '(?i)subset'
-        $script:Manifest.Monitoring.Description | Should -Match '(?i)subset'
+    It 'names Update Manager and Monitoring as subsets in their own description' {
+        $script:Manifest['Scout: Update Manager'].Description | Should -Match '(?i)subset'
+        $script:Manifest['Scout: Monitoring Baseline'].Description | Should -Match '(?i)subset'
     }
 
     It 'offers Assess: Compliance, routed through the compliance engine, not the YAML rule engine' {

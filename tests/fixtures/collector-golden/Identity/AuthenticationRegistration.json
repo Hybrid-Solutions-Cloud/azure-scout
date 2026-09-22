@@ -1,0 +1,23 @@
+{
+  "SchemaVersion": 1,
+  "Category": "Identity",
+  "Name": "AuthenticationRegistration",
+  "FixturePath": "tests/fixtures/collector-equivalence/Identity.json",
+  "FixtureSha256": "0c99008cbafb5569be35a7cf701bdc15d9ad8cfa99c0bddf14acf56128c209fa",
+  "Rows": [
+    "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/authenticationmethodregistrations/authenticationregistration-t1a-1|Is Admin=s:res-value|Methods Registered=s:res-item-0, res-item-1|MFA Capable=s:res-value|MFA Registered=s:res-value|Passwordless Capable=s:res-value|Resource U=j:1|User Principal Name=s:res-value",
+    "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/authenticationmethodregistrations/authenticationregistration-t1b-1|Is Admin=s:res-value|Methods Registered=s:res-item-0, res-item-1|MFA Capable=s:res-value|MFA Registered=s:res-value|Passwordless Capable=s:res-value|Resource U=j:1|User Principal Name=s:res-value",
+    "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/authenticationmethodregistrations/authenticationregistration-t1c-1|Is Admin=s:res-value|Methods Registered=s:res-item-0, res-item-1|MFA Capable=s:res-value|MFA Registered=s:res-value|Passwordless Capable=s:res-value|Resource U=j:1|User Principal Name=s:res-value",
+    "ID=s:/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/entra/authenticationmethodregistrations/authenticationregistration-t1d-1|Is Admin=s:res-value|Methods Registered=s:res-item-0, res-item-1|MFA Capable=s:res-value|MFA Registered=s:res-value|Passwordless Capable=s:res-value|Resource U=j:1|User Principal Name=s:res-value",
+    "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/authenticationmethodregistrations/authenticationregistration-t1e-1|Is Admin=s:res-value|Methods Registered=s:res-item-0, res-item-1|MFA Capable=s:res-value|MFA Registered=s:res-value|Passwordless Capable=s:res-value|Resource U=j:1|User Principal Name=s:res-value",
+    "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/authenticationmethodregistrations/authenticationregistration-t1f-1|Is Admin=s:res-value|Methods Registered=s:res-item-0, res-item-1|MFA Capable=s:res-value|MFA Registered=s:res-value|Passwordless Capable=s:res-value|Resource U=j:1|User Principal Name=s:res-value"
+  ],
+  "Workbook": {
+    "WithoutTags": [
+      "User Principal Name\tIs Admin\tMFA Registered\tMFA Capable\tPasswordless Capable\tMethods Registered\tResource U\nres-value\tres-value\tres-value\tres-value\tres-value\tres-item-0, res-item-1\t1\nres-value\tres-value\tres-value\tres-value\tres-value\tres-item-0, res-item-1\t1\nres-value\tres-value\tres-value\tres-value\tres-value\tres-item-0, res-item-1\t1\nres-value\tres-value\tres-value\tres-value\tres-value\tres-item-0, res-item-1\t1\nres-value\tres-value\tres-value\tres-value\tres-value\tres-item-0, res-item-1\t1\nres-value\tres-value\tres-value\tres-value\tres-value\tres-item-0, res-item-1\t1"
+    ],
+    "WithTags": [
+      "User Principal Name\tIs Admin\tMFA Registered\tMFA Capable\tPasswordless Capable\tMethods Registered\tResource U\nres-value\tres-value\tres-value\tres-value\tres-value\tres-item-0, res-item-1\t1\nres-value\tres-value\tres-value\tres-value\tres-value\tres-item-0, res-item-1\t1\nres-value\tres-value\tres-value\tres-value\tres-value\tres-item-0, res-item-1\t1\nres-value\tres-value\tres-value\tres-value\tres-value\tres-item-0, res-item-1\t1\nres-value\tres-value\tres-value\tres-value\tres-value\tres-item-0, res-item-1\t1\nres-value\tres-value\tres-value\tres-value\tres-value\tres-item-0, res-item-1\t1"
+    ]
+  }
+}

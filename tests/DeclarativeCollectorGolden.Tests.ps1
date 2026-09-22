@@ -15,7 +15,7 @@
     Records are updated only through a reviewed, documented behavior change.
 #>
 
-$script:GoldenDefinitionRoot = Join-Path (Split-Path -Parent $PSScriptRoot) 'manifests/collectors'
+$script:GoldenDefinitionRoot = Join-Path -Path (Split-Path -Parent $PSScriptRoot) -ChildPath 'manifests/collectors'
 $GoldenCollectors = @(
     foreach ($Folder in (Get-ChildItem -LiteralPath $script:GoldenDefinitionRoot -Directory | Sort-Object Name)) {
         foreach ($File in (Get-ChildItem -LiteralPath $Folder.FullName -Filter '*.psd1' -File | Sort-Object Name)) {
@@ -26,31 +26,31 @@ $GoldenCollectors = @(
 
 BeforeAll {
     $script:RepoRoot = Split-Path -Parent $PSScriptRoot
-    $script:GoldenDefinitionRoot = Join-Path $script:RepoRoot 'manifests/collectors'
-    $script:GoldenRoot = Join-Path $script:RepoRoot 'tests/fixtures/collector-golden'
+    $script:GoldenDefinitionRoot = Join-Path -Path $script:RepoRoot -ChildPath 'manifests/collectors'
+    $script:GoldenRoot = Join-Path -Path $script:RepoRoot -ChildPath 'tests/fixtures/collector-golden'
 
-    . (Join-Path $script:RepoRoot 'scripts/CollectorGolden.Common.ps1')
-    . (Join-Path $script:RepoRoot 'src/pipeline/Get-ScoutCollectorDefinition.ps1')
-    . (Join-Path $script:RepoRoot 'src/pipeline/Invoke-ScoutDeclarativeCollector.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'scripts/CollectorGolden.Common.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/pipeline/Get-ScoutCollectorDefinition.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/pipeline/Invoke-ScoutDeclarativeCollector.ps1')
 
     # Definitions call these pure accessors from lifted expressions. They are interpreter
     # dependencies, not references to the imperative collector implementation.
-    . (Join-Path $script:RepoRoot 'src/Get-AZSCSafeProperty.ps1')
-    . (Join-Path $script:RepoRoot 'src/Get-AZTICollectedValue.ps1')
-    . (Join-Path $script:RepoRoot 'src/Get-AZSCIdSegment.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/Get-AZSCSafeProperty.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/Get-AZTICollectedValue.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/Get-AZSCIdSegment.ps1')
 
     $script:FixtureCache = @{}
     $script:GoldenCache = @{}
-    $script:TempDir = Join-Path ([System.IO.Path]::GetTempPath()) ("scout-golden-proof-" + [guid]::NewGuid().ToString('N'))
+    $script:TempDir = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath ("scout-golden-proof-" + [guid]::NewGuid().ToString('N'))
     $null = New-Item -Path $script:TempDir -ItemType Directory -Force
 
     function Get-GoldenFixturePath {
         param([string]$Category)
 
         if ($Category -eq 'Databases') {
-            return Join-Path $script:RepoRoot 'tests/fixtures/databases-collector-input.json'
+            return Join-Path -Path $script:RepoRoot -ChildPath 'tests/fixtures/databases-collector-input.json'
         }
-        return Join-Path $script:RepoRoot "tests/fixtures/collector-equivalence/$Category.json"
+        return Join-Path -Path $script:RepoRoot -ChildPath "tests/fixtures/collector-equivalence/$Category.json"
     }
 
     function Get-GoldenFixture {
@@ -68,7 +68,7 @@ BeforeAll {
 
         $Key = "$Category/$Name"
         if (-not $script:GoldenCache.ContainsKey($Key)) {
-            $Path = Join-Path $script:GoldenRoot "$Category/$Name.json"
+            $Path = Join-Path -Path $script:GoldenRoot -ChildPath "$Category/$Name.json"
             $script:GoldenCache[$Key] = Import-ScoutGoldenOutput -Path $Path -FixturePath (
                 Get-GoldenFixturePath -Category $Category
             )
@@ -122,7 +122,7 @@ BeforeAll {
         param([string]$Category, [string]$Name)
 
         $Definition = Get-ScoutCollectorDefinition -Path (
-            Join-Path $script:RepoRoot "manifests/collectors/$Category/$Name.psd1"
+            Join-Path -Path $script:RepoRoot -ChildPath "manifests/collectors/$Category/$Name.psd1"
         )
         return @(Invoke-ScoutDeclarativeCollector -Definition $Definition -Context (
             Get-GoldenVerificationContext -Category $Category -Name $Name
@@ -133,10 +133,10 @@ BeforeAll {
         param([string]$Category, [string]$Name, [bool]$InTag, $Rows)
 
         $Definition = Get-ScoutCollectorDefinition -Path (
-            Join-Path $script:RepoRoot "manifests/collectors/$Category/$Name.psd1"
+            Join-Path -Path $script:RepoRoot -ChildPath "manifests/collectors/$Category/$Name.psd1"
         )
         $Suffix = if ($InTag) { 'tag' } else { 'notag' }
-        $Path = Join-Path $script:TempDir "$Category-$Name-$Suffix.xlsx"
+        $Path = Join-Path -Path $script:TempDir -ChildPath "$Category-$Name-$Suffix.xlsx"
 
         Invoke-ScoutDeclarativeCollector -Definition $Definition -Context (
             Get-GoldenVerificationContext -Category $Category -Name $Name -Task 'Reporting' `
@@ -171,8 +171,8 @@ Describe 'Golden collector proof - coverage and independence' {
 
     It 'has no executable dependency on the imperative collector path' {
         $Files = @(
-            Join-Path $script:RepoRoot 'tests/DeclarativeCollectorGolden.Tests.ps1'
-            Join-Path $script:RepoRoot 'scripts/CollectorGolden.Common.ps1'
+            Join-Path -Path $script:RepoRoot -ChildPath 'tests/DeclarativeCollectorGolden.Tests.ps1'
+            Join-Path -Path $script:RepoRoot -ChildPath 'scripts/CollectorGolden.Common.ps1'
         )
 
         foreach ($File in $Files) {
@@ -195,7 +195,7 @@ Describe 'Golden collector proof - coverage and independence' {
         $Name = 'SQLSERVER'
         $Golden = Get-CommittedGolden -Category $Category -Name $Name
         $Definition = Get-ScoutCollectorDefinition -Path (
-            Join-Path $script:RepoRoot "manifests/collectors/$Category/$Name.psd1"
+            Join-Path -Path $script:RepoRoot -ChildPath "manifests/collectors/$Category/$Name.psd1"
         )
         $Definition.Fields[0].Expression = "'golden-proof-mutation'"
 
@@ -247,7 +247,7 @@ Describe 'Golden collector proof - coverage and independence' {
                 EstimatedCost = [pscustomobject]@{ properties = [pscustomobject]@{ rows = @(@('42.5', 'USD')) } }
             }
         }
-        $Definition = Get-ScoutCollectorDefinition -Path (Join-Path $script:RepoRoot 'manifests/collectors/Compute/VirtualMachine.psd1')
+        $Definition = Get-ScoutCollectorDefinition -Path (Join-Path -Path $script:RepoRoot -ChildPath 'manifests/collectors/Compute/VirtualMachine.psd1')
         $Context = Get-GoldenVerificationContext -Category 'Compute' -Name 'VirtualMachine'
         $Context.Resources = $Resources
 

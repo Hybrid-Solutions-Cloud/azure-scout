@@ -1,3 +1,7 @@
+#Requires -Version 7.0
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
 <#
 # Relocated from Modules/Public/PublicFunctions/Diagram for the v3 pipeline.
 .Synopsis
@@ -8,7 +12,7 @@ Filters the resource set by the types the network and organisation diagrams draw
 them as a hashtable keyed by the short names those builders expect.
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Public/PublicFunctions/Diagram/Start-AZSCDiagramJob.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/PublicFunctions/Diagram/Start-AZSCDiagramJob.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC)
@@ -20,6 +24,7 @@ Authors: Claudio Merola
 #>
 
 Function Start-AZSCDiagramJob {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'Automation', Justification = 'Fixed dispatcher signature -- caller passes a positional/named arg list shared across every diagram job function; not every job function reads every slot.')]
     Param($Resources, $Automation)
     # ── StrictMode boundary (AB#5633, revised by AB#5649) ────────────────────────────
     # v1 inventory engine (forked from microsoft/ARI), written without StrictMode: it reads

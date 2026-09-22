@@ -90,5 +90,5 @@ function Get-GovernanceDomainScore {
                 Error        = $_.Error
             }
         })
-    Write-Output -NoEnumerate $result
+    Write-Output -InputObject $result -NoEnumerate
 }

@@ -33,11 +33,23 @@ $ResUCount = 1
                 $data = $1
 
                 # Calculate score percentage
-                $currentScoreValue = Get-AZSCSafeProperty -InputObject $data -Path 'Score.Current'
-                $maxScoreValue = Get-AZSCSafeProperty -InputObject $data -Path 'Score.Max'
+                # Az.Security returns CurrentScore/MaxScore/Percentage at the top level while
+                # ARM REST returns properties.score.current/max/percentage. Accept both shapes.
+                $currentScoreValue = Get-AZSCSafeProperty -InputObject $data -Path 'CurrentScore'
+                if ($null -eq $currentScoreValue) { $currentScoreValue = Get-AZSCSafeProperty -InputObject $data -Path 'Score.Current' }
+                if ($null -eq $currentScoreValue) { $currentScoreValue = Get-AZSCSafeProperty -InputObject $data -Path 'Properties.Score.Current' }
+                $maxScoreValue = Get-AZSCSafeProperty -InputObject $data -Path 'MaxScore'
+                if ($null -eq $maxScoreValue) { $maxScoreValue = Get-AZSCSafeProperty -InputObject $data -Path 'Score.Max' }
+                if ($null -eq $maxScoreValue) { $maxScoreValue = Get-AZSCSafeProperty -InputObject $data -Path 'Properties.Score.Max' }
                 $currentScore = if ($currentScoreValue) { [math]::Round($currentScoreValue, 2) } else { 0 }
                 $maxScore = if ($maxScoreValue) { [math]::Round($maxScoreValue, 2) } else { 0 }
-                $scorePercentage = if ($maxScore -gt 0) {
+                $percentageValue = Get-AZSCSafeProperty -InputObject $data -Path 'Percentage'
+                if ($null -eq $percentageValue) { $percentageValue = Get-AZSCSafeProperty -InputObject $data -Path 'Score.Percentage' }
+                if ($null -eq $percentageValue) { $percentageValue = Get-AZSCSafeProperty -InputObject $data -Path 'Properties.Score.Percentage' }
+                $scorePercentage = if ($null -ne $percentageValue) {
+                    if ([double]$percentageValue -le 1) { [math]::Round(([double]$percentageValue * 100), 2) }
+                    else { [math]::Round([double]$percentageValue, 2) }
+                } elseif ($maxScore -gt 0) {
                     [math]::Round(($currentScore / $maxScore) * 100, 2)
                 } else { 0 }
 '@

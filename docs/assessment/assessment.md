@@ -25,15 +25,15 @@ useful. This page is about assessment. For the resources themselves, run
 **PowerShell 7 on PowerShell Core** — for the whole module, not just this mode.
 `AzureScout.psd1` declares `PowerShellVersion = '7.0'` and
 `CompatiblePSEditions = @('Core')`, so `Import-Module` rejects Windows
-PowerShell 5.1 outright. Assessment mode additionally needs modules the
-inventory auto-install list does not cover, plus a `.NET SDK` for the
+PowerShell 5.1 outright. The manifest declares the core inventory and
+assessment modules; assessment mode may additionally need a `.NET SDK` for the
 PowerPoint tier — see [Assessment Prerequisites](./assessment-prerequisites.md).
 The PowerPoint tier is currently on hold, so the `.NET SDK` is not needed for a run today.
 :::
 
 ::: info One command
 Assessment is a mode of `Invoke-AzureScout`, not a separate tool:
-`Invoke-AzureScout -Assessment LandingZone`. The former standalone assessment
+`Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone'`. The former standalone assessment
 command was removed in v3.0.0; use the unified entry point — see [Overview](../guide/overview.md).
 :::
 
@@ -57,7 +57,7 @@ re-scanning.
 ::: info Governance data is collected natively — no AzGovViz dependency
 `Import-Governance` (`src/ingest/Import-Governance.ps1`) is the **default**
 governance collector for the 26 assessments that need governance data
-(`LandingZone`, `Management`, `Identity`, `Governance`, `Policy` — their
+(`CAF: Azure Landing Zone`, `Management`, `Identity`, `Scout: Governance Baseline`, `Policy` — their
 manifest `Ingest` value is `Governance`, not `AzGovViz`). It populates
 `collect.json`'s `governance` object natively from Azure Resource Graph
 (policy assignments, role assignments, management groups) plus ambient-token
@@ -109,10 +109,10 @@ output — cross-domain references included (e.g. `waf.security` needs
 `domains.databases.sqlServers`, so that query runs for both `Databases` and
 `Security`). `subscriptions` always runs (base data every rule set needs).
 Passing `-Categories '*'` (or an empty list, or omitting `-Category`/leaving
-an assessment's own `Collect` list at `@('*')` — `LandingZone` and `Estate`
+an assessment's own `Collect` list at `@('*')` — `CAF: Azure Landing Zone` and `Estate`
 both do this) runs every query, same as before. The practical effect:
 `-Assessment 'Assess: Security'` now collects a materially smaller set of resource
-types than `-Assessment LandingZone` (see the run below) — this is a
+types than `-Assessment 'CAF: Azure Landing Zone'` (see the run below) — this is a
 different mechanism from `Invoke-AzureScout`'s module-loading-level
 [Category Filtering](../guide/category-filtering.md), but for the assessment platform
 it now actually shrinks scan time and query volume, not just what gets
@@ -133,7 +133,7 @@ and imported the module:
 
 ```powershell
 # Install once, from the PowerShell Gallery
-Install-Module -Name AzureScout
+Install-Module -Name AzureScout -Scope CurrentUser -Force -AllowClobber
 
 # Or import from a local clone
 Import-Module ./AzureScout.psd1
@@ -145,7 +145,7 @@ Scores all 8 CAF areas and all 5 WAF pillars in one run, against an ALZ
 benchmark diff.
 
 ```powershell
-Invoke-AzureScout -Assessment LandingZone -OutputFormat All
+Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -OutputFormat All
 ```
 
 ### Single category
@@ -178,7 +178,7 @@ actually breaks down into.
 ### Inventory + assessment in one collect (`-InventoryAndAssessment` / `-Both`)
 
 ```powershell
-Invoke-AzureScout -Assessment LandingZone -InventoryAndAssessment -OutputFormat All
+Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -InventoryAndAssessment -OutputFormat All
 ```
 
 Runs the full inventory pass and the assessment from **one** Azure collection —
@@ -191,7 +191,7 @@ wizard at all.
 ### Unattended, one-command run (`Invoke-ScoutPipeline`)
 
 ```powershell
-Invoke-ScoutPipeline -Assessment LandingZone -OutputFormat All -OutputPath 'D:\Reports\Scout'
+Invoke-ScoutPipeline -Assessment 'CAF: Azure Landing Zone' -OutputFormat All -OutputPath 'D:\Reports\Scout'
 ```
 
 `Invoke-ScoutPipeline` (exported public cmdlet, `src/Invoke-ScoutPipeline.ps1`)
@@ -226,10 +226,10 @@ here too.
 
 ```powershell
 # Stop after Collect — writes collect.json and returns its path
-Invoke-AzureScout -Assessment LandingZone -CollectOnly
+Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -CollectOnly
 
 # Re-run Assess + Report from that saved collect.json, no re-scan
-Invoke-AzureScout -Assessment LandingZone -FromCollect ./output/20260720_101500/collect.json -OutputFormat PowerBi
+Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -FromCollect ./output/20260720_101500/collect.json -OutputFormat React,JsonEvidence
 ```
 
 Useful for iterating on rule changes or re-rendering a different output tier
@@ -238,7 +238,7 @@ without re-querying Azure.
 ### Permission pre-flight (`-PermissionAudit`)
 
 ```powershell
-Invoke-AzureScout -Assessment LandingZone,Identity -PermissionAudit
+Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone','Assess: Identity' -PermissionAudit
 ```
 
 Checks read-only access for the requested assessment(s) **before** any
@@ -248,7 +248,7 @@ for exactly what this does and does not verify.
 ### Scoping to a management group (`-ManagementGroupId`)
 
 ```powershell
-Invoke-AzureScout -Assessment LandingZone -ManagementGroup 'contoso-root-mg' -OutputFormat React
+Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -ManagementGroup 'contoso-root-mg' -OutputFormat React
 ```
 
 ::: warning Scopes Collect too now — and the benchmark still needs MG-root visibility
@@ -260,7 +260,7 @@ Graph query (and, if you've opted into the legacy `AzGovViz` ingestor, to
 empty/wildcard scope, the parameter is left off entirely).
 
 For the **26 assessments that ingest governance data** — every one marked **Gov** in the
-[Assessment Catalogue](../reference/assessment-catalogue.md), including `LandingZone`,
+[Assessment Catalogue](../reference/assessment-catalogue.md), including `CAF: Azure Landing Zone`,
 every `CAF:` design area and every `WAF:` pillar — the **native**
 `Import-Governance` collector (the default `Ingest = Governance`) runs
 regardless of whether `-ManagementGroupId` is supplied — it does not silently
@@ -275,9 +275,9 @@ type](./assessment-permissions.md#-managementgroupid-and-governance-data-collect
 ### `-Scope`
 
 ```powershell
-Invoke-AzureScout -Assessment LandingZone -Scope All        # default
-Invoke-AzureScout -Assessment LandingZone -Scope ArmOnly    # identical to All today
-Invoke-AzureScout -Assessment LandingZone -Scope EntraOnly  # throws -- see below
+Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -Scope All        # default
+Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -Scope ArmOnly    # identical to All today
+Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -Scope EntraOnly  # throws -- see below
 ```
 
 ::: info EntraOnly throws instead of silently collecting nothing
@@ -318,32 +318,26 @@ of a real result). Prefer leaving `-Category` unset and letting each
 assessment use its own manifest-declared `Collect` list, which is kept in
 sync with what its `Rules` actually reference.
 
-### `-OutputFormat` — one example per tier
+### `-OutputFormat` — supported deliverables
 
 ::: danger The React report is the one supported deliverable
-Only `React`, `Json` and `JsonEvidence` are emitted today. `PowerBi`, `Html`, `Pptx`, `Excel`,
-`Word`, `Pdf`, `EChartsDashboard` and `GovernanceReport` are **on hold** (**AB#6922**) — the
+Only `React`, `Json` and `JsonEvidence` are emitted today in inventory-only, assessment-only, and
+combined runs. `PowerBi`, `Html`, `Pptx`, `Excel`, `Markdown`, `AsciiDoc`, `Word`, `Pdf`,
+`EChartsDashboard` and `GovernanceReport` are **on hold** (**AB#6922**) — the
 renderers still exist and are still tested, but they are being rebuilt to generate *from* the
 React report rather than alongside it, so a document and the page it came from can never disagree.
 
-Every command below still binds. A held format warns, is skipped, and the React report is rendered
-instead, so a run never returns an empty folder. Export to Markdown, JSON, CSV, PDF (print) or a
+Held names still bind for script compatibility, but they warn and are skipped. Export to
+Markdown, JSON, CSV, PDF (print) or a
 standalone HTML copy **from the React report page itself**. See
 [Report tiers](./configuration.md#report-tiers).
 :::
 
 ```powershell
-Invoke-AzureScout -Assessment LandingZone -OutputFormat PowerBi
-Invoke-AzureScout -Assessment LandingZone -OutputFormat Html
-Invoke-AzureScout -Assessment LandingZone -OutputFormat Pptx
-Invoke-AzureScout -Assessment LandingZone -OutputFormat Excel
-Invoke-AzureScout -Assessment LandingZone -OutputFormat Json
-Invoke-AzureScout -Assessment LandingZone -OutputFormat JsonEvidence
-Invoke-AzureScout -Assessment LandingZone -OutputFormat React
-Invoke-AzureScout -Assessment LandingZone -OutputFormat Word
-Invoke-AzureScout -Assessment LandingZone -OutputFormat EChartsDashboard
-Invoke-AzureScout -Assessment LandingZone -OutputFormat Pdf
-Invoke-AzureScout -Assessment LandingZone -OutputFormat All     # PowerBi, Html, Pptx, Excel, Json, JsonEvidence, React, Word, EChartsDashboard, Pdf
+Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -OutputFormat Json
+Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -OutputFormat JsonEvidence
+Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -OutputFormat React
+Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -OutputFormat React,Json,JsonEvidence
 ```
 
 `-OutputFormat` also accepts an array (`-OutputFormat React,Json`). `React`
@@ -360,7 +354,7 @@ available on `Invoke-ScoutPipeline`.
 ### `-OutputPath`
 
 ```powershell
-Invoke-AzureScout -Assessment LandingZone -OutputPath 'D:\Reports\Scout'
+Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -OutputPath 'D:\Reports\Scout'
 ```
 
 Each run writes into a timestamped subfolder (`<OutputPath>/yyyyMMdd_HHmmss/`).
@@ -368,7 +362,7 @@ Each run writes into a timestamped subfolder (`<OutputPath>/yyyyMMdd_HHmmss/`).
 ## All 46 registry entries — and what the wizard actually offers
 
 The full catalogue — description, `Collect`/`Ingest`, CAF areas / WAF
-pillars, and default report tiers, generated from
+pillars, and legacy manifest report-tier metadata, generated from
 `manifests/assessments.psd1` — lives in the
 **[Assessment Registry](../design/assessment-registry.md)**. Minimum auth per
 assessment lives in **[Auth & permissions per scan type](./assessment-permissions.md)**.
@@ -379,7 +373,7 @@ are no longer mostly views over one roll-up — the AB#6746 restructure turned t
 and per-design-area assessments into real scored entries. They group as:
 
 - **11 Cloud Adoption Framework** — one per design area (`CAF: Governance`, `CAF: Security`,
-  `CAF: Network topology and connectivity`, …) plus the `LandingZone` roll-up, which pulls in
+  `CAF: Network topology and connectivity`, …) plus the `CAF: Azure Landing Zone` roll-up, which pulls in
   every CAF and WAF rule file at once.
 - **9 Well-Architected Framework** — one per pillar (`WAF: Reliability`, `WAF: Security`, …),
   plus `WAF: Azure Local` and `WAF: Maturity Model`.
@@ -387,14 +381,36 @@ and per-design-area assessments into real scored entries. They group as:
   per Scout inventory category. `Compute` filters what gets *collected*; `Assess: Compute`
   filters what gets *scored*, which is why they carry the prefix. The old unprefixed name
   still resolves, with a warning telling you what to change.
-- **7 specialised and workload** — `AVS Workload`, `AVS Landing Zone`, `CASA`,
-  `DevOps Capability Assessment`, `FinOps Review`, `SMART` and `Assess: Compliance`.
+- **7 specialised and workload** — `Workload: AVS`, `Workload: AVS Landing Zone`, `Microsoft: CASA`,
+  `Microsoft: DevOps Capability`, `Microsoft: FinOps Review`, `Microsoft: SMART Migration` and
+  `Assess: Compliance`.
 
-A few legacy sub-bundles still sit inside those groups — `Governance`, `Monitoring` and
-`UpdateManager`, each a narrower cut of a broader entry. Two earlier entries are gone:
-`Policy` (byte-identical to `Governance`) and `Estate` (declared no rules, so it scored
-nothing) were both removed under AB#6795 rather than left to return a misleading
-"no findings".
+A few legacy sub-bundles still sit inside those groups — `Scout: Governance Baseline`,
+`Scout: Monitoring Baseline` and `Scout: Update Manager`, each a narrower cut of a broader entry.
+Two earlier entries are gone: `Policy` (byte-identical to `Scout: Governance Baseline`) and
+`Estate` (declared no rules, so it scored nothing) were both removed under AB#6795 rather than
+left to return a misleading "no findings".
+
+### Renamed in v3.8.0 — old names keep working
+
+Twelve registry keys gained a namespace prefix (`CAF:` / `Microsoft:` / `Scout:` / `Workload:`)
+so the menu groups by who owns the checklist. Every old name still resolves — a run using one
+proceeds against the new entry and prints a warning naming the replacement.
+
+| Old name | New name |
+|---|---|
+| `LandingZone` | `CAF: Azure Landing Zone` |
+| `CASA` | `Microsoft: CASA` |
+| `DevOps Capability Assessment` | `Microsoft: DevOps Capability` |
+| `SMART` | `Microsoft: SMART Migration` |
+| `FinOps Review` | `Microsoft: FinOps Review` |
+| `Cost` | `Scout: Cost Optimization` |
+| `CrossResource` | `Scout: Cross-Resource` |
+| `Monitoring` | `Scout: Monitoring Baseline` |
+| `UpdateManager` | `Scout: Update Manager` |
+| `Governance` | `Scout: Governance Baseline` |
+| `AVS Workload` | `Workload: AVS` |
+| `AVS Landing Zone` | `Workload: AVS Landing Zone` |
 
 **The full list, with the rule files and the automated-versus-manual split behind each, is on
 one generated page: [Assessment Catalogue](../reference/assessment-catalogue.md).** Prefer it
@@ -404,7 +420,7 @@ to any count written in prose here — it is generated from the registry and can
 entry that runs and silently returns zero findings reads as "nothing wrong" rather than
 "nothing was checked", so it is left off the menu rather than shown. You can still run one
 directly with `-Assessment <Name>` — the filter is a menu courtesy, not an authorization
-check. `SMART` is gated separately, on whether the estate actually has migration data to score.
+check. `Microsoft: SMART Migration` is gated separately, on whether the estate actually has migration data to score.
 :::
 
 ## Scoring
@@ -427,7 +443,7 @@ page: **[Auth & permissions per scan type](./assessment-permissions.md)**.
 
 ```powershell
 # Pre-flight before any collection runs
-Invoke-AzureScout -Assessment LandingZone -PermissionAudit
+Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -PermissionAudit
 ```
 
 ::: tip Why this section is short
@@ -442,11 +458,11 @@ copies of anything do. The detail now lives in one place and the other two link 
 | Page | Contents |
 |---|---|
 | [Analysis features](./analysis-features.md) | Cross-run drift, cost anomaly detection, IaC gap detection, IoT deep coverage |
-| [Configuration and report tiers](./configuration.md) | Saving and loading a config, and what each output tier produces |
+| [Configuration and report tiers](./configuration.md) | Saving/loading config, the three live outputs, and held legacy renderers |
 | [Assessment Catalogue](../reference/assessment-catalogue.md) | All 46 assessments, their rule files, and the automated-versus-manual split |
 
 ## Design reference
 
 The full architecture, rule catalogue, and decision records live in the
-[Master Design & Plan](https://github.com/thisismydemo/azure-scout/blob/main/pmo/plans/master-plan.md) and the
+[Master Design & Plan](https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/pmo/plans/master-plan.md) and the
 [assessment registry](../design/assessment-registry.md).

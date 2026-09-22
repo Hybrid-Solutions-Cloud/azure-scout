@@ -1,6 +1,5 @@
 #Requires -Version 7.0
 #Requires -Modules Pester
-#Requires -Modules Az.ResourceGraph
 
 <#
     Pester tests for src/collect/Invoke-Collect.ps1's collector resilience
@@ -23,10 +22,28 @@
 
 BeforeAll {
     $root = Split-Path $PSScriptRoot -Parent
-    Import-Module Az.ResourceGraph -ErrorAction Stop
+    . "$root/tests/helpers/Search-AzGraph.TestDouble.ps1"
     . "$root/src/collect/Invoke-Collect.ps1"
 
+    # Invoke-Collect always performs these two non-ARG sweeps. Keep the
+    # resilience fixtures hermetic: fake subscription ids must never escape to
+    # the caller's ambient Azure/Graph context during a unit-test run.
+    function Get-ScoutDefenderPlanSweep {
+        param([object[]] $Subscriptions)
+        $null = $Subscriptions
+        return @()
+    }
+
+    function Get-ScoutExternalIdentitiesPolicy {
+        param([string] $TenantID)
+        $null = $TenantID
+        return [pscustomobject]@{ Collected = $false }
+    }
+
     function Get-MockSubscriptions {
+        [Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '', Justification = 'Name matches the real collector/API/fixture noun (often already plural in the product surface, e.g. ManagementGroups); renaming would break the shadow/mocked signature or the fixture-name convention used across this suite.')]
+        param()
+
         @(
             [pscustomobject]@{ id = 'sub-1'; name = 'sub-1'; state = 'Enabled'; tags = $null }
             [pscustomobject]@{ id = 'sub-2'; name = 'sub-2'; state = 'Enabled'; tags = $null }
@@ -68,6 +85,27 @@ Describe 'Invoke-Collect -- AB#397 per-subscription fallback' {
         Invoke-Collect -Source TypedQueries -Categories @('Networking') -WarningVariable warnings -WarningAction SilentlyContinue | Out-Null
         ($warnings -join "`n") | Should -Match "failed for subscription 'sub-2'"
         ($warnings -join "`n") | Should -Match 'AB#397'
+    }
+}
+
+Describe 'Invoke-Collect -- deterministic invalid-query failures' {
+    It 'does not repeat a BadRequest once per subscription' {
+        $script:invalidQueryCalls = 0
+        Mock Search-AzGraph {
+            if ($Query -match 'microsoft\.resources/subscriptions"') { return Get-MockSubscriptions }
+            if ($Query -match 'microsoft\.insights/scheduledqueryrules') {
+                $script:invalidQueryCalls++
+                throw 'BadRequest: InvalidQuery ParserFailure'
+            }
+            return @()
+        }
+
+        Invoke-Collect -Source TypedQueries -Categories @('Monitor') `
+            -WarningVariable warnings -WarningAction SilentlyContinue | Out-Null
+
+        $script:invalidQueryCalls | Should -Be 1
+        ($warnings -join "`n") | Should -Match 'will not be retried per subscription'
+        ($warnings -join "`n") | Should -Not -Match "failed for subscription 'sub-"
     }
 }
 

@@ -3,7 +3,7 @@
   "Category": "Compute",
   "Name": "AVDApplicationGroups",
   "FixturePath": "tests/fixtures/collector-equivalence/Compute.json",
-  "FixtureSha256": "aa18793f47f540f92ff8475c80e3cdf8c12d9024112002190eb908b46fe52c4b",
+  "FixtureSha256": "243cf6b3a93bc017d70f468e868afd6a90d787cb38a4ec1e482391d73f186997",
   "Rows": [
     "Application Group Type=s:res-value|Description=s:res-value|Friendly Name=s:res-value|Host Pool=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.desktopvirtualization/applicationgroups/avdapplicationgroups-t1a-1|Location=s:res-value|Name=s:avdapplicationgroups-t1a|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod|Workspace=s:res-value",
     "Application Group Type=s:res-value|Description=s:res-value|Friendly Name=s:res-value|Host Pool=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.desktopvirtualization/applicationgroups/avdapplicationgroups-t1b-1|Location=s:res-value|Name=s:avdapplicationgroups-t1b|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod|Workspace=s:res-value",

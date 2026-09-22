@@ -114,7 +114,7 @@ rules:
     # Policy-assignment existence only -- the IaC/templateHash half of this item is not
     # automatable (see the file-level note above on management.deployments).
     query: "$.governance.policyAssignments[*]"
-    assert: { type: exists }
+    assert: { type: exists, gate: "$.governance.policyAssignmentsAvailable" }
     remediation: "CASA-PM-05. No Azure Policy assignment was found in scope. Automate validation through Azure Policy, and separately confirm IaC-based deployment and continuous compliance scanning are in place -- collect.json has no reliable IaC-deployment signal to automate that half."
     manual: false
 
@@ -160,14 +160,14 @@ rules:
     # domains.security.keyVaultKeys is wired by this story (AB#6821) -- existence of CMK material
     # in the tenant, not proof it is applied to every sensitive data store.
     query: "$.domains.security.keyVaultKeys[*]"
-    assert: { type: exists }
+    assert: { type: exists, gate: "$.domains.security.keyVaultKeysAvailable" }
     remediation: "CASA-CO-01. No Key Vault key was found in scope. Enforce confidentiality with encryption and centralized key management -- key existence alone does not confirm every sensitive data store actually uses it; verify the binding for each store directly."
     manual: false
   - id: CASA-CO-02
     title: "Identity and access policies restrict access to sensitive data"
     severity: high
     query: "$.governance.roleAssignments[*]"
-    assert: { type: exists }
+    assert: { type: exists, gate: "$.governance.roleAssignmentsAvailable" }
     remediation: "CASA-CO-02. No role assignment was found in scope. Restrict access to sensitive data through identity and access policy -- role-assignment existence alone does not confirm least-privilege scoping to sensitive resources specifically."
     manual: false
   - id: CASA-CO-03

@@ -1,0 +1,19 @@
+{
+  "SchemaVersion": 1,
+  "Category": "Databases",
+  "Name": "StorageTables",
+  "FixturePath": "tests/fixtures/databases-collector-input.json",
+  "FixtureSha256": "57835b14fb5f75c1d56a0bfed6bcafaf3377173fd0ffa6d15c781b67a0f5931d",
+  "Rows": [
+    "ID=s:/subscriptions/sub-00000001/resourceGroups/rg-databases/providers/AZSC/ARMChild/stnotadb-1/StorageTables/scoutinventory|Metadata Keys=s:1|Resource Group=s:rg-databases-2|Resource U=j:1|Storage Account=s:stnotadb|Subscription=s:Scout Sample Subscription 1|Table=s:scoutinventory",
+    "ID=s:/subscriptions/sub-00000001/resourceGroups/rg-databases/providers/AZSC/ARMChild/stnotadb-1/StorageTables/auditlog|Metadata Keys=s:0|Resource Group=s:rg-databases-2|Resource U=j:1|Storage Account=s:stnotadb|Subscription=s:Scout Sample Subscription 1|Table=s:auditlog"
+  ],
+  "Workbook": {
+    "WithoutTags": [
+      "Subscription\tResource Group\tStorage Account\tTable\tMetadata Keys\tResource U\nScout Sample Subscription 1\trg-databases-2\tstnotadb\tscoutinventory\t1\t1\nScout Sample Subscription 1\trg-databases-2\tstnotadb\tauditlog\t0\t1"
+    ],
+    "WithTags": [
+      "Subscription\tResource Group\tStorage Account\tTable\tMetadata Keys\tResource U\nScout Sample Subscription 1\trg-databases-2\tstnotadb\tscoutinventory\t1\t1\nScout Sample Subscription 1\trg-databases-2\tstnotadb\tauditlog\t0\t1"
+    ]
+  }
+}

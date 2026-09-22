@@ -55,7 +55,7 @@ BeforeDiscovery {
     # The reason travels IN the case data. A -ForEach case is built during discovery and read back
     # during run, and a variable set in BeforeDiscovery is not in scope inside an It body.
     $script:LoopCases = @(
-        Get-ChildItem -LiteralPath (Join-Path $DiscoveryRoot 'manifests/collectors') -Recurse -Filter *.psd1 |
+        Get-ChildItem -LiteralPath (Join-Path -Path $DiscoveryRoot -ChildPath 'manifests/collectors') -Recurse -Filter *.psd1 |
             Sort-Object FullName |
             ForEach-Object {
                 $Raw = Import-PowerShellDataFile $_.FullName
@@ -66,9 +66,11 @@ BeforeDiscovery {
                 # sentinel that saves a parent can be assigned in the setup preamble, the row
                 # preamble or an OUTER loop's preamble, and AzureFirewall uses all three.
                 $Statements = @(
-                    $Raw.SetupPreamble
-                    $Raw.Preamble
-                    @($Raw.AdditionalRowLoops) | ForEach-Object { $_.Preamble }
+                    if ($Raw.Contains('SetupPreamble')) { $Raw.SetupPreamble }
+                    if ($Raw.Contains('Preamble')) { $Raw.Preamble }
+                    @($Raw.AdditionalRowLoops) | ForEach-Object {
+                        if ($_.Contains('Preamble')) { $_.Preamble }
+                    }
                 ) -join "`n"
 
                 # Comments are the one thing Import-PowerShellDataFile throws away, and the
@@ -114,15 +116,22 @@ BeforeDiscovery {
                 }
             }
     )
+
+    # Generate behavioural tests only for loops to which that behaviour applies. Creating an
+    # It block for every loop and marking most of them -Skip made the suite report dozens of
+    # "skips" that were not unavailable coverage at all; they were cases belonging to one of
+    # the other reviewed states above.
+    $script:EmittingLoopCases = @($script:LoopCases | Where-Object { $_.Emits })
+    $script:ExemptLoopCases   = @($script:LoopCases | Where-Object { $_.IsExempt })
 }
 
 BeforeAll {
     $script:RepoRoot = Split-Path -Parent $PSScriptRoot
-    . (Join-Path $script:RepoRoot 'src/pipeline/Get-ScoutCollectorDefinition.ps1')
-    . (Join-Path $script:RepoRoot 'src/pipeline/Invoke-ScoutDeclarativeCollector.ps1')
-    . (Join-Path $script:RepoRoot 'src/Get-AZSCSafeProperty.ps1')
-    . (Join-Path $script:RepoRoot 'src/Get-AZTICollectedValue.ps1')
-    . (Join-Path $script:RepoRoot 'src/Get-AZSCIdSegment.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/pipeline/Get-ScoutCollectorDefinition.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/pipeline/Invoke-ScoutDeclarativeCollector.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/Get-AZSCSafeProperty.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/Get-AZTICollectedValue.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/Get-AZSCIdSegment.ps1')
 
     # Must match scripts/New-ScoutCollectorGolden.ps1 and the golden suite, so a collector with a
     # time-relative column behaves here exactly as it does when its record is captured.
@@ -133,9 +142,9 @@ BeforeAll {
         param([string]$CategoryName)
         # Databases predates the per-category convention and keeps its original fixture name.
         $Path = if ($CategoryName -eq 'Databases') {
-            Join-Path $script:RepoRoot 'tests/fixtures/databases-collector-input.json'
+            Join-Path -Path $script:RepoRoot -ChildPath 'tests/fixtures/databases-collector-input.json'
         } else {
-            Join-Path $script:RepoRoot "tests/fixtures/collector-equivalence/$CategoryName.json"
+            Join-Path -Path $script:RepoRoot -ChildPath "tests/fixtures/collector-equivalence/$CategoryName.json"
         }
         if (-not $script:FixtureCache.ContainsKey($Path)) {
             $script:FixtureCache[$Path] = Get-Content -LiteralPath $Path -Raw | ConvertFrom-Json
@@ -213,7 +222,11 @@ Describe 'A parent resource survives its child collection being absent (AB#6845)
         $Recorded | Should -BeTrue -Because "loop `$$LoopVar over '$Source' fans a row out over a child collection, so someone has to have decided whether the parent survives that collection being empty. It neither sets EmitNullWhenEmpty nor carries a '$Marker' comment, so no decision is recorded and there is no way to tell a considered choice from an oversight. Add the flag, or add the comment saying why the row here IS the child"
     }
 
-    It '<Category>/<Name> loop $<LoopVar> still emits the parent row when the child collection is empty' -Skip:(-not $Emits) {
+}
+
+Describe 'Guarded child loops preserve their parent row (AB#6845)' -ForEach $script:EmittingLoopCases {
+
+    It '<Category>/<Name> loop $<LoopVar> still emits the parent row when the child collection is empty' {
         $Context = New-FixtureContext -CategoryName $Category -CollectorName $Name
 
         # The control. If the collector produces nothing from its own fixture then the emptied-loop
@@ -224,8 +237,11 @@ Describe 'A parent resource survives its child collection being absent (AB#6845)
         $Rows = @(Invoke-WithEmptyChildLoop -Path $Path -LoopIndex $LoopIndex -Context $Context)
         $Rows.Count | Should -BeGreaterThan 0 -Because "a resource must not disappear from the $Category/$Name worksheet because Azure omitted the collection behind loop `$$LoopVar"
     }
+}
 
-    It '<Category>/<Name> loop $<LoopVar> is a deliberate, documented exception' -Skip:(-not $IsExempt) {
+Describe 'Deliberately unguarded child loops remain documented exceptions (AB#6845)' -ForEach $script:ExemptLoopCases {
+
+    It '<Category>/<Name> loop $<LoopVar> is a deliberate, documented exception' {
         # The allow-list half. These loops legitimately emit nothing, but the behaviour must be the
         # one the written reason describes — an exception that quietly STARTED emitting parent rows
         # is as much an unreviewed change as one that quietly stopped.
@@ -239,7 +255,7 @@ Describe 'A parent resource survives its child collection being absent (AB#6845)
 Describe 'The guard is expressed in the definition, not in the interpreter (AB#6845)' {
 
     BeforeAll {
-        $script:SyntheticDir = Join-Path ([System.IO.Path]::GetTempPath()) ("scout-ab6845-" + [guid]::NewGuid().ToString('N'))
+        $script:SyntheticDir = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath ("scout-ab6845-" + [guid]::NewGuid().ToString('N'))
         $null = New-Item -Path $script:SyntheticDir -ItemType Directory -Force
 
         # Written to disk and loaded through Get-ScoutCollectorDefinition rather than hand-built as
@@ -248,7 +264,7 @@ Describe 'The guard is expressed in the definition, not in the interpreter (AB#6
         function New-SyntheticDefinitionFile {
             param([string]$FileName, [bool]$Emit)
             $EmitLine = if ($Emit) { "            EmitNullWhenEmpty = `$true`n" } else { '' }
-            $Path = Join-Path $script:SyntheticDir $FileName
+            $Path = Join-Path -Path $script:SyntheticDir -ChildPath $FileName
             Set-Content -LiteralPath $Path -Encoding utf8 -Value @"
 @{
     ResourceTypes = @('microsoft.test/things')

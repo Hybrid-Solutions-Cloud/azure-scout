@@ -548,5 +548,5 @@ those are what make the export usable as a working backlog artifact rather than 
 
 ## Repo cross-reference
 
-- Current executive-summary/score-card rendering: `D:\git\thisismydemo\azure-scout\src\report\renderers\Export-Pptx.ps1` (score cards ~line 979, per-area score table ~line 1072, no methodology/legend slide, no denominator shown).
-- Assessment rule definitions (where fixed weights should live/be surfaced): `D:\git\thisismydemo\azure-scout\src\assess\rules\*.yaml`.
+- Current executive-summary/score-card rendering: `D:\git\hybrid-solutions-cloud\azure-scout\src\report\renderers\Export-Pptx.ps1` (score cards ~line 979, per-area score table ~line 1072, no methodology/legend slide, no denominator shown).
+- Assessment rule definitions (where fixed weights should live/be surfaced): `D:\git\hybrid-solutions-cloud\azure-scout\src\assess\rules\*.yaml`.

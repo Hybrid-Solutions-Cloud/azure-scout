@@ -8,7 +8,7 @@ their results, then starts the draw.io diagram work. Formerly this started one b
 per item; see the AB#5649 notes on the function for why that changed.
 
 .Link
-https://github.com/thisismydemo/azure-scout/Modules/Private/2.ProcessingFunctions/Start-AZSCExtraJobs.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Private/2.ProcessingFunctions/Start-AZSCExtraJobs.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC).
@@ -20,6 +20,8 @@ Authors: Claudio Merola
 #>
 
 function Start-AZSCExtraJobs {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'IncludeCosts', Justification = "Declared to match this function's call signature -- callers invoke it with this named/positional argument; removing the parameter would break them even though this implementation does not need the value.")]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Justification = 'Internal function name, called by that exact name elsewhere in the module; renaming is a breaking change out of scope for a lint-only pass.')]
     Param ($SkipDiagram,
             $SkipAdvisory,
             $SkipPolicy,

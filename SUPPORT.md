@@ -1,11 +1,11 @@
 # Support for Azure Scout
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/thisismydemo/azure-scout/main/docs/images/azurescout-banner.svg" width="400">
+  <img src="https://raw.githubusercontent.com/Hybrid-Solutions-Cloud/azure-scout/main/docs/images/azurescout-banner.svg" width="400">
   <br><br>
   <p>
-    <a href="https://github.com/thisismydemo/azure-scout/issues"><img src="https://img.shields.io/github/issues/thisismydemo/azure-scout" alt="GitHub Issues"></a>
-    <a href="https://github.com/thisismydemo/azure-scout/pulls"><img src="https://img.shields.io/github/issues-pr/thisismydemo/azure-scout" alt="GitHub Pull Requests"></a>
+    <a href="https://github.com/Hybrid-Solutions-Cloud/azure-scout/issues"><img src="https://img.shields.io/github/issues/Hybrid-Solutions-Cloud/azure-scout" alt="GitHub Issues"></a>
+    <a href="https://github.com/Hybrid-Solutions-Cloud/azure-scout/pulls"><img src="https://img.shields.io/github/issues-pr/Hybrid-Solutions-Cloud/azure-scout" alt="GitHub Pull Requests"></a>
   </p>
 </div>
 
@@ -13,9 +13,9 @@
 
 This project uses GitHub Issues to track bugs, feature requests, and questions. Before creating a new issue, please follow these steps:
 
-1. **Search existing issues**: Check the [existing issues](https://github.com/thisismydemo/azure-scout/issues) to see if your problem or request has already been reported.
+1. **Search existing issues**: Check the [existing issues](https://github.com/Hybrid-Solutions-Cloud/azure-scout/issues) to see if your problem or request has already been reported.
 
-2. **Create a detailed issue**: If no existing issue addresses your needs, create a [new issue](https://github.com/thisismydemo/azure-scout/issues/new) with:
+2. **Create a detailed issue**: If no existing issue addresses your needs, create a [new issue](https://github.com/Hybrid-Solutions-Cloud/azure-scout/issues/new) with:
    - A clear, descriptive title
    - Detailed steps to reproduce bugs or clear descriptions of feature requests
    - Version information (PowerShell version, module version, OS)

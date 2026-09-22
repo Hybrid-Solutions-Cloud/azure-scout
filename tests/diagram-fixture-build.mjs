@@ -51,9 +51,9 @@ const payload = {
   meta: { scope: 'ManagementGroup', managementGroupId: 'root', generatedOn: new Date().toISOString(), runId: 'fixture', tenantDisplayName: 'Fixture Tenant', productName: 'Azure Scout', productVersion: '3.4.0', productUrl: 'https://platform.hybridsolutions.cloud' },
   ran: { inventory: true, entra: false, assessments: true },
   inventory: {
-    virtualNetworks: { label: 'Virtual networks', count: vnets.length, rows: vnets, truncated: null },
-    subnets: { label: 'Subnets', count: subnets.length, rows: subnets, truncated: null },
-    managementGroups: { label: 'Management groups', count: mgs.length, rows: mgs, truncated: null }
+    'networking.virtualNetworks': { label: 'Virtual networks', count: vnets.length, rows: vnets, truncated: null },
+    'networking.subnets': { label: 'Subnets', count: subnets.length, rows: subnets, truncated: null },
+    'governance.managementGroups': { label: 'Management groups', count: mgs.length, rows: mgs, truncated: null }
   },
   subscriptions: subs.map(s => ({ id: s.subscriptionId || s.id, name: s.name, state: s.state || 'Enabled' })),
   assessments: [

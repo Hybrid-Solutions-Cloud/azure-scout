@@ -23,7 +23,7 @@ Describe 'Get-AZSCIdSegment (AB#5671)' {
 
     BeforeAll {
         $script:RepoRoot = Split-Path -Parent $PSScriptRoot
-        . (Join-Path $script:RepoRoot 'src' 'Get-AZSCIdSegment.ps1')
+        . (Join-Path -Path $script:RepoRoot -ChildPath 'src' -AdditionalChildPath 'Get-AZSCIdSegment.ps1')
 
         $script:CanonicalId = '/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-test/providers/Microsoft.Network/networkSecurityGroups/nsg-test'
     }

@@ -29,6 +29,8 @@ $ErrorActionPreference = 'Stop'
     Tracks ADO AB#5639 (Task AB#5646, Epic AB#5638).
 #>
 function Get-ScoutVmSkuDetails {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '',
+        Justification = 'Public function name is load-bearing across tests; renaming is an API break out of scope for a lint-only pass.')]
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)] [AllowNull()] [object[]] $Resources

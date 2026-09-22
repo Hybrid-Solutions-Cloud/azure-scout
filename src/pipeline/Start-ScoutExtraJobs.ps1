@@ -1,3 +1,7 @@
+#Requires -Version 7.0
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
 <#
 .Synopsis
 Run the non-collector processing work (security, policy, advisory, subscriptions, diagram).
@@ -8,7 +12,7 @@ their results, then starts the draw.io diagram work. Formerly this started one b
 per item; see the AB#5649 notes on the function for why that changed.
 
 .Link
-https://github.com/thisismydemo/azure-scout/src/pipeline/Start-ScoutExtraJobs.ps1
+https://github.com/Hybrid-Solutions-Cloud/azure-scout/src/pipeline/Start-ScoutExtraJobs.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC).
@@ -20,6 +24,8 @@ Authors: Claudio Merola
 #>
 
 function Start-AZSCExtraJobs {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Justification = 'Public function name referenced by exact spelling from src/Invoke-AzureScout.ps1, archived/Modules, and tests -- renaming is a breaking API change out of scope for a lint-only pass.')]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'IncludeCosts', Justification = 'Both call sites always pass it as part of a fixed named-argument list shared with sibling dispatch functions; this function does not need it since CostData already carries the cost payload.')]
     Param ($SkipDiagram,
             $SkipAdvisory,
             $SkipPolicy,

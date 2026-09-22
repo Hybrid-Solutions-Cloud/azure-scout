@@ -16,7 +16,7 @@
 
 BeforeAll {
     $script:root = Split-Path $PSScriptRoot -Parent
-    . (Join-Path $script:root 'src/collect/Get-ScoutDefenderPlanSweep.ps1')
+    . (Join-Path -Path $script:root -ChildPath 'src/collect/Get-ScoutDefenderPlanSweep.ps1')
 
     function script:New-PricingResponse {
         param([object[]] $Plans)

@@ -21,7 +21,7 @@ function Resolve-JsonPath {
     # blows up every `.Count` caller under Set-StrictMode. Write-Output -NoEnumerate
     # preserves the (possibly empty) array identity across the return boundary.
     if ([string]::IsNullOrWhiteSpace($Path)) {
-        Write-Output -NoEnumerate @()
+        Write-Output -InputObject @() -NoEnumerate
         return
     }
 
@@ -32,5 +32,5 @@ function Resolve-JsonPath {
     # empty result set — that would let a broken query score as a Pass on
     # countEquals:0 asserts (AB#5083). Rethrow so Invoke-Rule can mark it Error.
     $results = $token.SelectTokens($Path, $false)
-    Write-Output -NoEnumerate @($results)
+    Write-Output -InputObject @($results) -NoEnumerate
 }

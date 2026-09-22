@@ -30,7 +30,7 @@ BeforeAll {
 
 Describe 'Get-ScoutDrift — first-ever run' {
     BeforeAll {
-        $script:HistoryPath = Join-Path $env:TEMP "ScoutDriftTest_$([guid]::NewGuid().ToString('N'))"
+        $script:HistoryPath = Join-Path -Path $env:TEMP -ChildPath "ScoutDriftTest_$([guid]::NewGuid().ToString('N'))"
 
         $run1 = @(
             (New-DriftTestFinding 'f1' 'Pass')
@@ -61,13 +61,13 @@ Describe 'Get-ScoutDrift — first-ever run' {
     }
 
     It 'creates the history file and folder' {
-        (Join-Path $script:HistoryPath 'findings-history.json') | Should -Exist
+        (Join-Path -Path $script:HistoryPath -ChildPath 'findings-history.json') | Should -Exist
     }
 }
 
 Describe 'Get-ScoutDrift — second run with changed statuses' {
     BeforeAll {
-        $script:HistoryPath = Join-Path $env:TEMP "ScoutDriftTest_$([guid]::NewGuid().ToString('N'))"
+        $script:HistoryPath = Join-Path -Path $env:TEMP -ChildPath "ScoutDriftTest_$([guid]::NewGuid().ToString('N'))"
 
         $run1 = @(
             (New-DriftTestFinding 'f1' 'Pass')
@@ -130,7 +130,7 @@ Describe 'Get-ScoutDrift — second run with changed statuses' {
 
 Describe 'Get-ScoutDrift — third run regresses a previously-passing finding' {
     BeforeAll {
-        $script:HistoryPath = Join-Path $env:TEMP "ScoutDriftTest_$([guid]::NewGuid().ToString('N'))"
+        $script:HistoryPath = Join-Path -Path $env:TEMP -ChildPath "ScoutDriftTest_$([guid]::NewGuid().ToString('N'))"
 
         $scoredRun1 = Get-Score -Findings @((New-DriftTestFinding 'f1' 'Pass'), (New-DriftTestFinding 'f2' 'Fail'))
         Get-ScoutDrift -Findings $scoredRun1 -HistoryPath $script:HistoryPath -RunId 'run1' | Out-Null
@@ -157,16 +157,16 @@ Describe 'Get-ScoutDrift — third run regresses a previously-passing finding' {
 
     It 'a rerun of the same RunId replaces its own history record instead of duplicating it' {
         Get-ScoutDrift -Findings $script:ScoredRun2 -HistoryPath $script:HistoryPath -RunId 'run3' | Out-Null
-        $historyRaw = Get-Content (Join-Path $script:HistoryPath 'findings-history.json') -Raw | ConvertFrom-Json -Depth 100
+        $historyRaw = Get-Content (Join-Path -Path $script:HistoryPath -ChildPath 'findings-history.json') -Raw | ConvertFrom-Json -Depth 100
         @($historyRaw | Where-Object RunId -eq 'run3').Count | Should -Be 1
     }
 }
 
 Describe 'Get-ScoutDrift — malformed/corrupt history is tolerated' {
     BeforeAll {
-        $script:HistoryPath = Join-Path $env:TEMP "ScoutDriftTest_$([guid]::NewGuid().ToString('N'))"
+        $script:HistoryPath = Join-Path -Path $env:TEMP -ChildPath "ScoutDriftTest_$([guid]::NewGuid().ToString('N'))"
         New-Item -ItemType Directory -Path $script:HistoryPath -Force | Out-Null
-        'this is not { valid json at all' | Out-File (Join-Path $script:HistoryPath 'findings-history.json') -Encoding utf8
+        'this is not { valid json at all' | Out-File (Join-Path -Path $script:HistoryPath -ChildPath 'findings-history.json') -Encoding utf8
 
         $scored = Get-Score -Findings @((New-DriftTestFinding 'f1' 'Pass'), (New-DriftTestFinding 'f2' 'Fail'))
         $script:Drift = { Get-ScoutDrift -Findings $scored -HistoryPath $script:HistoryPath -RunId 'run1' }
@@ -188,13 +188,13 @@ Describe 'Get-ScoutDrift — malformed/corrupt history is tolerated' {
 
     It 'overwrites the malformed file with valid JSON afterward' {
         & $script:Drift | Out-Null
-        { Get-Content (Join-Path $script:HistoryPath 'findings-history.json') -Raw | ConvertFrom-Json -Depth 100 } | Should -Not -Throw
+        { Get-Content (Join-Path -Path $script:HistoryPath -ChildPath 'findings-history.json') -Raw | ConvertFrom-Json -Depth 100 } | Should -Not -Throw
     }
 }
 
 Describe 'Get-ScoutDrift — missing history file/folder is tolerated' {
     It 'treats an entirely absent -HistoryPath/-HistoryFile as a baseline on the first call, not an error' {
-        $historyPath = Join-Path $env:TEMP "ScoutDriftTest_$([guid]::NewGuid().ToString('N'))"
+        $historyPath = Join-Path -Path $env:TEMP -ChildPath "ScoutDriftTest_$([guid]::NewGuid().ToString('N'))"
         try {
             $scored = Get-Score -Findings @((New-DriftTestFinding 'f1' 'Pass'))
             { Get-ScoutDrift -Findings $scored -HistoryPath $historyPath -RunId 'run1' } | Should -Not -Throw

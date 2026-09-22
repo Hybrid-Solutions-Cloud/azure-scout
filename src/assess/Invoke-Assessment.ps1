@@ -12,6 +12,22 @@ $ErrorActionPreference = 'Stop'
 function Invoke-Assessment {
     param($Collect, $RuleSet, $Benchmark, [string] $Assessment)
 
+    function Write-ScoutRuleTiming {
+        param(
+            [Parameter(Mandatory)] [string] $RuleId,
+            [Parameter(Mandatory)] [string] $Status,
+            [Parameter(Mandatory)] [int] $EvidenceCount,
+            [Parameter(Mandatory)] [System.Diagnostics.Stopwatch] $Timer
+        )
+        if ($Timer.IsRunning) { $Timer.Stop() }
+        if (Get-Command -Name 'Write-AZSCLog' -ErrorAction SilentlyContinue) {
+            Write-AZSCLog -Level 'DEBUG' -Message (
+                'Assessment rule {0}: status={1}; evidence={2}; elapsed={3}' -f
+                    $RuleId, $Status, $EvidenceCount, $Timer.Elapsed.ToString('dd\:hh\:mm\:ss\.fff')
+            )
+        }
+    }
+
     $findings = foreach ($set in $RuleSet) {
         # A rule file may declare a data prerequisite (`requires:`). When it does and NOT ONE of
         # the declared paths returned a row, the whole set is reported Unknown with the missing
@@ -46,7 +62,8 @@ function Invoke-Assessment {
             }
             if (-not $Satisfied) {
                 foreach ($rule in $set.Rules) {
-                    [pscustomobject]@{
+                    $ruleTimer = [System.Diagnostics.Stopwatch]::StartNew()
+                    $f = [pscustomobject]@{
                         Id            = $rule.id
                         Title         = $rule.title
                         Framework     = $set.Framework
@@ -60,16 +77,22 @@ function Invoke-Assessment {
                     } | Add-Member -NotePropertyName Assessment -NotePropertyValue $Assessment -PassThru |
                         Add-Member -NotePropertyName AreaWeight -NotePropertyValue $SetWeight -PassThru |
                         Add-Member -NotePropertyName FrameworkVersion -NotePropertyValue $SetFrameworkVersion -PassThru
+                    Write-ScoutRuleTiming -RuleId ([string]$rule.id) -Status 'Unknown' -EvidenceCount 0 -Timer $ruleTimer
+                    $f
                 }
                 continue
             }
         }
 
         foreach ($rule in $set.Rules) {
+            $ruleTimer = [System.Diagnostics.Stopwatch]::StartNew()
             $f = Invoke-Rule -Rule $rule -Collect $Collect -Area $set.Area -Framework $set.Framework
-            $f | Add-Member -NotePropertyName Assessment -NotePropertyValue $Assessment -PassThru |
+            $f = $f | Add-Member -NotePropertyName Assessment -NotePropertyValue $Assessment -PassThru |
                  Add-Member -NotePropertyName AreaWeight -NotePropertyValue $SetWeight -PassThru |
                  Add-Member -NotePropertyName FrameworkVersion -NotePropertyValue $SetFrameworkVersion -PassThru
+            $evidenceCount = if ($f.PSObject.Properties['EvidenceCount']) { [int]$f.EvidenceCount } else { 0 }
+            Write-ScoutRuleTiming -RuleId ([string]$rule.id) -Status ([string]$f.Status) -EvidenceCount $evidenceCount -Timer $ruleTimer
+            $f
         }
     }
     # AB#6929 follow-up -- Compare-Benchmark builds its findings as bare pscustomobjects (no

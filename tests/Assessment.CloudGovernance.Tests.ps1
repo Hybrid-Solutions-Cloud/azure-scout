@@ -28,6 +28,10 @@ BeforeAll {
     function New-MockGovernanceCollect {
         [pscustomobject]@{
             governance = [pscustomobject]@{
+                policyAssignmentsAvailable = $true
+                roleAssignmentsAvailable   = $true
+                budgetsAvailable           = $true
+                resourceLocksAvailable     = $true
                 policyAssignments = @(
                     [pscustomobject]@{ id = '/pa/1'; properties = [pscustomobject]@{ enforcementMode = 'Default' } }
                 )
@@ -40,6 +44,7 @@ BeforeAll {
             advisor = @(
                 [pscustomobject]@{ Category = 'Cost'; Impact = 'High' }
             )
+            advisorAvailable = $true
             costCleanup = [pscustomobject]@{ orphanedDisks = @(); orphanedPips = @() }
             domains    = [pscustomobject]@{
                 management = [pscustomobject]@{
@@ -60,12 +65,17 @@ BeforeAll {
     function New-EmptyGovernanceCollect {
         [pscustomobject]@{
             governance = [pscustomobject]@{
+                policyAssignmentsAvailable = $true
+                roleAssignmentsAvailable   = $true
+                budgetsAvailable           = $true
+                resourceLocksAvailable     = $true
                 policyAssignments = @()
                 budgets           = @()
                 resourceLocks     = @()
             }
             management = [pscustomobject]@{ logAnalyticsWorkspaces = @() }
             advisor    = @()
+            advisorAvailable = $true
             costCleanup = [pscustomobject]@{ orphanedDisks = @(); orphanedPips = @() }
             domains    = [pscustomobject]@{
                 management = [pscustomobject]@{ policyComplianceStates = @() }
@@ -75,7 +85,8 @@ BeforeAll {
     }
 
     function Get-GovernanceFindings {
-        param($Collect)
+                [Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '', Justification = 'Name matches the real collector/API/fixture noun (often already plural in the product surface, e.g. ManagementGroups); renaming would break the shadow/mocked signature or the fixture-name convention used across this suite.')]
+param($Collect)
         $ruleSet = Get-RuleSet -Patterns @('caf.govern.*')
         return Invoke-Assessment -Collect $Collect -RuleSet $ruleSet -Assessment 'Assess: Cloud Governance'
     }

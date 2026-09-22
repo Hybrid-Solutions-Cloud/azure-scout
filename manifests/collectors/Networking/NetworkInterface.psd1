@@ -43,14 +43,14 @@ $ResUCount = 1
                         {
                             if ($Retirement.id -eq $1.id) { $Retirement }
                         }
-                    if ($Retired) 
+                    if ($Retired)
                         {
                             $RetiredFeature = foreach ($Retire in $Retired)
                                 {
                                     $RetiredServiceID = $Unsupported | Where-Object {$_.Id -eq $Retired.ServiceID}
                                     $tmp0 = [pscustomobject]@{
                                             'RetiredFeature'            = $RetiredServiceID.RetiringFeature
-                                            'RetiredDate'               = $RetiredServiceID.RetirementDate 
+                                            'RetiredDate'               = $RetiredServiceID.RetirementDate
                                         }
                                     $tmp0
                                 }
@@ -62,7 +62,7 @@ $ResUCount = 1
                             $RetiringDate = [string]$RetiringDate
                             $RetiringDate = if ($RetiringDate -like '* ,*') { $RetiringDate -replace ".$" }else { $RetiringDate }
                         }
-                    else 
+                    else
                         {
                             $RetiringFeature = $null
                             $RetiringDate = $null
@@ -83,7 +83,7 @@ $ResUCount = 1
                             $ResourceType = 'Underutilized'
                             $Resource = 'None'
                         }
-                    
+
                     $NSG = if(![string]::IsNullOrEmpty((Get-AZSCSafeProperty -InputObject $data -Path 'networksecuritygroup.id' -Enumerate))){(Get-AZSCIdSegment -Id (Get-AZSCSafeProperty -InputObject $data -Path 'networksecuritygroup.id' -Enumerate) -Index 8)}else{$null}
 
                     $DNS = if (@((Get-AZSCSafeProperty -InputObject $data -Path 'dnssettings.dnsservers' -Enumerate)).count -gt 1) { (Get-AZSCSafeProperty -InputObject $data -Path 'dnssettings.dnsservers' -Enumerate) | ForEach-Object { $_ + ' ,' } }else { (Get-AZSCSafeProperty -InputObject $data -Path 'dnssettings.dnsservers' -Enumerate) }

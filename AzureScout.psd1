@@ -12,7 +12,7 @@
 RootModule = 'AzureScout.psm1'
 
 # Version number of this module.
-ModuleVersion = '3.5.0'
+ModuleVersion = '3.16.0'
 
 # Supported PSEditions
 CompatiblePSEditions = @('Core')
@@ -30,7 +30,7 @@ CompanyName = 'Hybrid Cloud Solutions'
 Copyright = '(c) 2026 Hybrid Cloud Solutions. All rights reserved.'
 
 # Description of the functionality provided by this module
-Description = 'AzureScout — discover, inventory, and assess everything in your Azure environment from one command. Run Invoke-AzureScout with no parameters for a guided wizard, or drive it with switches: by default it inventories Azure resources, Entra ID, and identity objects (Excel, JSON, Markdown, AsciiDoc); add -Assessment and it runs a read-only CAF/WAF landing-zone assessment, scoring the tenant against Cloud Adoption Framework design areas and Well-Architected pillars and producing Power BI, self-contained HTML, executive PowerPoint, and JSON/Excel evidence. See everything. Own your cloud. (Requires PowerShell 7 on PowerShell Core.)'
+Description = 'AzureScout — discover, inventory, and assess everything in your Azure environment from one command. Run Invoke-AzureScout with no parameters for a guided wizard, or drive it with switches: by default it inventories tenant-wide Azure ARM resources and produces the live React, Json, and JsonEvidence outputs; opt into Entra ID collection with -Scope All; add -Assessment to run a read-only CAF/WAF assessment. Detailed run logs capture debug and verbose diagnostics without adding console noise. See everything. Own your cloud. (Requires PowerShell 7 on PowerShell Core.)'
 
 # Minimum version of the PowerShell engine required by this module
 # AzureScout requires PowerShell 7+. Declaring this here makes Import-Module reject
@@ -54,8 +54,22 @@ PowerShellVersion = '7.0'
 # Processor architecture (None, X86, Amd64) required by this module
 # ProcessorArchitecture = ''
 
-# Modules that must be imported into the global environment prior to importing this module
-RequiredModules = @()
+# Modules that must be imported into the global environment prior to importing this module.
+# Keep optional feature dependencies (for example Az.CostManagement) out of this list.
+# Declaring the core dependencies here lets Install-Module resolve them and makes a
+# source-tree Import-Module fail cleanly instead of installing software as a side effect.
+# The live progress renderer is built into AzureScout and has no external module dependency.
+RequiredModules = @(
+    'ImportExcel'
+    'Az.Accounts'
+    'Az.ResourceGraph'
+    'Az.Storage'
+    'Az.Compute'
+    'Az.Resources'
+    'Az.Advisor'
+    'Microsoft.Graph.Authentication'
+    'powershell-yaml'
+)
 
 # Assemblies that must be loaded prior to importing this module
 # RequiredAssemblies = @()
@@ -79,7 +93,9 @@ FunctionsToExport = @(
             'Start-AZSCPolicyJob',
             'Start-AZSCSecCenterJob',
             'Start-AZSCSubscriptionJob',
-            'Wait-AZSCJob',
+
+            #Public output maintenance
+            'Clear-AZSCCacheFolder',
 
             #Public Diagram Functions
             'Build-AZSCDiagramSubnet',
@@ -138,28 +154,25 @@ PrivateData = @{
     PSData = @{
 
         # Tags applied to this module. These help with module discovery in online galleries.
-        Tags = @('Azure','AzureScout','Discovery','Inventory','Assessment','CAF','WAF','WellArchitected','CloudAdoptionFramework','LandingZone','Governance','AZSC','EntraID','Resources','ARM','Graph','Reporting','Excel','PowerBI')
+        Tags = @('Azure','AzureScout','Discovery','Inventory','Assessment','CAF','WAF','WellArchitected','CloudAdoptionFramework','LandingZone','Governance','AZSC','EntraID','Resources','ARM','Graph','Reporting','React','Json','JsonEvidence')
 
         # A URL to the license for this module.
-        LicenseUri = 'https://github.com/thisismydemo/azure-scout/blob/main/LICENSE'
+        LicenseUri = 'https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/LICENSE'
 
         # A URL to the main website for this project.
-        ProjectUri = 'https://thisismydemo.cloud/azure-scout/'
+        ProjectUri = 'https://labs.hybridsolutions.cloud/azure-scout/'
 
         # A URL to an icon representing this module.
-        IconUri = 'https://raw.githubusercontent.com/thisismydemo/azure-scout/main/docs/images/azurescout-icon.svg'
+        IconUri = 'https://raw.githubusercontent.com/Hybrid-Solutions-Cloud/azure-scout/main/docs/public/images/azurescout-icon.svg'
 
         # ReleaseNotes of this module
-        ReleaseNotes = 'v3.5.0 - The report is a product, not a page. The React report becomes a multi-page application driven by the run''s own data: an Overview landing with collection provenance, KPI row, menu tiles and assessment gauges; Inventory & audit rebuilt on the documented 18-category taxonomy as a blade view - the left menu selects, the right pane shows only that selection - with every collector listed including the ones that found nothing (a dimmed zero and an explicit absence statement), per-category item tables that filter on any column and sort on any header, a tenant-structure blade drawing the management-group hierarchy, audit callouts, and a Cost optimization blade carrying the whole cost story: the quantified opportunity with its arithmetic shown, every cost check with a link to its fix, Advisor cost recommendations, FinOps datasets with the reason they are empty, and cleanup items. Assessments get a landing page and one page per assessment holding the complete conformance register: every check listed - met, not met and manual alike - a gap block for every Not-met (current configuration at resource grain, why it matters, numbered fix steps, and a per-check Microsoft Learn link instead of one pillar page for a whole prefix), the manual checks as a review agenda with their questions, and a closing What''s-next section whose actions link back to their fix blocks with owner and window. A Diagrams page renders the management-group hierarchy, virtual networks with per-subnet IP utilization, estate distribution and gaps-by-area as inline SVG with contextual KPIs, click-through to the underlying data, and a full-screen overlay with zoom and pan. Executive/Consultant/Data become a depth toggle, a theme toggle adds a light enterprise look, and exports add Markdown and JSON alongside CSV and print. Conformance clause R-04 is now enforced for real: the renderer no longer re-invokes the scoring engine for per-assessment slices - area buckets are tallied inline from the already-scored findings with the same visible arithmetic. The docs state plainly that all other assessment report formats remain on hold; the inventory pipeline''s data exports are unaffected. v3.3.4 - One report, and it is the deliverable: six parallel renderers were each found weak in a different way by a real multi-tenant read-through, so the React single-page report became the product deliverable and every other rendered format went on hold, with held formats warning and skipping rather than failing, and a link-rot check (scripts/Test-ScoutGuidanceLinks.ps1) auditing every cited Learn URL. See CHANGELOG.md for the full history.'
+        ReleaseNotes = 'v3.16.0 - Enterprise direct-access multi-tenant scanning. Scan every Azure tenant reachable by the signed-in account with -AllAccessibleTenants, or select several tenants with repeated -TenantID values. One umbrella run creates an offline root overview and JSON summary plus an isolated folder and detailed React report for each tenant. Tenant failures are contained so later tenants continue, and cached Az contexts are reused when possible. This is direct account access and remains separate from Azure Lighthouse. AB#332 / AB#7105.'
 
         # Prerelease string of this module
         # Prerelease = ''
 
         # Flag to indicate whether the module requires explicit user acceptance for install/update/save
         # RequireLicenseAcceptance = $false
-
-        # External dependent modules of this module
-        # ExternalModuleDependencies = @()
 
     } # End of PSData hashtable
 

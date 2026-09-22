@@ -25,7 +25,7 @@ $ErrorActionPreference = 'Stop'
 #>
 
 BeforeAll {
-    $srcRoot = Join-Path $PSScriptRoot '..' 'src'
+    $srcRoot = Join-Path -Path $PSScriptRoot -ChildPath '..' -AdditionalChildPath 'src'
     $script:Definitions = @{}   # name -> list of "file:line"
 
     foreach ($file in Get-ChildItem -Path $srcRoot -Filter '*.ps1' -Recurse) {

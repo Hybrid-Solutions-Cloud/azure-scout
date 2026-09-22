@@ -1,3 +1,7 @@
+#Requires -Version 7.0
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
 <#
 .SYNOPSIS
 Checks PSGallery for a newer AzureScout release than the one currently loaded and
@@ -26,6 +30,11 @@ Path to the AzureScout.psd1 manifest used to determine the currently-loaded
 version when Get-Module can't yet see the module (e.g. mid-import). Defaults to
 the manifest that ships alongside this module.
 
+.PARAMETER ThrottlePath
+Optional marker-file path. Production callers omit it and use the shared
+machine-temp marker. Tests supply an isolated path so another PowerShell process
+importing AzureScout cannot race the throttle assertion.
+
 .NOTES
 Throttle design: at most once every 24 hours, tracked via a small marker file in
 the machine temp directory (not an in-memory/session flag). AzureScout is
@@ -51,7 +60,8 @@ Work item: AB#369
 function Test-AZSCModuleUpdate {
     [CmdletBinding()]
     param(
-        [string]$ManifestPath = (Join-Path $PSScriptRoot '..\AzureScout.psd1')
+        [string]$ManifestPath = (Join-Path $PSScriptRoot '..\AzureScout.psd1'),
+        [string]$ThrottlePath
     )
 
     # Opt-out: skip the check entirely, no network call at all.
@@ -70,7 +80,12 @@ function Test-AZSCModuleUpdate {
 
     try {
         # Throttle: once per 24h, tracked in a marker file (see .NOTES for rationale).
-        $_throttleFile = Join-Path ([System.IO.Path]::GetTempPath()) 'azurescout-update-check.txt'
+        $_throttleFile = if ($ThrottlePath) {
+            $ThrottlePath
+        }
+        else {
+            Join-Path ([System.IO.Path]::GetTempPath()) 'azurescout-update-check.txt'
+        }
         if (Test-Path -Path $_throttleFile -ErrorAction SilentlyContinue) {
             $_lastCheckRaw = Get-Content -Path $_throttleFile -Raw -ErrorAction SilentlyContinue
             $_lastCheck = [datetime]::MinValue
@@ -87,9 +102,13 @@ function Test-AZSCModuleUpdate {
         # the manifest as data. Test-ModuleManifest can import a same-named installed
         # module while this local module is mid-import, leaking stale exports into the
         # caller's session (including removed public commands).
-        $_localVersion = (Get-Module -Name AzureScout -ErrorAction SilentlyContinue |
+        $_loadedModule = Get-Module -Name AzureScout -ErrorAction SilentlyContinue |
             Sort-Object -Property Version -Descending |
-            Select-Object -First 1).Version
+            Select-Object -First 1
+        $_localVersion = $null
+        if ($_loadedModule -and $_loadedModule.PSObject.Properties['Version']) {
+            $_localVersion = $_loadedModule.Version
+        }
         if (-not $_localVersion) {
             $_localVersion = [Version](Import-PowerShellDataFile -Path $ManifestPath -ErrorAction Stop).ModuleVersion
         }
