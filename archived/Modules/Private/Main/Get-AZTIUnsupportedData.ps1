@@ -6,7 +6,7 @@ Retrieve unsupported data for Azure Resource Inventory
 This module retrieves unsupported data from a predefined JSON file for Azure Resource Inventory.
 
 .Link
-https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Private/0.MainFunctions/Get-AZSCUnsupportedData.ps1
+https://github.com/thisismydemo/azure-scout/Modules/Private/0.MainFunctions/Get-AZSCUnsupportedData.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC)
@@ -20,7 +20,7 @@ Authors: Claudio Merola
 function Get-AZSCUnsupportedData {
 
     $SupportedDataPath = (get-item $PSScriptRoot).parent
-    $SupportFile = Join-Path -Path $SupportedDataPath -ChildPath 'Reporting' -AdditionalChildPath 'StyleFunctions', 'Support.json'
+    $SupportFile = Join-Path $SupportedDataPath 'Reporting' 'StyleFunctions' 'Support.json'
     Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Validating file: '+$SupportFile)
 
     $Unsupported = Get-Content -Path $SupportFile | ConvertFrom-Json

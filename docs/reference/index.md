@@ -13,7 +13,7 @@ each have one page, and both are **generated from the product** rather than hand
 |---|---|
 | [Assessment Catalogue](./assessment-catalogue.md) | All **46 assessments**, grouped into CAF design areas, WAF pillars, per-service slices and specialised reviews — with the rule files, rule counts, and the automated-versus-manual split behind each |
 | [Framework Coverage](./framework-coverage.md) | **How much of each framework actually has a rule behind it.** Scout enumerates every framework in full; this is the gap between enumerating an item and testing it |
-| [ARM Modules](./arm-modules.md) | All **245 collector definitions** across Microsoft's 18 published service categories, each mapped to the resource types it targets |
+| [ARM Modules](./arm-modules.md) | All **242 collector definitions** across Microsoft's 18 published service categories, each mapped to the resource types it targets |
 | [Collector Fields](./collector-fields.md) | The worksheet and the ordered columns each collector produces — what actually comes back, as opposed to what is covered |
 
 ::: tip Both pages are generated
@@ -32,7 +32,6 @@ date before anyone noticed, which is why they are built this way now.
 | [Category Structure](./category-structure.md) | How the 18 categories are organised |
 | [Category Reference](./category-reference.md) | Every report section heading mapped to its category, aliases, and collector folder |
 | [Validation Matrix](./validation-matrix.md) | Which checks are verified by automated tests and which need a live tenant |
-| [React Report Section Contract](./react-report-section-contract.md) | The v6 page structure of the one supported deliverable, the register completeness rule, and what a section must satisfy so an assessment can be added without touching the shell |
 
 ## Reading a count on any page here
 

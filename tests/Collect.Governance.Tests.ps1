@@ -1,5 +1,6 @@
 #Requires -Version 7.0
 #Requires -Modules Pester
+#Requires -Modules Az.ResourceGraph
 
 <#
     AB#6779 (Tasks AB#6780-AB#6783) -- render the governance data Scout already holds in memory.
@@ -21,36 +22,27 @@
          the shipped `.psd1` through the real declarative interpreter over an in-memory envelope,
          asserting the values a reader would actually look for -- "who has Owner" chief among them.
 
-    Search-AzGraph, Invoke-AzRestMethod, and PIM schedule commands are mocked throughout. Nothing here touches Azure.
+    Search-AzGraph and Invoke-AzRestMethod are mocked throughout. Nothing here touches Azure.
 #>
 
 BeforeAll {
     $script:RepoRoot = Split-Path -Parent $PSScriptRoot
 
-    . (Join-Path -Path $script:RepoRoot -ChildPath 'tests/helpers/Search-AzGraph.TestDouble.ps1')
-    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/collect/Get-ScoutGovernanceDataset.ps1')
-    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/collect/ConvertTo-ScoutGovernanceResource.ps1')
-    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/collect/Resolve-ScoutOrphanedRoleAssignment.ps1')
-    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/ingest/Import-Governance.ps1')
-    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/pipeline/Get-ScoutCollectorDefinition.ps1')
-    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/pipeline/Invoke-ScoutDeclarativeCollector.ps1')
-    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/Get-AZSCSafeProperty.ps1')
-    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/Get-AZTICollectedValue.ps1')
-    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/Get-AZSCIdSegment.ps1')
+    Import-Module Az.ResourceGraph -ErrorAction Stop
+    . (Join-Path $script:RepoRoot 'src/collect/Get-ScoutGovernanceDataset.ps1')
+    . (Join-Path $script:RepoRoot 'src/collect/ConvertTo-ScoutGovernanceResource.ps1')
+    . (Join-Path $script:RepoRoot 'src/collect/Resolve-ScoutOrphanedRoleAssignment.ps1')
+    . (Join-Path $script:RepoRoot 'src/ingest/Import-Governance.ps1')
+    . (Join-Path $script:RepoRoot 'src/pipeline/Get-ScoutCollectorDefinition.ps1')
+    . (Join-Path $script:RepoRoot 'src/pipeline/Invoke-ScoutDeclarativeCollector.ps1')
+    . (Join-Path $script:RepoRoot 'src/Get-AZSCSafeProperty.ps1')
+    . (Join-Path $script:RepoRoot 'src/Get-AZTICollectedValue.ps1')
+    . (Join-Path $script:RepoRoot 'src/Get-AZSCIdSegment.ps1')
 
     # Present so the Get-Command probe in both functions finds it and Pester can mock it, exactly
     # as tests/Assessment.Governance.Tests.ps1 already does.
-    # Always replace a shadow left by another test file. Pester discovers the complete suite in
-    # one session, so merely checking that the command exists can retain an incompatible stub
-    # whose proxy has no $Path parameter. The real Az cmdlet is mocked below either way.
-    function Invoke-AzRestMethod {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
-param([string] $Method, [string] $Path) }
-    if (-not (Get-Command Get-AzRoleEligibilitySchedule -ErrorAction SilentlyContinue)) {
-        function Get-AzRoleEligibilitySchedule {
-            param([string] $Scope, [string] $ErrorAction)
-            $null = $Scope, $ErrorAction
-            @()
-        }
+    if (-not (Get-Command Invoke-AzRestMethod -ErrorAction SilentlyContinue)) {
+        function Invoke-AzRestMethod { param([string] $Method, [string] $Path) }
     }
 
     $script:SubA = '00000000-0000-0000-0000-00000000000a'
@@ -184,7 +176,6 @@ param([string] $Method, [string] $Path) }
     )
 
     function Set-ScoutGovernanceMock {
-        Mock Get-AzRoleEligibilitySchedule { return @() }
         Mock Search-AzGraph {
             # Order matters: the tenant-scoped definition query ALSO hits authorizationresources,
             # and it must be answered with definitions only. Serving it the scoped payload would
@@ -236,7 +227,6 @@ param([string] $Method, [string] $Path) }
 
     function Set-ScoutGovernanceWrapperMock {
         <# Set-ScoutGovernanceMock's payloads, delivered in the wrapper the real cmdlet returns. #>
-        Mock Get-AzRoleEligibilitySchedule { return @() }
         Mock Search-AzGraph {
             if ($UseTenantScope)                        { return (New-ScoutArgResponse -Rows $script:MockTenantRoleDefinitions) }
             if ($Query -match 'authorizationresources') { return (New-ScoutArgResponse -Rows $script:MockAuthorization) }
@@ -263,7 +253,7 @@ param([string] $Method, [string] $Path) }
         param([string] $Category, [string] $Name, [string] $Type)
 
         $definition = Get-ScoutCollectorDefinition -Path (
-            Join-Path -Path $script:RepoRoot -ChildPath "manifests/collectors/$Category/$Name.psd1"
+            Join-Path $script:RepoRoot "manifests/collectors/$Category/$Name.psd1"
         )
         $context = @{
             ScriptRoot    = $script:RepoRoot
@@ -368,11 +358,6 @@ Describe 'AB#6779 -- the call budget' {
         Get-ScoutGovernanceDataset -Subscriptions $script:Subscriptions | Out-Null
         Should -Invoke Invoke-AzRestMethod -ParameterFilter { $Path -match 'budgets' } -Times 2 -Exactly
         Should -Invoke Invoke-AzRestMethod -ParameterFilter { $Path -match 'locks' }   -Times 2 -Exactly
-    }
-
-    It 'reads Azure RBAC eligible schedules exactly once per subscription' {
-        Get-ScoutGovernanceDataset -Subscriptions $script:Subscriptions | Out-Null
-        Should -Invoke Get-AzRoleEligibilitySchedule -Times 2 -Exactly
     }
 
     It 'scopes both Resource Graph queries to the management group when one is supplied' {
@@ -500,7 +485,7 @@ Describe 'AB#6779 -- Search-AzGraph returns a wrapper, not rows' {
         )[0]
 
         $definition = Get-ScoutCollectorDefinition -Path (
-            Join-Path -Path $script:RepoRoot -ChildPath 'manifests/collectors/Identity/RoleAssignments.psd1'
+            Join-Path $script:RepoRoot 'manifests/collectors/Identity/RoleAssignments.psd1'
         )
         $rows = @(Invoke-ScoutDeclarativeCollector -Definition $definition -Context @{
                 ScriptRoot   = $script:RepoRoot; Subscriptions = $script:Subscriptions
@@ -645,22 +630,21 @@ Describe 'AB#6779 -- ConvertTo-ScoutGovernanceResource is a pure transform' {
         }
 
         $envelopes = @(ConvertTo-ScoutGovernanceResource -Governance $dataset -Subscriptions $script:Subscriptions)
-        @($envelopes).Count | Should -Be 5
+        @($envelopes).Count | Should -Be 4
         Should -Invoke Search-AzGraph -Times 0 -Exactly
         Should -Invoke Invoke-AzRestMethod -Times 0 -Exactly
     }
 
-    It 'returns all five envelopes even when every dataset is empty' {
+    It 'returns all four envelopes even when every dataset is empty' {
         # Same contract as Get-ScoutTenantWideResource: an estate with no budgets renders an empty
         # Budgets worksheet, not a missing one.
         $envelopes = @(ConvertTo-ScoutGovernanceResource -Governance ([pscustomobject]@{}) -Subscriptions @())
-        @($envelopes).Count | Should -Be 5
+        @($envelopes).Count | Should -Be 4
         @($envelopes.type) | Should -Be @(
             'AZSC/Governance/RoleAssignment'
             'AZSC/Governance/PolicyAssignment'
             'AZSC/Governance/ResourceLock'
             'AZSC/Governance/Budget'
-            'AZSC/Governance/PimEligibility'
         )
         foreach ($envelope in $envelopes) { @($envelope.properties).Count | Should -Be 0 }
     }
@@ -826,16 +810,6 @@ Describe 'AB#6456 -- Resolve-ScoutOrphanedRoleAssignment is a pure, local transf
         { Resolve-ScoutOrphanedRoleAssignment -Resources @() -EntraQueryOutcomes @() } | Should -Not -Throw
         @(Resolve-ScoutOrphanedRoleAssignment -Resources @() -EntraQueryOutcomes @()) | Should -BeNullOrEmpty
     }
-
-    It 'filters null resource elements before enriching the remaining rows' {
-        $other = [pscustomobject]@{ type = 'microsoft.compute/virtualmachines'; id = 'keep' }
-        $inputRows = [object[]]@($other, $null)
-
-        $result = @(Resolve-ScoutOrphanedRoleAssignment -Resources $inputRows -EntraQueryOutcomes @())
-
-        $result.Count | Should -Be 1
-        $result[0].id | Should -Be 'keep'
-    }
 }
 
 Describe 'AB#6456 -- orphaned role assignments: the classification matrix' {
@@ -933,7 +907,7 @@ Describe 'AB#6456 -- Identity/RoleAssignments renders the resolution columns end
     It 'renders Principal Resolution and Principal Display Name through the real interpreter' {
         $envelope = Get-ScoutGovernanceEnvelopeWithResolution
         $definition = Get-ScoutCollectorDefinition -Path (
-            Join-Path -Path $script:RepoRoot -ChildPath 'manifests/collectors/Identity/RoleAssignments.psd1'
+            Join-Path $script:RepoRoot 'manifests/collectors/Identity/RoleAssignments.psd1'
         )
         $rows = @(Invoke-ScoutDeclarativeCollector -Definition $definition -Context @{
                 ScriptRoot   = $script:RepoRoot; Subscriptions = $script:Subscriptions

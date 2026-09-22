@@ -1,7 +1,3 @@
-#Requires -Version 7.0
-Set-StrictMode -Version Latest
-$ErrorActionPreference = 'Stop'
-
 <#
 .Synopsis
 Module responsible for retrieving Azure subscriptions.
@@ -10,7 +6,7 @@ Module responsible for retrieving Azure subscriptions.
 This module retrieves Azure subscriptions for a given tenant or specific subscription IDs.
 
 .Link
-https://github.com/Hybrid-Solutions-Cloud/azure-scout/src/collect/Get-ScoutSubscriptions.ps1
+https://github.com/thisismydemo/azure-scout/src/collect/Get-ScoutSubscriptions.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC).
@@ -21,8 +17,6 @@ First Release Date: 15th Oct, 2024
 Authors: Claudio Merola
 #>
 function Get-AZSCSubscriptions {
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '',
-        Justification = 'Public function name is load-bearing across tests and the legacy extraction path; renaming is an API break out of scope for a lint-only pass.')]
     Param ($TenantID,$SubscriptionID,$PlatOS)
     if($PlatOS -eq 'Azure CloudShell')
         {
@@ -65,16 +59,6 @@ function Get-AZSCSubscriptions {
                         }
                 }
         }
-
-    # Disabled subscriptions can still be returned by Get-AzSubscription and Resource Graph, but
-    # their resource providers cannot be queried. Treating them as runnable scope creates a false
-    # Partial inventory (for example Defender Pricing appears unavailable) and wastes every
-    # subscription-scoped call. Preserve test/legacy objects that do not expose State, while
-    # excluding only an explicitly non-Enabled Azure subscription.
-    $Subscriptions = @($Subscriptions | Where-Object {
-            $stateProperty = $_.PSObject.Properties['State']
-            $null -eq $stateProperty -or [string]$stateProperty.Value -ieq 'Enabled'
-        })
 
     return $Subscriptions
 }

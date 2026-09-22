@@ -1,7 +1,3 @@
-#Requires -Version 7.0
-Set-StrictMode -Version Latest
-$ErrorActionPreference = 'Stop'
-
 <#
 .Synopsis
 Module for Reporting Results Output
@@ -10,7 +6,7 @@ Module for Reporting Results Output
 This script outputs the results of the Azure Resource Inventory report generation.
 
 .Link
-https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Private/3.ReportingFunctions/StyleFunctions/Out-AZSCReportResults.ps1
+https://github.com/thisismydemo/azure-scout/Modules/Private/3.ReportingFunctions/StyleFunctions/Out-AZSCReportResults.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC)
@@ -22,7 +18,6 @@ Authors: Claudio Merola
 #>
 
 function Out-AZSCReportResults {
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Justification = 'Called by name from src/Invoke-AzureScout.ps1 (outside this task''s src/report+src/assess scope) plus tests; renaming would break out-of-scope callers.')]
     param (
         [string]$Measure,
         [string]$ResourcesCount,
@@ -32,7 +27,6 @@ function Out-AZSCReportResults {
         [string]$PolicyData,
         [string]$SecurityCenterData,
         [string]$DDFile,
-        [switch]$ExcelRendered,
         $SkipAdvisory,
         $SkipPolicy,
         $SecurityCenter,
@@ -40,14 +34,12 @@ function Out-AZSCReportResults {
         $SkipDiagram
     )
 
-    Write-Host ('Report complete. Total command time (including guided setup): ') -NoNewline -ForegroundColor Green
+    Write-Host ('Report Complete. Total Runtime was: ') -NoNewline -ForegroundColor Green
     Write-Host $Measure -ForegroundColor Cyan
     Write-Host ('Total Resources on Azure: ') -NoNewline
     Write-Host $ResourcesCount -ForegroundColor Cyan
-    if ($ExcelRendered) {
-        Write-Host ('Total Resources on Excel: ') -NoNewline
-        Write-Host $TotalRes -ForegroundColor Cyan
-    }
+    Write-Host ('Total Resources on Excel: ') -NoNewline
+    Write-Host $TotalRes -ForegroundColor Cyan
     if (![bool]$SkipAdvisory)
         {
             if(![string]::IsNullOrEmpty($AdvisoryData))
@@ -72,12 +64,10 @@ function Out-AZSCReportResults {
                 }
         }
 
-    if ($ExcelRendered) {
-        Write-Host ''
-        Write-Host ('Excel file saved at: ') -NoNewline
-        write-host $File -ForegroundColor Cyan
-        Write-Host ''
-    }
+    Write-Host ''
+    Write-Host ('Excel file saved at: ') -NoNewline
+    write-host $File -ForegroundColor Cyan
+    Write-Host ''
 
     if(![bool]$SkipDiagram)
         {

@@ -9,7 +9,7 @@ Supplement to VirtualMachine.ps1 — does not replace it.
 Excel Sheet Name: VM Operational Data
 
 .Link
-https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Compute/VMOperationalData.ps1
+https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Compute/VMOperationalData.ps1
 
 .COMPONENT
 This powershell Module is part of Azure Scout (AZSC)
@@ -23,9 +23,6 @@ Authors: AzureScout Contributors
 
 <######## Default Parameters. Don't modify this ########>
 
-[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'SCPath', Justification = "Shared collector call-signature (see 'Default Parameters' comment) -- the orchestration loop invokes every InventoryModules script with the same fixed positional parameter list; this module simply does not need this one.")]
-[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'Retirements', Justification = "Shared collector call-signature (see 'Default Parameters' comment) -- the orchestration loop invokes every InventoryModules script with the same fixed positional parameter list; this module simply does not need this one.")]
-[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'Unsupported', Justification = "Shared collector call-signature (see 'Default Parameters' comment) -- the orchestration loop invokes every InventoryModules script with the same fixed positional parameter list; this module simply does not need this one.")]
 param($SCPath, $Sub, $Intag, $Resources, $Retirements, $Task, $File, $SmaResources, $TableStyle, $Unsupported)
 
 If ($Task -eq 'Processing')
@@ -88,7 +85,7 @@ If ($Task -eq 'Processing')
                     $pendingImportant = if ($assessData.otherPatchCount)                 { $assessData.otherPatchCount }                 else { 0 }
                     $lastPatchTime    = if ($assessData.startDateTime)                   { ([datetime]$assessData.startDateTime).ToString('yyyy-MM-dd') } else { 'N/A' }
                 }
-            } catch { Write-Debug ('VMOperationalData: failed to read patch assessment: ' + $_.Exception.Message) }
+            } catch {}
 
             # ---- Lifecycle tags ----
             $tagEnv      = if ($1.tags.Environment)  { $1.tags.Environment }  elseif ($1.tags.environment)  { $1.tags.environment }  else { 'N/A' }

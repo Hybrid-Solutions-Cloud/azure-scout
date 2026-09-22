@@ -21,7 +21,7 @@
 #>
 
 $ModuleRoot = Split-Path -Parent $PSScriptRoot
-Import-Module (Join-Path -Path $ModuleRoot -ChildPath 'AzureScout.psd1') -Force -ErrorAction Stop
+Import-Module (Join-Path $ModuleRoot 'AzureScout.psd1') -Force -ErrorAction Stop
 
 Describe 'Connect-AZSCLoginSession' {
 
@@ -143,54 +143,10 @@ Describe 'Connect-AZSCLoginSession' {
             Mock Get-AzConfig { return [PSCustomObject]@{ Value = 'On' } } -ModuleName AzureScout
             Mock Update-AzConfig { } -ModuleName AzureScout
 
-            $null = InModuleScope 'AzureScout' {
+            $result = InModuleScope 'AzureScout' {
                 Connect-AZSCLoginSession -TenantID 'tenant-new'
             }
             Should -Invoke Connect-AzAccount -ModuleName AzureScout -Times 1
-        }
-
-        It 'reuses a cached context for another tenant without another interactive login' {
-            Mock Get-AzContext {
-                if ($ListAvailable) {
-                    return [pscustomobject]@{
-                        Tenant  = [pscustomobject]@{ Id = 'tenant-target' }
-                        Account = [pscustomobject]@{ Id = 'user@example.test' }
-                    }
-                }
-                return [pscustomobject]@{
-                    Tenant  = [pscustomobject]@{ Id = 'tenant-current' }
-                    Account = [pscustomobject]@{ Id = 'user@example.test' }
-                }
-            } -ModuleName AzureScout
-            Mock Set-AzContext { } -ModuleName AzureScout
-            Mock Connect-AzAccount { } -ModuleName AzureScout
-
-            $result = InModuleScope 'AzureScout' {
-                Connect-AZSCLoginSession -TenantID 'tenant-target'
-            }
-
-            $result | Should -Be 'tenant-target'
-            Should -Invoke Set-AzContext -ModuleName AzureScout -Times 1 -Exactly
-            Should -Not -Invoke Connect-AzAccount -ModuleName AzureScout
-        }
-
-        It 'forces a fresh interactive login when the wizard rejects the existing context' {
-            Mock Get-AzContext {
-                [pscustomobject]@{
-                    Tenant  = [pscustomobject]@{ Id = 'tenant-existing' }
-                    Account = [pscustomobject]@{ Id = 'user@example.test' }
-                }
-            } -ModuleName AzureScout
-            Mock Connect-AzAccount {} -ModuleName AzureScout
-            Mock Get-AzConfig { [pscustomobject]@{ Value = 'On' } } -ModuleName AzureScout
-            Mock Update-AzConfig {} -ModuleName AzureScout
-
-            $result = InModuleScope 'AzureScout' {
-                Connect-AZSCLoginSession -TenantID 'tenant-existing' -ForceLogin
-            }
-
-            $result | Should -Be 'tenant-existing'
-            Should -Invoke Connect-AzAccount -ModuleName AzureScout -Times 1 -Exactly
         }
     }
 
@@ -213,19 +169,6 @@ Describe 'Connect-AZSCLoginSession' {
                 Connect-AZSCLoginSession -TenantID 'tenant-v2'
             }
             Should -Invoke Get-AzConfig -ModuleName AzureScout
-        }
-
-        It 'restores LoginExperienceV2 and does not prompt twice when authentication fails' {
-            Mock Get-AzContext { return $null } -ModuleName AzureScout
-            Mock Get-AzConfig { [pscustomobject]@{ Value = 'On' } } -ModuleName AzureScout
-            Mock Update-AzConfig { } -ModuleName AzureScout
-            Mock Connect-AzAccount { throw 'interactive authentication failed' } -ModuleName AzureScout
-
-            { InModuleScope 'AzureScout' { Connect-AZSCLoginSession -TenantID 'tenant-v2' } } | Should -Throw '*interactive authentication failed*'
-
-            Should -Invoke Connect-AzAccount -ModuleName AzureScout -Times 1 -Exactly
-            Should -Invoke Update-AzConfig -ModuleName AzureScout -Times 1 -Exactly -ParameterFilter { $LoginExperienceV2 -eq 'Off' -and $Scope -eq 'Process' }
-            Should -Invoke Update-AzConfig -ModuleName AzureScout -Times 1 -Exactly -ParameterFilter { $LoginExperienceV2 -eq 'On' -and $Scope -eq 'Process' }
         }
     }
 

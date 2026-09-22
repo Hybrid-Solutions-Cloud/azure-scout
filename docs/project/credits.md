@@ -11,7 +11,7 @@ Without the foundation built by the ARI team at Microsoft, this project would no
 
 The full credits file is maintained in the repository root and rendered on GitHub.
 
-[View CREDITS.md on GitHub](https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/CREDITS.md)
+[View CREDITS.md on GitHub](https://github.com/thisismydemo/azure-scout/blob/main/CREDITS.md)
 
 ## Fork Origin
 
@@ -32,12 +32,12 @@ For a detailed breakdown of what AzureScout has added, changed, and diverged fro
 
 ## Additional Acknowledgments
 
-- **[Doug Finke](https://github.com/dfinke)** — Author of [ImportExcel](https://github.com/dfinke/ImportExcel), retained by the held legacy Excel implementation and its compatibility tests (MIT license).
+- **[Doug Finke](https://github.com/dfinke)** — Author of [ImportExcel](https://github.com/dfinke/ImportExcel), the PowerShell module used for Excel report generation (MIT license).
 - **Microsoft** — Azure PowerShell SDK (`Az.*` modules), Azure Resource Graph, and Microsoft Graph REST API.
 - **All ARI contributors** — The [29 contributors](https://github.com/microsoft/ARI/graphs/contributors) who built and refined ARI over six years.
 
 ## License & Disclaimer
 
-Both the original ARI project and AzureScout are licensed under the MIT License. See [LICENSE](https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/LICENSE) for full details.
+Both the original ARI project and AzureScout are licensed under the MIT License. See [LICENSE](https://github.com/thisismydemo/azure-scout/blob/main/LICENSE) for full details.
 
 AzureScout is an independent community project and is **not affiliated with or endorsed by Microsoft**.

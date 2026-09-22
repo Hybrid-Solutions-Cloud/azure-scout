@@ -21,10 +21,6 @@ $ErrorActionPreference = 'Stop'
     Per-subscription output from Get-ScoutApiResources. PolicyDefinitions and
     PolicySetDefinitions are flattened into their corresponding typed envelopes.
 
-.PARAMETER CollectionHealth
-    Optional caller-owned list that receives resource-scoped coverage gaps without changing the
-    function's stable four-envelope output contract.
-
 .OUTPUTS
     Exactly four PSCustomObjects, in stable type order. Each has `type` and `properties`:
       AZSC/Management/RoleDefinition
@@ -42,11 +38,7 @@ function Get-ScoutTenantWideResource {
     Param(
         [Parameter(Mandatory)]
         [AllowEmptyCollection()]
-        [object[]]$ApiResources,
-
-        [Parameter()]
-        [AllowNull()]
-        [System.Collections.IList]$CollectionHealth
+        [object[]]$ApiResources
     )
 
     $PolicyDefinitions = @(
@@ -76,17 +68,6 @@ function Get-ScoutTenantWideResource {
         )
     }
     catch {
-        if ($null -ne $CollectionHealth) {
-            [void]$CollectionHealth.Add([pscustomobject]@{
-                    Dataset       = 'CustomRoleDefinitions'
-                    Source        = 'Tenant-wide'
-                    SourceDataset = 'CustomRoleDefinitions'
-                    Status        = 'Unavailable'
-                    Reason        = $_.Exception.Message
-                    ResourceTypes = @('AZSC/Management/RoleDefinition')
-                    Collectors    = @('Management/CustomRoleDefinitions')
-                })
-        }
         Write-Warning (
             'Get-ScoutTenantWideResource: custom role definitions could not be read; ' +
             "returning zero role rows and continuing: $($_.Exception.Message)"
@@ -162,17 +143,6 @@ function Get-ScoutTenantWideResource {
             }
         }
         catch {
-            if ($null -ne $CollectionHealth) {
-                [void]$CollectionHealth.Add([pscustomobject]@{
-                        Dataset       = 'ManagementGroups'
-                        Source        = 'Tenant-wide'
-                        SourceDataset = 'ManagementGroups'
-                        Status        = 'Unavailable'
-                        Reason        = "$($_.Exception.Message). Assign Management Group Reader at the tenant-root management group for the full hierarchy."
-                        ResourceTypes = @('AZSC/Management/ManagementGroup')
-                        Collectors    = @('Management/ManagementGroups')
-                    })
-            }
             Write-Warning (
                 'Get-ScoutTenantWideResource: management groups could not be read; ' +
                 "returning zero management-group rows and continuing: $($_.Exception.Message)"

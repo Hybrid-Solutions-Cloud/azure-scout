@@ -29,7 +29,7 @@
 BeforeAll {
     $script:Root = Split-Path $PSScriptRoot -Parent
 
-    $catalogPath = Join-Path -Path $script:Root -ChildPath 'manifests/azure-provider-types.json'
+    $catalogPath = Join-Path $script:Root 'manifests/azure-provider-types.json'
     $script:Catalog = Get-Content -Raw -LiteralPath $catalogPath | ConvertFrom-Json
     $script:Known = [System.Collections.Generic.HashSet[string]]::new(
         [string[]] @($script:Catalog.Types), [System.StringComparer]::OrdinalIgnoreCase)
@@ -40,13 +40,6 @@ BeforeAll {
     # type and none can appear in an ARM catalogue, so excluding them is correct rather than
     # convenient. Anything else that cannot be found is a defect.
     $script:SyntheticPrefixes = @('azsc/', 'entra/', 'devops/')
-
-    # Resource Graph's securityresources table exposes attack paths as typed rows, but ARM
-    # provider metadata does not advertise that query-only entity. Keep this exception explicit
-    # and exact; it is neither a synthetic Scout type nor an ARM-addressable resource type.
-    $script:ResourceGraphOnlyTypes = [System.Collections.Generic.HashSet[string]]::new(
-        [string[]] @('microsoft.security/attackpaths'),
-        [System.StringComparer]::OrdinalIgnoreCase)
 
     function Test-ScoutSynthetic {
         param([string] $Type)
@@ -65,11 +58,9 @@ BeforeAll {
     # the gate strict where it matters: a child of a provider/type pair that does not exist is
     # still rejected, and every string this gate was built to catch is a two-segment type.
     function Test-ScoutTypeExists {
-                [Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '', Justification = 'Name matches the real collector/API/fixture noun (often already plural in the product surface, e.g. ManagementGroups); renaming would break the shadow/mocked signature or the fixture-name convention used across this suite.')]
-param([string] $Type)
+        param([string] $Type)
         $t = $Type.ToLowerInvariant()
         if ($script:Known.Contains($t)) { return $true }
-        if ($script:ResourceGraphOnlyTypes.Contains($t)) { return $true }
 
         $segments = $t.Split('/')
         if ($segments.Count -ge 3) {
@@ -78,7 +69,7 @@ param([string] $Type)
         return $false
     }
 
-    $script:Declared = foreach ($file in Get-ChildItem (Join-Path -Path $script:Root -ChildPath 'manifests/collectors') -Filter '*.psd1' -Recurse -File) {
+    $script:Declared = foreach ($file in Get-ChildItem (Join-Path $script:Root 'manifests/collectors') -Filter '*.psd1' -Recurse -File) {
         $definition = Import-PowerShellDataFile -LiteralPath $file.FullName
         if (-not $definition.ContainsKey('ResourceTypes')) { continue }
         foreach ($type in @($definition.ResourceTypes)) {
@@ -206,11 +197,5 @@ Describe 'AB#6772 — a manifest declaring a non-existent resource type fails th
     It 'still rejects a child whose parent does not exist' {
         # The parent rule must not become a way to smuggle anything through by adding a segment.
         Test-ScoutTypeExists 'microsoft.edgeconfig/sites/anything' | Should -BeFalse
-    }
-
-    It 'allows only the named Resource Graph entity, not its whole provider namespace' {
-        Test-ScoutTypeExists 'microsoft.security/attackpaths'       | Should -BeTrue
-        Test-ScoutTypeExists 'microsoft.security/not-a-real-entity' | Should -BeFalse
-        $script:ResourceGraphOnlyTypes.Count | Should -Be 1
     }
 }

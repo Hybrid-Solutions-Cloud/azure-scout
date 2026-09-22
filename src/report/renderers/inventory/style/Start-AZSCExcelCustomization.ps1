@@ -1,7 +1,3 @@
-#Requires -Version 7.0
-Set-StrictMode -Version Latest
-$ErrorActionPreference = 'Stop'
-
 <#
 .Synopsis
 Module for Main Dashboard
@@ -10,7 +6,7 @@ Module for Main Dashboard
 This script process and creates the Overview sheet.
 
 .Link
-https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Private/Reporting/StyleFunctions/Start-AZTIExcelCustomization.ps1
+https://github.com/thisismydemo/azure-scout/Modules/Private/Reporting/StyleFunctions/Start-AZTIExcelCustomization.ps1
 
 .COMPONENT
 This powershell Module is part of Azure Scout (AzureScout)
@@ -22,7 +18,6 @@ Authors: Claudio Merola
 
 #>
 function Start-AZSCExcelCustomization {
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'Subscriptions', Justification = 'Called with -Subscriptions from src/Invoke-AzureScout.ps1 (outside this task''s src/report+src/assess scope) and from tests; removing it would break those callers.')]
     param($File, $TableStyle, $PlatOS, $Subscriptions, $ExtractionRunTime, $ProcessingRunTime, $ReportingRunTime, $IncludeCosts, $RunLite, $Overview, $Category)
     # ── StrictMode boundary (AB#5633) ────────────────────────────────────────────────
     # This is the v1 inventory engine, forked from microsoft/ARI. It was written without

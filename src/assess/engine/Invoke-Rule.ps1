@@ -45,48 +45,6 @@ function Invoke-Rule {
     # to this rule", which is distinct from 0.
     $denominator = $null
 
-    # A rule carries EITHER a `query` (one dataset, filtered) or a `join` (two datasets,
-    # correlated) -- never both. Resolve this before any early return so every finding can
-    # expose the same schema, including gate/query errors and NotAssessed results.
-    $hasJoin = if ($Rule -is [hashtable]) { $Rule.ContainsKey('join') -and $null -ne $Rule.join }
-               elseif ($Rule -is [System.Collections.IDictionary]) { $Rule.Contains('join') -and $null -ne $Rule['join'] }
-               else { $null -ne $Rule.PSObject.Properties['join'] -and $null -ne $Rule.join }
-    $searchedPath = if ($hasJoin) { '(join)' } else { [string]$Rule.query }
-    $assertType = if ($Rule.assert) { [string]$Rule.assert.type } else { $null }
-    $numeratorKey = $null
-    $denominatorKey = $null
-    if ($Rule.assert -is [hashtable]) {
-        if ($Rule.assert.ContainsKey('numeratorKey')) { $numeratorKey = [string]$Rule.assert.numeratorKey }
-        if ($Rule.assert.ContainsKey('denominatorKey')) { $denominatorKey = [string]$Rule.assert.denominatorKey }
-    }
-    elseif ($Rule.assert) {
-        if ($Rule.assert.PSObject.Properties['numeratorKey']) { $numeratorKey = [string]$Rule.assert.numeratorKey }
-        if ($Rule.assert.PSObject.Properties['denominatorKey']) { $denominatorKey = [string]$Rule.assert.denominatorKey }
-    }
-
-    function Get-ScoutRuleRowKey {
-        param($Row, [string]$Path)
-        $current = $Row
-        foreach ($segment in @($Path -split '\.')) {
-            if ($null -eq $current) { return $null }
-            if ($current -is [Newtonsoft.Json.Linq.JObject]) {
-                $current = $current.GetValue($segment, [System.StringComparison]::OrdinalIgnoreCase)
-                if ($null -eq $current) { return $null }
-            }
-            elseif ($current -is [System.Collections.IDictionary]) {
-                if (-not $current.Contains($segment)) { return $null }
-                $current = $current[$segment]
-            }
-            else {
-                $property = if ($current.PSObject) { $current.PSObject.Properties[$segment] } else { $null }
-                if (-not $property) { return $null }
-                $current = $property.Value
-            }
-        }
-        if ($null -eq $current) { return $null }
-        return ([string]$current).Trim().ToLowerInvariant()
-    }
-
     # ---- AB#6826: optional gate, checked before manual/query evaluation ----
     $gatePath = $null
     if ($Rule.assert -is [hashtable]) {
@@ -108,8 +66,7 @@ function Invoke-Rule {
             return [pscustomobject]@{
                 Id = $Rule.id; Title = $Rule.title; Framework = $Framework; Area = $Area
                 Severity = $Rule.severity; Status = 'Error'; EvidenceCount = 0; Evidence = @()
-                EvidenceTruncated = $false; SearchedPath = $searchedPath; AssertType = $assertType
-                Denominator = $null; Remediation = $Rule.remediation; Manual = [bool]$Rule.manual
+                Remediation = $Rule.remediation; Manual = [bool]$Rule.manual
             }
         }
         $gateOpen = $true
@@ -122,34 +79,30 @@ function Invoke-Rule {
             # other single-match shape (a row, a string, ...) is treated as "present" -- the
             # gate is a data-availability check, not a second assert.
             try { if ($gateMatches[0].ToObject([bool]) -eq $false) { $gateOpen = $false } }
-            catch { Write-Verbose "Rule $($Rule.id): gate value for '$gatePath' is not a boolean token -- presence alone means the gate is open." }
+            catch { }   # not a boolean token -- presence alone means the gate is open
         }
         if (-not $gateOpen) {
             return [pscustomobject]@{
                 Id = $Rule.id; Title = $Rule.title; Framework = $Framework; Area = $Area
                 Severity = $Rule.severity; Status = 'NotAssessed'; EvidenceCount = 0; Evidence = @()
-                EvidenceTruncated = $false; SearchedPath = $searchedPath; AssertType = $assertType
-                Denominator = $null; Remediation = $Rule.remediation; Manual = [bool]$Rule.manual
+                Remediation = $Rule.remediation; Manual = [bool]$Rule.manual
             }
         }
     }
 
+    # A rule carries EITHER a `query` (one dataset, filtered) or a `join` (two datasets,
+    # correlated) -- never both. `join` is read through the same shape-agnostic accessor the rest
+    # of this function uses, because ConvertFrom-Yaml hands back a Hashtable while test fixtures
+    # build a pscustomobject, and dotting a missing key throws under StrictMode (AB#6835).
+    $hasJoin = if ($Rule -is [hashtable]) { $Rule.ContainsKey('join') -and $null -ne $Rule.join }
+               elseif ($Rule -is [System.Collections.IDictionary]) { $Rule.Contains('join') -and $null -ne $Rule['join'] }
+               else { $null -ne $Rule.PSObject.Properties['join'] -and $null -ne $Rule.join }
+
     if ($Rule.manual -or $Rule.assert.type -eq 'manual') {
         # pre-fill with any evidence the scan DID find, then hand to the human
         if ($Rule.query) {
-            try { $manualMatches = Resolve-JsonPath -InputObject $Collect -Path $Rule.query }
-            catch {
-                Write-Warning "Rule $($Rule.id): manual query '$($Rule.query)' failed: $_"
-                return [pscustomobject]@{
-                    Id = $Rule.id; Title = $Rule.title; Framework = $Framework; Area = $Area
-                    Severity = $Rule.severity; Status = 'Error'; EvidenceCount = 0; Evidence = @()
-                    EvidenceTruncated = $false; SearchedPath = $searchedPath; AssertType = $assertType
-                    Denominator = $null; Remediation = $Rule.remediation; Manual = [bool]$Rule.manual
-                }
-            }
-            $evidenceCount = @($manualMatches).Count
-            $evidence = @($manualMatches | Select-Object -First 25)
-            $evidenceTruncated = $evidenceCount -gt 25
+            $evidence = Resolve-JsonPath -InputObject $Collect -Path $Rule.query
+            $evidenceCount = $evidence.Count
         }
         $status = 'Manual'
     }
@@ -160,11 +113,11 @@ function Invoke-Rule {
             # array enumerates to nothing -- and the very next line reads `.Count`, which then
             # throws under StrictMode. A join that legitimately found no unmatched rows (the PASS
             # case, and the common one) hit that on every rule.
-            $ruleMatches = $null
+            $matches = $null
             if ($hasJoin) {
-                $ruleMatches = @(Resolve-RuleJoin -Rule $Rule -Collect $Collect)
+                $matches = @(Resolve-RuleJoin -Rule $Rule -Collect $Collect)
             } else {
-                $ruleMatches = Resolve-JsonPath -InputObject $Collect -Path $Rule.query
+                $matches = Resolve-JsonPath -InputObject $Collect -Path $Rule.query
             }
         }
         catch {
@@ -174,8 +127,7 @@ function Invoke-Rule {
             return [pscustomobject]@{
                 Id = $Rule.id; Title = $Rule.title; Framework = $Framework; Area = $Area
                 Severity = $Rule.severity; Status = 'Error'; EvidenceCount = 0; Evidence = @()
-                EvidenceTruncated = $false; SearchedPath = $searchedPath; AssertType = $assertType
-                Denominator = $null; Remediation = $Rule.remediation; Manual = [bool]$Rule.manual
+                Remediation = $Rule.remediation; Manual = [bool]$Rule.manual
             }
         }
         # AB#6864. The payload is capped so a rule matching thousands of resources does not carry
@@ -186,37 +138,9 @@ function Invoke-Rule {
         # EvidenceCount already held the true total; EvidenceTruncated is what lets a renderer
         # tell "these are all of them" from "these are the first 25 of many". Same class as the
         # empty-cell-versus-None-found problem the audit called out: the omission was invisible.
-        if (-not [string]::IsNullOrWhiteSpace($numeratorKey)) {
-            $distinctMatches = [System.Collections.Generic.List[object]]::new()
-            $seenNumeratorKeys = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
-            foreach ($match in @($ruleMatches)) {
-                $key = Get-ScoutRuleRowKey -Row $match -Path $numeratorKey
-                if (-not [string]::IsNullOrWhiteSpace($key) -and $seenNumeratorKeys.Add($key)) {
-                    $distinctMatches.Add($match)
-                }
-            }
-            $ruleMatches = $distinctMatches.ToArray()
-        }
-        $evidenceCount = @($ruleMatches).Count
+        $evidenceCount = $matches.Count
         $evidenceCap = 25
-        # @(...) wrap is load-bearing (AB#6938). `$ruleMatches | Select-Object -First N` is a PIPE:
-        # when a rule's query matches exactly ONE row, Select-Object emits that ONE object and a
-        # bare `$evidence = ...` assignment of a single-item pipeline collapses it from a 1-element
-        # array down to the bare element itself -- here, a live run's element is a raw Newtonsoft
-        # JObject/JArray token (Resolve-JsonPath's own output shape), not a deserialized
-        # PSCustomObject. A bare JObject stored as Evidence is a ticking bomb three layers down:
-        # Export-React's Get-ReactSafeProp reads it back out via a plain `return $cur`, and
-        # PowerShell's own pipeline/output semantics enumerate ANY IEnumerable object crossing a
-        # return/output boundary -- INCLUDING a .NET type nobody asked to have enumerated. JObject
-        # implements IEnumerable<JToken> (its own child JProperty tokens), so returning the bare
-        # JObject silently exploded one NSG-rule finding into five orphan one-field rows (nsg=...,
-        # rule=..., sourceAddressPrefix=..., ...) instead of the single named resource it actually
-        # was -- the "40% named" evidence-identity defect. `@(...)` around the whole pipeline
-        # forces the (possibly single) result back into a real array BEFORE it is ever stored on
-        # the finding, so every later stage that hands it through a `return`/pipeline boundary
-        # keeps unwrapping one array level at a time instead of reaching all the way into a single
-        # match's own fields. Same class of bug as the join-assignment guard immediately above.
-        $evidence = @($ruleMatches | Select-Object -First $evidenceCap)
+        $evidence = $matches | Select-Object -First $evidenceCap
         $evidenceTruncated = $evidenceCount -gt $evidenceCap
         # ConvertFrom-Yaml returns `assert:` as a Hashtable (test fixtures often use a
         # pscustomobject instead), and 'exists'/'notExists' rules legitimately omit a
@@ -239,23 +163,7 @@ function Invoke-Rule {
             'exists'            { $status = ($evidenceCount -gt   0) ? 'Pass' : 'Fail' }
             'notExists'         { $status = ($evidenceCount -eq   0) ? 'Pass' : 'Fail' }
             'percentageAtLeast' {
-                try {
-                    $denominatorMatches = Resolve-JsonPath -InputObject $Collect -Path $Rule.assert.denominatorQuery
-                    if (-not [string]::IsNullOrWhiteSpace($denominatorKey)) {
-                        $denominatorKeys = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
-                        foreach ($match in @($denominatorMatches)) {
-                            $key = Get-ScoutRuleRowKey -Row $match -Path $denominatorKey
-                            if (-not [string]::IsNullOrWhiteSpace($key)) { $null = $denominatorKeys.Add($key) }
-                        }
-                        $denom = $denominatorKeys.Count
-                    }
-                    else { $denom = @($denominatorMatches).Count }
-                }
-                catch {
-                    Write-Warning "Rule $($Rule.id): denominator query '$($Rule.assert.denominatorQuery)' failed: $_"
-                    $status = 'Error'
-                    break
-                }
+                $denom = (Resolve-JsonPath -InputObject $Collect -Path $Rule.assert.denominatorQuery).Count
                 # AB#6892: surfaced on the finding so a renderer can say "17 of 198", which is the
                 # supporting number the reference deliverable carries on every risk row. Without
                 # it the reader gets a percentage with nothing behind it.
@@ -289,6 +197,9 @@ function Invoke-Rule {
     # So every finding now carries the query it ran and the assertion it applied, and the
     # percentage rules carry their denominator. Renderers can state the scope of a nil result
     # instead of rendering an empty table.
+    $searchedPath = if ($hasJoin) { '(join)' } else { [string]$Rule.query }
+    $assertType = if ($Rule.assert) { [string]$Rule.assert.type } else { $null }
+
     [pscustomobject]@{
         Id            = $Rule.id
         Title         = $Rule.title

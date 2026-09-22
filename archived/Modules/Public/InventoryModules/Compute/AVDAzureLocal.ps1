@@ -9,7 +9,7 @@ instances and connected Arc machines that are tagged or configured as AVD sessio
 Excel Sheet Name: AVD on Azure Local/Arc
 
 .Link
-https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Public/InventoryModules/Compute/AVDAzureLocal.ps1
+https://github.com/thisismydemo/azure-scout/Modules/Public/InventoryModules/Compute/AVDAzureLocal.ps1
 
 .COMPONENT
     This PowerShell Module is part of Azure Scout (AZSC).
@@ -25,10 +25,6 @@ Authors: AzureScout Contributors
 
 <######## Default Parameters. Don't modify this ########>
 
-[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'SCPath', Justification = "Shared collector call-signature (see 'Default Parameters' comment) -- the orchestration loop invokes every InventoryModules script with the same fixed positional parameter list; this module simply does not need this one.")]
-[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'Intag', Justification = "Shared collector call-signature (see 'Default Parameters' comment) -- the orchestration loop invokes every InventoryModules script with the same fixed positional parameter list; this module simply does not need this one.")]
-[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'Retirements', Justification = "Shared collector call-signature (see 'Default Parameters' comment) -- the orchestration loop invokes every InventoryModules script with the same fixed positional parameter list; this module simply does not need this one.")]
-[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'Unsupported', Justification = "Shared collector call-signature (see 'Default Parameters' comment) -- the orchestration loop invokes every InventoryModules script with the same fixed positional parameter list; this module simply does not need this one.")]
 param($SCPath, $Sub, $Intag, $Resources, $Retirements, $Task, $File, $SmaResources, $TableStyle, $Unsupported)
 
 If ($Task -eq 'Processing')
@@ -115,9 +111,9 @@ If ($Task -eq 'Processing')
                     'Last Heartbeat'        = $heartbeat;
                     'OS Version'            = if ($osVersion)           { $osVersion }             else { 'N/A' };
                     'Azure Local Cluster'   = $hciCluster;
-                    'Allow New Session'     = if ($null -ne $data.allowNewSession) { $data.allowNewSession } else { 'N/A' };
+                    'Allow New Session'     = if ($data.allowNewSession -ne $null) { $data.allowNewSession } else { 'N/A' };
                     'Assigned User'         = if ($data.assignedUser)   { $data.assignedUser }    else { 'N/A' };
-                    'Sessions'              = if ($null -ne $data.sessions) { $data.sessions }     else { 0 };
+                    'Sessions'              = if ($data.sessions -ne $null) { $data.sessions }     else { 0 };
                     'Resource ID'           = if ($1._VmId)             { $1._VmId }               else { $1.id };
                     'Resource U'            = $ResUCount;
                     'Tag Name'              = [string]$Tag.Name;

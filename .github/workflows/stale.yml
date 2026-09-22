@@ -12,7 +12,7 @@ on:
 jobs:
   stale:
 
-    runs-on: [self-hosted, linux, x64, hcs]
+    runs-on: ubuntu-latest
     permissions:
       issues: write
       pull-requests: write

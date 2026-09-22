@@ -90,11 +90,9 @@ export default defineConfig({
           { text: 'Collector Fields', link: '/reference/collector-fields' },
           { text: 'Entra ID Modules', link: '/reference/entra-modules' },
           { text: 'Coverage Table', link: '/reference/coverage-table' },
-          { text: 'Service Coverage Gap', link: '/reference/service-coverage-gap' },
           { text: 'Category Structure', link: '/reference/category-structure' },
           { text: 'Category Reference', link: '/reference/category-reference' },
           { text: 'Validation Matrix', link: '/reference/validation-matrix' },
-          { text: 'React Report Section Contract', link: '/reference/react-report-section-contract' },
         ],
       },
       {
@@ -169,7 +167,7 @@ export default defineConfig({
     ],
 
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/Hybrid-Solutions-Cloud/azure-scout' },
+      { icon: 'github', link: 'https://github.com/thisismydemo/azure-scout' },
     ],
 
     search: {
@@ -182,7 +180,7 @@ export default defineConfig({
     },
 
     editLink: {
-      pattern: 'https://github.com/Hybrid-Solutions-Cloud/azure-scout/edit/main/docs/:path',
+      pattern: 'https://github.com/thisismydemo/azure-scout/edit/main/docs/:path',
       text: 'Edit this page on GitHub',
     },
   },

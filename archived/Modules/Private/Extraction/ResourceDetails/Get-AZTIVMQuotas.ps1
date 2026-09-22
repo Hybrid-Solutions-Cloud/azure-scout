@@ -6,7 +6,7 @@ Module responsible for retrieving Azure VM quotas.
 This module retrieves Azure VM quotas for specific subscriptions and locations.
 
 .Link
-https://github.com/Hybrid-Solutions-Cloud/azure-scout/Modules/Private/1.ExtractionFunctions/ResourceDetails/Get-AZSCVMQuotas.ps1
+https://github.com/thisismydemo/azure-scout/Modules/Private/1.ExtractionFunctions/ResourceDetails/Get-AZSCVMQuotas.ps1
 
 .COMPONENT
 This PowerShell Module is part of Azure Scout (AZSC).
@@ -17,7 +17,6 @@ First Release Date: 15th Oct, 2024
 Authors: Claudio Merola
 #>
 function Get-AZSCVMQuotas {
-    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseSingularNouns', '', Justification = 'Internal function name, called by that exact name elsewhere in the module; renaming is a breaking change out of scope for a lint-only pass.')]
     Param ($Subscriptions, $Resources)
 
     # AB#368 - quota lookups are per-location and force a context switch per subscription.
