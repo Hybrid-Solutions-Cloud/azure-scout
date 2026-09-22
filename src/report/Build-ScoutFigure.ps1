@@ -435,7 +435,6 @@ function New-ScoutFigureAreaScores {
         Width   = $Width
         Height  = $height
         Bytes   = (ConvertTo-ScoutPngBytes -Width $Width -Height $height -Pixels $canvas.Pixels)
-        RawRgb  = $canvas.Pixels
     }
 }
 
@@ -500,7 +499,6 @@ function New-ScoutFigureStatusComposition {
         Width   = $Width
         Height  = $Height
         Bytes   = (ConvertTo-ScoutPngBytes -Width $Width -Height $Height -Pixels $canvas.Pixels)
-        RawRgb  = $canvas.Pixels
     }
 }
 
@@ -574,7 +572,6 @@ function New-ScoutFigureSeverityHeatmap {
         Width   = $Width
         Height  = $height
         Bytes   = (ConvertTo-ScoutPngBytes -Width $Width -Height $height -Pixels $canvas.Pixels)
-        RawRgb  = $canvas.Pixels
     }
 }
 
@@ -623,11 +620,6 @@ function Export-ScoutFigureSet {
                         Width   = $fig.Width
                         Height  = $fig.Height
                         Bytes   = $fig.Bytes
-                        # The raw RGB buffer travels with the descriptor because the PDF renderer
-                        # cannot read a PNG -- it embeds an image XObject with /FlateDecode, which
-                        # IS zlib, so it flate-encodes these pixels directly rather than decoding
-                        # and re-encoding. Word and PowerPoint take .Bytes (the PNG) instead.
-                        RawRgb  = $fig.RawRgb
                         Path    = $path
                     }))
         }

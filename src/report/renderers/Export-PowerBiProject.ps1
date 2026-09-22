@@ -122,13 +122,8 @@ function New-ScoutPbipMeasureTmdl {
 
     $tag = Get-ScoutPbipLineageTag -Name "$Table.measure.$Name"
     $sb = [System.Text.StringBuilder]::new()
-    # A TMDL `///` description PRECEDES the object it documents and sits at the object's own
-    # indent -- it is a doc comment, not a property. Emitting it as the first line INSIDE the
-    # measure fails the parser with "Unexpected line type: Property!" pointing at the NEXT line,
-    # which sends you looking at formatString when the fault is the line above it. Verified
-    # against Power BI Desktop 2.156.951.0.
-    if ($Description) { [void]$sb.AppendLine("`t/// $Description") }
     [void]$sb.AppendLine("`tmeasure '$Name' = $Expression")
+    if ($Description) { [void]$sb.AppendLine("`t`t/// $Description") }
     [void]$sb.AppendLine("`t`tformatString: $FormatString")
     [void]$sb.AppendLine("`t`tlineageTag: $tag")
     [void]$sb.AppendLine('')
@@ -411,45 +406,11 @@ function New-ScoutPbipReportJson {
         }
     )
 
-    # The report-level config is where the THEME lives, and Power BI Desktop dereferences it
-    # unconditionally while building the ribbon. Omitting themeCollection does not fall back to a
-    # default -- Desktop throws "Cannot read properties of undefined (reading 'customTheme')" from
-    # inside desktop.min.js and the canvas never renders, even though the model has loaded fine
-    # and the project is otherwise valid. Verified against Power BI Desktop 2.156.951.0.
-    #
-    # baseTheme names a theme Desktop ships, so nothing has to be packaged alongside the report.
-    $reportConfig = [ordered]@{
-        version            = '5.43'
-        activeSectionIndex = 0
-        themeCollection    = [ordered]@{
-            baseTheme = [ordered]@{
-                name         = 'CY24SU10'
-                version      = '5.61'
-                type         = 2
-                reportVersion = '5.43'
-            }
-        }
-        objects            = [ordered]@{
-            section = @(
-                @{ properties = @{ verticalAlignment = @{ expr = @{ Literal = @{ Value = "'Top'" } } } } }
-            )
-        }
-    }
-
     $report = [ordered]@{
         '$schema'            = 'https://developer.microsoft.com/json-schemas/fabric/item/report/definition/report/1.0.0/schema.json'
-        config               = ($reportConfig | ConvertTo-Json -Depth 20 -Compress)
+        config               = (@{ version = '5.43'; activeSectionIndex = 0 } | ConvertTo-Json -Compress)
         layoutOptimization   = 0
-        resourcePackages     = @(
-            [ordered]@{
-                resourcePackage = [ordered]@{
-                    disabled = $false
-                    items    = @(@{ name = 'CY24SU10'; path = 'BaseThemes/CY24SU10.json'; type = 202 })
-                    name     = 'SharedResources'
-                    type     = 2
-                }
-            }
-        )
+        resourcePackages     = @()
         sections             = $pages
     }
 
@@ -480,15 +441,8 @@ function Export-ScoutPowerBiProject {
 
     # ---- .pbip -------------------------------------------------------------------------
     $pbipPath = Join-Path $PowerBiDir "$ProjectName.pbip"
-    # These four $schema URLs are NOT decorative. Power BI Desktop validates each one against a
-    # regex before it will open the project, and rejects the whole thing with
-    # "UnrecognizedSchemaVersion" if it does not match -- which is how the first version of this
-    # generator failed: every file was structurally correct and Desktop would not open any of it.
-    # Verified by opening the generated project in Power BI Desktop 2.156.951.0, not by reading
-    # the docs. Do not "tidy" these into a consistent-looking family; they genuinely differ
-    # (pbip/pbipProperties, item/<type>/definitionProperties, gitIntegration/platformProperties).
     ([ordered]@{
-        '$schema' = 'https://developer.microsoft.com/json-schemas/fabric/pbip/pbipProperties/1.0.0/schema.json'
+        '$schema' = 'https://developer.microsoft.com/json-schemas/fabric/item/pbip/definition/1.0.0/schema.json'
         version   = '1.0'
         artifacts = @(@{ report = @{ path = "$ProjectName.Report" } })
         settings  = [ordered]@{ enableAutoRecovery = $true }
@@ -496,8 +450,8 @@ function Export-ScoutPowerBiProject {
 
     # ---- semantic model ----------------------------------------------------------------
     ([ordered]@{
-        '$schema' = 'https://developer.microsoft.com/json-schemas/fabric/item/semanticModel/definitionProperties/1.0.0/schema.json'
-        version   = '4.2'
+        '$schema' = 'https://developer.microsoft.com/json-schemas/fabric/item/semanticModel/definition/1.0.0/schema.json'
+        version   = '4.0'
         settings  = @{}
     } | ConvertTo-Json -Depth 10) | Set-Content -LiteralPath (Join-Path $modelDir 'definition.pbism') -Encoding utf8
 
@@ -647,11 +601,7 @@ $(New-ScoutPbipColumnTmdl -Table 'Date' -Name 'Date' -DataType 'dateTime' -Forma
 
     # ---- report --------------------------------------------------------------------------
     ([ordered]@{
-        # version 1.0 is the CLASSIC report definition -- a definition.pbir alongside a single
-        # report.json. The 4.x versions signal the enhanced report format (PBIR), where the
-        # report is a definition/pages/ tree instead; declaring 4.x while shipping report.json
-        # tells Desktop to look for files that are not there.
-        '$schema'        = 'https://developer.microsoft.com/json-schemas/fabric/item/report/definitionProperties/1.0.0/schema.json'
+        '$schema'        = 'https://developer.microsoft.com/json-schemas/fabric/item/report/definition/1.0.0/schema.json'
         version          = '1.0'
         datasetReference = [ordered]@{ byPath = [ordered]@{ path = "../$ProjectName.SemanticModel" } }
     } | ConvertTo-Json -Depth 10) | Set-Content -LiteralPath (Join-Path $reportDir 'definition.pbir') -Encoding utf8
