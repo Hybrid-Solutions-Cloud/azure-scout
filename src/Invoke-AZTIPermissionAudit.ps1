@@ -1,6 +1,7 @@
 #Requires -Version 7.0
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+if (-not (Get-Command Get-ScoutHttpFailure -ErrorAction SilentlyContinue)) { . (Join-Path $PSScriptRoot 'Get-ScoutHttpFailure.ps1') }
 
 <#
 .Synopsis
@@ -149,6 +150,14 @@ function Get-ScoutGraphTokenClaim {
     #>
     [OutputType([object])]
     param([Parameter(Mandatory)][hashtable]$Headers)
+
+    if ($Headers['X-AzureScout-GraphProvider'] -eq 'Microsoft.Graph.Authentication') {
+        return [PSCustomObject]@{
+            IsDelegated = $true
+            Scopes      = @("$($Headers['X-AzureScout-GraphScopes'])" -split '\s+' | Where-Object { $_ })
+            AppRoles    = @()
+        }
+    }
 
     try {
         $jwt = "$($Headers['Authorization'])" -replace '^Bearer\s+', ''
@@ -431,6 +440,7 @@ function Invoke-AZSCPermissionAudit {
                     }
                 }
                 catch {
+
                     $armAccess = $false
                     $failureMessage = "[$($sub.Name)] Current identity could not prove ARM read access: $($_.Exception.Message)"
                     Write-AuditLine -Status Fail -Text $failureMessage
@@ -679,6 +689,20 @@ function Invoke-AZSCPermissionAudit {
                     Write-AuditLine -Status Pass -Text "$checkName  [$($impact.CollectorCount) collectors]"
                 }
                 catch {
+                    $failure = Get-ScoutHttpFailure -ErrorRecord $_
+                    if ($failure.StatusCode -ne 403) {
+                        $graphAccess = $false
+                        foreach ($c in $impact.Collectors) {
+                            $emptyCollectors.Add([PSCustomObject]@{ Collector = $c; Reason = 'Graph request failed'; Permission = $impact.Permission })
+                        }
+                        $remediation = 'Inspect the logged service error and request. A request failure does not establish that a directory role or permission is missing.'
+                        $r = New-CheckResult -Check $checkName -Status 'Fail' -Message "REQUEST FAILED — $($impact.Permission): $($failure.Summary)" -Remediation $remediation
+                        Write-AuditLine -Status Fail -Text "$checkName — REQUEST FAILED; $($failure.Summary)"
+                        if (Get-Command Write-AZSCLog -ErrorAction SilentlyContinue) { Write-AZSCLog -Level ERROR -Message "$checkName — $($failure.Summary)" }
+                        $recommendations.Add("$checkName — $remediation")
+                        $graphDetails.Add($r)
+                        continue
+                    }
                     # Criticality is derived: this permission has consumers, so denying it
                     # empties worksheets, so the run is not READY. There is no list to edit.
                     $graphAccess = $false
@@ -719,6 +743,22 @@ function Invoke-AZSCPermissionAudit {
     else {
         $graphAccess = $null   # not checked
     }
+
+    # A correlation collector can depend on more than one exact-scope dataset. Report the
+    # collector once while retaining every missing permission/reason; otherwise the summary
+    # describes dependency failures as a larger number of distinct collectors.
+    $emptyCollectors = @(
+        $emptyCollectors |
+            Group-Object Collector |
+            Sort-Object Name |
+            ForEach-Object {
+                [PSCustomObject]@{
+                    Collector  = $_.Name
+                    Reason     = (@($_.Group.Reason | Sort-Object -Unique) -join '; ')
+                    Permission = (@($_.Group.Permission | Sort-Object -Unique) -join ', ')
+                }
+            }
+    )
 
     # ═══════════════════════════════════════════════════════════════════════════
     # SECTION 4 — Summary & Recommendations

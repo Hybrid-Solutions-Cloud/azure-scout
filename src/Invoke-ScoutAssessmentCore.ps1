@@ -62,6 +62,17 @@ function Assert-ScoutAssessmentCollectProvenance {
                 ) { continue }
 
                 $dataset = if ($health.PSObject.Properties['Dataset']) { [string]$health.Dataset } else { 'Unknown source' }
+
+                # A scoped ARM-child denial is partial evidence loss, not failure of the broad
+                # Resources dataset. Invoke-Collect carries explicit availability flags for the
+                # affected child datasets; dependent rules close their gate and become
+                # NotAssessed while unrelated rules continue to score.
+                $source = if ($health.PSObject.Properties['Source']) { [string]$health.Source } else { '' }
+                $sourceDataset = if ($health.PSObject.Properties['SourceDataset']) { [string]$health.SourceDataset } else { '' }
+                if ($source -eq 'ARM Child' -and -not [string]::IsNullOrWhiteSpace($sourceDataset)) {
+                    continue
+                }
+
                 if ($dataset -eq 'Advisories' -and $RequiredIngestors -contains 'AdvisorScores') {
                     $health
                     continue
@@ -189,6 +200,8 @@ function Invoke-ScoutAssessmentCore {
         # Passed through to Invoke-Collect so a combined run shapes the assessment scalars from
         # rows already in memory instead of querying Azure a second time.
         [object]   $FromInventory,
+        [object]   $DiscoveryContext,
+        [string]   $ReportCachePath,
         # Render React/JsonEvidence from an inventory pass already in memory. This deliberately
         # skips assessment rules and forces Invoke-Collect's no-live-fallback shaping path.
         [switch]   $InventoryOnly,
@@ -338,7 +351,7 @@ function Invoke-ScoutAssessmentCore {
             TenantID          = $TenantID
         }
         # AB#5543 — reuse the inventory pass when this run already made one.
-        if ($FromInventory) { $collectArgs.FromInventory = $FromInventory }
+        if ($FromInventory) { $collectArgs.FromInventory = $FromInventory; $collectArgs.DiscoveryContext = $DiscoveryContext }
         if ($InventoryOnly) { $collectArgs.OfflineFromInventory = $true }
         # AB#6792 — the policy-compliance sweep is opt-in on Invoke-Collect (it is an extra
         # Azure call type relative to every other assessment's collect) and is switched on only
@@ -446,12 +459,18 @@ function Invoke-ScoutAssessmentCore {
                     $i, $ingestTimer.Elapsed.ToString('dd\:hh\:mm\:ss\.fff')
             )
         }
-        if ($InventoryOnly) {
+        if ($FromInventory) {
             $entraRows = if ($FromInventory -and $FromInventory.PSObject.Properties['EntraResources']) {
                 @($FromInventory.EntraResources)
             }
             else { @() }
             $collect | Add-Member -NotePropertyName entraResources -NotePropertyValue $entraRows -Force
+        }
+        if ($ReportCachePath) {
+            if (-not (Get-Command Import-ScoutReportInventory -ErrorAction SilentlyContinue)) {
+                . (Join-Path $PSScriptRoot 'report/Import-ScoutReportInventory.ps1')
+            }
+            $collect = Import-ScoutReportInventory -Collect $collect -ReportCachePath $ReportCachePath
         }
         $collect | ConvertTo-Json -Depth 100 | Out-File "$runPath/collect.json"
     }
@@ -473,6 +492,7 @@ function Invoke-ScoutAssessmentCore {
     # documents within 258 bytes of each other. See pmo/research/baseline/.
     $allFindings = @()
     $findingsByAssessment = [ordered]@{}
+    $queryContext = New-ScoutQueryContext -InputObject $collect
     $assessmentIndex = 0
     foreach ($name in $Assessment) {
         $assessmentIndex++
@@ -514,7 +534,7 @@ function Invoke-ScoutAssessmentCore {
         $benchmark = if ($spec.ContainsKey('Benchmark') -and $spec.Benchmark) {
             Get-Content "$PSScriptRoot/assess/benchmarks/$($spec.Benchmark)" -Raw | ConvertFrom-Json -Depth 100
         } else { $null }
-        $findings = Invoke-Assessment -Collect $collect -RuleSet $ruleSet -Benchmark $benchmark -Assessment $name
+        $findings = Invoke-Assessment -Collect $collect -QueryContext $queryContext -RuleSet $ruleSet -Benchmark $benchmark -Assessment $name
         $allFindings += $findings
         $findingsByAssessment[$name] = @($findings)
         $ruleTimer.Stop()
@@ -524,6 +544,7 @@ function Invoke-ScoutAssessmentCore {
         )
     }
     $scored = Get-Score -Findings $allFindings
+    $queryContext = $null # Findings contain detached evidence; release the shared query tree.
     $scored | ConvertTo-Json -Depth 100 | Out-File "$runPath/findings.json"
 
     # ---- DRIFT (cross-run) ----
@@ -616,7 +637,8 @@ function Invoke-ScoutAssessmentCore {
     # render is removed.
     if (@($findingsByAssessment.Keys).Count -gt 1) {
         $assessmentRoot = Join-Path $runPath 'assessments'
-        $perAssessmentReporters = @($reporters | Where-Object { $_ -ne 'React' })
+        # findings.json is written below; evidence.json can reuse the completed root export.
+        $perAssessmentReporters = @($reporters | Where-Object { $_ -ne 'React' -and $_ -ne 'Json' })
         foreach ($name in $findingsByAssessment.Keys) {
             $perFindings = @($findingsByAssessment[$name])
             if ($perFindings.Count -eq 0) { continue }
@@ -641,7 +663,9 @@ function Invoke-ScoutAssessmentCore {
                 # Never fatal. One assessment's renderer failing must not cost the operator the
                 # other assessments' reports, nor the merged set already written above.
                 try {
-                    Export-Report -Renderer $r -Findings $perScored -Collect $collect -OutputPath $perPath -Drift $drift -ReportIdentity $ReportIdentity -DefaultReportMode $DefaultReportMode | Out-Null
+                    Write-AZSCLog -Level DEBUG -Message ("Assessment companion started: assessment={0}; renderer={1}" -f $name, $r)
+                    Export-Report -Renderer $r -Findings $perScored -Collect $collect -OutputPath $perPath -Drift $drift -ReportIdentity $ReportIdentity -DefaultReportMode $DefaultReportMode -SourceEvidencePath (Join-Path $runPath 'evidence.json') | Out-Null
+                    Write-AZSCLog -Level DEBUG -Message ("Assessment companion finished: assessment={0}; renderer={1}" -f $name, $r)
                 }
                 catch {
                     Write-Warning "Invoke-ScoutAssessmentCore: '$r' failed for assessment '$name': $($_.Exception.Message)"

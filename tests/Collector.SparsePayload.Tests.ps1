@@ -238,6 +238,37 @@ Describe 'DevOps service connections use the selected subscription scope' {
     }
 }
 
+Describe 'Network security group rule completeness (AB#7367)' {
+    It 'reports both custom and Azure default security rules' {
+        $ruleProperties = {
+            param([int]$Priority)
+            [pscustomobject]@{
+                sourceAddressPrefix = '*'; sourcePortRange = '*'
+                destinationAddressPrefix = '*'; destinationPortRange = '*'
+                direction = 'Inbound'; Access = 'Allow'; priority = $Priority; protocol = '*'
+            }
+        }
+        $row = New-SparseArgRow -Type 'microsoft.network/networksecuritygroups' -Name 'nsg-one' -Properties @{
+            securityRules = @([pscustomobject]@{
+                    id = '/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg/providers/Microsoft.Network/networkSecurityGroups/nsg-one/securityRules/custom-allow'
+                    name = 'custom-allow'; properties = & $ruleProperties 100
+                })
+            defaultSecurityRules = @([pscustomobject]@{
+                    id = '/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg/providers/Microsoft.Network/networkSecurityGroups/nsg-one/defaultSecurityRules/AllowVnetInBound'
+                    name = 'AllowVnetInBound'; properties = & $ruleProperties 65000
+                })
+        }
+
+        $rows = @(Invoke-CollectorOnRow -Category 'Networking' -Name 'NetworkSecurityGroup' -Row $row)
+
+        $rows.Count | Should -Be 2
+        @($rows | ForEach-Object { $_['Security Rules'] }) | Should -Contain 'custom-allow'
+        @($rows | ForEach-Object { $_['Security Rules'] }) | Should -Contain 'AllowVnetInBound'
+        @($rows | Where-Object { $_['Security Rules'] -eq 'custom-allow' })[0]['Rule Type'] | Should -Be 'Custom'
+        @($rows | Where-Object { $_['Security Rules'] -eq 'AllowVnetInBound' })[0]['Rule Type'] | Should -Be 'Default'
+    }
+}
+
 Describe 'The relaxation is scoped and does not weaken what StrictMode is for (AB#6839)' {
 
     It 'still fails on an uninitialised variable inside a row script' {

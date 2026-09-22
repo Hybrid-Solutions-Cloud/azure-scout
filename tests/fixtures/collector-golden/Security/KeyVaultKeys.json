@@ -3,7 +3,7 @@
   "Category": "Security",
   "Name": "KeyVaultKeys",
   "FixturePath": "tests/fixtures/collector-equivalence/Security.json",
-  "FixtureSha256": "48fc641403b55b20acc89c1dfd876e0439fccb8da0fd8795b63486bb8a38ac45",
+  "FixtureSha256": "1554d9d2bcde29c7f184150be063fb144575f4ba719b2885258c5b659a174239",
   "Rows": [
     "Curve=s:res-value|Days To Expiry=s:-20635|Enabled=s:res-value|Expires=s:1970-01-01|Expiry Status=s:EXPIRED|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/keyvaultkeys-t1a-1/KeyVaultKeys/keyvaultkeys-t1a-2|Key=s:keyvaultkeys-t1a|Key Size=s:res-value|Key Type=s:res-value|Key Vault=s:res-value|Resource Group=s:res-value|Resource U=j:1|Rotation Policy=s:2|Subscription=s:sub-fixture-01",
     "Curve=s:res-value|Days To Expiry=s:-20635|Enabled=s:res-value|Expires=s:1970-01-01|Expiry Status=s:EXPIRED|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/keyvaultkeys-t1b-1/KeyVaultKeys/keyvaultkeys-t1b-2|Key=s:keyvaultkeys-t1b|Key Size=s:res-value|Key Type=s:res-value|Key Vault=s:res-value|Resource Group=s:res-value|Resource U=j:1|Rotation Policy=s:2|Subscription=s:sub-fixture-01",

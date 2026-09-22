@@ -3,7 +3,7 @@
   "Category": "Management",
   "Name": "PolicyComplianceStates",
   "FixturePath": "tests/fixtures/collector-equivalence/Management.json",
-  "FixtureSha256": "5205b49897e87cdc85834b288856fc19c7e903a752d00d85d7cfbb09863d69fc",
+  "FixtureSha256": "3887eace8dba0a4948ad972e69dd6025a8fe497739ad08400441da51064aa23c",
   "Rows": [
     "Compliance State=<null>|Is Compliant=<null>|Management Group IDs=s:None|Policy Assignment ID=<null>|Policy Assignment Name=s:N/A|Policy Definition Action=<null>|Policy Definition Category=<null>|Policy Definition ID=<null>|Policy Definition Name=s:N/A|Policy Set Definition ID=<null>|Resource Group=<null>|Resource ID=<null>|Resource Location=<null>|Resource Type=<null>|Resource U=j:1|Subscription=s:res-value|Subscription ID=s:00000000-0000-0000-0000-000000000001|Timestamp=<null>",
     "Compliance State=<null>|Is Compliant=<null>|Management Group IDs=s:None|Policy Assignment ID=<null>|Policy Assignment Name=s:N/A|Policy Definition Action=<null>|Policy Definition Category=<null>|Policy Definition ID=<null>|Policy Definition Name=s:N/A|Policy Set Definition ID=<null>|Resource Group=<null>|Resource ID=<null>|Resource Location=<null>|Resource Type=<null>|Resource U=j:1|Subscription=s:res-value|Subscription ID=s:00000000-0000-0000-0000-000000000001|Timestamp=<null>",

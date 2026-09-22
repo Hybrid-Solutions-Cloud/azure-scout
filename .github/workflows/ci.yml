@@ -5,7 +5,7 @@ name: CI
 # Azure login, no secrets — live tenant runs are handled by
 # azure-inventory.yml (workflow_dispatch, service-principal auth).
 #
-# Runs on the HCS Linux fleet. The Excel report customization step no longer depends on
+# This public repository is excluded from the shared HCS runner group. Use an isolated hosted Linux runner (the ci-runners standard exception). The Excel report customization step no longer depends on
 # a COM object (AB#5662/AB#5665 retired its predecessor in favour of EPPlus-native
 # chart/shape styling), so the complete offline suite is cross-platform.
 
@@ -22,7 +22,7 @@ permissions:
 
 jobs:
   test-and-lint:
-    runs-on: [self-hosted, linux, x64, hcs]
+    runs-on: ubuntu-latest
     env:
       # PowerShell tests historically use $env:TEMP; minimal Linux containers generally
       # expose TMPDIR only. Keep the test/runtime scratch contract platform-neutral.

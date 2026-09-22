@@ -99,7 +99,13 @@ const diagrams = {
   'private link & dns': kernel.diagPrivateLink ? toSvgText(kernel.diagPrivateLink()) : null,
   'internet exposure': kernel.diagExposure ? toSvgText(kernel.diagExposure()) : null,
   'edge & delivery': kernel.diagEdgeDelivery ? toSvgText(kernel.diagEdgeDelivery()) : null,
-  'routing & forced tunnelling': kernel.diagRouting ? toSvgText(kernel.diagRouting()) : null
+  'routing & forced tunnelling': kernel.diagRouting ? toSvgText(kernel.diagRouting()) : null,
+  'region footprint': kernel.diagRegions ? toSvgText(kernel.diagRegions()) : null,
+  'traffic flow': kernel.diagTrafficFlow ? toSvgText(kernel.diagTrafficFlow()) : null,
+  'appliance availability': kernel.diagSdwanHa ? toSvgText(kernel.diagSdwanHa()) : null,
+  'backup coverage': kernel.diagBackupCoverage ? toSvgText(kernel.diagBackupCoverage()) : null,
+  'private and public paths': kernel.diagTwoPaths ? toSvgText(kernel.diagTwoPaths()) : null,
+  'regional storage': kernel.diagRegionalStorage ? toSvgText(kernel.diagRegionalStorage()) : null
 };
 
 function parseNodes(svg) {

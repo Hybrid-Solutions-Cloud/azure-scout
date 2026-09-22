@@ -27,6 +27,7 @@ BeforeAll {
     . (Join-Path -Path $script:RepoRoot -ChildPath 'src/pipeline/Invoke-ScoutCollector.ps1')
     . (Join-Path -Path $script:RepoRoot -ChildPath 'src/pipeline/Write-ScoutCacheFile.ps1')
     . (Join-Path -Path $script:RepoRoot -ChildPath 'src/pipeline/Invoke-ScoutProcessing.ps1')
+    . (Join-Path -Path $script:RepoRoot -ChildPath 'src/pipeline/Get-ScoutResourceCompleteness.ps1')
     . (Join-Path -Path $script:RepoRoot -ChildPath 'src/Write-AZTIRunLog.ps1')
 
     # ── Fixture collector tree ───────────────────────────────────────────────────────────
@@ -123,7 +124,7 @@ $Preamble
     New-FixtureDefinition -Category 'Empty' -Name 'Nothing' -ResourceType 'nothing' -Kind 'nothing'
 
     $script:SampleResources = @(
-        [PSCustomObject]@{ NAME = 'vm-a';   TYPE = 'vm' }
+        [PSCustomObject]@{ id = '/synthetic/vm-a'; NAME = 'vm-a'; TYPE = 'vm' }
         [PSCustomObject]@{ NAME = 'vm-b';   TYPE = 'vm' }
         [PSCustomObject]@{ NAME = 'disk-a'; TYPE = 'disk' }
         [PSCustomObject]@{ NAME = 'sa-a';   TYPE = 'storage' }
@@ -283,16 +284,24 @@ Describe 'Invoke-ScoutProcessing — the pipeline end to end' {
     }
 
     It 'runs every collector and caches each non-empty category' {
+        $context = New-ScoutDiscoveryContext -Resources $script:SampleResources
+        $null = Get-ScoutResourceCompleteness -Resources $script:SampleResources -Collectors @() -DiscoveryContext $context
         $Summary = Invoke-ScoutProcessing -Resources $script:SampleResources -DefaultPath $script:RunPath `
-            -InventoryRoot $script:FixtureRoot -DefinitionRoot $script:DefinitionRoot -WarningAction SilentlyContinue
+            -InventoryRoot $script:FixtureRoot -DefinitionRoot $script:DefinitionRoot -WarningAction SilentlyContinue -DiscoveryContext $context
 
+        $context.BuildCount | Should -Be 1
         $Summary.CollectorCount | Should -Be 6
 
         $Cache = Join-Path -Path $script:RunPath -ChildPath 'ReportCache'
         Test-Path -LiteralPath (Join-Path -Path $Cache -ChildPath 'Compute.json')    | Should -BeTrue
         Test-Path -LiteralPath (Join-Path -Path $Cache -ChildPath 'Storage.json')    | Should -BeTrue
         Test-Path -LiteralPath (Join-Path -Path $Cache -ChildPath 'Networking.json') | Should -BeTrue
+        Test-Path -LiteralPath (Join-Path -Path $Cache -ChildPath 'Discovery.json')  | Should -BeTrue
         Test-Path -LiteralPath (Join-Path -Path $Cache -ChildPath 'Empty.json')      | Should -BeFalse
+        $Discovery = Get-Content -LiteralPath (Join-Path -Path $Cache -ChildPath 'Discovery.json') -Raw | ConvertFrom-Json
+        $Discovery.Summary.Resources | Should -BeGreaterThan 0
+        $Discovery.Resources[0].PSObject.Properties.Name | Should -Contain 'DetailStatus'
+        $Discovery.Resources[0].PSObject.Properties.Name | Should -Contain 'Exposure'
     }
 
     It 'durably logs collector timing, row count, status, and category subphases' {

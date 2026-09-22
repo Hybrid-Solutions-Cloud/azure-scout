@@ -299,6 +299,35 @@ Describe 'Invoke-AZSCGraphRequest' {
         }
     }
 
+    Context 'Official Graph authentication provider' {
+
+        BeforeEach {
+            Mock Get-AZSCGraphToken {
+                @{
+                    'X-AzureScout-GraphProvider' = 'Microsoft.Graph.Authentication'
+                    'X-AzureScout-GraphScopes' = 'AuditLog.Read.All Reports.Read.All'
+                }
+            } -ModuleName AzureScout
+            Mock Invoke-MgGraphRequest {
+                [pscustomobject]@{ value = @([pscustomobject]@{ id='sdk-row' }) }
+            } -ModuleName AzureScout
+            Mock Invoke-RestMethod { throw 'Bearer REST path must not run for the SDK provider.' } -ModuleName AzureScout
+        }
+
+        It 'keeps bearer tokens inside the SDK and returns the Graph response' {
+            $result = InModuleScope 'AzureScout' {
+                Invoke-AZSCGraphRequest -Uri '/v1.0/auditLogs/signIns' -RequiredScopes 'AuditLog.Read.All'
+            }
+
+            @($result).Count | Should -Be 1
+            $result.id | Should -Be 'sdk-row'
+            Should -Invoke Invoke-MgGraphRequest -ModuleName AzureScout -Times 1 -Scope It -ParameterFilter {
+                $Uri -eq 'https://graph.microsoft.com/v1.0/auditLogs/signIns' -and $OutputType -eq 'PSObject'
+            }
+            Should -Invoke Invoke-RestMethod -ModuleName AzureScout -Times 0 -Scope It
+        }
+    }
+
     Context 'Structured caller warning ownership' {
         BeforeEach {
             Mock Get-AZSCGraphToken {

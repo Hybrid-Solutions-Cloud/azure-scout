@@ -3,7 +3,7 @@
   "Category": "Identity",
   "Name": "Users",
   "FixturePath": "tests/fixtures/collector-equivalence/Identity.json",
-  "FixtureSha256": "45fde6b9f78ea27454d93d9aa0299b67a853c88489ea6ea86e7eb4cad25c2058",
+  "FixtureSha256": "0c99008cbafb5569be35a7cf701bdc15d9ad8cfa99c0bddf14acf56128c209fa",
   "Rows": [
     "Account Enabled=s:res-value|Assigned License Count=j:2|Created DateTime=j:\"2026-01-15T10:30:00Z\"|Department=s:res-value|Display Name=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/users/users-t1a-1|Job Title=s:res-value|Last Password Change=j:\"2026-01-15T10:30:00Z\"|Mail=s:res-value|On-Premises Sync=s:Yes|Resource U=j:1|Tenant ID=s:res-value|User Principal Name=s:res-value|User Type=s:res-value",
     "Account Enabled=s:res-value|Assigned License Count=j:2|Created DateTime=j:\"2026-01-15T10:30:00Z\"|Department=s:res-value|Display Name=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/users/users-t1b-1|Job Title=s:res-value|Last Password Change=j:\"2026-01-15T10:30:00Z\"|Mail=s:res-value|On-Premises Sync=s:Yes|Resource U=j:1|Tenant ID=s:res-value|User Principal Name=s:res-value|User Type=s:res-value",

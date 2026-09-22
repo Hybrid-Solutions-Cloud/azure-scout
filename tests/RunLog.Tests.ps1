@@ -57,6 +57,51 @@ Describe 'Start-AZSCRunLog' {
     }
 }
 
+Describe 'Always-on diagnostic capture' {
+    BeforeEach {
+        $script:DiagnosticDir = Join-Path $TestDrive ([guid]::NewGuid().ToString('N'))
+        Start-AZSCRunLog -DefaultPath $script:DiagnosticDir -NoTranscript
+    }
+    AfterEach { $null = Stop-AZSCRunLog -Quiet }
+
+    It 'captures debug and verbose with both console streams disabled' {
+        $DebugPreference = 'SilentlyContinue'
+        $VerbosePreference = 'SilentlyContinue'
+        Write-Debug 'private debug detail'
+        Write-Verbose 'private verbose detail'
+        $text = Get-Content (Join-Path $script:DiagnosticDir 'scout-run.log') -Raw
+        $text | Should -Match 'private debug detail'
+        $text | Should -Match 'private verbose detail'
+    }
+
+    It 'captures SDK streams without contaminating returned data and redacts credentials' {
+        $DebugPreference = 'SilentlyContinue'
+        $VerbosePreference = 'SilentlyContinue'
+        $result = @(Invoke-ScoutDiagnosticOperation -Operation {
+            Microsoft.PowerShell.Utility\Write-Debug 'Authorization: Bearer fake-sensitive-token'
+            Microsoft.PowerShell.Utility\Write-Verbose 'SDK request completed'
+            [pscustomobject]@{ id = 'resource-one' }
+        })
+        $result.Count | Should -Be 1
+        $result[0].id | Should -Be 'resource-one'
+        $text = Get-Content (Join-Path $script:DiagnosticDir 'scout-run.log') -Raw
+        $text | Should -Match 'SDK request completed'
+        $text | Should -Match 'REDACTED'
+        $text | Should -Not -Match 'fake-sensitive-token'
+    }
+
+    It 'preserves terminating SDK failures and their detailed service body' {
+        { Invoke-ScoutDiagnosticOperation -Operation {
+            $record = [System.Management.Automation.ErrorRecord]::new([InvalidOperationException]::new('HTTP 400'), 'test', 'InvalidOperation', $null)
+            $record.ErrorDetails = [System.Management.Automation.ErrorDetails]::new('{"error":{"message":"invalid query","access_token":"hidden-token"}}')
+            throw $record
+        } } | Should -Throw '*HTTP 400*'
+        $text = Get-Content (Join-Path $script:DiagnosticDir 'scout-run.log') -Raw
+        $text | Should -Match 'invalid query'
+        $text | Should -Not -Match 'hidden-token'
+    }
+}
+
 Describe 'Write-AZSCLog' {
 
     BeforeEach {
@@ -354,7 +399,6 @@ Describe 'Invoke-AzureScout wiring' {
 
     It 'does not change the global debug or verbose preferences to enable file detail' {
         $ProductionFiles = @(
-            'src/Write-AZTIRunLog.ps1',
             'src/pipeline/Invoke-ScoutCollector.ps1',
             'src/pipeline/Invoke-ScoutProcessing.ps1',
             'src/collect/Get-ScoutRawInventory.ps1',
@@ -379,6 +423,16 @@ Describe 'Invoke-AzureScout wiring' {
             }, $true))
             $Assignments | Should -BeNullOrEmpty -Because "$RelativePath must not force console detail globally"
         }
+    }
+
+    It 'restores caller preferences after diagnostic capture, including Inquire' {
+        $DebugPreference = 'Inquire'
+        $VerbosePreference = 'SilentlyContinue'
+        $null = Invoke-ScoutDiagnosticOperation -Operation { [pscustomobject]@{ value = 1 } }
+        $DebugPreference | Should -Be 'Inquire'
+        $VerbosePreference | Should -Be 'SilentlyContinue'
+        Write-AZSCLog -Level DEBUG -Message 'Logging must not prompt' -FileOnly
+        $DebugPreference | Should -Be 'Inquire'
     }
 
     It 'closes the log on the success path too' {
@@ -412,7 +466,7 @@ Describe 'Invoke-AzureScout wiring' {
 
         $timingStart = $raw.IndexOf('function Write-ScoutRawInventoryTiming')
         $startStart = $raw.IndexOf('function Write-ScoutRawInventoryStart')
-        $startEnd = $raw.IndexOf('$tagProjection', $startStart)
+        $startEnd = $raw.IndexOf('$columns =', $startStart)
         $timingSection = $raw.Substring($timingStart, $startStart - $timingStart)
         $startSection = $raw.Substring($startStart, $startEnd - $startStart)
         $lastPercent = -1

@@ -76,6 +76,27 @@ Describe 'Invoke-ScoutProgressOperation -- execute-once safety' {
     }
 }
 
+Describe 'Test-ScoutNativeLiveHost -- product default' {
+    BeforeEach {
+        Remove-Item Env:AZURESCOUT_NATIVE_PROGRESS -ErrorAction SilentlyContinue
+        $ProgressPreference = 'Continue'
+    }
+    AfterEach {
+        Remove-Item Env:AZURESCOUT_NATIVE_PROGRESS -ErrorAction SilentlyContinue
+        $ProgressPreference = 'Continue'
+    }
+
+    It 'uses standard PowerShell progress unless the custom renderer is explicitly enabled' {
+        Test-ScoutNativeLiveHost | Should -BeFalse
+        $script:ScoutNativeProgressDecision | Should -Match 'standard PowerShell progress'
+    }
+
+    It 'allows explicit opt-in to the custom renderer' {
+        $env:AZURESCOUT_NATIVE_PROGRESS = '1'
+        Test-ScoutNativeLiveHost -Force | Should -BeTrue
+    }
+}
+
 Describe 'Start-ScoutNativeProgressHost -- self-contained live rendering contract' {
     BeforeAll { $script:source = Get-Content "$root/src/Write-ScoutProgress.ps1" -Raw }
 

@@ -3,7 +3,7 @@
   "Category": "Identity",
   "Name": "AppRegistrations",
   "FixturePath": "tests/fixtures/collector-equivalence/Identity.json",
-  "FixtureSha256": "45fde6b9f78ea27454d93d9aa0299b67a853c88489ea6ea86e7eb4cad25c2058",
+  "FixtureSha256": "0c99008cbafb5569be35a7cf701bdc15d9ad8cfa99c0bddf14acf56128c209fa",
   "Rows": [
     "API Permission Count=j:2|Application ID=s:res-value|Created DateTime=j:\"2026-01-15T10:30:00Z\"|Display Name=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/applications/appregistrations-t1a-1|Key Credential Expiry=<null>|Password Credential Expiry=<null>|Publisher Domain=s:res-value|Resource U=j:1|Sign-In Audience=s:res-value|Tenant ID=s:res-value",
     "API Permission Count=j:2|Application ID=s:res-value|Created DateTime=j:\"2026-01-15T10:30:00Z\"|Display Name=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/entra/applications/appregistrations-t1b-1|Key Credential Expiry=<null>|Password Credential Expiry=<null>|Publisher Domain=s:res-value|Resource U=j:1|Sign-In Audience=s:res-value|Tenant ID=s:res-value",

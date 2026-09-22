@@ -474,6 +474,7 @@ function Invoke-Collect {
         # combined inventory + assessment run collects once rather than twice. Omitted, the
         # source is decided by -Source below.
         [object]   $FromInventory,
+        [object]   $DiscoveryContext,
 
         # AB#5648 — where the 34 derivable queries get their rows from when no -FromInventory
         # was handed in.
@@ -1044,7 +1045,7 @@ resources | where type =~ "microsoft.documentdb/databaseaccounts"
 | extend accountKind = tostring(['kind'])
 | extend publicNetworkAccess = tostring(properties.publicNetworkAccess)
 | extend disableLocalAuth = tobool(properties.disableLocalAuth)
-| project id, name, resourceGroup, subscriptionId, location, kind = accountKind,
+| project id, name, resourceGroup, subscriptionId, location, ['kind'] = accountKind,
           publicNetworkAccess, disableLocalAuth
 '@
         mariaDbServers = @'
@@ -1160,7 +1161,7 @@ resources | where type =~ "microsoft.domainregistration/domains"
 resources | where type =~ "microsoft.web/hostingenvironments"
 | extend status = tostring(properties.status)
 | extend aseKind = tostring(['kind'])
-| project id, name, resourceGroup, subscriptionId, location, status, kind = aseKind
+| project id, name, resourceGroup, subscriptionId, location, status, ['kind'] = aseKind
 '@
         appServicePlans = @'
 resources | where type =~ "microsoft.web/serverfarms"
@@ -1819,8 +1820,8 @@ resources
           provisioningState = tostring(properties.provisioningState),
           dataControllerId = tostring(properties.dataControllerId),
           tier = tostring(properties.tier),
-          vCoresRequest = toint(properties.vCores.request),
-          vCoresLimit = toint(properties.vCores.limit)
+          vCoresRequest = toint(properties.vCores['request']),
+          vCoresLimit = toint(properties.vCores['limit'])
 '@
         arcSqlServers = @'
 resources
@@ -2146,7 +2147,7 @@ resources
 resources
 | where type =~ "microsoft.insights/workbooks"
 | project id, name, resourceGroup, subscriptionId, location,
-          kind = tostring(kind),
+          ['kind'] = tostring(['kind']),
           category = tostring(properties.category),
           sourceId = tostring(properties.sourceId),
           version = tostring(properties.version)
@@ -2179,7 +2180,7 @@ resources
 resources
 | where type =~ "microsoft.insights/webtests"
 | project id, name, resourceGroup, subscriptionId, location,
-          kind = tostring(kind),
+          ['kind'] = tostring(['kind']),
           enabled = tobool(properties.Enabled),
           frequency = toint(properties.Frequency),
           timeoutSeconds = toint(properties.Timeout),
@@ -2244,7 +2245,7 @@ resources
           enabled = tobool(properties.enabled),
           severity = toint(properties.severity),
           autoMitigate = tobool(properties.autoMitigate),
-          kind = tostring(properties.kind),
+          ['kind'] = tostring(properties.kind),
           scopeCount = array_length(properties.scopes)
 '@
         activityLogAlertRules = @'
@@ -2568,6 +2569,16 @@ resources
                        $Message -match '(?i)SubscriptionNotRegistered')
     }
 
+    # Invalid KQL is deterministic. Repeating the same parser-rejected text once per
+    # subscription cannot recover data and turned six bad projections into 96 warnings and
+    # roughly two minutes of wasted calls in the audited run.
+    function Test-ScoutDeterministicQueryError([string] $Message) {
+        return [bool]($Message -match '(?i)\bBadRequest\b' -or
+                       $Message -match '(?i)\bInvalidQuery\b' -or
+                       $Message -match '(?i)\bParserFailure\b' -or
+                       $Message -match '(?i)query\s+is\s+invalid')
+    }
+
     function Invoke-CollectQuery {
         param([string] $Key, [string] $Query, [string[]] $SubscriptionIds)
         try {
@@ -2583,6 +2594,11 @@ resources
                 # zero output objects -- the caller's `$r[$k] = Invoke-CollectQuery ...`
                 # would capture $null instead of an empty array. The unary comma
                 # prevents that (same idiom Invoke-Arg already uses for `$rows`).
+                return , @()
+            }
+
+            if (Test-ScoutDeterministicQueryError $errText) {
+                Write-Warning "Invoke-Collect: query '$Key' was rejected as invalid and will not be retried per subscription: $errText"
                 return , @()
             }
 
@@ -2693,7 +2709,8 @@ resources
             $rawArgs = @{
                 IncludeTags = $true; IncludeBackupResources = $true; TenantWideDefinitionsOnly = $true
                 IncludeArmChildResources = $true; ArmChildDataset = @('KeyVaultSecrets', 'KeyVaultKeys')
-                IncludeUpdateManagerResources = $true
+                IncludeUpdateManagerResources = $true; CollectBillingEvidence = $true
+                CollectEntraDiagnosticSettings = $true
             }
             if ($ManagementGroupId) { $rawArgs.ManagementGroupId = $ManagementGroupId }
             # AB#6803 -- -IncludeAzureLocalArm turns on BOTH switches this needs:
@@ -2750,6 +2767,18 @@ resources
         param($Health)
 
         if ($null -eq $Health -or -not $Health.PSObject.Properties['Dataset']) { return $false }
+
+        # ARM-child health is intentionally granular: a denial can belong to one parent (for
+        # example one Key Vault) while every ARG table and every other vault still succeeds.
+        # Treating that row as a failure of the broad Resources dataset aborts every selected
+        # assessment. Keep the health record so rules that consume that child dataset can close
+        # their availability gate, but do not promote it to a whole-estate source failure.
+        $source = if ($Health.PSObject.Properties['Source']) { [string]$Health.Source } else { '' }
+        $sourceDataset = if ($Health.PSObject.Properties['SourceDataset']) { [string]$Health.SourceDataset } else { '' }
+        if ($source -eq 'ARM Child' -and -not [string]::IsNullOrWhiteSpace($sourceDataset)) {
+            return $false
+        }
+
         $dataset = [string]$Health.Dataset
         if (-not $assessmentBlockingDatasets.ContainsKey($dataset) -or -not [bool]$assessmentBlockingDatasets[$dataset]) {
             return $false
@@ -2825,13 +2854,19 @@ resources
             Write-Verbose "Invoke-Collect: shaping $($inventoryShaped.Keys.Count) queries from one collection pass (AB#5543/AB#5648); only 'sqlDefenderPricing' still goes to Resource Graph."
         }
         catch {
-            # Never let a shaping bug cost the caller their assessment — fall back to the ARG
-            # path, which is the reference implementation.
+            # A narrower ARG retry cannot prove equivalence to the collected evidence.
+            # Keep raw evidence available for the inventory report, but never score it as
+            # though normalization succeeded.
             if ($OfflineFromInventory) {
-                throw "Invoke-Collect: could not shape the supplied inventory without live fallback: $($_.Exception.Message)"
+                $rawCollectionHealth += [pscustomobject]@{ Dataset='AssessmentNormalization'; Status='Failed'; Source='Inventory shaping'; Reason=$_.Exception.Message }
+                Write-Warning "Assessment normalization failed; the inventory report retains raw collector evidence: $($_.Exception.Message)"
+                $inventoryShaped = @{}
             }
-            Write-Warning "Invoke-Collect: could not shape the collection pass, falling back to Resource Graph queries (AB#5543): $($_.Exception.Message)"
-            $inventoryShaped = @{}
+            else {
+                $sourceException = [InvalidOperationException]::new("Invoke-Collect: assessment scoring stopped because inventory normalization failed. Raw evidence must be retained; no ARG substitution was performed. $($_.Exception.Message)", $_.Exception)
+                $sourceException.Data['AzureScoutFailureKind'] = 'AssessmentSourceUnavailable'
+                throw $sourceException
+            }
         }
     }
 
@@ -3098,6 +3133,10 @@ resources
             $Row
         }
         $attrs = if ($data.PSObject.Properties['attributes']) { $data.attributes } else { $null }
+        $enabledValue = $null
+        if ($attrs -and $attrs.PSObject.Properties['enabled']) {
+            $enabledValue = $attrs.enabled
+        }
         [pscustomobject]@{
             id             = if ($Row.PSObject.Properties['id']) { [string]$Row.id } else { $null }
             keyVaultName   = if ($Row.PSObject.Properties['PARENTNAME']) { [string]$Row.PARENTNAME } else { $null }
@@ -3109,7 +3148,7 @@ resources
             # src/collect/Get-ScoutArmChildResource.ps1 (~line 453) and
             # manifests/collectors/Security/KeyVaultSecrets.psd1's $Kind derivation.
             contentType    = if ($data.PSObject.Properties['contentType']) { [string]$data.contentType } else { $null }
-            enabled        = ConvertTo-ScoutBool ($(if ($attrs -and $attrs.PSObject.Properties['enabled']) { $attrs.enabled } else { $null }))
+            enabled        = ConvertTo-ScoutBool $enabledValue
             expires        = if ($attrs -and $attrs.PSObject.Properties['exp']) { $attrs.exp } else { $null }
         }
     }
@@ -3127,6 +3166,20 @@ resources
                 ForEach-Object { ConvertTo-ScoutKeyVaultChildRow -Row $_ }
         )
     }
+    $keyVaultSecretsAvailable = -not [bool]@(
+        $rawCollectionHealth | Where-Object {
+            $_ -and $_.PSObject.Properties['Source'] -and [string]$_.Source -eq 'ARM Child' -and
+            $_.PSObject.Properties['SourceDataset'] -and [string]$_.SourceDataset -eq 'KeyVaultSecrets' -and
+            $_.PSObject.Properties['Status'] -and [string]$_.Status -in @('Unavailable', 'Failed')
+        }
+    ).Count
+    $keyVaultKeysAvailable = -not [bool]@(
+        $rawCollectionHealth | Where-Object {
+            $_ -and $_.PSObject.Properties['Source'] -and [string]$_.Source -eq 'ARM Child' -and
+            $_.PSObject.Properties['SourceDataset'] -and [string]$_.SourceDataset -eq 'KeyVaultKeys' -and
+            $_.PSObject.Properties['Status'] -and [string]$_.Status -in @('Unavailable', 'Failed')
+        }
+    ).Count
 
     # ---- invocation-local security/policy sweep reuse (AB#7279) -------------------------------
     # The completed inventory extraction already appends one AZSC/Subscription/
@@ -3272,10 +3325,11 @@ resources
     $defenderAlerts = @()
     $defenderAssessments = @()
     $defenderSecureScores = @()
+    $defenderRegulatoryStandards = @()
     $policyRemoteSubscriptions = @()
     $remoteSweepResults = @()
     if ($IncludePolicyCompliance) {
-        $policyDatasets = @('PolicyComplianceStates', 'DefenderAlerts', 'DefenderAssessments', 'DefenderSecureScores')
+        $policyDatasets = @('PolicyComplianceStates', 'DefenderAlerts', 'DefenderAssessments', 'DefenderSecureScores', 'DefenderRegulatoryStandards')
         $policyRemoteSubscriptions = @(Get-ScoutMissingSweepSubscriptions -Datasets $policyDatasets)
         if ($policyRemoteSubscriptions.Count -gt 0 -and -not $OfflineFromInventory) {
             try {
@@ -3293,6 +3347,7 @@ resources
         $defenderAlerts = @(Get-ScoutMergedSweepDatasetRows -Dataset 'DefenderAlerts' -RemoteSweeps $remoteSweepResults)
         $defenderAssessments = @(Get-ScoutMergedSweepDatasetRows -Dataset 'DefenderAssessments' -RemoteSweeps $remoteSweepResults)
         $defenderSecureScores = @(Get-ScoutMergedSweepDatasetRows -Dataset 'DefenderSecureScores' -RemoteSweeps $remoteSweepResults)
+        $defenderRegulatoryStandards = @(Get-ScoutMergedSweepDatasetRows -Dataset 'DefenderRegulatoryStandards' -RemoteSweeps $remoteSweepResults)
     }
 
     # DefenderPricing in the inventory sweep is the Az.Security representation of the same
@@ -3408,10 +3463,51 @@ resources
         if (-not $r.ContainsKey($declaredKey)) { $r[$declaredKey] = @() }
     }
 
+    # AB#7366 -- preserve a generic, control-plane-complete row for every object discovered by
+    # the single raw pass. Specialized scalar datasets remain the assessment contract; this
+    # parallel index is the honesty contract that prevents a new/unsupported type from vanishing.
+    $discovery = [pscustomobject]@{
+        Schema      = 'azure-scout/discovery-completeness/v1'
+        GeneratedAt = (Get-Date).ToString('o')
+        Summary     = [pscustomobject]@{
+            Resources = 0; Detailed = 0; GenericOnly = 0; Partial = 0; Unavailable = 0
+            Public = 0; Private = 0; Mixed = 0; ExposureNone = 0; ExposureUnknown = 0
+            Relationships = 0
+        }
+        Resources = @()
+        Relationships = @()
+        CollectionHealth = @($rawCollectionHealth)
+        Status = if ($rawInventory) { 'Unavailable' } else { 'NotCollected' }
+        StatusReason = if ($rawInventory) { 'The universal discovery index could not be built.' } else { 'No raw inventory pass was available (TypedQueries source).' }
+    }
+    if ($rawInventory -and $rawInventory.PSObject.Properties['Resources']) {
+        try {
+            if (-not (Get-Command Get-ScoutResourceCompleteness -ErrorAction SilentlyContinue)) {
+                . (Join-Path (Split-Path $PSScriptRoot -Parent) 'pipeline/Get-ScoutResourceCompleteness.ps1')
+            }
+            $discovery = Get-ScoutResourceCompleteness -Resources @($rawInventory.Resources) `
+                -CollectionHealth @($rawCollectionHealth) -DiscoveryContext $DiscoveryContext
+            $discoveryStatus = if (($discovery.Summary.Partial + $discovery.Summary.Unavailable) -gt 0) { 'Partial' } else { 'Complete' }
+            $discovery | Add-Member -NotePropertyName Status -NotePropertyValue $discoveryStatus -Force
+            $discovery | Add-Member -NotePropertyName StatusReason -NotePropertyValue '' -Force
+        }
+        catch {
+            if ($discovery.PSObject.Properties['StatusReason']) {
+                $discovery.StatusReason = $_.Exception.Message
+            }
+            else {
+                $discovery | Add-Member -NotePropertyName StatusReason -NotePropertyValue $_.Exception.Message -Force
+            }
+            Write-Warning "Invoke-Collect: universal discovery index unavailable: $($_.Exception.Message)"
+        }
+    }
+
     # ---- shape into the canonical contract ----
     $collect = [pscustomobject]@{
+        entraResources = @(if ($rawInventory -and $rawInventory.PSObject.Properties['EntraResources']) { $rawInventory.EntraResources })
         subscriptions = $r.subscriptions
         tags          = $tags
+        discovery     = $discovery
         networking    = [pscustomobject]@{
             virtualNetworks          = $r.virtualNetworks
             subnets                  = $r.subnets
@@ -3525,6 +3621,7 @@ resources
             defenderAlerts = $defenderAlerts
             defenderAssessments = $defenderAssessments
             defenderSecureScores = $defenderSecureScores
+            defenderRegulatoryStandards = $defenderRegulatoryStandards
         }
         governance    = [pscustomobject]@{
             managementGroups = @()
@@ -3627,6 +3724,8 @@ resources
             security     = [pscustomobject]@{
                 keyVaults = $r.keyVaults
                 keyVaultSecrets = $keyVaultSecrets; keyVaultKeys = $keyVaultKeys
+                keyVaultSecretsAvailable = $keyVaultSecretsAvailable
+                keyVaultKeysAvailable = $keyVaultKeysAvailable
                 # AB#7110 -- Security plumbing.
                 # AB#7089 (Story AB#7071, Feature AB#7069, Epic AB#7099) -- Security
                 # coverage-gap close-out.

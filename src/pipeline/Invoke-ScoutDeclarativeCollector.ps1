@@ -248,6 +248,8 @@ function Invoke-ScoutDeclarativeProcessing {
     $Sub          = $Context['Subscriptions']
     $Retirements  = $Context['Retirements']
     $Unsupported  = $Context['Unsupported']
+    $ResourceTypeIndex = if ($Context.ContainsKey('ResourceTypeIndex')) { $Context['ResourceTypeIndex'] } else { $null }
+    $ResourceOrdinals = if ($Context.ContainsKey('ResourceOrdinals')) { $Context['ResourceOrdinals'] } else { $null }
 
     # ONE clock for the whole collector, bound into every row scope as $ScoutRunTime (AB#6741).
     #
@@ -289,6 +291,24 @@ function Invoke-ScoutDeclarativeProcessing {
         $SourceVariables.Add([psvariable]::new('Unsupported', $Unsupported))
         $RowSourceBlock = [scriptblock]::Create($Definition.RowSource.Expression)
         @($RowSourceBlock.InvokeWithContext($null, $SourceVariables))
+    } elseif ($null -ne $ResourceTypeIndex -and $Definition.ResourceTypeMatching -eq 'SinglePass') {
+        $indexedRows = @(
+            foreach ($Type in @($Definition.ResourceTypes)) {
+                $typeKey = ([string]$Type).ToLowerInvariant()
+                if ($ResourceTypeIndex.ContainsKey($typeKey)) { $ResourceTypeIndex[$typeKey] }
+            }
+        )
+        if (@($Definition.ResourceTypes).Count -le 1 -or $null -eq $ResourceOrdinals) {
+            $indexedRows
+        }
+        else {
+            @($indexedRows | Sort-Object { $ResourceOrdinals[$_] })
+        }
+    } elseif ($null -ne $ResourceTypeIndex) {
+        @(foreach ($Type in @($Definition.ResourceTypes)) {
+            $typeKey = ([string]$Type).ToLowerInvariant()
+            if ($ResourceTypeIndex.ContainsKey($typeKey)) { $ResourceTypeIndex[$typeKey] }
+        })
     } elseif ($Definition.ResourceTypeMatching -eq 'SinglePass') {
         @($Resources | Where-Object { @($Definition.ResourceTypes) -contains $_.TYPE })
     } else {
@@ -384,6 +404,12 @@ function Invoke-ScoutDeclarativeProcessing {
         # those statements without $Resources in scope produced three empty columns.
         $Variables.Add([psvariable]::new('Resources', $Resources))
         $Variables.Add([psvariable]::new('ScoutRunTime', $ScoutRunTime))
+        # The lifted legacy collectors sometimes initialise this counter in their preamble and
+        # reset it after emitting a row. Hand-authored definitions do not need the counter at all,
+        # but the shared row epilogue still references it. Bind a neutral value so StrictMode keeps
+        # protecting genuine misspelled variables without making the optional legacy counter a
+        # requirement for every new declarative collector (AB#7441).
+        $Variables.Add([psvariable]::new('ResUCount', 0))
         foreach ($Binding in $SetupBindings) { $Variables.Add($Binding) }
 
         try {

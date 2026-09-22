@@ -12,7 +12,7 @@
 RootModule = 'AzureScout.psm1'
 
 # Version number of this module.
-ModuleVersion = '3.12.7'
+ModuleVersion = '3.17.1'
 
 # Supported PSEditions
 CompatiblePSEditions = @('Core')
@@ -67,6 +67,7 @@ RequiredModules = @(
     'Az.Compute'
     'Az.Resources'
     'Az.Advisor'
+    'Microsoft.Graph.Authentication'
     'powershell-yaml'
 )
 
@@ -165,7 +166,7 @@ PrivateData = @{
         IconUri = 'https://raw.githubusercontent.com/Hybrid-Solutions-Cloud/azure-scout/main/docs/public/images/azurescout-icon.svg'
 
         # ReleaseNotes of this module
-        ReleaseNotes = 'v3.12.7 - React reporting survives partial tenant data and open-ended Azure payload shapes. If scored assessment safely stops because required evidence is unavailable, a network-free inventory-only React/evidence fallback now fills the predictable assessment-report folder instead of leaving it empty. Boolean name fields can no longer crash React indexing. The built-in console renderer now presents a high-contrast bordered multi-phase ledger with persistent phase transitions and a live elapsed clock, without external modules or repository-trust changes. AB#405.'
+        ReleaseNotes = 'v3.17.1 - One discovery build and shared assessment query index, detached evidence and faster companion output. Always-on sanitized debug logging, accurate Graph failure classification, Sentinel query fixes and NIC applicability checks. Resource-tag menu wording corrected. AB#9294 AB#9295 AB#9296 AB#9297 AB#9298 AB#9299 AB#9300 AB#9301 AB#9302 AB#9303 AB#9304 AB#9306. See CHANGELOG.md.'
 
         # Prerelease string of this module
         # Prerelease = ''

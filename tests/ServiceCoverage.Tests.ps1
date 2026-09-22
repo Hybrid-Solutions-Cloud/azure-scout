@@ -74,14 +74,21 @@ Describe 'Logic Apps are collected (AB#6836)' {
         # This exclusion made Integration -- Scout's thinnest category -- miss one of the most
         # common resources in Azure, with no way to opt back in.
         $Source = Get-Content -LiteralPath (Join-Path -Path $script:RepoRoot -ChildPath 'src/collect/Get-ScoutRawInventory.ps1') -Raw
-        $Clause = [regex]::Match($Source, '\$excludedTypesClause = "([^"]*)"')
-        $Clause.Success | Should -BeTrue -Because 'the exclusion clause must be findable to be checked'
-        $Clause.Groups[1].Value | Should -Not -Match 'microsoft\.logic/workflows'
+        $Source | Should -Not -Match 'microsoft\.logic/workflows.*where type !in'
     }
 
     It 'has a collector that consumes them' {
         $Definition = Get-ScoutCollectorDefinition -Path (Join-Path -Path $script:DefinitionRoot -ChildPath 'Integration/LogicApps.psd1')
         @($Definition.ResourceTypes) | Should -Contain 'microsoft.logic/workflows'
+    }
+}
+
+Describe 'Universal resource identity coverage (AB#7366)' {
+
+    It 'does not exclude dashboards, template specs, or template-spec versions' {
+        $Source = Get-Content -LiteralPath (Join-Path -Path $script:RepoRoot -ChildPath 'src/collect/Get-ScoutRawInventory.ps1') -Raw
+        $Source | Should -Not -Match '\$excludedTypesClause'
+        $Source | Should -Not -Match "where type !in \('microsoft\.portal/dashboards'"
     }
 }
 

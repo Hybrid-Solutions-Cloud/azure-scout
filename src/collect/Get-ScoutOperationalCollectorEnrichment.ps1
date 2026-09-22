@@ -1,6 +1,8 @@
 #Requires -Version 7.0
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+if (-not (Get-Command Invoke-ScoutDiagnosticOperation -ErrorAction SilentlyContinue)) { . (Join-Path $PSScriptRoot '../Write-AZTIRunLog.ps1') }
+if (-not (Get-Command Get-ScoutHttpFailure -ErrorAction SilentlyContinue)) { . (Join-Path $PSScriptRoot '../Get-ScoutHttpFailure.ps1') }
 
 <#
 .SYNOPSIS
@@ -18,7 +20,8 @@ $ErrorActionPreference = 'Stop'
 .OUTPUTS
     Typed envelopes: AZSC/Operational/VirtualMachine, AZSC/Operational/VMOperationalData,
     AZSC/Operational/ArcServerOperationalData, AZSC/Operational/ARCServers,
-    AZSC/Operational/StorageAccount, and AZSC/Management/SubscriptionEnrichment.
+    AZSC/Operational/StorageAccount, AZSC/Operational/NetworkInterface, and
+    AZSC/Management/SubscriptionEnrichment.
 #>
 function Get-ScoutOperationalCollectorEnrichment {
     [CmdletBinding()]
@@ -34,25 +37,49 @@ function Get-ScoutOperationalCollectorEnrichment {
 
         [Parameter()]
         [AllowNull()]
-        [System.Collections.IList]$CollectionHealth
+        [System.Collections.IList]$CollectionHealth,
+
+        [switch]$IncludeProviderResourceDetails
     )
 
     function Get-ScoutValue {
         param([AllowNull()]$InputObject, [Parameter(Mandatory)][string[]]$Name)
         if ($null -eq $InputObject) { return $null }
         foreach ($Candidate in $Name) {
+            if ($InputObject -is [System.Collections.IDictionary]) {
+                foreach ($Key in $InputObject.Keys) {
+                    if ([string]$Key -ieq $Candidate) { return $InputObject[$Key] }
+                }
+            }
             $Property = $InputObject.PSObject.Properties[$Candidate]
             if ($null -ne $Property) { return $Property.Value }
         }
         return $null
     }
 
-    $VirtualMachines = @($Resources | Where-Object { (Get-ScoutValue $_ @('type', 'TYPE')) -ieq 'microsoft.compute/virtualmachines' })
-    $ArcMachines = @($Resources | Where-Object { (Get-ScoutValue $_ @('type', 'TYPE')) -ieq 'microsoft.hybridcompute/machines' })
-    $StorageAccounts = @($Resources | Where-Object { (Get-ScoutValue $_ @('type', 'TYPE')) -ieq 'microsoft.storage/storageaccounts' })
+    function Get-ScoutUniqueResource {
+        param([AllowEmptyCollection()][object[]]$InputRows)
+        $seen = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+        foreach ($inputRow in @($InputRows)) {
+            if ($null -eq $inputRow) { continue }
+            $resourceId = [string](Get-ScoutValue $inputRow @('id', 'ID'))
+            if ([string]::IsNullOrWhiteSpace($resourceId) -or -not $seen.Add($resourceId)) { continue }
+            $inputRow
+        }
+    }
+
+    $VirtualMachines = @(Get-ScoutUniqueResource -InputRows @($Resources | Where-Object { (Get-ScoutValue $_ @('type', 'TYPE')) -ieq 'microsoft.compute/virtualmachines' }))
+    $ArcMachines = @(Get-ScoutUniqueResource -InputRows @($Resources | Where-Object { (Get-ScoutValue $_ @('type', 'TYPE')) -ieq 'microsoft.hybridcompute/machines' }))
+    $StorageAccounts = @(Get-ScoutUniqueResource -InputRows @($Resources | Where-Object { (Get-ScoutValue $_ @('type', 'TYPE')) -ieq 'microsoft.storage/storageaccounts' }))
+    $NetworkInterfaces = @(Get-ScoutUniqueResource -InputRows @($Resources | Where-Object { (Get-ScoutValue $_ @('type', 'TYPE')) -ieq 'microsoft.network/networkinterfaces' }))
+    $VirtualMachinesBySubscription = @($VirtualMachines | Group-Object { [string](Get-ScoutValue $_ @('subscriptionId')) })
+    $ArcMachinesBySubscription = @($ArcMachines | Group-Object { [string](Get-ScoutValue $_ @('subscriptionId')) })
     $VmSubscriptionCount = @($VirtualMachines | ForEach-Object { [string](Get-ScoutValue $_ @('subscriptionId')) } | Where-Object { $_ } | Sort-Object -Unique).Count
+    $VmCostBatchCount = @($VirtualMachinesBySubscription | ForEach-Object { [Math]::Ceiling($_.Count / 100.0) } | Measure-Object -Sum).Sum
+    $ArcCostBatchCount = @($ArcMachinesBySubscription | ForEach-Object { [Math]::Ceiling($_.Count / 100.0) } | Measure-Object -Sum).Sum
     $ProgressState = @{
-        Planned  = (($VirtualMachines.Count * 4) + $VmSubscriptionCount + ($ArcMachines.Count * 2))
+        Planned  = (($VirtualMachines.Count * 3) + $VmSubscriptionCount + $VmCostBatchCount +
+                    $ArcMachines.Count + $ArcCostBatchCount + ($NetworkInterfaces.Count * 2))
         Completed = 0
         Failed    = 0
         Started   = [System.Diagnostics.Stopwatch]::StartNew()
@@ -62,9 +89,14 @@ function Get-ScoutOperationalCollectorEnrichment {
     function Add-ScoutOperationalHealth {
         param(
             [Parameter(Mandatory)][string]$Dataset,
-            [Parameter(Mandatory)][string]$Reason
+            [Parameter(Mandatory)][string]$Reason,
+            [AllowNull()][string]$ParentId,
+            [AllowNull()][string]$ResourceType,
+            [AllowNull()][string]$Collector,
+            [string]$Status = 'Unavailable'
         )
-        if ($null -eq $CollectionHealth -or -not $OperationalHealthDatasets.Add($Dataset)) { return }
+        $healthKey = "$Dataset|$ParentId"
+        if ($null -eq $CollectionHealth -or -not $OperationalHealthDatasets.Add($healthKey)) { return }
 
         $ownership = if ($Dataset -like 'VirtualMachine.*') {
             [pscustomobject]@{ ResourceType = 'AZSC/Operational/VirtualMachine'; Collector = 'Compute/VirtualMachine' }
@@ -75,8 +107,14 @@ function Get-ScoutOperationalCollectorEnrichment {
         elseif ($Dataset -like 'StorageAccounts.*' -and $Dataset -ne 'StorageAccounts.RestoreSubscriptionContext') {
             [pscustomobject]@{ ResourceType = 'AZSC/Operational/StorageAccount'; Collector = 'Storage/StorageAccounts' }
         }
+        elseif ($Dataset -like 'NetworkInterface.*') {
+            [pscustomobject]@{ ResourceType = 'microsoft.network/networkinterfaces'; Collector = 'Networking/NetworkInterface' }
+        }
         elseif ($Dataset -like 'AllSubscriptions.*') {
             [pscustomobject]@{ ResourceType = 'AZSC/Management/SubscriptionEnrichment'; Collector = 'Management/AllSubscriptions' }
+        }
+        elseif ($ResourceType -and $Collector) {
+            [pscustomobject]@{ ResourceType = $ResourceType; Collector = $Collector }
         }
         else { $null }
         if ($null -eq $ownership) { return }
@@ -85,10 +123,11 @@ function Get-ScoutOperationalCollectorEnrichment {
                 Dataset       = "Operational/$Dataset"
                 Source        = 'Operational enrichment'
                 SourceDataset = $Dataset
-                Status        = 'Unavailable'
+                Status        = $Status
                 Reason        = $Reason
                 ResourceTypes = @($ownership.ResourceType)
                 Collectors     = @($ownership.Collector)
+                ResourceIds    = @($ParentId | Where-Object { $_ })
             })
     }
 
@@ -116,7 +155,7 @@ function Get-ScoutOperationalCollectorEnrichment {
         param(
             [Parameter(Mandatory)][string]$Dataset,
             [Parameter(Mandatory)][System.Diagnostics.Stopwatch]$Timer,
-            [Parameter(Mandatory)][ValidateSet('Success', 'Failed', 'NotConfigured', 'OperationInProgress')][string]$Status,
+            [Parameter(Mandatory)][ValidateSet('Success', 'Failed', 'NotConfigured', 'NotSupported', 'OperationInProgress')][string]$Status,
             [int]$Attempts = 1
         )
         $Timer.Stop()
@@ -144,15 +183,21 @@ function Get-ScoutOperationalCollectorEnrichment {
     function Invoke-ScoutOperationalTrackedCommand {
         param(
             [Parameter(Mandatory)][string]$Dataset,
-            [Parameter(Mandatory)][scriptblock]$Operation
+            [Parameter(Mandatory)][scriptblock]$Operation,
+            [Parameter()][AllowNull()][string]$QuietUnsupportedPattern
         )
         $timer = Start-ScoutOperationalRequest -Dataset $Dataset -Dynamic
         try {
-            $result = & $Operation
+            $result = Invoke-ScoutDiagnosticOperation -Operation $Operation
             Complete-ScoutOperationalRequest -Dataset $Dataset -Timer $timer -Status Success
             return $result
         }
         catch {
+            if (-not [string]::IsNullOrWhiteSpace($QuietUnsupportedPattern) -and
+                $_.Exception.Message -match $QuietUnsupportedPattern) {
+                Complete-ScoutOperationalRequest -Dataset $Dataset -Timer $timer -Status NotSupported
+                throw
+            }
             Complete-ScoutOperationalRequest -Dataset $Dataset -Timer $timer -Status Failed
             Add-ScoutOperationalHealth -Dataset $Dataset -Reason $_.Exception.Message
             throw
@@ -160,11 +205,11 @@ function Get-ScoutOperationalCollectorEnrichment {
     }
 
     Write-ScoutOperationalDetail -Level DEBUG -Message (
-        'Operational enrichment plan: virtualMachines={0}; arcMachines={1}; storageAccounts={2}; subscriptions={3}; minimumRequests={4}' -f
-            $VirtualMachines.Count, $ArcMachines.Count, $StorageAccounts.Count, @($Subscriptions).Count, $ProgressState.Planned
+        'Operational enrichment plan: virtualMachines={0}; arcMachines={1}; storageAccounts={2}; networkInterfaces={3}; subscriptions={4}; minimumRequests={5}' -f
+            $VirtualMachines.Count, $ArcMachines.Count, $StorageAccounts.Count, $NetworkInterfaces.Count, @($Subscriptions).Count, $ProgressState.Planned
     )
-    $progressStatus = 'Operational enrichment planned: {0} VM; {1} Arc; {2} storage' -f
-        $VirtualMachines.Count, $ArcMachines.Count, $StorageAccounts.Count
+    $progressStatus = 'Operational enrichment planned: {0} VM; {1} Arc; {2} storage; {3} NIC' -f
+        $VirtualMachines.Count, $ArcMachines.Count, $StorageAccounts.Count, $NetworkInterfaces.Count
     if (Get-Command Write-ScoutProgress -ErrorAction SilentlyContinue) {
         Write-ScoutProgress -Id 3 -ParentId 2 -Activity 'Operational enrichment' `
             -Status $progressStatus -PercentComplete 0
@@ -182,21 +227,59 @@ function Get-ScoutOperationalCollectorEnrichment {
             [ValidateSet('GET', 'POST')][string]$Method = 'GET',
             [AllowNull()]$Payload,
             [ValidateRange(1, 5)][int]$MaxAttempts = 3,
+            [switch]$PollAsync,
             # 404 on this dataset is an expected "not configured" state, not a failure -- do not warn.
             [switch]$QuietNotFound,
             [switch]$DynamicRequest
         )
 
         $requestTimer = Start-ScoutOperationalRequest -Dataset $Dataset -Dynamic:$DynamicRequest
+        $Response = $null
         for ($Attempt = 1; $Attempt -le $MaxAttempts; $Attempt++) {
             try {
                 $Arguments = @{ Path = $Path; Method = $Method; ErrorAction = 'Stop' }
                 if ($null -ne $Payload) { $Arguments['Payload'] = $Payload }
-                $Response = Invoke-AzRestMethod @Arguments
+                $Response = Invoke-ScoutDiagnosticOperation -Operation { Invoke-AzRestMethod @Arguments }
                 if ($null -eq $Response) { throw 'ARM returned no response.' }
                 $Status = Get-ScoutValue -InputObject $Response -Name @('StatusCode')
+                if ([int]$Status -eq 202 -and $PollAsync) {
+                    $headers = Get-ScoutValue -InputObject $Response -Name @('Headers')
+                    $location = $null
+                    if ($headers -is [System.Collections.IDictionary]) {
+                        foreach ($headerKey in $headers.Keys) {
+                            if ([string]$headerKey -notin @('Location', 'Azure-AsyncOperation')) { continue }
+                            $location = [string]$headers[$headerKey]
+                            if ($location) { break }
+                        }
+                    }
+                    elseif ($null -ne $headers) {
+                        $location = [string](Get-ScoutValue -InputObject $headers -Name @('Location', 'Azure-AsyncOperation'))
+                    }
+                    if ([string]::IsNullOrWhiteSpace($location)) {
+                        throw 'ARM returned status 202 without a Location or Azure-AsyncOperation header.'
+                    }
+                    $pollComplete = $false
+                    for ($pollAttempt = 1; $pollAttempt -le 30; $pollAttempt++) {
+                        if ($pollAttempt -gt 1) { Start-Sleep -Milliseconds 1000 }
+                        $pollArguments = @{ Method = 'GET'; ErrorAction = 'Stop' }
+                        if ($location -match '^https?://') { $pollArguments['Uri'] = $location }
+                        else { $pollArguments['Path'] = $location }
+                        $Response = Invoke-ScoutDiagnosticOperation -Operation { Invoke-AzRestMethod @pollArguments }
+                        if ($null -eq $Response) { throw 'ARM async status request returned no response.' }
+                        $Status = Get-ScoutValue -InputObject $Response -Name @('StatusCode')
+                        if ([int]$Status -eq 202) { continue }
+                        $pollComplete = $true
+                        break
+                    }
+                    if (-not $pollComplete) { throw 'ARM asynchronous request did not complete within 30 seconds.' }
+                }
                 if ($null -ne $Status -and ([int]$Status -lt 200 -or [int]$Status -ge 300)) {
-                    throw "ARM returned status $Status."
+                    $failure = Get-ScoutHttpFailure -Response $Response
+                    $statusException = [System.InvalidOperationException]::new("ARM returned status $Status. $($failure.Summary)")
+                    $statusException.Data['StatusCode'] = [int]$Status
+                    $responseHeaders = Get-ScoutValue -InputObject $Response -Name @('Headers')
+                    if ($null -ne $responseHeaders) { $statusException.Data['Headers'] = $responseHeaders }
+                    throw $statusException
                 }
                 $Content = Get-ScoutValue -InputObject $Response -Name @('Content')
                 if ($Content -is [string]) {
@@ -212,9 +295,9 @@ function Get-ScoutOperationalCollectorEnrichment {
                 return $Content
             }
             catch {
-                $Message = $_.Exception.Message
-                $StatusMatch = [regex]::Match($Message, 'ARM returned status (\d+)')
-                $StatusCode = if ($StatusMatch.Success) { [int]$StatusMatch.Groups[1].Value } else { $null }
+                $failure = Get-ScoutHttpFailure -ErrorRecord $_
+                $Message = $failure.Summary
+                $StatusCode = $failure.StatusCode
 
                 if ($StatusCode -eq 404 -and $QuietNotFound) {
                     Complete-ScoutOperationalRequest -Dataset $Dataset -Timer $requestTimer -Status NotConfigured -Attempts $Attempt
@@ -226,23 +309,36 @@ function Get-ScoutOperationalCollectorEnrichment {
                 $Retryable = ($StatusCode -in 429, 409, 500, 502, 503, 504) -or
                     ($Message -match '(?i)InternalServerError|BadGateway|ServiceUnavailable|GatewayTimeout|TooManyRequests')
                 if ($Retryable -and $Attempt -lt $MaxAttempts) {
+                    $delayMilliseconds = 500 * $Attempt
+                    $retryHeaders = if ($_.Exception.Data -and $_.Exception.Data.Contains('Headers')) {
+                        $_.Exception.Data['Headers']
+                    }
+                    elseif ($null -ne $Response) { Get-ScoutValue -InputObject $Response -Name @('Headers') }
+                    else { $null }
+                    $retryAfter = Get-ScoutValue -InputObject $retryHeaders -Name @('Retry-After', 'retry-after')
+                    $retrySeconds = 0.0
+                    if ($null -ne $retryAfter -and [double]::TryParse([string]$retryAfter, [ref]$retrySeconds)) {
+                        $delayMilliseconds = [Math]::Max($delayMilliseconds, [int][Math]::Ceiling($retrySeconds * 1000))
+                    }
+                    $delayMilliseconds = [Math]::Min(30000, $delayMilliseconds)
                     Write-ScoutOperationalDetail -Level DEBUG -Message (
-                        'Operational request retry: dataset={0}; attempt={1}; maximum={2}' -f $Dataset, $Attempt, $MaxAttempts
+                        'Operational request retry: dataset={0}; attempt={1}; maximum={2}; delayMs={3}' -f
+                            $Dataset, $Attempt, $MaxAttempts, $delayMilliseconds
                     )
-                    Start-Sleep -Milliseconds (500 * $Attempt)
+                    Start-Sleep -Milliseconds $delayMilliseconds
                     continue
                 }
 
                 if ($StatusCode -eq 409) {
                     Write-Warning "Get-ScoutOperationalCollectorEnrichment: $Dataset for '$ParentId' still in progress (409) after $Attempt attempt(s)."
                     Complete-ScoutOperationalRequest -Dataset $Dataset -Timer $requestTimer -Status OperationInProgress -Attempts $Attempt
-                    Add-ScoutOperationalHealth -Dataset $Dataset -Reason "The Azure operation remained in progress (HTTP 409) after $Attempt attempt(s)."
+                    Add-ScoutOperationalHealth -Dataset $Dataset -Reason "The Azure operation remained in progress (HTTP 409) after $Attempt attempt(s)." -ParentId $ParentId
                     return [PSCustomObject]@{ __AZSCStatus = 'OperationInProgress' }
                 }
 
                 Write-Warning "Get-ScoutOperationalCollectorEnrichment: $Dataset failed for '$ParentId': $Message"
                 Complete-ScoutOperationalRequest -Dataset $Dataset -Timer $requestTimer -Status Failed -Attempts $Attempt
-                Add-ScoutOperationalHealth -Dataset $Dataset -Reason $Message
+                Add-ScoutOperationalHealth -Dataset $Dataset -Reason $Message -ParentId $ParentId
                 return [PSCustomObject]@{ __AZSCError = $Message }
             }
         }
@@ -327,6 +423,97 @@ function Get-ScoutOperationalCollectorEnrichment {
         }
     }
 
+    function ConvertTo-ScoutCostResultMap {
+        param(
+            [Parameter(Mandatory)][AllowEmptyCollection()][string[]]$ResourceIds,
+            [Parameter(Mandatory)][AllowNull()]$Response
+        )
+
+        $result = @{}
+        if ($null -ne (Get-ScoutValue $Response @('__AZSCError', '__AZSCStatus'))) {
+            foreach ($resourceId in $ResourceIds) { $result[$resourceId.ToLowerInvariant()] = $Response }
+            return $result
+        }
+
+        $properties = Get-ScoutValue $Response @('properties', 'Properties')
+        $columns = @(Get-ScoutValue $properties @('columns', 'Columns'))
+        $rows = @(Get-ScoutValue $properties @('rows', 'Rows'))
+        $columnNames = @($columns | ForEach-Object { [string](Get-ScoutValue $_ @('name', 'Name')) })
+        $resourceIdIndex = [Array]::FindIndex([string[]]$columnNames, [Predicate[string]]{ param($name) $name -ieq 'ResourceId' })
+        $costIndex = [Array]::FindIndex([string[]]$columnNames, [Predicate[string]]{ param($name) $name -ieq 'PreTaxCost' })
+        $currencyIndex = [Array]::FindIndex([string[]]$columnNames, [Predicate[string]]{ param($name) $name -ieq 'Currency' })
+
+        if ($resourceIdIndex -lt 0 -or $costIndex -lt 0) {
+            foreach ($resourceId in $ResourceIds) { $result[$resourceId.ToLowerInvariant()] = $Response }
+            return $result
+        }
+
+        $costColumns = @($columns[$costIndex])
+        if ($currencyIndex -ge 0) { $costColumns += $columns[$currencyIndex] }
+        foreach ($rowValue in $rows) {
+            $row = @($rowValue)
+            if ($row.Count -le $resourceIdIndex) { continue }
+            $resourceId = [string]$row[$resourceIdIndex]
+            if ([string]::IsNullOrWhiteSpace($resourceId)) { continue }
+            $costRow = @($row[$costIndex])
+            if ($currencyIndex -ge 0 -and $row.Count -gt $currencyIndex) { $costRow += $row[$currencyIndex] }
+            $result[$resourceId.ToLowerInvariant()] = [pscustomobject]@{
+                id = Get-ScoutValue $Response @('id', 'Id')
+                name = Get-ScoutValue $Response @('name', 'Name')
+                type = Get-ScoutValue $Response @('type', 'Type')
+                properties = [pscustomobject]@{
+                    nextLink = $null
+                    columns = $costColumns
+                    rows = @(, $costRow)
+                }
+            }
+        }
+
+        foreach ($resourceId in $ResourceIds) {
+            $key = $resourceId.ToLowerInvariant()
+            if ($result.ContainsKey($key)) { continue }
+            $result[$key] = [pscustomobject]@{
+                properties = [pscustomobject]@{ nextLink = $null; columns = $costColumns; rows = @() }
+            }
+        }
+        return $result
+    }
+
+    function Get-ScoutBatchedCostByResource {
+        param(
+            [Parameter(Mandatory)][AllowEmptyCollection()][object[]]$InputResources,
+            [Parameter(Mandatory)][string]$Dataset
+        )
+
+        $costById = @{}
+        foreach ($subscriptionGroup in @($InputResources | Group-Object { [string](Get-ScoutValue $_ @('subscriptionId')) })) {
+            $subscriptionId = [string]$subscriptionGroup.Name
+            $groupRows = @($subscriptionGroup.Group)
+            for ($offset = 0; $offset -lt $groupRows.Count; $offset += 100) {
+                $batch = @($groupRows | Select-Object -Skip $offset -First 100)
+                $resourceIds = @($batch | ForEach-Object { [string](Get-ScoutValue $_ @('id', 'ID')) } | Where-Object { $_ })
+                if ($resourceIds.Count -eq 0 -or [string]::IsNullOrWhiteSpace($subscriptionId)) { continue }
+                $payload = @{
+                    type = 'Usage'
+                    timeframe = 'MonthToDate'
+                    dataset = @{
+                        granularity = 'None'
+                        filter = @{ dimensions = @{ name = 'ResourceId'; operator = 'In'; values = $resourceIds } }
+                        aggregation = @{ totalCost = @{ name = 'PreTaxCost'; function = 'Sum' } }
+                        grouping = @(@{ type = 'Dimension'; name = 'ResourceId' })
+                    }
+                } | ConvertTo-Json -Depth 10 -Compress
+                $response = Invoke-ScoutOperationalArm -Dataset $Dataset `
+                    -ParentId "/subscriptions/$subscriptionId" -Method POST `
+                    -Path "/subscriptions/$subscriptionId/providers/Microsoft.CostManagement/query?api-version=2023-03-01" `
+                    -Payload $payload
+                $batchMap = ConvertTo-ScoutCostResultMap -ResourceIds $resourceIds -Response $response
+                foreach ($key in $batchMap.Keys) { $costById[$key] = $batchMap[$key] }
+            }
+        }
+        return $costById
+    }
+
     # Vault discovery is subscription-scoped and protected-item discovery is vault-scoped. The
     # legacy row-loop repeated both requests for every VM in the same subscription, multiplying a
     # fixed result by the VM count. Cache the raw response at its real owning scope; every VM still
@@ -337,14 +524,16 @@ function Get-ScoutOperationalCollectorEnrichment {
     # combining those calls would couple their independent failure envelopes and change the schema.
     $MetricNow = (Get-Date).ToUniversalTime().ToString('o')
     $MetricStart = (Get-Date).AddDays(-7).ToUniversalTime().ToString('o')
+    # One grouped Cost Management request per 100 machines/subscription replaces one throttled
+    # request per machine. The response is split back into the exact per-resource cost row shape.
+    $VmCostById = Get-ScoutBatchedCostByResource -InputResources $VirtualMachines -Dataset 'VirtualMachine.EstimatedCost'
+    $ArcCostById = Get-ScoutBatchedCostByResource -InputResources $ArcMachines -Dataset 'ARCServers.EstimatedCost'
     foreach ($Vm in $VirtualMachines) {
         $Id = [string](Get-ScoutValue $Vm @('id', 'ID'))
         if ([string]::IsNullOrWhiteSpace($Id)) { continue }
         $BaseMetric = "$Id/providers/microsoft.insights/metrics?api-version=2019-07-01&timespan=$MetricStart/$MetricNow&interval=P1D&aggregation=Average"
         # Keep the operational payloads at the collect boundary.  The two Compute report
         # collectors consume these envelopes later; they must never issue a per-row ARM call.
-        # The Cost Management body deliberately retains the legacy ResourceId filter -- an
-        # unfiltered `{}` query is not equivalent and can report a subscription total.
         $SubscriptionId = [string](Get-ScoutValue $Vm @('subscriptionId'))
         $VmName = [string](Get-ScoutValue $Vm @('name', 'NAME'))
         # 404 here means ASR has never evaluated this VM -- expected for most VMs, not a defect.
@@ -373,21 +562,12 @@ function Get-ScoutOperationalCollectorEnrichment {
                 $ProtectedItems += $ProtectedItemsByVault[$VaultCacheKey]
             }
         }
-        $CostPayload = @{
-            type      = 'Usage'
-            timeframe = 'MonthToDate'
-            dataset   = @{
-                granularity = 'None'
-                filter      = @{ dimensions = @{ name = 'ResourceId'; operator = 'In'; values = @($Id) } }
-                aggregation = @{ totalCost = @{ name = 'PreTaxCost'; function = 'Sum' } }
-            }
-        } | ConvertTo-Json -Depth 10
         $Properties = @{
-            CpuMetrics = Invoke-ScoutOperationalArm -Dataset 'VirtualMachine.CpuMetrics' -ParentId $Id -Path "$BaseMetric&metricnames=Percentage+CPU"
-            MemoryMetrics = Invoke-ScoutOperationalArm -Dataset 'VirtualMachine.MemoryMetrics' -ParentId $Id -Path "$BaseMetric&metricnames=Available+Memory+Bytes"
+            CpuMetrics = Invoke-ScoutOperationalArm -Dataset 'VirtualMachine.CpuMetrics' -ParentId $Id -QuietNotFound -Path "$BaseMetric&metricnames=Percentage+CPU"
+            MemoryMetrics = Invoke-ScoutOperationalArm -Dataset 'VirtualMachine.MemoryMetrics' -ParentId $Id -QuietNotFound -Path "$BaseMetric&metricnames=Available+Memory+Bytes"
             ReplicationEligibility = $Eligibility
             ReplicationProtectedItems = $ProtectedItems
-            EstimatedCost = Invoke-ScoutOperationalArm -Dataset 'VirtualMachine.EstimatedCost' -ParentId $Id -Method POST -Path "/subscriptions/$SubscriptionId/providers/Microsoft.CostManagement/query?api-version=2023-03-01" -Payload $CostPayload
+            EstimatedCost = if ($VmCostById.ContainsKey($Id.ToLowerInvariant())) { $VmCostById[$Id.ToLowerInvariant()] } else { [pscustomobject]@{ properties = [pscustomobject]@{ rows = @() } } }
         }
         ConvertTo-ScoutOperationalEnvelope -Type 'AZSC/Operational/VirtualMachine' -Parent $Vm -Properties $Properties
     }
@@ -419,9 +599,53 @@ function Get-ScoutOperationalCollectorEnrichment {
         # data source. Calling microsoft.insights/metrics here 400s for every machine, always -- do
         # not call it. See ADO Bug 6733.
         $Cpu = [PSCustomObject]@{ __AZSCStatus = 'NotSupportedForArc' }
-        $ArcCostPayload = @{ type = 'Usage'; timeframe = 'MonthToDate'; dataset = @{ granularity = 'None'; filter = @{ dimensions = @{ name = 'ResourceId'; operator = 'In'; values = @($Id) } }; aggregation = @{ totalCost = @{ name = 'PreTaxCost'; function = 'Sum' } } } } | ConvertTo-Json -Depth 10
-        $Cost = Invoke-ScoutOperationalArm -Dataset 'ARCServers.EstimatedCost' -ParentId $Id -Method POST -Path "/subscriptions/$SubId/providers/Microsoft.CostManagement/query?api-version=2023-03-01" -Payload $ArcCostPayload
+        $Cost = if ($ArcCostById.ContainsKey($Id.ToLowerInvariant())) { $ArcCostById[$Id.ToLowerInvariant()] } else { [pscustomobject]@{ properties = [pscustomobject]@{ rows = @() } } }
         ConvertTo-ScoutOperationalEnvelope -Type 'AZSC/Operational/ARCServers' -Parent $Arc -Properties @{ PolicyCompliance = $Policy; CpuMetrics = $Cpu; EstimatedCost = $Cost }
+    }
+
+    # AB#7367: configured route tables and NSG rules do not describe the state Azure actually
+    # applies to a NIC after subnet associations, platform routes, BGP, peering, and multiple NSG
+    # scopes are combined. These read-only POST actions return that effective control-plane state.
+    # Every NIC receives an envelope even when either request is denied or unsupported, so the
+    # discovery index can distinguish an unavailable detail from an absent NIC.
+    foreach ($Nic in $NetworkInterfaces) {
+        $Id = [string](Get-ScoutValue $Nic @('id', 'ID'))
+        if ([string]::IsNullOrWhiteSpace($Id)) { continue }
+        $nicProperties = Get-ScoutValue $Nic @('properties')
+        $attachedVm = Get-ScoutValue $nicProperties @('virtualMachine')
+        $privateEndpoint = Get-ScoutValue $nicProperties @('privateEndpoint')
+        # A minimal/unknown resource shape is not proof of non-applicability. Only skip
+        # when ARM supplied properties establishing that this NIC is not attached to a VM.
+        if ($null -ne $nicProperties -and ($privateEndpoint -or -not $attachedVm)) {
+            $reason = 'Not applicable: effective NIC rules and routes require a network interface attached to a running virtual machine.'
+            foreach ($dataset in @('NetworkInterface.EffectiveNetworkSecurityGroups', 'NetworkInterface.EffectiveRouteTable')) {
+                $timer = Start-ScoutOperationalRequest -Dataset $dataset
+                Add-ScoutOperationalHealth -Dataset $dataset -Reason $reason -ParentId $Id -Status NotAssessed
+                Complete-ScoutOperationalRequest -Dataset $dataset -Timer $timer -Status NotSupported -Attempts 0
+            }
+            $notApplicable = [pscustomobject]@{ __AZSCStatus = 'NotApplicable'; Reason = $reason }
+            ConvertTo-ScoutOperationalEnvelope -Type 'AZSC/Operational/NetworkInterface' -Parent $Nic -Properties @{
+                EffectiveNetworkSecurityGroups = $notApplicable
+                EffectiveRouteTable = $notApplicable
+            }
+            continue
+        }
+        $effectiveNsgs = Invoke-ScoutOperationalArm `
+            -Dataset 'NetworkInterface.EffectiveNetworkSecurityGroups' `
+            -ParentId $Id `
+            -Method POST `
+            -PollAsync `
+            -Path "$Id/effectiveNetworkSecurityGroups?api-version=2025-05-01"
+        $effectiveRoutes = Invoke-ScoutOperationalArm `
+            -Dataset 'NetworkInterface.EffectiveRouteTable' `
+            -ParentId $Id `
+            -Method POST `
+            -PollAsync `
+            -Path "$Id/effectiveRouteTable?api-version=2025-05-01"
+        ConvertTo-ScoutOperationalEnvelope -Type 'AZSC/Operational/NetworkInterface' -Parent $Nic -Properties @{
+            EffectiveNetworkSecurityGroups = $effectiveNsgs
+            EffectiveRouteTable            = $effectiveRoutes
+        }
     }
 
     $SubscriptionsById = @{}
@@ -489,11 +713,17 @@ function Get-ScoutOperationalCollectorEnrichment {
                     try {
                         $File = Invoke-ScoutOperationalTrackedCommand -Dataset 'StorageAccounts.FileService' -Operation {
                             Get-AzStorageFileServiceProperty -ResourceGroupName (Get-ScoutValue $Account @('resourceGroup', 'RESOURCEGROUP')) -Name (Get-ScoutValue $Account @('name', 'NAME')) -ErrorAction Stop
-                        }
+                        } -QuietUnsupportedPattern '(?i)File is not supported for the account'
                     }
                     catch {
-                        Write-Warning "Get-ScoutOperationalCollectorEnrichment: StorageAccounts.FileService failed for '$Id': $($_.Exception.Message)"
-                        $File = [PSCustomObject]@{ __AZSCError = $_.Exception.Message }
+                        if ($_.Exception.Message -match '(?i)File is not supported for the account') {
+                            Write-Verbose "Get-ScoutOperationalCollectorEnrichment: StorageAccounts.FileService is not supported for '$Id'."
+                            $File = [PSCustomObject]@{ __AZSCStatus = 'NotSupported' }
+                        }
+                        else {
+                            Write-Warning "Get-ScoutOperationalCollectorEnrichment: StorageAccounts.FileService failed for '$Id': $($_.Exception.Message)"
+                            $File = [PSCustomObject]@{ __AZSCError = $_.Exception.Message }
+                        }
                     }
                 }
                 $StorageResults[$AccountIndex] = [PSCustomObject]@{ BlobService = $Blob; FileService = $File }
@@ -520,6 +750,73 @@ function Get-ScoutOperationalCollectorEnrichment {
         ConvertTo-ScoutOperationalEnvelope -Type 'AZSC/Operational/StorageAccount' -Parent $Account -Properties @{
             BlobService = $Result.BlobService
             FileService = $Result.FileService
+        }
+    }
+
+    if ($IncludeProviderResourceDetails) {
+        # AB#7366: ARG is the universal discovery pass, but its `properties` bag is not guaranteed
+        # to equal the resource provider's GET response. Resolve API versions once per provider
+        # namespace and then GET every concrete ARM resource. Failures become resource-scoped
+        # health records; the ARG parent remains in the inventory and is marked Partial.
+        $armResources = @(Get-ScoutUniqueResource -InputRows @($Resources | Where-Object {
+                $candidateType = [string](Get-ScoutValue $_ @('type', 'TYPE'))
+                $candidateId = [string](Get-ScoutValue $_ @('id', 'ID'))
+                $candidateType -match '(?i)^microsoft\.[^/]+/.+' -and $candidateId -match '(?i)/providers/'
+            }))
+        $providerMetadataByKey = @{}
+        foreach ($resource in $armResources) {
+            $id = [string](Get-ScoutValue $resource @('id', 'ID'))
+            $resourceType = [string](Get-ScoutValue $resource @('type', 'TYPE'))
+            $subscriptionId = [string](Get-ScoutValue $resource @('subscriptionId', 'SubscriptionId'))
+            if ([string]::IsNullOrWhiteSpace($id) -or [string]::IsNullOrWhiteSpace($subscriptionId)) { continue }
+            $typeParts = @($resourceType -split '/', 2)
+            if ($typeParts.Count -ne 2) { continue }
+            $namespace = $typeParts[0]
+            $providerType = $typeParts[1]
+            $providerKey = "$subscriptionId|$namespace".ToLowerInvariant()
+            if (-not $providerMetadataByKey.ContainsKey($providerKey)) {
+                $providerMetadataByKey[$providerKey] = Invoke-ScoutOperationalArm `
+                    -Dataset "ProviderDetails.Metadata.$namespace" `
+                    -ParentId "/subscriptions/$subscriptionId/providers/$namespace" `
+                    -Path "/subscriptions/$subscriptionId/providers/${namespace}?api-version=2021-04-01" `
+                    -DynamicRequest
+            }
+            $providerMetadata = $providerMetadataByKey[$providerKey]
+            $metadataError = [string](Get-ScoutValue $providerMetadata @('__AZSCError'))
+            if (-not [string]::IsNullOrWhiteSpace($metadataError)) {
+                Add-ScoutOperationalHealth -Dataset 'ProviderDetails.Resource' -Reason "Provider API-version discovery failed: $metadataError" `
+                    -ParentId $id -ResourceType $resourceType -Collector 'Discovery/ProviderDetails'
+                continue
+            }
+            $typeMetadata = @(Get-ScoutValue $providerMetadata @('resourceTypes', 'ResourceTypes') | Where-Object {
+                    [string](Get-ScoutValue $_ @('resourceType', 'ResourceTypeName')) -ieq $providerType
+                } | Select-Object -First 1)
+            $apiVersions = if ($typeMetadata.Count -gt 0) { @((Get-ScoutValue $typeMetadata[0] @('apiVersions', 'ApiVersions')) | Where-Object { $_ }) } else { @() }
+            $stableVersions = @($apiVersions | Where-Object { [string]$_ -notmatch '(?i)preview|beta|alpha|private' })
+            $candidateVersions = $apiVersions
+            if ($stableVersions.Count -gt 0) {
+                $candidateVersions = $stableVersions
+            }
+            $apiVersion = @($candidateVersions | Sort-Object -Descending | Select-Object -First 1)
+            if ($apiVersion.Count -eq 0 -or [string]::IsNullOrWhiteSpace([string]$apiVersion[0])) {
+                Add-ScoutOperationalHealth -Dataset 'ProviderDetails.Resource' -Reason "No API version was advertised for provider type '$providerType'." `
+                    -ParentId $id -ResourceType $resourceType -Collector 'Discovery/ProviderDetails'
+                continue
+            }
+            $detail = Invoke-ScoutOperationalArm `
+                -Dataset "ProviderDetails.Resource.$namespace.$providerType" `
+                -ParentId $id `
+                -Path "${id}?api-version=$($apiVersion[0])" `
+                -DynamicRequest
+            $detailError = [string](Get-ScoutValue $detail @('__AZSCError'))
+            if (-not [string]::IsNullOrWhiteSpace($detailError)) {
+                Add-ScoutOperationalHealth -Dataset 'ProviderDetails.Resource' -Reason $detailError `
+                    -ParentId $id -ResourceType $resourceType -Collector 'Discovery/ProviderDetails'
+            }
+            ConvertTo-ScoutOperationalEnvelope -Type 'AZSC/ProviderDetail' -Parent $resource -Properties @{
+                ApiVersion = [string]$apiVersion[0]
+                Payload    = $detail
+            }
         }
     }
 
@@ -586,9 +883,10 @@ function Get-ScoutOperationalCollectorEnrichment {
         Write-Progress -Id 3 -ParentId 2 -Activity 'Operational enrichment' `
             -Status $progressStatus -Completed
     }
+    $completionStatus = if ($ProgressState.Failed -gt 0) { 'Partial' } else { 'Completed' }
     Write-ScoutOperationalDetail -Level VERBOSE -Message (
         'Operational enrichment complete: status={0}; completed={1}; planned={2}; unavailable={3}; elapsed={4}' -f
-            $(if ($ProgressState.Failed -gt 0) { 'Partial' } else { 'Completed' }),
+            $completionStatus,
             $ProgressState.Completed, $ProgressState.Planned, $ProgressState.Failed,
             $ProgressState.Started.Elapsed.ToString('dd\:hh\:mm\:ss\.fff')
     )

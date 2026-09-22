@@ -29,7 +29,7 @@ function Start-AZSCProcessOrchestration {
     # time regardless. It still applies to the extraction phase, which does its own throttling.
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'File', Justification = "Declared to match this function's call signature -- callers invoke it with this named/positional argument; removing the parameter would break them even though this implementation does not need the value.")]
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'Heavy', Justification = "Declared to match this function's call signature -- callers invoke it with this named/positional argument; removing the parameter would break them even though this implementation does not need the value.")]
-    Param($Subscriptions, $Resources, $Advisories, $Retirements, $DefaultPath, $File, $Heavy, $InTag, $Automation, $Category, $CollectionHealth)
+    Param($Subscriptions, $Resources, $Advisories, $Retirements, $DefaultPath, $File, $Heavy, $InTag, $Automation, $Category, $CollectionHealth, $DiscoveryContext)
     # ── StrictMode boundary (AB#5633) ────────────────────────────────────────────────
     # This is the v1 inventory engine, forked from microsoft/ARI. It was written without
     # StrictMode and carries ~800 property reads that are only valid without it -- chained
@@ -92,7 +92,7 @@ function Start-AZSCProcessOrchestration {
         # join those rows to VMs/Arc machines in their SetupPreamble, so include them in the
         # in-memory processing envelope without changing the extraction result contract.
         $ProcessingResources = @(@($Resources) + @($Advisories))
-        $ProcessingSummary = Invoke-ScoutProcessing -Resources $ProcessingResources -Retirements $Retirements -Subscriptions $Subscriptions -DefaultPath $DefaultPath -InTag $InTag -Unsupported $Unsupported -Category $Category -CollectionHealth $CollectionHealth
+        $ProcessingSummary = Invoke-ScoutProcessing -Resources $ProcessingResources -Retirements $Retirements -Subscriptions $Subscriptions -DefaultPath $DefaultPath -InTag $InTag -Unsupported $Unsupported -Category $Category -CollectionHealth $CollectionHealth -DiscoveryContext $DiscoveryContext
 
         Remove-Variable -Name Unsupported -ErrorAction SilentlyContinue
 

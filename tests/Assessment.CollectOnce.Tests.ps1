@@ -141,6 +141,22 @@ Describe 'assessment category evidence closure' {
         { Assert-ScoutAssessmentCollectProvenance -Collect $collect -RequiredCategories @('Identity') } |
             Should -Not -Throw
     }
+
+    It 'accepts scoped ARM-child health so dependent rules can become NotAssessed' {
+        $collect = [pscustomobject]@{
+            _meta = [pscustomobject]@{
+                categories = @('*')
+                collectionHealth = @([pscustomobject]@{
+                        Dataset = 'Resources'; Source = 'ARM Child'; SourceDataset = 'KeyVaultKeys'
+                        Status = 'Unavailable'; ResourceTypes = @('AZSC/ARMChild/KeyVaultKeys')
+                        Collectors = @('Security/KeyVaultKeys')
+                    })
+            }
+        }
+
+        { Assert-ScoutAssessmentCollectProvenance -Collect $collect -RequiredCategories @('*') } |
+            Should -Not -Throw
+    }
 }
 
 Describe 'AB#6775 — the combined run is reachable from the command line' {
@@ -392,10 +408,16 @@ Describe 'AB#6737 — the deferred assessment (and its PDF) renders after the di
         $unpackIdx | Should -BeLessThan $extraJobsIdx
     }
 
-    It 'runs the deferred assessment before Start-AZSCProcessOrchestration (kept close to the diagram build, not deferred further than needed)' {
+    It 'finishes processed collector evidence before rendering the deferred assessment' {
         $deferredCallIdx = Get-ScoutSourceIndex 'Invoke-ScoutAssessmentCore @deferredAssessArgs -FromInventory \$ExtractionData'
         $processIdx      = Get-ScoutSourceIndex 'Start-AZSCProcessOrchestration -Subscriptions \$Subscriptions'
-        $deferredCallIdx | Should -BeLessThan $processIdx
+        $processIdx | Should -BeLessThan $deferredCallIdx
+    }
+
+    It 'passes the same run cache to scored, inventory-only and partial fallback rendering' {
+        foreach ($argumentSet in @('deferredAssessArgs', 'deferredInventoryOutputArgs', 'inventoryFallbackArgs')) {
+            $script:Source | Should -Match ('Invoke-ScoutAssessmentCore @' + $argumentSet + ' -FromInventory \$ExtractionData -ReportCachePath \$ReportCache')
+        }
     }
 }
 

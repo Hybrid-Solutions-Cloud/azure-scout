@@ -3,7 +3,7 @@
   "Category": "Storage",
   "Name": "StorageQueues",
   "FixturePath": "tests/fixtures/collector-equivalence/Storage.json",
-  "FixtureSha256": "12cb3bb1b7c042854d935c1291641c4020fae08cf2bc17ee3bd0115dc8f9d4d6",
+  "FixtureSha256": "7a576a9fe66267b30c215d540ed80de65ac31d6f17230665247db64fd99a7925",
   "Rows": [
     "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/storagequeues-t1a-1/StorageQueues/storagequeues-t1a-2|Metadata Keys=s:1|Queue=s:storagequeues-t1a|Resource Group=s:res-value|Resource U=j:1|Storage Account=s:res-value|Subscription=s:sub-fixture-01",
     "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/storagequeues-t1b-1/StorageQueues/storagequeues-t1b-2|Metadata Keys=s:1|Queue=s:storagequeues-t1b|Resource Group=s:res-value|Resource U=j:1|Storage Account=s:res-value|Subscription=s:sub-fixture-01",

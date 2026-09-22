@@ -43,7 +43,7 @@ function Start-AZSCExtraJobs {
             $PolicyAssign,
             $Automation,
             $IncludeCosts,
-            $CostData)
+            $CostData, $DiscoveryContext)
     # ── StrictMode boundary ──────────────────────────────────────────────────────────
     # This is the v1 inventory engine, forked from microsoft/ARI, written without StrictMode
     # and carrying property reads over API payloads whose shape varies by tenant. StrictMode is
@@ -109,7 +109,7 @@ function Start-AZSCExtraJobs {
     Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Checking if Draw.io Diagram Job Should be Run.')
     if (![bool]$SkipDiagram) {
         Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Starting Draw.io Diagram Processing Job.')
-        Invoke-AZSCDrawIOJob -Subscriptions $Subscriptions -Resources $Resources -Advisories $Advisories -DDFile $DDFile -DiagramCache $DiagramCache -FullEnv $FullEnv -ResourceContainers $ResourceContainers -Automation $Automation -AZSCModule $AZSCModule
+        Invoke-AZSCDrawIOJob -Subscriptions $Subscriptions -Resources $Resources -Advisories $Advisories -DDFile $DDFile -DiagramCache $DiagramCache -FullEnv $FullEnv -ResourceContainers $ResourceContainers -Automation $Automation -AZSCModule $AZSCModule -DiscoveryContext $DiscoveryContext
     }
 
     <######################################################### SECURITY CENTER ######################################################################>

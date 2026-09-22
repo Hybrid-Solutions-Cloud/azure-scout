@@ -7,10 +7,9 @@ $ErrorActionPreference = 'Stop'
     Live, resilient progress reporting for AzureScout (AB#405).
 
 .DESCRIPTION
-    Interactive runs use AzureScout's built-in renderer. A small in-process .NET timer owns the
-    spinner and elapsed clock, so both continue moving while the PowerShell thread is blocked in
-    an Azure SDK or REST call. Phase updates change the active line instead of printing static
-    styled output.
+    Interactive runs use PowerShell's standard Write-Progress display. The experimental built-in
+    multi-line renderer can be enabled with AZURESCOUT_NATIVE_PROGRESS=1; its in-process .NET
+    timer owns the spinner and elapsed clock while the PowerShell thread is blocked.
 
     The renderer has no external module dependency and never changes PowerShell repository trust.
     It presents a bordered, multi-phase ledger: finished phases remain visible while the active
@@ -24,6 +23,14 @@ function Test-ScoutNativeLiveHost {
     [CmdletBinding()]
     param([switch] $Force)
 
+    # The custom multi-line renderer remains available for opt-in testing, but ordinary product
+    # runs use PowerShell's own progress UI. The custom renderer can interleave nested phase
+    # transitions with host output and leave contradictory/stale rows on screen; native
+    # Write-Progress has the lifecycle semantics users already expect.
+    if ($env:AZURESCOUT_NATIVE_PROGRESS -ne '1') {
+        $script:ScoutNativeProgressDecision = 'disabled: using standard PowerShell progress (set AZURESCOUT_NATIVE_PROGRESS=1 to opt in)'
+        return $false
+    }
     if ($ProgressPreference -eq 'SilentlyContinue') {
         $script:ScoutNativeProgressDecision = 'disabled: ProgressPreference is SilentlyContinue'
         return $false

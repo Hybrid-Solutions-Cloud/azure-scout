@@ -3,7 +3,7 @@
   "Category": "Management",
   "Name": "BackupInstances",
   "FixturePath": "tests/fixtures/collector-equivalence/Management.json",
-  "FixtureSha256": "5205b49897e87cdc85834b288856fc19c7e903a752d00d85d7cfbb09863d69fc",
+  "FixtureSha256": "3887eace8dba0a4948ad972e69dd6025a8fe497739ad08400441da51064aa23c",
   "Rows": [
     "Backup Vault=s:res-value|Datasource Type=s:res-value|Friendly Name=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/backupinstances-t1a-1/BackupInstances/backupinstances-t1a-2|Instance=s:backupinstances-t1a|Policy=s:seg10|Protected Resource=s:seg8|Protection State=s:res-value|Protection Status=s:res-value|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Subscription=s:sub-fixture-01",
     "Backup Vault=s:res-value|Datasource Type=s:res-value|Friendly Name=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/backupinstances-t1b-1/BackupInstances/backupinstances-t1b-2|Instance=s:backupinstances-t1b|Policy=s:seg10|Protected Resource=s:seg8|Protection State=s:res-value|Protection Status=s:res-value|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Subscription=s:sub-fixture-01",

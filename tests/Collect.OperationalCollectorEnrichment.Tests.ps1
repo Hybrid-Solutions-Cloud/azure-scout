@@ -30,11 +30,25 @@ BeforeAll {
     function Clear-OperationalStubs {
         [Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '', Justification = 'Name matches the real collector/API/fixture noun (often already plural in the product surface, e.g. ManagementGroups); renaming would break the shadow/mocked signature or the fixture-name convention used across this suite.')]
         param()
- foreach($Name in 'Invoke-AzRestMethod','Get-AzContext','Set-AzContext','Get-AzStorageBlobServiceProperty','Get-AzStorageFileServiceProperty','Search-AzGraph'){ Remove-Item "Function:\$Name" -Force -ErrorAction SilentlyContinue } }
+ foreach($Name in 'Invoke-AzRestMethod','Get-AzContext','Set-AzContext','Get-AzStorageBlobServiceProperty','Get-AzStorageFileServiceProperty','Search-AzGraph','Start-Sleep'){ Remove-Item "Function:\$Name" -Force -ErrorAction SilentlyContinue } }
 }
 Describe 'Get-ScoutOperationalCollectorEnrichment' {
     BeforeEach { Initialize-OperationalStubs }
     AfterEach { Clear-OperationalStubs }
+    It 'retains private endpoint NICs without issuing unsupported effective-state requests' {
+        $nic = [pscustomobject]@{
+            id = '/subscriptions/sub-1/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/private-nic'
+            type = 'microsoft.network/networkinterfaces'; name = 'private-nic'; subscriptionId = 'sub-1'; resourceGroup = 'rg'
+            properties = @{ privateEndpoint = @{ id = '/privateEndpoints/example' } }
+        }
+        $health = [System.Collections.Generic.List[object]]::new()
+        $rows = @(Get-ScoutOperationalCollectorEnrichment -Resources @($nic) -CollectionHealth $health)
+        @($script:Calls | Where-Object { $_ -match '/effective' }).Count | Should -Be 0
+        $envelope = @($rows | Where-Object type -eq 'AZSC/Operational/NetworkInterface')[0]
+        $envelope.properties.EffectiveRouteTable.__AZSCStatus | Should -Be 'NotApplicable'
+        $envelope.properties.EffectiveNetworkSecurityGroups.__AZSCStatus | Should -Be 'NotApplicable'
+        @($health | Where-Object Status -eq 'NotAssessed').Count | Should -Be 2
+    }
     It 'returns stable envelopes for all six live-access collector contracts' {
         $Rows=@(Get-ScoutOperationalCollectorEnrichment -Resources $script:Resources -Subscriptions @([pscustomobject]@{Id='sub-1';Name='Subscription One';TenantId='tenant-a'}))
         $Rows.type | Should -Be @('AZSC/Operational/VirtualMachine','AZSC/Operational/VMOperationalData','AZSC/Operational/ArcServerOperationalData','AZSC/Operational/ARCServers','AZSC/Operational/StorageAccount','AZSC/Management/SubscriptionEnrichment')
@@ -48,6 +62,117 @@ Describe 'Get-ScoutOperationalCollectorEnrichment' {
         ($Rows | Where-Object type -eq 'AZSC/Operational/StorageAccount').properties.FileService.Name | Should -Be 'store-1'
         ($script:ContextCalls | Where-Object Subscription -eq 'sub-1').Tenant | Should -Be 'tenant-a'
         ($script:ContextCalls | Where-Object Subscription -eq 'original-sub').Tenant | Should -Be 'tenant-a'
+    }
+    It 'collects effective NSGs and routes for every NIC and retains both payloads' {
+        $nic = [pscustomobject]@{
+            id = '/subscriptions/sub-1/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic-1'
+            type = 'microsoft.network/networkinterfaces'; name = 'nic-1'; subscriptionId = 'sub-1'; resourceGroup = 'rg'
+        }
+        function global:Invoke-AzRestMethod {
+            param($Path,$Uri,$Method,$Payload,$ErrorAction)
+            $null=$Uri,$Payload,$ErrorAction
+            $script:Calls.Add("$Method $Path")
+            if ($Path -match 'effectiveNetworkSecurityGroups') {
+                return [pscustomobject]@{ StatusCode=200; Content='{"value":[{"networkSecurityGroup":{"id":"/nsg/one"},"effectiveSecurityRules":[{"name":"AllowVnetInBound"}]}]}' }
+            }
+            if ($Path -match 'effectiveRouteTable') {
+                return [pscustomobject]@{ StatusCode=200; Content='{"value":[{"source":"Default","addressPrefix":["0.0.0.0/0"],"nextHopType":"Internet"}]}' }
+            }
+            [pscustomobject]@{ StatusCode=200; Content='{"value":[]}' }
+        }
+
+        $rows = @(Get-ScoutOperationalCollectorEnrichment -Resources @($nic) -Subscriptions @())
+        $envelope = $rows | Where-Object type -eq 'AZSC/Operational/NetworkInterface'
+
+        $envelope | Should -Not -BeNullOrEmpty
+        $envelope.properties.EffectiveNetworkSecurityGroups.value[0].effectiveSecurityRules[0].name | Should -Be 'AllowVnetInBound'
+        $envelope.properties.EffectiveRouteTable.value[0].nextHopType | Should -Be 'Internet'
+        ($script:Calls -join "`n") | Should -Match 'POST .*/networkInterfaces/nic-1/effectiveNetworkSecurityGroups'
+        ($script:Calls -join "`n") | Should -Match 'POST .*/networkInterfaces/nic-1/effectiveRouteTable'
+    }
+
+    It 'polls a 202 effective-network response and records a per-NIC health failure without dropping the NIC' {
+        $nic = [pscustomobject]@{
+            id = '/subscriptions/sub-1/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic-1'
+            type = 'microsoft.network/networkinterfaces'; name = 'nic-1'; subscriptionId = 'sub-1'; resourceGroup = 'rg'
+        }
+        $health = [System.Collections.Generic.List[object]]::new()
+        $script:PollCount = 0
+        function global:Invoke-AzRestMethod {
+            param($Path,$Uri,$Method,$Payload,$ErrorAction)
+            $null=$Payload,$ErrorAction
+            if ($Path -match 'effectiveNetworkSecurityGroups') {
+                return [pscustomobject]@{ StatusCode=202; Content=''; Headers=@{ Location='/operations/nsg-1' } }
+            }
+            if ($Uri -or $Path -eq '/operations/nsg-1') {
+                $script:PollCount++
+                return [pscustomobject]@{ StatusCode=200; Content='{"value":[]}' }
+            }
+            if ($Path -match 'effectiveRouteTable') { return [pscustomobject]@{ StatusCode=403; Content='{}' } }
+            [pscustomobject]@{ StatusCode=200; Content='{"value":[]}' }
+        }
+
+        $rows = @(Get-ScoutOperationalCollectorEnrichment -Resources @($nic) -Subscriptions @() -CollectionHealth $health -WarningAction SilentlyContinue)
+        $envelope = $rows | Where-Object type -eq 'AZSC/Operational/NetworkInterface'
+
+        $script:PollCount | Should -Be 1
+        $envelope.properties.EffectiveNetworkSecurityGroups.PSObject.Properties['__AZSCError'] | Should -BeNullOrEmpty
+        $envelope.properties.EffectiveRouteTable.__AZSCError | Should -Match 'status 403'
+        @($health | Where-Object SourceDataset -eq 'NetworkInterface.EffectiveRouteTable').Count | Should -Be 1
+        @($health | Where-Object SourceDataset -eq 'NetworkInterface.EffectiveRouteTable')[0].ResourceIds | Should -Contain $nic.id
+    }
+
+    It 'resolves a stable provider API version once and retains the provider GET payload' {
+        $widget = [pscustomobject]@{
+            id = '/subscriptions/sub-1/resourceGroups/rg/providers/Microsoft.Contoso/widgets/widget-1'
+            type = 'microsoft.contoso/widgets'; name = 'widget-1'; subscriptionId = 'sub-1'; resourceGroup = 'rg'
+            properties = [pscustomobject]@{ argOnly = 'summary' }
+        }
+        function global:Invoke-AzRestMethod {
+            param($Path,$Uri,$Method,$Payload,$ErrorAction)
+            $null=$Uri,$Method,$Payload,$ErrorAction
+            $script:Calls.Add($Path)
+            if ($Path -match '/providers/Microsoft\.Contoso\?api-version=2021-04-01$') {
+                return [pscustomobject]@{ StatusCode=200; Content='{"resourceTypes":[{"resourceType":"widgets","apiVersions":["2026-01-01-preview","2025-06-01","2024-01-01"]}]}' }
+            }
+            if ($Path -match '/widgets/widget-1\?api-version=2025-06-01$') {
+                return [pscustomobject]@{ StatusCode=200; Content='{"id":"widget-1","properties":{"fullSetting":"retained"}}' }
+            }
+            [pscustomobject]@{ StatusCode=200; Content='{"value":[]}' }
+        }
+
+        $rows = @(Get-ScoutOperationalCollectorEnrichment -Resources @($widget) -Subscriptions @() -IncludeProviderResourceDetails)
+        $detail = $rows | Where-Object type -eq 'AZSC/ProviderDetail'
+
+        $detail | Should -Not -BeNullOrEmpty
+        $detail.properties.ApiVersion | Should -Be '2025-06-01'
+        $detail.properties.Payload.properties.fullSetting | Should -Be 'retained'
+        @($script:Calls | Where-Object { $_ -match '/providers/Microsoft\.Contoso\?' }).Count | Should -Be 1
+    }
+
+    It 'records provider-detail denial against only the affected resource and still emits its envelope' {
+        $widget = [pscustomobject]@{
+            id = '/subscriptions/sub-1/resourceGroups/rg/providers/Microsoft.Contoso/widgets/widget-1'
+            type = 'microsoft.contoso/widgets'; name = 'widget-1'; subscriptionId = 'sub-1'; resourceGroup = 'rg'
+        }
+        $health = [System.Collections.Generic.List[object]]::new()
+        function global:Invoke-AzRestMethod {
+            param($Path,$Uri,$Method,$Payload,$ErrorAction)
+            $null=$Uri,$Method,$Payload,$ErrorAction
+            if ($Path -match '/providers/Microsoft\.Contoso\?') {
+                return [pscustomobject]@{ StatusCode=200; Content='{"resourceTypes":[{"resourceType":"widgets","apiVersions":["2025-06-01"]}]}' }
+            }
+            if ($Path -match '/widgets/widget-1\?') { return [pscustomobject]@{ StatusCode=403; Content='{}' } }
+            [pscustomobject]@{ StatusCode=200; Content='{"value":[]}' }
+        }
+
+        $rows = @(Get-ScoutOperationalCollectorEnrichment -Resources @($widget) -Subscriptions @() -IncludeProviderResourceDetails -CollectionHealth $health -WarningAction SilentlyContinue)
+        $detail = $rows | Where-Object type -eq 'AZSC/ProviderDetail'
+        $detail.properties.Payload.__AZSCError | Should -Match 'status 403'
+        $providerHealth = @($health | Where-Object SourceDataset -eq 'ProviderDetails.Resource')
+        $providerHealth.Count | Should -Be 1
+        $providerHealth[0].ResourceIds | Should -Contain $widget.id
+        $providerHealth[0].ResourceTypes | Should -Contain $widget.type
     }
     It 'contains a failed parent request while producing other envelopes' {
         function global:Invoke-AzRestMethod { param($Path,$Method,$Payload,$ErrorAction) $null=$Method,$Payload,$ErrorAction; if($Path -match 'vm-1/providers/microsoft.insights/metrics'){throw 'metrics denied'}; [pscustomobject]@{StatusCode=200;Content='{}'} }
@@ -159,6 +284,58 @@ Describe 'Get-ScoutOperationalCollectorEnrichment' {
         $EstimatedCost = ($Rows | Where-Object type -eq 'AZSC/Operational/VirtualMachine').properties.EstimatedCost
         $EstimatedCost.PSObject.Properties['__AZSCError'] | Should -BeNullOrEmpty
     }
+    It 'honors Retry-After when Azure throttles a request' {
+        $script:AttemptCount = 0
+        $script:SleepMilliseconds = [System.Collections.Generic.List[int]]::new()
+        function global:Start-Sleep { param([int]$Milliseconds) $script:SleepMilliseconds.Add($Milliseconds) }
+        function global:Invoke-AzRestMethod {
+            param($Path,$Method,$Payload,$ErrorAction) $null=$Method,$Payload,$ErrorAction
+            if ($Path -match 'Microsoft.CostManagement/query') {
+                $script:AttemptCount++
+                if ($script:AttemptCount -eq 1) {
+                    return [pscustomobject]@{ StatusCode=429; Content='{}'; Headers=@{ 'Retry-After' = '2' } }
+                }
+            }
+            [pscustomobject]@{StatusCode=200;Content='{"value":[]}' }
+        }
+
+        $null = @(Get-ScoutOperationalCollectorEnrichment -Resources $script:Resources -Subscriptions @())
+
+        $script:SleepMilliseconds | Should -Contain 2000
+    }
+    It 'treats missing VM metrics as not configured without warnings or failed health' {
+        function global:Invoke-AzRestMethod {
+            param($Path,$Method,$Payload,$ErrorAction) $null=$Method,$Payload,$ErrorAction
+            if ($Path -match 'providers/microsoft.insights/metrics') {
+                return [pscustomobject]@{StatusCode=404;Content='{}'}
+            }
+            [pscustomobject]@{StatusCode=200;Content='{"value":[]}' }
+        }
+        $health = [System.Collections.Generic.List[object]]::new()
+        $warnings = @()
+
+        $rows = @(Get-ScoutOperationalCollectorEnrichment -Resources $script:Resources -Subscriptions @() `
+                -CollectionHealth $health -WarningVariable warnings)
+        $vm = $rows | Where-Object type -eq 'AZSC/Operational/VirtualMachine'
+
+        $vm.properties.CpuMetrics.__AZSCStatus | Should -Be 'NotConfigured'
+        $vm.properties.MemoryMetrics.__AZSCStatus | Should -Be 'NotConfigured'
+        ($warnings -join "`n") | Should -Not -Match 'Metrics'
+        @($health | Where-Object SourceDataset -match 'Metrics').Count | Should -Be 0
+    }
+    It 'normalizes an unsupported storage file service without a warning or health failure' {
+        function global:Get-AzStorageFileServiceProperty { throw 'File is not supported for the account.' }
+        $health = [System.Collections.Generic.List[object]]::new()
+        $warnings = @()
+
+        $rows = @(Get-ScoutOperationalCollectorEnrichment -Resources $script:Resources -Subscriptions @() `
+                -CollectionHealth $health -WarningVariable warnings)
+        $storage = $rows | Where-Object type -eq 'AZSC/Operational/StorageAccount'
+
+        $storage.properties.FileService.__AZSCStatus | Should -Be 'NotSupported'
+        ($warnings -join "`n") | Should -Not -Match 'FileService'
+        @($health | Where-Object SourceDataset -eq 'StorageAccounts.FileService').Count | Should -Be 0
+    }
     It 'treats a persistent 409 as a distinct in-progress status, not a generic error' {
         # The 409 branch of Invoke-ScoutOperationalArm still matters for the remaining query-style
         # POSTs (Cost Management, Policy Insights) even though assessPatches no longer runs.
@@ -184,7 +361,7 @@ Describe 'Get-ScoutOperationalCollectorEnrichment' {
     It 'logs a complete monotonic request ledger and emits terminal progress only after all work is complete' {
         $script:OperationalLogs = [System.Collections.Generic.List[string]]::new()
         $script:OperationalProgress = [System.Collections.Generic.List[object]]::new()
-        function global:Write-AZSCLog {
+        Mock Write-AZSCLog {
             param($Level, $Message)
             $script:OperationalLogs.Add("$Level|$Message")
         }
@@ -234,14 +411,13 @@ Describe 'Get-ScoutOperationalCollectorEnrichment' {
             }
         }
         finally {
-            Remove-Item Function:\Write-AZSCLog -Force -ErrorAction SilentlyContinue
             Remove-Item Function:\Write-Progress -Force -ErrorAction SilentlyContinue
         }
     }
 
     It 'records every remote wrapper family including dynamic protected-item discovery without identifiers' {
         $script:OperationalLogs = [System.Collections.Generic.List[string]]::new()
-        function global:Write-AZSCLog { param($Level, $Message) $script:OperationalLogs.Add("$Level|$Message") }
+        Mock Write-AZSCLog { param($Level, $Message) $script:OperationalLogs.Add("$Level|$Message") }
         function global:Write-Progress { param($Id, $ParentId, $Activity, $Status, $PercentComplete, [switch]$Completed) }
         function global:Invoke-AzRestMethod {
             param($Path, $Method, $Payload, $ErrorAction)
@@ -270,7 +446,6 @@ Describe 'Get-ScoutOperationalCollectorEnrichment' {
             $text | Should -Not -Match '(?i)/subscriptions/|resourceGroups/'
         }
         finally {
-            Remove-Item Function:\Write-AZSCLog -Force -ErrorAction SilentlyContinue
             Remove-Item Function:\Write-Progress -Force -ErrorAction SilentlyContinue
         }
     }
@@ -278,7 +453,7 @@ Describe 'Get-ScoutOperationalCollectorEnrichment' {
     It 'logs retry attempts and one final completion with the accurate attempt count' {
         $script:OperationalLogs = [System.Collections.Generic.List[string]]::new()
         $script:RetryLedgerAttempts = 0
-        function global:Write-AZSCLog { param($Level, $Message) $script:OperationalLogs.Add("$Level|$Message") }
+        Mock Write-AZSCLog { param($Level, $Message) $script:OperationalLogs.Add("$Level|$Message") }
         function global:Write-Progress { param($Id, $ParentId, $Activity, $Status, $PercentComplete, [switch]$Completed) }
         function global:Invoke-AzRestMethod {
             param($Path, $Method, $Payload, $ErrorAction)
@@ -295,7 +470,6 @@ Describe 'Get-ScoutOperationalCollectorEnrichment' {
             @($script:OperationalLogs | Where-Object { $_ -match 'Operational request finished: dataset=VirtualMachine.EstimatedCost; status=Success; attempts=2;' }).Count | Should -Be 1
         }
         finally {
-            Remove-Item Function:\Write-AZSCLog -Force -ErrorAction SilentlyContinue
             Remove-Item Function:\Write-Progress -Force -ErrorAction SilentlyContinue
         }
     }

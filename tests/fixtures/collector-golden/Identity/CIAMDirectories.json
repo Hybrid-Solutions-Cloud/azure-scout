@@ -3,7 +3,7 @@
   "Category": "Identity",
   "Name": "CIAMDirectories",
   "FixturePath": "tests/fixtures/collector-equivalence/Identity.json",
-  "FixtureSha256": "45fde6b9f78ea27454d93d9aa0299b67a853c88489ea6ea86e7eb4cad25c2058",
+  "FixtureSha256": "0c99008cbafb5569be35a7cf701bdc15d9ad8cfa99c0bddf14acf56128c209fa",
   "Rows": [
     "Billing Effective Date=s:res-value|Billing Type=s:res-value|Country Code=s:res-value|Directory Display Name=s:res-value|Domain Name=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azureactivedirectory/ciamdirectories/ciamdirectories-t1a-1|Location=s:res-value|Name=s:ciamdirectories-t1a|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|SKU=s:res-value|SKU Tier=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",
     "Billing Effective Date=s:res-value|Billing Type=s:res-value|Country Code=s:res-value|Directory Display Name=s:res-value|Domain Name=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azureactivedirectory/ciamdirectories/ciamdirectories-t1b-1|Location=s:res-value|Name=s:ciamdirectories-t1b|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|SKU=s:res-value|SKU Tier=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",

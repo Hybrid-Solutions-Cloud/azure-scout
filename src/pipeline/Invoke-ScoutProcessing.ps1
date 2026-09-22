@@ -97,7 +97,8 @@ function Invoke-ScoutProcessing {
 
         [Parameter()]
         [AllowNull()]
-        [object[]]$CollectionHealth = @()
+        [object[]]$CollectionHealth = @(),
+        $DiscoveryContext
 
     )
 
@@ -139,6 +140,9 @@ function Invoke-ScoutProcessing {
             PartialCount     = 0
             UnavailableCount = 0
             CollectionHealthPath = $null
+            DiscoveryPath    = $null
+            DiscoveryStatus  = 'Unavailable'
+            DiscoverySummary = $null
             Duration         = (Get-Date) - $Started
         }
     }
@@ -158,6 +162,30 @@ function Invoke-ScoutProcessing {
         Unsupported   = $Unsupported
     }
 
+    # A 50k-row estate used to be scanned once for every one of the 285 collectors before a
+    # collector processed even one matching row. Build a stable, case-insensitive type index once.
+    # Lists preserve original order within a type; an ordinal map lets multi-type SinglePass
+    # collectors restore the original interleaved order without another full-estate scan.
+    $resourceTypeIndex = @{}
+    $resourceOrdinals = [System.Collections.Generic.Dictionary[object, int]]::new(
+        [System.Collections.Generic.ReferenceEqualityComparer]::Instance
+    )
+    $resourceOrdinal = 0
+    foreach ($resource in @($Resources)) {
+        if ($null -eq $resource) { continue }
+        $resourceOrdinals[$resource] = $resourceOrdinal
+        $resourceOrdinal++
+        $typeProperty = [System.Management.Automation.PSObject]::AsPSObject($resource).PSObject.Properties['TYPE']
+        if ($null -eq $typeProperty -or [string]::IsNullOrWhiteSpace([string]$typeProperty.Value)) { continue }
+        $typeKey = ([string]$typeProperty.Value).ToLowerInvariant()
+        if (-not $resourceTypeIndex.ContainsKey($typeKey)) {
+            $resourceTypeIndex[$typeKey] = [System.Collections.Generic.List[object]]::new()
+        }
+        $resourceTypeIndex[$typeKey].Add($resource)
+    }
+    $Context['ResourceTypeIndex'] = $resourceTypeIndex
+    $Context['ResourceOrdinals'] = $resourceOrdinals
+
     $CachePath  = Join-Path $DefaultPath 'ReportCache'
     # AB#6766 -- the per-collector row counts, retained. Before this, the only evidence of what
     # each collector produced was the ReportCache, and Invoke-AzureScout runs
@@ -168,6 +196,9 @@ function Invoke-ScoutProcessing {
     $Failures   = [System.Collections.Generic.List[object]]::new()
     $Skipped    = [System.Collections.Generic.List[object]]::new()
     $CacheFiles = [System.Collections.Generic.List[object]]::new()
+    $DiscoveryPath = $null
+    $DiscoveryStatus = 'Unavailable'
+    $DiscoverySummary = $null
     $Done       = 0
 
     # Every shipped collector is declarative in v3. The result mode is kept as a checked runtime
@@ -310,6 +341,41 @@ function Invoke-ScoutProcessing {
         if (Get-Command -Name 'Clear-AZSCMemory' -ErrorAction SilentlyContinue) { Clear-AZSCMemory }
     }
 
+    # AB#7366 -- the specialized collector cache can no longer be the completeness boundary.
+    # Build one generic row for EVERY discovered resource, retain its control-plane properties,
+    # correlate collection-health gaps, and extract ARM-id relationships. A new Azure type that
+    # has no purpose-built collector therefore remains visible as GenericOnly instead of silently
+    # disappearing from the report.
+    try {
+        if (-not (Get-Command Get-ScoutResourceCompleteness -ErrorAction SilentlyContinue)) {
+            . (Join-Path $PSScriptRoot 'Get-ScoutResourceCompleteness.ps1')
+        }
+        $Discovery = Get-ScoutResourceCompleteness -Resources @($Resources) `
+            -CollectionHealth @($CollectionHealth) -Collectors @($Collectors) -DefinitionRoot $DefinitionRoot -DiscoveryContext $DiscoveryContext
+        $DiscoveryPath = Join-Path $CachePath 'Discovery.json'
+        if ($PSCmdlet.ShouldProcess($DiscoveryPath, 'Write universal discovery index')) {
+            if (-not (Test-Path -LiteralPath $CachePath)) {
+                $null = New-Item -Path $CachePath -ItemType Directory -Force
+            }
+            if (-not (Get-Command Write-ScoutJsonStream -ErrorAction SilentlyContinue)) {
+                . (Join-Path (Split-Path -Parent $PSScriptRoot) 'Write-ScoutJsonStream.ps1')
+            }
+            Write-ScoutJsonStream -InputObject $Discovery -Path $DiscoveryPath -Depth 100 | Out-Null
+            $DiscoveryStatus = if (($Discovery.Summary.Partial + $Discovery.Summary.Unavailable) -gt 0) { 'Partial' } else { 'Complete' }
+            $DiscoverySummary = $Discovery.Summary
+            $CacheFiles.Add([pscustomobject]@{
+                Category = 'Discovery'
+                Path     = $DiscoveryPath
+                RowCount = $Discovery.Summary.Resources
+                Written  = $true
+            })
+        }
+    }
+    catch {
+        $DiscoveryStatus = 'Unavailable'
+        Write-Warning "[AzureScout] Could not build the universal discovery index: $($_.Exception.Message)"
+    }
+
     if (Get-Command -Name 'Write-ScoutProgress' -ErrorAction SilentlyContinue) {
         Write-ScoutProgress -Id 1 -Activity 'Processing inventory' -Status '100% Complete.' -Completed
     }
@@ -379,6 +445,9 @@ function Invoke-ScoutProcessing {
         PartialCount     = @($OrderedCounts | Where-Object Availability -eq 'Partial').Count
         UnavailableCount = @($OrderedCounts | Where-Object { $_.Verdict -in @('Unavailable', 'NotAssessed') }).Count
         CollectionHealthPath = $CollectionHealthPath
+        DiscoveryPath    = $DiscoveryPath
+        DiscoveryStatus  = $DiscoveryStatus
+        DiscoverySummary = $DiscoverySummary
         Duration         = (Get-Date) - $Started
     }
 
@@ -400,6 +469,8 @@ function Invoke-ScoutProcessing {
                 'Collectors partial' = $Summary.PartialCount
                 'Collectors unavailable' = $Summary.UnavailableCount
                 'Collection health' = $Summary.CollectionHealthPath
+                'Discovery completeness' = $Summary.DiscoveryStatus
+                'Discovery index'  = $Summary.DiscoveryPath
                 'Row counts'        = $Summary.RowCountPath
                 'Categories cached' = @($CacheFiles | Where-Object { $_.Written }).Count
                 'Rows cached'       = (@($CacheFiles | ForEach-Object { $_.RowCount }) | Measure-Object -Sum).Sum

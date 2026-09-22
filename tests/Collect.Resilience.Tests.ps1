@@ -88,6 +88,27 @@ Describe 'Invoke-Collect -- AB#397 per-subscription fallback' {
     }
 }
 
+Describe 'Invoke-Collect -- deterministic invalid-query failures' {
+    It 'does not repeat a BadRequest once per subscription' {
+        $script:invalidQueryCalls = 0
+        Mock Search-AzGraph {
+            if ($Query -match 'microsoft\.resources/subscriptions"') { return Get-MockSubscriptions }
+            if ($Query -match 'microsoft\.insights/scheduledqueryrules') {
+                $script:invalidQueryCalls++
+                throw 'BadRequest: InvalidQuery ParserFailure'
+            }
+            return @()
+        }
+
+        Invoke-Collect -Source TypedQueries -Categories @('Monitor') `
+            -WarningVariable warnings -WarningAction SilentlyContinue | Out-Null
+
+        $script:invalidQueryCalls | Should -Be 1
+        ($warnings -join "`n") | Should -Match 'will not be retried per subscription'
+        ($warnings -join "`n") | Should -Not -Match "failed for subscription 'sub-"
+    }
+}
+
 Describe 'Invoke-Collect -- AB#398 AuthorizationFailed management-group hint' {
     It 'surfaces an actionable Reader-role hint naming the management group' {
         Mock Search-AzGraph {

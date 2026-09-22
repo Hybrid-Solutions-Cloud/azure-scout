@@ -193,25 +193,25 @@ param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGr
     }
 
     It 'projects only report-consumed Defender fields and uses a payload-safe page size' {
-        $script:securityQuery = $null
-        $script:securityFirst = $null
+        $script:securityQueries = [System.Collections.Generic.List[object]]::new()
         function Search-AzGraph {
             param([string] $Query, [int] $First, [Parameter(ValueFromRemainingArguments)] $Rest)
             $null = $Rest
             if ($Query -match '^securityresources\b') {
-                $script:securityQuery = $Query
-                $script:securityFirst = $First
+                $script:securityQueries.Add([pscustomobject]@{Query=$Query;First=$First})
             }
             return @()
         }
 
         Get-ScoutRawInventory -IncludeSecurityCenter | Out-Null
 
-        $script:securityFirst | Should -Be 200
-        $script:securityQuery | Should -Match '\|\s*project\s+id,name,type,tenantId,resourceGroup,subscriptionId,properties=bag_pack'
-        $script:securityQuery | Should -Match 'resourceDetails'
-        $script:securityQuery | Should -Match 'remediationDescription'
-        $script:securityQuery | Should -Not -Match '\|\s*project\s+\$columns'
+        $assessmentQuery = @($script:securityQueries | Where-Object Query -match 'microsoft\.security/assessments')[0]
+        $assessmentQuery.First | Should -Be 200
+        $assessmentQuery.Query | Should -Match '\|\s*project\s+id,name,type,tenantId,resourceGroup,subscriptionId,properties=bag_pack'
+        $assessmentQuery.Query | Should -Match 'resourceDetails'
+        $assessmentQuery.Query | Should -Match 'remediationDescription'
+        $assessmentQuery.Query | Should -Not -Match '\|\s*project\s+\$columns'
+        @($script:securityQueries | Where-Object Query -match 'microsoft\.security/attackpaths').Count | Should -Be 1
     }
 
     It 'returns the Start-AZTIGraphExtraction-compatible shape' {
@@ -357,7 +357,7 @@ param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGr
         $health[0].Collectors | Should -Contain 'Security/KeyVaultKeys'
     }
 
-    It 'propagates a Key Vault child denial into a fail-closed Security assessment' {
+    It 'propagates a Key Vault child denial into the rule-level availability gate' {
         function Get-ScoutArmChildResource {
             param([object[]] $Resources, [string[]] $Dataset, [System.Collections.IList] $CollectionHealth)
             $null = $Resources, $Dataset
@@ -372,14 +372,10 @@ param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGr
         @($mapped).Count | Should -Be 1
         $mapped[0].Collectors | Should -Contain 'Security/KeyVaultKeys'
 
-        $caught = $null
-        try {
-            Invoke-Collect -FromInventory $raw -Categories Security -Scope ArmOnly -WarningAction SilentlyContinue | Out-Null
-        }
-        catch { $caught = $_ }
+        $collect = Invoke-Collect -FromInventory $raw -Categories Security -Scope ArmOnly -WarningAction SilentlyContinue
 
-        $caught | Should -Not -BeNullOrEmpty
-        $caught.Exception.Data['AzureScoutFailureKind'] | Should -Be 'AssessmentSourceUnavailable'
+        $collect.domains.security.keyVaultKeysAvailable | Should -BeFalse
+        @($collect._meta.collectionHealth | Where-Object SourceDataset -eq 'KeyVaultKeys').Count | Should -Be 1
     }
 
     It 'appends one subscription security/policy envelope per resolved subscription when requested' {
@@ -616,7 +612,7 @@ Describe 'Get-ScoutRawInventory -- throttling and error resilience' {
         function Search-AzGraph {
             param([string] $Query, [int] $First, [Parameter(ValueFromRemainingArguments)] $Rest)
             $null = $Rest
-            if ($Query -match '^securityresources\b') {
+            if ($Query -match "microsoft\.security/assessments") {
                 $script:securityPageSizes += $First
                 if ($script:securityPageSizes.Count -eq 1) {
                     throw 'ResponsePayloadTooLarge: response payload size exceeded 16777216 bytes'
@@ -927,7 +923,7 @@ param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGr
         } | Should -Throw '*assessment scoring stopped because required inventory datasets are unavailable*'
     }
 
-    It 'fails closed when selected Key Vault child evidence is unavailable' {
+    It 'continues scoring with explicit Key Vault availability gates when one child source is unavailable' {
         $raw = [pscustomobject]@{
             Resources = @()
             ResourceContainers = @(New-MockSubscriptionRow -Id 'aaa')
@@ -938,15 +934,11 @@ param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGr
                 })
         }
 
-        $caught = $null
-        try {
-            Invoke-Collect -FromInventory $raw -Categories 'Security' -Scope ArmOnly -WarningAction SilentlyContinue | Out-Null
-        }
-        catch { $caught = $_ }
+        $collect = Invoke-Collect -FromInventory $raw -Categories 'Security' -Scope ArmOnly -WarningAction SilentlyContinue
 
-        $caught | Should -Not -BeNullOrEmpty
-        $caught.Exception.Data['AzureScoutFailureKind'] | Should -Be 'AssessmentSourceUnavailable'
-        $caught.Exception.Message | Should -Match 'Resources'
+        $collect.domains.security.keyVaultKeysAvailable | Should -BeFalse
+        $collect.domains.security.keyVaultSecretsAvailable | Should -BeTrue
+        @($collect._meta.collectionHealth).Count | Should -Be 1
     }
 
     It 'does not block Identity when explicit Resources health names only a Compute collector' {

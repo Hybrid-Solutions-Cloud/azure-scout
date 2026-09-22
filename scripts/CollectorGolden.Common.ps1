@@ -22,6 +22,57 @@ $ErrorActionPreference = 'Stop'
     Tracks the proof-preservation prerequisite for Epic AB#5638.
 #>
 
+function ConvertTo-ScoutCanonicalJsonObject {
+    [CmdletBinding()]
+    param(
+        [Parameter()]
+        [AllowNull()]
+        $Value
+    )
+
+    if ($null -eq $Value -or $Value -is [string] -or
+        $Value.GetType().IsPrimitive -or $Value -is [decimal] -or
+        $Value -is [datetime] -or $Value -is [datetimeoffset] -or
+        $Value -is [guid]) {
+        return $Value
+    }
+
+    if ($Value -is [System.Collections.IDictionary]) {
+        $Canonical = [ordered]@{}
+        foreach ($Key in @($Value.Keys | ForEach-Object { [string] $_ } | Sort-Object)) {
+            $Canonical[$Key] = ConvertTo-ScoutCanonicalJsonObject -Value $Value[$Key]
+        }
+        return $Canonical
+    }
+
+    if ($Value -is [pscustomobject]) {
+        $Canonical = [ordered]@{}
+        foreach ($Property in @($Value.PSObject.Properties.Name | Sort-Object)) {
+            $Canonical[$Property] = ConvertTo-ScoutCanonicalJsonObject -Value $Value.$Property
+        }
+        return $Canonical
+    }
+
+    if ($Value -is [System.Collections.IEnumerable]) {
+        $Items = @($Value | ForEach-Object { ConvertTo-ScoutCanonicalJsonObject -Value $_ })
+        return ,$Items
+    }
+
+    return $Value
+}
+
+function ConvertTo-ScoutCanonicalJsonText {
+    [CmdletBinding()]
+    [OutputType([string])]
+    param(
+        [Parameter()]
+        [AllowNull()]
+        $Value
+    )
+
+    return ConvertTo-Json -InputObject (ConvertTo-ScoutCanonicalJsonObject -Value $Value) -Depth 12 -Compress
+}
+
 function ConvertTo-ScoutComparableValue {
     [CmdletBinding()]
     [OutputType([string])]
@@ -32,10 +83,22 @@ function ConvertTo-ScoutComparableValue {
     )
 
     if ($null -eq $Value) { return '<null>' }
-    if ($Value -is [string]) { return "s:$Value" }
+    if ($Value -is [string]) {
+        $Trimmed = $Value.Trim()
+        if (($Trimmed.StartsWith('{') -and $Trimmed.EndsWith('}')) -or
+            ($Trimmed.StartsWith('[') -and $Trimmed.EndsWith(']'))) {
+            try {
+                return 's:' + (ConvertTo-ScoutCanonicalJsonText -Value ($Trimmed | ConvertFrom-Json -Depth 12))
+            }
+            catch {
+                # It only looked like JSON. Preserve the exact source string.
+            }
+        }
+        return "s:$Value"
+    }
 
     try {
-        return 'j:' + (ConvertTo-Json -InputObject $Value -Depth 12 -Compress)
+        return 'j:' + (ConvertTo-ScoutCanonicalJsonText -Value $Value)
     }
     catch {
         return 'x:' + [string]$Value
@@ -81,7 +144,20 @@ function ConvertTo-ScoutWorksheetText {
     $Lines.Add(($Columns -join "`t"))
 
     foreach ($Row in $Sheet) {
-        $Lines.Add((($Columns | ForEach-Object { [string]$Row.$_ }) -join "`t"))
+        $Lines.Add((($Columns | ForEach-Object {
+            $Text = [string]$Row.$_
+            $Trimmed = $Text.Trim()
+            if (($Trimmed.StartsWith('{') -and $Trimmed.EndsWith('}')) -or
+                ($Trimmed.StartsWith('[') -and $Trimmed.EndsWith(']'))) {
+                try {
+                    $Text = ConvertTo-ScoutCanonicalJsonText -Value ($Trimmed | ConvertFrom-Json -Depth 12)
+                }
+                catch {
+                    # It only looked like JSON. Preserve the exact rendered cell text.
+                }
+            }
+            $Text
+        }) -join "`t"))
     }
 
     return ($Lines -join "`n")

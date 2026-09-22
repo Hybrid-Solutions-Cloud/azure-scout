@@ -181,9 +181,9 @@ param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGr
             'resourcecontainers', 'advisorresources', 'securityresources') {
             $all | Should -Match ('(?m)^' + [regex]::Escape($table) + '\b')
         }
-        # The four UI/authoring artifact types stayed excluded, on the `resources` table only.
+        # AB#7366: authoring/UI resources are no longer filtered from the identity ledger.
         $resourcesQuery = @($script:capturedQueries | Where-Object { $_ -match '^resources\b' }) -join "`n"
-        $resourcesQuery | Should -Match 'microsoft\.portal/dashboards'
+        $resourcesQuery | Should -Not -Match 'microsoft\.portal/dashboards'
         # And the advisor/security filters are unchanged.
         $all | Should -Match "properties\.impact in~ \('Medium','High'\)"
         $all | Should -Match "type =~ 'microsoft\.security/assessments'"
@@ -217,12 +217,12 @@ param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGr
         $all | Should -Match "tagValue =~ 'Production'"
     }
 
-    It 'projects the tags column only when -IncludeTags is supplied' {
+    It 'always projects tags so every discovered resource has an auditable identity record' {
         Set-StrictMode -Version Latest
         Start-AZSCGraphExtraction -Subscriptions $script:subs -AzureEnvironment 'AzureCloud' `
             -IncludeTags ([switch]$false) -SkipAdvisory ([switch]$true) -SecurityCenter ([switch]$false) `
             3>$null 4>$null 6>$null | Out-Null
-        ($script:capturedQueries -join "`n") | Should -Not -Match 'extendedLocation,tags'
+        ($script:capturedQueries -join "`n") | Should -Match 'extendedLocation,tags'
 
         $script:capturedQueries = @()
         Start-AZSCGraphExtraction -Subscriptions $script:subs -AzureEnvironment 'AzureCloud' `

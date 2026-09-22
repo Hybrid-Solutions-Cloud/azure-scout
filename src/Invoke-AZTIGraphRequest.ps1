@@ -1,13 +1,16 @@
 #Requires -Version 7.0
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+if (-not (Get-Command Invoke-ScoutDiagnosticOperation -ErrorAction SilentlyContinue)) { . (Join-Path $PSScriptRoot 'Write-AZTIRunLog.ps1') }
+if (-not (Get-Command Get-ScoutHttpFailure -ErrorAction SilentlyContinue)) { . (Join-Path $PSScriptRoot 'Get-ScoutHttpFailure.ps1') }
 
 <#
 .Synopsis
     Execute a Microsoft Graph REST API request with automatic pagination and throttle handling.
 
 .DESCRIPTION
-    Wrapper around Invoke-RestMethod for Microsoft Graph API calls. Automatically:
+    Wrapper around Invoke-RestMethod or Microsoft.Graph.Authentication for Microsoft Graph API
+    calls. Automatically:
       - Obtains a bearer token via Get-AZSCGraphToken
       - Builds the full URL from a relative path (e.g. /v1.0/users)
       - Follows @odata.nextLink for multi-page responses
@@ -70,6 +73,7 @@ function Invoke-AZSCGraphRequest {
         [int]$MaxRetries = 5,
 
         [string]$TenantID,
+        [string[]]$RequiredScopes = @(),
         [ValidateSet('AzureCloud', 'AzureUSGovernment', 'AzureChinaCloud')]
         [string]$AzureEnvironment,
 
@@ -110,13 +114,19 @@ function Invoke-AZSCGraphRequest {
     $currentUri = $fullUri
 
     do {
-        $headers = Get-AZSCGraphToken -TenantID $TenantID -AzureEnvironment $AzureEnvironment
+        $headers = Get-AZSCGraphToken -TenantID $TenantID -AzureEnvironment $AzureEnvironment -Scopes $RequiredScopes
 
+        $useMgGraph = ($headers['X-AzureScout-GraphProvider'] -eq 'Microsoft.Graph.Authentication')
         $requestParams = @{
             Uri         = $currentUri
             Method      = $Method
-            Headers     = $headers
             ErrorAction = 'Stop'
+        }
+        if ($useMgGraph) {
+            $requestParams['OutputType'] = 'PSObject'
+        }
+        else {
+            $requestParams['Headers'] = $headers
         }
 
         if ($Body) {
@@ -134,13 +144,19 @@ function Invoke-AZSCGraphRequest {
 
         while ($retryCount -le $MaxRetries) {
             try {
-                $response = Invoke-RestMethod @requestParams
+                $response = if ($useMgGraph) {
+                    Invoke-ScoutDiagnosticOperation -Operation { Invoke-MgGraphRequest @requestParams }
+                }
+                else {
+                    Invoke-ScoutDiagnosticOperation -Operation { Invoke-RestMethod @requestParams }
+                }
                 break
             }
             catch {
-                $statusCode = $null
-                if ($_.Exception.Response) {
-                    $statusCode = [int]$_.Exception.Response.StatusCode
+                $failure = Get-ScoutHttpFailure -ErrorRecord $_
+                $statusCode = $failure.StatusCode
+                if (Get-Command Write-AZSCLog -ErrorAction SilentlyContinue) {
+                    Write-AZSCLog -Level ERROR -Message "Graph $Method $currentUri : $($failure.Summary)"
                 }
 
                 # Handle 429 (throttled) and 5xx (transient server errors)
@@ -155,7 +171,7 @@ function Invoke-AZSCGraphRequest {
 
                     # Use Retry-After header if present, otherwise exponential backoff
                     $retryAfter = $null
-                    if ($_.Exception.Response.Headers) {
+                    if ($_.Exception.PSObject.Properties['Response'] -and $_.Exception.Response -and $_.Exception.Response.PSObject.Properties['Headers']) {
                         try {
                             $retryAfterValues = $_.Exception.Response.Headers.GetValues('Retry-After')
                             if ($retryAfterValues) {
@@ -176,8 +192,16 @@ function Invoke-AZSCGraphRequest {
                     Start-Sleep -Seconds $retryAfter
 
                     # Refresh token in case it expired during wait
-                    $headers = Get-AZSCGraphToken -TenantID $TenantID
-                    $requestParams['Headers'] = $headers
+                    $headers = Get-AZSCGraphToken -TenantID $TenantID -AzureEnvironment $AzureEnvironment -Scopes $RequiredScopes
+                    $useMgGraph = ($headers['X-AzureScout-GraphProvider'] -eq 'Microsoft.Graph.Authentication')
+                    if ($useMgGraph) {
+                        $requestParams.Remove('Headers')
+                        $requestParams['OutputType'] = 'PSObject'
+                    }
+                    else {
+                        $requestParams.Remove('OutputType')
+                        $requestParams['Headers'] = $headers
+                    }
                 }
                 else {
                     # Non-retryable error — propagate
@@ -205,7 +229,7 @@ function Invoke-AZSCGraphRequest {
 
         # Pagination
         $currentUri = $null
-        if (-not $SinglePage -and $response.PSObject.Properties.Name -contains '@odata.nextLink') {
+        if (-not $SinglePage -and $null -ne $response -and $response.PSObject.Properties.Name -contains '@odata.nextLink') {
             $currentUri = $response.'@odata.nextLink'
             Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + " - Following nextLink (collected $($allResults.Count) items so far)")
         }

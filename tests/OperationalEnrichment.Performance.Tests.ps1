@@ -53,8 +53,24 @@ BeforeAll {
                 return [pscustomobject]@{ StatusCode=200; Content=(@{ kind='memory'; subscriptionId=$subscriptionId } | ConvertTo-Json -Compress) }
             }
             if ($Path -match 'Microsoft\.CostManagement/query') {
-                $resourceId = (([string]$Payload | ConvertFrom-Json).dataset.filter.dimensions.values | Select-Object -First 1)
-                return [pscustomobject]@{ StatusCode=200; Content=(@{ kind='cost'; resourceId=$resourceId } | ConvertTo-Json -Compress) }
+                $resourceIds = @(([string]$Payload | ConvertFrom-Json).dataset.filter.dimensions.values)
+                $costRows = [System.Collections.Generic.List[object]]::new()
+                $ordinal = 0
+                foreach ($resourceId in $resourceIds) {
+                    $ordinal++
+                    $costRows.Add(@([double]$ordinal, $resourceId, 'USD'))
+                }
+                $content = @{
+                    properties = @{
+                        columns = @(
+                            @{ name='PreTaxCost'; type='Number' }
+                            @{ name='ResourceId'; type='String' }
+                            @{ name='Currency'; type='String' }
+                        )
+                        rows = @($costRows)
+                    }
+                } | ConvertTo-Json -Depth 8 -Compress
+                return [pscustomobject]@{ StatusCode=200; Content=$content }
             }
             if ($Path -match 'replicationEligibilityResults') {
                 return [pscustomobject]@{ StatusCode=200; Content=(@{ kind='eligibility'; subscriptionId=$subscriptionId } | ConvertTo-Json -Compress) }
@@ -129,7 +145,8 @@ Describe 'Get-ScoutOperationalCollectorEnrichment remote-call caching' {
         @($script:RestCalls | Where-Object Path -Match '/replicationProtectedItems\?').Count | Should -Be 2
         @($script:RestCalls | Where-Object Path -Match 'replicationEligibilityResults').Count | Should -Be 3
         @($script:RestCalls | Where-Object Path -Match 'microsoft\.insights/metrics').Count | Should -Be 6
-        @($script:RestCalls | Where-Object Path -Match 'Microsoft\.CostManagement/query').Count | Should -Be 3
+        @($script:RestCalls | Where-Object Path -Match 'Microsoft\.CostManagement/query').Count | Should -Be 2
+        @($script:RestCalls | Where-Object Path -Match '/subscriptions/sub-1/providers/Microsoft\.CostManagement/query').Count | Should -Be 1
 
         $vmRows = @($rows | Where-Object type -eq 'AZSC/Operational/VirtualMachine')
         $vmRows.Count | Should -Be 3
@@ -140,8 +157,8 @@ Describe 'Get-ScoutOperationalCollectorEnrichment remote-call caching' {
             $vm.properties.ReplicationEligibility.kind | Should -Be 'eligibility'
             @($vm.properties.ReplicationProtectedItems).Count | Should -Be 1
             $vm.properties.ReplicationProtectedItems[0].value[0].name | Should -Be "protected-$expectedSubscription"
-            $vm.properties.EstimatedCost.kind | Should -Be 'cost'
-            $vm.properties.EstimatedCost.resourceId | Should -Be $vm.id
+            @($vm.properties.EstimatedCost.properties.rows).Count | Should -Be 1
+            $vm.properties.EstimatedCost.properties.rows[0][1] | Should -Be 'USD'
         }
     }
 

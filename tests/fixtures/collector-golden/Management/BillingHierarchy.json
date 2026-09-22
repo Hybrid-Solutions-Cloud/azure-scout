@@ -1,0 +1,41 @@
+{
+  "SchemaVersion": 1,
+  "Category": "Management",
+  "Name": "BillingHierarchy",
+  "FixturePath": "tests/fixtures/collector-equivalence/Management.json",
+  "FixtureSha256": "3887eace8dba0a4948ad972e69dd6025a8fe497739ad08400441da51064aa23c",
+  "Rows": [
+    "Cost Center=s:res-value|Hierarchy Type=s:res-value|ID=s:res-value|Invoice Email Enabled=s:res-value|Name=s:res-value|Parent Department=s:res-value|Status=s:res-value",
+    "Cost Center=s:res-value|Hierarchy Type=s:res-value|ID=s:res-value|Invoice Email Enabled=s:res-value|Name=s:res-value|Parent Department=s:res-value|Status=s:res-value",
+    "Cost Center=s:res-value|Hierarchy Type=s:res-value|ID=s:res-value|Invoice Email Enabled=s:res-value|Name=s:res-value|Parent Department=s:res-value|Status=s:res-value",
+    "Cost Center=s:res-value|Hierarchy Type=s:res-value|ID=s:res-value|Invoice Email Enabled=s:res-value|Name=s:res-value|Parent Department=s:res-value|Status=s:res-value",
+    "Cost Center=s:res-value|Hierarchy Type=s:res-value|ID=s:res-value|Invoice Email Enabled=s:res-value|Name=s:res-value|Parent Department=s:res-value|Status=s:res-value",
+    "Cost Center=s:res-value|Hierarchy Type=s:res-value|ID=s:res-value|Invoice Email Enabled=s:res-value|Name=s:res-value|Parent Department=s:res-value|Status=s:res-value",
+    "Cost Center=s:res-value|Hierarchy Type=s:res-value|ID=s:res-value|Invoice Email Enabled=s:res-value|Name=s:res-value|Parent Department=s:res-value|Status=s:res-value",
+    "Cost Center=s:res-value|Hierarchy Type=s:res-value|ID=s:res-value|Invoice Email Enabled=s:res-value|Name=s:res-value|Parent Department=s:res-value|Status=s:res-value",
+    "Cost Center=s:res-value|Hierarchy Type=s:res-value|ID=s:res-value|Invoice Email Enabled=s:res-value|Name=s:res-value|Parent Department=s:res-value|Status=s:res-value",
+    "Cost Center=s:res-value|Hierarchy Type=s:res-value|ID=s:res-value|Invoice Email Enabled=s:res-value|Name=s:res-value|Parent Department=s:res-value|Status=s:res-value",
+    "Cost Center=s:res-value|Hierarchy Type=s:res-value|ID=s:res-value|Invoice Email Enabled=s:res-value|Name=s:res-value|Parent Department=s:res-value|Status=s:res-value",
+    "Cost Center=s:res-value|Hierarchy Type=s:res-value|ID=s:res-value|Invoice Email Enabled=s:res-value|Name=s:res-value|Parent Department=s:res-value|Status=s:res-value",
+    "Cost Center=s:res-value|Hierarchy Type=s:res-value|ID=s:res-value|Invoice Email Enabled=s:res-value|Name=s:res-value|Parent Department=s:res-value|Status=s:res-value",
+    "Cost Center=s:res-value|Hierarchy Type=s:res-value|ID=s:res-value|Invoice Email Enabled=s:res-value|Name=s:res-value|Parent Department=s:res-value|Status=s:res-value",
+    "Cost Center=s:res-value|Hierarchy Type=s:res-value|ID=s:res-value|Invoice Email Enabled=s:res-value|Name=s:res-value|Parent Department=s:res-value|Status=s:res-value",
+    "Cost Center=s:res-value|Hierarchy Type=s:res-value|ID=s:res-value|Invoice Email Enabled=s:res-value|Name=s:res-value|Parent Department=s:res-value|Status=s:res-value",
+    "Cost Center=s:res-value|Hierarchy Type=s:res-value|ID=s:res-value|Invoice Email Enabled=s:res-value|Name=s:res-value|Parent Department=s:res-value|Status=s:res-value",
+    "Cost Center=s:res-value|Hierarchy Type=s:res-value|ID=s:res-value|Invoice Email Enabled=s:res-value|Name=s:res-value|Parent Department=s:res-value|Status=s:res-value",
+    "Cost Center=s:res-value|Hierarchy Type=s:res-value|ID=s:res-value|Invoice Email Enabled=s:res-value|Name=s:res-value|Parent Department=s:res-value|Status=s:res-value",
+    "Cost Center=s:res-value|Hierarchy Type=s:res-value|ID=s:res-value|Invoice Email Enabled=s:res-value|Name=s:res-value|Parent Department=s:res-value|Status=s:res-value",
+    "Cost Center=s:res-value|Hierarchy Type=s:res-value|ID=s:res-value|Invoice Email Enabled=s:res-value|Name=s:res-value|Parent Department=s:res-value|Status=s:res-value",
+    "Cost Center=s:res-value|Hierarchy Type=s:res-value|ID=s:res-value|Invoice Email Enabled=s:res-value|Name=s:res-value|Parent Department=s:res-value|Status=s:res-value",
+    "Cost Center=s:res-value|Hierarchy Type=s:res-value|ID=s:res-value|Invoice Email Enabled=s:res-value|Name=s:res-value|Parent Department=s:res-value|Status=s:res-value",
+    "Cost Center=s:res-value|Hierarchy Type=s:res-value|ID=s:res-value|Invoice Email Enabled=s:res-value|Name=s:res-value|Parent Department=s:res-value|Status=s:res-value"
+  ],
+  "Workbook": {
+    "WithoutTags": [
+      "Hierarchy Type\tName\tStatus\tParent Department\tCost Center\tInvoice Email Enabled\nres-value\tres-value\tres-value\tres-value\tres-value\tres-value\nres-value\tres-value\tres-value\tres-value\tres-value\tres-value\nres-value\tres-value\tres-value\tres-value\tres-value\tres-value\nres-value\tres-value\tres-value\tres-value\tres-value\tres-value\nres-value\tres-value\tres-value\tres-value\tres-value\tres-value\nres-value\tres-value\tres-value\tres-value\tres-value\tres-value\nres-value\tres-value\tres-value\tres-value\tres-value\tres-value\nres-value\tres-value\tres-value\tres-value\tres-value\tres-value\nres-value\tres-value\tres-value\tres-value\tres-value\tres-value\nres-value\tres-value\tres-value\tres-value\tres-value\tres-value\nres-value\tres-value\tres-value\tres-value\tres-value\tres-value\nres-value\tres-value\tres-value\tres-value\tres-value\tres-value\nres-value\tres-value\tres-value\tres-value\tres-value\tres-value\nres-value\tres-value\tres-value\tres-value\tres-value\tres-value\nres-value\tres-value\tres-value\tres-value\tres-value\tres-value\nres-value\tres-value\tres-value\tres-value\tres-value\tres-value\nres-value\tres-value\tres-value\tres-value\tres-value\tres-value\nres-value\tres-value\tres-value\tres-value\tres-value\tres-value\nres-value\tres-value\tres-value\tres-value\tres-value\tres-value\nres-value\tres-value\tres-value\tres-value\tres-value\tres-value\nres-value\tres-value\tres-value\tres-value\tres-value\tres-value\nres-value\tres-value\tres-value\tres-value\tres-value\tres-value\nres-value\tres-value\tres-value\tres-value\tres-value\tres-value\nres-value\tres-value\tres-value\tres-value\tres-value\tres-value"
+    ],
+    "WithTags": [
+      "Hierarchy Type\tName\tStatus\tParent Department\tCost Center\tInvoice Email Enabled\nres-value\tres-value\tres-value\tres-value\tres-value\tres-value\nres-value\tres-value\tres-value\tres-value\tres-value\tres-value\nres-value\tres-value\tres-value\tres-value\tres-value\tres-value\nres-value\tres-value\tres-value\tres-value\tres-value\tres-value\nres-value\tres-value\tres-value\tres-value\tres-value\tres-value\nres-value\tres-value\tres-value\tres-value\tres-value\tres-value\nres-value\tres-value\tres-value\tres-value\tres-value\tres-value\nres-value\tres-value\tres-value\tres-value\tres-value\tres-value\nres-value\tres-value\tres-value\tres-value\tres-value\tres-value\nres-value\tres-value\tres-value\tres-value\tres-value\tres-value\nres-value\tres-value\tres-value\tres-value\tres-value\tres-value\nres-value\tres-value\tres-value\tres-value\tres-value\tres-value\nres-value\tres-value\tres-value\tres-value\tres-value\tres-value\nres-value\tres-value\tres-value\tres-value\tres-value\tres-value\nres-value\tres-value\tres-value\tres-value\tres-value\tres-value\nres-value\tres-value\tres-value\tres-value\tres-value\tres-value\nres-value\tres-value\tres-value\tres-value\tres-value\tres-value\nres-value\tres-value\tres-value\tres-value\tres-value\tres-value\nres-value\tres-value\tres-value\tres-value\tres-value\tres-value\nres-value\tres-value\tres-value\tres-value\tres-value\tres-value\nres-value\tres-value\tres-value\tres-value\tres-value\tres-value\nres-value\tres-value\tres-value\tres-value\tres-value\tres-value\nres-value\tres-value\tres-value\tres-value\tres-value\tres-value\nres-value\tres-value\tres-value\tres-value\tres-value\tres-value"
+    ]
+  }
+}

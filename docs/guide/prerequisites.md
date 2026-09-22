@@ -59,11 +59,10 @@ it explicitly with the commands below and import the module again.
 | `Az.ResourceGraph` | ARM resource extraction via batch KQL | **Yes** (ARM scope) |
 | `Az.Compute` | VM SKU and quota details | **Yes** (ARM scope) |
 | `Az.Resources` | Role assignments and policy data | **Yes** |
+| `Microsoft.Graph.Authentication` | Exact delegated Graph scopes for interactive Entra collection; tokens remain in the SDK cache | **Yes** |
 | `ImportExcel` | Package dependency retained for held legacy Excel compatibility/tests | Declared by the module; no live output emits Excel |
 | `Az.Storage` | Upload report to Azure Storage account | Optional (only with `-StorageAccount`) |
 | `Az.CostManagement` | Cost data extraction | Optional (only with `-IncludeCosts`) |
-
-**NOT required:** Any `Microsoft.Graph.*` module. AzureScout uses `Get-AzAccessToken -ResourceUrl <environment-Graph-endpoint>` with REST calls instead.
 
 ## Manual Installation
 
@@ -72,6 +71,7 @@ Install-Module -Name Az.Accounts -Scope CurrentUser -Force
 Install-Module -Name Az.ResourceGraph -Scope CurrentUser -Force
 Install-Module -Name Az.Compute -Scope CurrentUser -Force
 Install-Module -Name Az.Resources -Scope CurrentUser -Force
+Install-Module -Name Microsoft.Graph.Authentication -Scope CurrentUser -Force
 Install-Module -Name ImportExcel -Scope CurrentUser -Force
 
 # Only needed for -IncludeCosts. Without it the run still completes; cost data is skipped

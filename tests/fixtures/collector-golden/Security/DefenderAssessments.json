@@ -3,7 +3,7 @@
   "Category": "Security",
   "Name": "DefenderAssessments",
   "FixturePath": "tests/fixtures/collector-equivalence/Security.json",
-  "FixtureSha256": "48fc641403b55b20acc89c1dfd876e0439fccb8da0fd8795b63486bb8a38ac45",
+  "FixtureSha256": "1554d9d2bcde29c7f184150be063fb144575f4ba719b2885258c5b659a174239",
   "Rows": [
     "Assessment Name=s:res-value|Category=s:General|Compliance Standards=s:N/A|ID=s:res-value|Implementation Effort=s:N/A|Portal Link=s:https://portal.azure.com/#blade/Microsoft_Azure_Security/RecommendationsBlade/assessmentKey/res-value|Remediation=s:See Azure Portal for details|Resource Group=s:N/A|Resource Name=s:sub-fixture-01|Resource Type=s:Subscription|Resource U=j:1|Severity=<null>|Status=s:Not Applicable|Subscription=s:sub-fixture-01|Threats=s:N/A|User Impact=s:N/A",
     "Assessment Name=s:res-value|Category=s:General|Compliance Standards=s:N/A|ID=s:res-value|Implementation Effort=s:N/A|Portal Link=s:https://portal.azure.com/#blade/Microsoft_Azure_Security/RecommendationsBlade/assessmentKey/res-value|Remediation=s:See Azure Portal for details|Resource Group=s:N/A|Resource Name=s:sub-fixture-01|Resource Type=s:Subscription|Resource U=j:1|Severity=<null>|Status=s:Not Applicable|Subscription=s:sub-fixture-01|Threats=s:N/A|User Impact=s:N/A",

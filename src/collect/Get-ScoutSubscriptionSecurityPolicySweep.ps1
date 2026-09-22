@@ -384,6 +384,7 @@ function Get-ScoutSubscriptionSecurityPolicySweep {
                 DefenderPricing                 = @()
                 DefenderSecureScores            = @()
                 DefenderSecureScoreControls     = @()
+                DefenderRegulatoryStandards     = @()
                 SubscriptionDiagnosticSettings  = @()
                 PolicyComplianceStates          = @()
             }
@@ -418,6 +419,7 @@ function Get-ScoutSubscriptionSecurityPolicySweep {
                         DefenderPricing                = @()
                         DefenderSecureScores           = @()
                         DefenderSecureScoreControls    = @()
+                        DefenderRegulatoryStandards    = @()
                         SubscriptionDiagnosticSettings = @()
                         PolicyComplianceStates         = @()
                         CollectionStatus               = [pscustomobject] $statuses
@@ -463,6 +465,10 @@ function Get-ScoutSubscriptionSecurityPolicySweep {
                 }
             }
 
+            $queries.DefenderRegulatoryStandards = Invoke-ScoutSweepDataset -Dataset 'DefenderRegulatoryStandards' -SubscriptionName $subscriptionName -ProviderRegistrationIsUnavailable -Operation {
+                Get-AzRegulatoryComplianceStandard -ErrorAction Stop
+            }
+
             $resourceId = "/subscriptions/$subscriptionId"
             $queries.SubscriptionDiagnosticSettings = Invoke-ScoutSweepDataset `
                 -Dataset 'SubscriptionDiagnosticSettings' `
@@ -483,6 +489,30 @@ function Get-ScoutSubscriptionSecurityPolicySweep {
                 }
             }
 
+            $operationNames = @{
+                DefenderAlerts = 'Get-AzSecurityAlert / ARM alerts fallback'
+                DefenderAssessments = 'Get-AzSecurityAssessment / ARM assessments fallback'
+                DefenderPricing = 'Get-AzSecurityPricing'
+                DefenderSecureScores = 'Get-AzSecuritySecureScore'
+                DefenderSecureScoreControls = 'Get-AzSecuritySecureScoreControl'
+                DefenderRegulatoryStandards = 'Get-AzRegulatoryComplianceStandard'
+                SubscriptionDiagnosticSettings = 'Get-AzDiagnosticSetting'
+                PolicyComplianceStates = 'Get-AzPolicyState'
+            }
+            $sourceOperations = @($queries.Keys | ForEach-Object {
+                    $datasetName = [string]$_
+                    $queryResult = $queries[$datasetName]
+                    [pscustomobject][ordered]@{
+                        Source = 'Azure PowerShell control plane'
+                        Dataset = $datasetName
+                        SubscriptionId = $subscriptionId
+                        Operation = $operationNames[$datasetName]
+                        Status = $queryResult.Status
+                        Count = @($queryResult.Data).Count
+                        Reason = if ($queryResult.Error) { $queryResult.Error.Message } else { $null }
+                    }
+                })
+
             [pscustomobject]@{
                 id               = "/subscriptions/$subscriptionId/providers/AzureScout/securityPolicySweep/default"
                 name             = 'default'
@@ -495,10 +525,12 @@ function Get-ScoutSubscriptionSecurityPolicySweep {
                     DefenderPricing                = @($emptyData.DefenderPricing)
                     DefenderSecureScores           = @($emptyData.DefenderSecureScores)
                     DefenderSecureScoreControls    = @($emptyData.DefenderSecureScoreControls)
+                    DefenderRegulatoryStandards    = @($emptyData.DefenderRegulatoryStandards)
                     SubscriptionDiagnosticSettings = @($emptyData.SubscriptionDiagnosticSettings)
                     PolicyComplianceStates         = @($emptyData.PolicyComplianceStates)
                     CollectionStatus               = [pscustomobject] $statuses
                     CollectionErrors               = @($collectionErrors)
+                    SourceOperations               = $sourceOperations
                 }
             }
         }
