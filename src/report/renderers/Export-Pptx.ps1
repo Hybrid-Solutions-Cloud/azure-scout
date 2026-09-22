@@ -837,6 +837,122 @@ function New-ScoutContentSlide {
     Add-ScoutSlideToDeck -Shell $Shell -SlideElement $slide -LayoutPart $Shell.LayoutContentPart
 }
 
+function Add-ScoutSlidePicture {
+    <#
+    .SYNOPSIS
+        Place a rasterised figure on a slide as an embedded picture.
+
+    .DESCRIPTION
+        AB#6883, clauses W-12/D-03 applied to the deck. The picture is EMBEDDED as a part of the
+        package, never linked: a deck emailed to a client has to carry its own images, and a
+        linked one is a broken one the moment the file leaves the machine that built it.
+
+        The image part has to be added to the SLIDE part, not the presentation part, and the
+        relationship id is resolved from the slide -- which is why this runs after the slide part
+        exists rather than while the shape tree is being built.
+
+        EMU are the DrawingML unit: 914,400 per inch, 9,525 per pixel at 96 DPI. The figure is
+        scaled to fit the box while preserving aspect, because a picture stretched to a box of a
+        different ratio is worse than a smaller one.
+    #>
+    param(
+        [Parameter(Mandatory)]$SlidePart,
+        [Parameter(Mandatory)]$Tree,
+        [Parameter(Mandatory)]$Figure,
+        [Parameter(Mandatory)][int]$Id,
+        [double]$X, [double]$Y, [double]$BoxWIn, [double]$BoxHIn
+    )
+
+    # AddNewPart<ImagePart>(contentType): the AddImagePart convenience overload was removed in
+    # DocumentFormat.OpenXml 3.x, which is the version this renderer pins.
+    $imagePart = $SlidePart.AddNewPart[DocumentFormat.OpenXml.Packaging.ImagePart]('image/png')
+    $ms = [System.IO.MemoryStream]::new([byte[]]$Figure.Bytes)
+    try { $imagePart.FeedData($ms) } finally { $ms.Dispose() }
+    $relId = $SlidePart.GetIdOfPart($imagePart)
+
+    # Fit inside the box, preserving aspect.
+    $scale = [Math]::Min($BoxWIn / ($Figure.Width / 96.0), $BoxHIn / ($Figure.Height / 96.0))
+    $wIn = ($Figure.Width / 96.0) * $scale
+    $hIn = ($Figure.Height / 96.0) * $scale
+    $offX = $X + (($BoxWIn - $wIn) / 2)
+
+    $cx = [int64]($wIn * 914400)
+    $cy = [int64]($hIn * 914400)
+    $ox = [int64]($offX * 914400)
+    $oy = [int64]($Y * 914400)
+    $safeName = ConvertTo-ScoutPptxXmlText $Figure.Name
+
+    $pic = New-ScoutEl "$Script:PresNs.Picture"
+    $pic.InnerXml = @"
+<p:nvPicPr xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">
+  <p:cNvPr id="$Id" name="$safeName"/>
+  <p:cNvPicPr><a:picLocks xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" noChangeAspect="1"/></p:cNvPicPr>
+  <p:nvPr/>
+</p:nvPicPr>
+<p:blipFill xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">
+  <a:blip xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" r:embed="$relId"/>
+  <a:stretch xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><a:fillRect/></a:stretch>
+</p:blipFill>
+<p:spPr xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">
+  <a:xfrm xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+    <a:off x="$ox" y="$oy"/><a:ext cx="$cx" cy="$cy"/>
+  </a:xfrm>
+  <a:prstGeom xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" prst="rect"><a:avLst/></a:prstGeom>
+</p:spPr>
+"@
+    $Tree.Append($pic)
+}
+
+function ConvertTo-ScoutPptxXmlText {
+    # Figure names are generated, but escaping is cheap and a malformed name would produce a
+    # package PowerPoint refuses to open rather than a visibly wrong one.
+    param([AllowEmptyString()][AllowNull()][string]$Text)
+    if ([string]::IsNullOrEmpty($Text)) { return 'figure' }
+    return ($Text -replace '&', '&amp;' -replace '<', '&lt;' -replace '>', '&gt;' -replace '"', '&quot;')
+}
+
+function New-ScoutFigureSlides {
+    <#
+    .SYNOPSIS
+        One slide per rasterised figure, with the caption beneath it.
+
+    .DESCRIPTION
+        AB#6883. One figure per slide rather than a grid: the deck's rule is one idea per slide,
+        and three charts crammed onto one is three ideas nobody reads.
+
+        Non-fatal by design. A deck that loses its figures is still a deck; a run that dies while
+        adding a picture has cost the operator every other format too.
+    #>
+    param($Shell, $Figures, [ref]$PageCounter, [int]$TotalPages)
+
+    $figs = @($Figures)
+    if ($figs.Count -eq 0) { return }
+
+    $picId = 1000
+    foreach ($fig in $figs) {
+        $picId++
+        $captured = $fig
+        $capturedId = $picId
+        try {
+            $tree = New-ScoutEmptyShapeTreeStandalone
+            Add-ScoutSlideChrome -Tree $tree -Title $captured.Caption -PageNum $PageCounter.Value -TotalPages $TotalPages
+
+            $slideEl = New-ScoutSlideElement -Tree $tree
+            # The slide part has to exist before an image part can hang off it, so the deck
+            # registration happens first and the picture is appended to the live tree after.
+            Add-ScoutSlideToDeck -Shell $Shell -SlideElement $slideEl -LayoutPart $Shell.LayoutContentPart
+            $slidePart = $Shell.PresPart.SlideParts | Select-Object -Last 1
+
+            Add-ScoutSlidePicture -SlidePart $slidePart -Tree $tree -Figure $captured -Id $capturedId `
+                -X 0.75 -Y 1.35 -BoxWIn 11.8 -BoxHIn 5.4
+            $PageCounter.Value++
+        }
+        catch {
+            Write-Warning "Export-Pptx: figure '$($captured.Name)' could not be placed on a slide ($($_.Exception.Message)) -- omitted."
+        }
+    }
+}
+
 function Add-ScoutBulletList {
     param($Tree, [double]$X, [double]$Y, [double]$Cx, [string[]]$Lines, [double]$SizePt = 15, [double]$LineGapIn = 0.5)
     $paras = New-ScoutList
@@ -1225,8 +1341,22 @@ function Export-Pptx {
     # rather than left to grow with the estate: an eleven-slide deck that says one thing per
     # slide beats a forty-slide deck nobody reaches the end of, and the detail those extra pages
     # would have carried is in the workbook and the document.
-    $fixedSlides = 6
-    $budget = $Script:ScoutDeckMaxSlides - $fixedSlides
+    # AB#6883. Figures are rendered up front so the slide budget can account for them: they are
+    # part of the deck's fixed spine, not an optional extra tacked on after the cap was computed.
+    # Non-fatal -- a deck without figures is still a deck.
+    $figures = @()
+    try {
+        if (-not (Get-Command -Name Export-ScoutFigureSet -ErrorAction SilentlyContinue)) {
+            . "$PSScriptRoot/../Build-ScoutFigure.ps1"
+        }
+        $figures = @(Export-ScoutFigureSet -Findings $Findings -OutputPath $OutputPath)
+    }
+    catch {
+        Write-Warning "Export-Pptx: the figure set did not render ($($_.Exception.Message)) -- the deck ships without figures."
+    }
+
+    $fixedSlides = 6 + $figures.Count
+    $budget = [Math]::Max(2, $Script:ScoutDeckMaxSlides - $fixedSlides)
 
     $areaPages = if (@($areas).Count -gt 0) { [Math]::Ceiling(@($areas).Count / 10.0) } else { 0 }
     # @() wraps the WHOLE pipeline -- Select-Object -First over zero input
@@ -1256,6 +1386,9 @@ function Export-Pptx {
     # leaves after three slides should still know what was covered and what to do on Monday.
     New-ScoutScopeSlide -Shell $shell -Areas $areas -AllFindings $allFindings -Manual $manual -Errors $errors -PageCounter $pageRef -TotalPages $totalPages
     New-ScoutActFirstSlide -Shell $shell -Gaps $gaps -PageCounter $pageRef -TotalPages $totalPages
+    # Figures follow the priority slide and precede the tables: a chart is an argument about the
+    # whole run, so it belongs where the run is being characterised, not among the detail.
+    New-ScoutFigureSlides -Shell $shell -Figures $figures -PageCounter $pageRef -TotalPages $totalPages
     New-ScoutAreaTableSlides -Shell $shell -Areas $areas -PageCounter $pageRef -TotalPages $totalPages -MaxPages $areaPages
     New-ScoutGapsSlides -Shell $shell -Gaps $gaps -PageCounter $pageRef -TotalPages $totalPages -MaxGaps ($gapPages * 10)
     New-ScoutManualSlide -Shell $shell -Manual $manual -PageCounter $pageRef -TotalPages $totalPages

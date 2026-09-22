@@ -229,126 +229,171 @@ function New-ScoutPbipReportJson {
     [OutputType([string])]
     param()
 
-    # A prototypeQuery Select entry for one measure on one table.
-    function New-Projection {
-        param([string]$Table, [string]$Measure, [string]$Alias)
-        return @{
-            queryRef = "$Table.$Measure"
-            entity   = $Table
-            measure  = $Measure
-            alias    = $Alias
+    # ---- Visual builders -------------------------------------------------------------------
+    #
+    # AB#6886. A Power BI visual needs THREE serialised blobs on its container, not one, and the
+    # first version of this generator emitted only `config`. The result opened without error and
+    # rendered three pages of empty placeholders, because nothing told Desktop which field goes in
+    # which well:
+    #
+    #   config          the visual type, its layout box, and the projections (which queryRef
+    #                   belongs to which role: Values / Category / Y)
+    #   query           the semantic query -- the actual SELECT, plus the Binding that says how
+    #                   the result set maps onto the visual's groupings
+    #   dataTransforms  the field-well mapping: one `selects` entry per field, carrying its
+    #                   display name, its expression, its role, and the projection ordering
+    #
+    # `queryName` in dataTransforms, `Name` in the query Select, and `queryRef` in the config
+    # projections must all be the SAME string. If they diverge the visual silently renders empty,
+    # which is exactly the failure this comment exists to stop happening twice.
+
+    function New-ScoutPbiFieldExpr {
+        # The expression for one field. A measure and a column are different node types, and
+        # using the wrong one produces a visual that binds to nothing.
+        param([string]$Source, [string]$Property, [switch]$IsMeasure)
+        if ($IsMeasure) {
+            return [ordered]@{ Measure = [ordered]@{ Expression = @{ SourceRef = @{ Source = $Source } }; Property = $Property } }
+        }
+        return [ordered]@{ Column = [ordered]@{ Expression = @{ SourceRef = @{ Source = $Source } }; Property = $Property } }
+    }
+
+    function New-ScoutPbiVisual {
+        <#
+        .SYNOPSIS
+            One visual container, with config, query and dataTransforms all agreeing.
+
+        .PARAMETER Fields
+            Ordered list of @{ Table; Name; Role; IsMeasure; Display }. Role is the field well —
+            Values for a card or table, Category/Y for a chart.
+        #>
+        param(
+            [int]$X, [int]$Y, [int]$W, [int]$H,
+            [string]$Name, [string]$VisualType, [string]$Title,
+            [array]$Fields
+        )
+
+        # One query source alias per distinct table.
+        $sources = [ordered]@{}
+        $from = [System.Collections.Generic.List[object]]::new()
+        $si = 0
+        foreach ($f in $Fields) {
+            if (-not $sources.Contains($f.Table)) {
+                $alias = "s$si"; $si++
+                $sources[$f.Table] = $alias
+                $from.Add([ordered]@{ Name = $alias; Entity = $f.Table; Type = 0 })
+            }
+        }
+
+        $select = [System.Collections.Generic.List[object]]::new()
+        $selects = [System.Collections.Generic.List[object]]::new()
+        $projections = [ordered]@{}
+        $ordering = [ordered]@{}
+        $idx = 0
+
+        foreach ($f in $Fields) {
+            $alias = $sources[$f.Table]
+            $queryName = "$($f.Table).$($f.Name)"
+            $expr = New-ScoutPbiFieldExpr -Source $alias -Property $f.Name -IsMeasure:([bool]$f.IsMeasure)
+
+            $entry = [ordered]@{}
+            foreach ($k in $expr.Keys) { $entry[$k] = $expr[$k] }
+            $entry['Name'] = $queryName
+            $select.Add($entry)
+
+            $selects.Add([ordered]@{
+                    displayName = $(if ($f.Display) { $f.Display } else { $f.Name })
+                    queryName   = $queryName
+                    roles       = @{ $f.Role = $true }
+                    expr        = $expr
+                })
+
+            if (-not $projections.Contains($f.Role)) {
+                $projections[$f.Role] = [System.Collections.Generic.List[object]]::new()
+                $ordering[$f.Role] = [System.Collections.Generic.List[int]]::new()
+            }
+            $projections[$f.Role].Add(@{ queryRef = $queryName })
+            $ordering[$f.Role].Add($idx)
+            $idx++
+        }
+
+        $query = [ordered]@{ Version = 2; From = @($from); Select = @($select) }
+
+        # The binding tells Desktop how the flat result set folds onto the visual. Categorical
+        # visuals group by their category projections; a card has a single value and no grouping.
+        $groupings = [System.Collections.Generic.List[object]]::new()
+        $catIdx = @()
+        for ($i = 0; $i -lt $Fields.Count; $i++) {
+            if ($Fields[$i].Role -in @('Category', 'Values') -and -not $Fields[$i].IsMeasure) { $catIdx += $i }
+        }
+        if ($catIdx.Count -gt 0) { $groupings.Add(@{ Projections = @($catIdx) }) }
+        else { $groupings.Add(@{ Projections = @(0) }) }
+
+        $binding = [ordered]@{
+            Primary       = [ordered]@{ Groupings = @($groupings) }
+            DataReduction = [ordered]@{ DataVolume = 4; Primary = @{ Top = @{ Count = 1000 } } }
+            Version       = 1
+        }
+
+        $cfg = [ordered]@{
+            name         = $Name
+            layouts      = @(@{ id = 0; position = [ordered]@{ x = $X; y = $Y; z = 0; width = $W; height = $H } })
+            singleVisual = [ordered]@{
+                visualType              = $VisualType
+                projections             = $projections
+                prototypeQuery          = $query
+                drillFilterOtherVisuals = $true
+                vcObjects               = [ordered]@{
+                    title = @(@{ properties = [ordered]@{
+                                text = @{ expr = @{ Literal = @{ Value = "'$Title'" } } }
+                                show = @{ expr = @{ Literal = @{ Value = 'true' } } }
+                            } })
+                }
+            }
+        }
+
+        $queryBlob = [ordered]@{
+            Commands = @(
+                [ordered]@{ SemanticQueryDataShapeCommand = [ordered]@{ Query = $query; Binding = $binding } }
+            )
+        }
+
+        $transforms = [ordered]@{
+            objects           = @{}
+            selects           = @($selects)
+            projectionOrdering = $ordering
+        }
+
+        return [ordered]@{
+            x = $X; y = $Y; z = 0; width = $W; height = $H
+            config         = ($cfg | ConvertTo-Json -Depth 40 -Compress)
+            query          = ($queryBlob | ConvertTo-Json -Depth 40 -Compress)
+            dataTransforms = ($transforms | ConvertTo-Json -Depth 40 -Compress)
+            filters        = '[]'
         }
     }
 
     function New-CardVisual {
         param([int]$X, [int]$Y, [int]$W, [int]$H, [string]$Name, [string]$Table, [string]$Measure)
-        $cfg = [ordered]@{
-            name         = $Name
-            layouts      = @(@{ id = 0; position = [ordered]@{ x = $X; y = $Y; z = 0; width = $W; height = $H } })
-            singleVisual = [ordered]@{
-                visualType             = 'card'
-                projections            = [ordered]@{ Values = @(@{ queryRef = "$Table.$Measure" }) }
-                prototypeQuery         = [ordered]@{
-                    Version = 2
-                    From    = @(@{ Name = 't'; Entity = $Table; Type = 0 })
-                    Select  = @(
-                        [ordered]@{
-                            Measure = [ordered]@{
-                                Expression = @{ SourceRef = @{ Source = 't' } }
-                                Property   = $Measure
-                            }
-                            Name    = "$Table.$Measure"
-                        }
-                    )
-                }
-                drillFilterOtherVisuals = $true
-                vcObjects              = [ordered]@{
-                    title = @(@{ properties = [ordered]@{ text = @{ expr = @{ Literal = @{ Value = "'$Measure'" } } }; show = @{ expr = @{ Literal = @{ Value = 'true' } } } } })
-                }
-            }
-        }
-        return [ordered]@{
-            x = $X; y = $Y; z = 0; width = $W; height = $H
-            config  = ($cfg | ConvertTo-Json -Depth 30 -Compress)
-            filters = '[]'
-        }
+        return New-ScoutPbiVisual -X $X -Y $Y -W $W -H $H -Name $Name -VisualType 'card' -Title $Measure `
+            -Fields @(@{ Table = $Table; Name = $Measure; Role = 'Values'; IsMeasure = $true; Display = $Measure })
     }
 
     function New-ChartVisual {
         param([int]$X, [int]$Y, [int]$W, [int]$H, [string]$Name, [string]$VisualType,
             [string]$CategoryTable, [string]$CategoryColumn, [string]$MeasureTable, [string]$Measure, [string]$Title)
-        $cfg = [ordered]@{
-            name         = $Name
-            layouts      = @(@{ id = 0; position = [ordered]@{ x = $X; y = $Y; z = 0; width = $W; height = $H } })
-            singleVisual = [ordered]@{
-                visualType             = $VisualType
-                projections            = [ordered]@{
-                    Category = @(@{ queryRef = "$CategoryTable.$CategoryColumn" })
-                    Y        = @(@{ queryRef = "$MeasureTable.$Measure" })
-                }
-                prototypeQuery         = [ordered]@{
-                    Version = 2
-                    From    = @(
-                        @{ Name = 'c'; Entity = $CategoryTable; Type = 0 }
-                        @{ Name = 'm'; Entity = $MeasureTable; Type = 0 }
-                    )
-                    Select  = @(
-                        [ordered]@{
-                            Column = [ordered]@{
-                                Expression = @{ SourceRef = @{ Source = 'c' } }
-                                Property   = $CategoryColumn
-                            }
-                            Name   = "$CategoryTable.$CategoryColumn"
-                        }
-                        [ordered]@{
-                            Measure = [ordered]@{
-                                Expression = @{ SourceRef = @{ Source = 'm' } }
-                                Property   = $Measure
-                            }
-                            Name    = "$MeasureTable.$Measure"
-                        }
-                    )
-                }
-                drillFilterOtherVisuals = $true
-                vcObjects              = [ordered]@{
-                    title = @(@{ properties = [ordered]@{ text = @{ expr = @{ Literal = @{ Value = "'$Title'" } } }; show = @{ expr = @{ Literal = @{ Value = 'true' } } } } })
-                }
-            }
-        }
-        return [ordered]@{
-            x = $X; y = $Y; z = 0; width = $W; height = $H
-            config  = ($cfg | ConvertTo-Json -Depth 30 -Compress)
-            filters = '[]'
-        }
+        return New-ScoutPbiVisual -X $X -Y $Y -W $W -H $H -Name $Name -VisualType $VisualType -Title $Title `
+            -Fields @(
+            @{ Table = $CategoryTable; Name = $CategoryColumn; Role = 'Category'; IsMeasure = $false; Display = $CategoryColumn }
+            @{ Table = $MeasureTable; Name = $Measure; Role = 'Y'; IsMeasure = $true; Display = $Measure }
+        )
     }
 
     function New-TableVisual {
         param([int]$X, [int]$Y, [int]$W, [int]$H, [string]$Name, [string]$Table, [string[]]$Columns, [string]$Title)
-        $from = @(@{ Name = 't'; Entity = $Table; Type = 0 })
-        $select = foreach ($c in $Columns) {
-            [ordered]@{
-                Column = [ordered]@{ Expression = @{ SourceRef = @{ Source = 't' } }; Property = $c }
-                Name   = "$Table.$c"
-            }
+        $fields = foreach ($c in $Columns) {
+            @{ Table = $Table; Name = $c; Role = 'Values'; IsMeasure = $false; Display = $c }
         }
-        $cfg = [ordered]@{
-            name         = $Name
-            layouts      = @(@{ id = 0; position = [ordered]@{ x = $X; y = $Y; z = 0; width = $W; height = $H } })
-            singleVisual = [ordered]@{
-                visualType             = 'tableEx'
-                projections            = [ordered]@{ Values = @($Columns | ForEach-Object { @{ queryRef = "$Table.$_" } }) }
-                prototypeQuery         = [ordered]@{ Version = 2; From = $from; Select = @($select) }
-                drillFilterOtherVisuals = $true
-                vcObjects              = [ordered]@{
-                    title = @(@{ properties = [ordered]@{ text = @{ expr = @{ Literal = @{ Value = "'$Title'" } } }; show = @{ expr = @{ Literal = @{ Value = 'true' } } } } })
-                }
-            }
-        }
-        return [ordered]@{
-            x = $X; y = $Y; z = 0; width = $W; height = $H
-            config  = ($cfg | ConvertTo-Json -Depth 30 -Compress)
-            filters = '[]'
-        }
+        return New-ScoutPbiVisual -X $X -Y $Y -W $W -H $H -Name $Name -VisualType 'tableEx' -Title $Title -Fields @($fields)
     }
 
     $pages = @(

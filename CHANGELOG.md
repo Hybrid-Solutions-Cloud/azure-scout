@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.3.1] - 2026-08-03 — figures reach every format, and the Power BI pages actually bind
+
+Completes the two clauses v3.3.0 shipped as known limitations.
+
+### Figures in the deck and the PDF (AB#6883)
+
+v3.3.0 embedded figures in Word only. They now appear in all three:
+
+- **PowerPoint** — one figure per slide, embedded as a real picture part. One idea per slide, so
+  no grid; the figures are counted against the 15-slide cap rather than added after it.
+- **PDF** — previously the renderer could embed only a baseline JPEG, which is why the manual
+  `diagram.jpg` drop-in convention existed. It turns out not to be needed: **PDF's `/FlateDecode`
+  is zlib**, exactly what the rasteriser already produces, so the raw pixels embed as an image
+  XObject with no decode round trip, no JPEG, and no new dependency.
+
+### The Power BI pages bind to the model (AB#6886)
+
+v3.3.0 opened the project and presented three pages of empty placeholders. A visual container
+needs **three** serialised blobs — `config`, `query` and `dataTransforms` — and only
+`config` was written, so nothing told Power BI which field belonged in which well. It drew the
+frames and left them empty, **with no error anywhere in that path**: the project was structurally
+valid and the visuals were simply unbound. That is why every file-shape assertion passed while the
+report was useless.
+
+All eleven visuals across the three pages now carry their query and field-well mapping. Clause
+`B-05` is met.
+
+### Verified
+
+All eight tenants re-rendered offline from banked collect data: **29 artefacts each, 0 empty**.
+
 ## [3.3.0] - 2026-08-03 — Epic AB#6450: the reports become deliverables
 
 Every report Scout produced was, in the owner's words, *"not worth putting in front of an
