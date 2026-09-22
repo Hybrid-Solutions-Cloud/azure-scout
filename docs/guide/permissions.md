@@ -214,6 +214,37 @@ The licence check is three-state — licensed / not licensed / **could not tell*
 Either way the affected collectors are reported as **Not assessed** and named in the report. A gap
 you chose not to license is still a gap — it is never a pass and never a zero.
 
+## Licence tiers — what a permission cannot buy you
+
+**Scout runs, and produces its full report, on a tenant with no premium Entra licence at all.**
+Licence tier changes how much of the *identity* picture can be filled in. It changes nothing about
+the Azure resource inventory, the CAF/WAF assessment, policy and compliance state, or Defender
+findings — those are Azure control-plane reads governed by `Reader`, not by Entra licensing.
+
+| Capability | Requires | Without it |
+|---|---|---|
+| Resource inventory, CAF/WAF assessment, policy & compliance, Defender | Azure `Reader` only | Full coverage |
+| Users, groups, apps, service principals, directory roles, domains, administrative units | Entra ID **Free** | Full coverage |
+| Conditional Access policies, named locations, cross-tenant access | Entra ID **P1** | Reported *Not assessed* — Conditional Access does not exist to read on a Free tenant |
+| Risky users / Identity Protection (`IdentityRiskyUser.Read.All`) | Entra ID **P2** | Reported *Not assessed*. **Granting the permission does not help** |
+| PIM eligibility and activation (`PrivilegedAccess.Read.AzureResources`) | Entra ID **P2** | Reported *Not assessed*; standing role assignments are still read |
+
+::: tip A licence boundary is not a permission failure
+Scout reads `subscribedSkus` and checks the tenant's licence before deciding a verdict. A
+licence-gated permission on an unlicensed tenant reports **`NOT LICENSED`**, names the product,
+and states that granting the permission will not populate those collectors — it does **not**
+report `DENIED` and send you to grant something that cannot work.
+
+Most tenants do not carry P2, so this was previously the *common* case being reported as an error.
+
+The licence check is three-state — licensed / not licensed / **could not tell**. Only a definitive
+"not licensed" softens the verdict; if `subscribedSkus` itself cannot be read the verdict stays
+`Fail`, because silently downgrading a genuine denial would hide a real problem.
+:::
+
+Either way the affected collectors are reported as **Not assessed** and named in the report. A gap
+you chose not to license is still a gap — it is never a pass and never a zero.
+
 ## Pre-flight Validation
 
 The `Test-AZSCPermissions` function runs automatically before extraction (unless `-SkipPermissionCheck` is set):
