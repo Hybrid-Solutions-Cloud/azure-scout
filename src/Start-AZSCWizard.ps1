@@ -69,15 +69,7 @@ function Start-AZSCWizard {
         'Security', 'Storage', 'Web'
     )
     $inventoryFormats = @('Excel', 'Json', 'Markdown', 'AsciiDoc', 'PowerBI')
-    # Menu honesty (the AB#6763 principle applied to formats): offer only what a run will
-    # actually produce. Every held renderer -- Html, PowerBi, Pptx, Excel, Pdf, Word,
-    # EChartsDashboard, GovernanceReport, see $script:ScoutHeldRenderers in
-    # Invoke-ScoutAssessmentCore.ps1 -- warns and skips, so listing them here offered the
-    # operator a choice the product then declined to honour. React is the deliverable;
-    # Json/JsonEvidence are data rather than documents and are deliberately never held (the
-    # corpus harness and drift history read them). Lifting a hold means adding the name back
-    # here as well as removing it from $ScoutHeldRenderers.
-    $assessmentFormats = @('React', 'Json', 'JsonEvidence')
+    $assessmentFormats = @('Html', 'PowerBI', 'Excel', 'Json', 'React', 'Pptx', 'Word', 'Pdf')
 
     Write-AZSCWizardBanner
 
@@ -325,13 +317,8 @@ function Start-AZSCWizard {
     # ── Step 4: output ───────────────────────────────────────────────────────
     Write-AZSCWizardStep -Number 4 -Total 5 -Title 'Output'
 
-    # An assessment run renders the React report whether or not inventory was also asked for --
-    # the report carries the inventory itself (v3.5.0's Inventory & audit page). The earlier
-    # `-and -not $wantsInventory` meant the commonest path of all, Inventory AND Assessment,
-    # fell through to the inventory-only list, which offers no React at all: the operator was
-    # shown every format the assessment would refuse to render and none of the one it would.
-    $formatPool = if ($wantsAssessment) { $assessmentFormats } else { $inventoryFormats }
-    $defaultFormats = if ($wantsAssessment) { @('React') } else { $inventoryFormats }
+    $formatPool = if ($wantsAssessment -and -not $wantsInventory) { $assessmentFormats } else { $inventoryFormats }
+    $defaultFormats = if ($wantsAssessment -and -not $wantsInventory) { @('Html') } else { $inventoryFormats }
     $formats = Read-AZSCWizardChecklist -Title 'Report formats' -Items $formatPool -DefaultSelected $defaultFormats
     if ($null -eq $formats) { return $null }
     if ($formats.Count -eq $formatPool.Count) { $formats = @('All') }
@@ -345,28 +332,6 @@ function Start-AZSCWizard {
     }
     $dir = Read-AZSCWizardText -Prompt 'Report directory' -Default $defaultDir
     if ($dir) { $answers.ReportDir = $dir }
-
-    # AB#6930 -- report identity, wizard parity with -ReportIdentity. Only asked for an
-    # assessment run: the identity block is the React report's cover/header, and inventory-only
-    # runs never reach that renderer. Every prompt defaults to blank (Enter accepts it), and a
-    # blank answer is simply never added to the hashtable -- Export-React's own neutral defaults
-    # (Get-ScoutReportIdentityDefault) fill anything the operator skipped, so this step can be
-    # skipped in full with four Enters and the report still reads as neutral, never as this
-    # product's own name.
-    if ($wantsAssessment) {
-        Write-Host ''
-        Write-Host '  Report identity (optional -- blank uses a neutral default; Enter to skip)' -ForegroundColor White
-        $reportIdentity = @{}
-        $clientName = Read-AZSCWizardText -Prompt '  Client / organization name' -Default ''
-        if ($clientName) { $reportIdentity.clientName = $clientName }
-        $engagementName = Read-AZSCWizardText -Prompt '  Engagement name' -Default ''
-        if ($engagementName) { $reportIdentity.engagementName = $engagementName }
-        $classification = Read-AZSCWizardText -Prompt '  Classification banner' -Default ''
-        if ($classification) { $reportIdentity.classification = $classification }
-        $preparedBy = Read-AZSCWizardText -Prompt '  Prepared by' -Default ''
-        if ($preparedBy) { $reportIdentity.preparedBy = $preparedBy }
-        if ($reportIdentity.Count -gt 0) { $answers.ReportIdentity = $reportIdentity }
-    }
 
     # ── Step 5: confirm ──────────────────────────────────────────────────────
     Write-AZSCWizardStep -Number 5 -Total 5 -Title 'Confirm'
@@ -556,12 +521,6 @@ function Format-AZSCWizardCommand {
         $value = $Answers[$key]
         if ($value -is [switch] -or $value -is [bool]) {
             if ($value) { $parts.Add("-$key") }
-        }
-        elseif ($value -is [hashtable]) {
-            # AB#6930 -- -ReportIdentity. Too free-form to inline as command-line syntax (values
-            # commonly contain spaces/punctuation); name it and point at the wizard instead of
-            # emitting something that would not actually parse if pasted back in.
-            if ($value.Count -gt 0) { $parts.Add("-$key <see wizard prompts -- re-run the wizard to set this>") }
         }
         elseif ($value -is [array]) {
             $parts.Add("-$key $((@($value) | ForEach-Object { if ($_ -match '[\s]') { "'$_'" } else { $_ } }) -join ',')")

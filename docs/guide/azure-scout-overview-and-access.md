@@ -12,14 +12,9 @@ access. Sections 1–2 are the executive summary; sections 3 onward are the acce
 ## 1. What Azure Scout is
 
 Azure Scout inventories an Azure estate and assesses it against Microsoft's own published
-frameworks, then produces the deliverable an assessment engagement is normally written by hand:
-a single self-contained report page carrying the inventory, every assessment, the evidence behind
-each finding, and the prioritised path back to compliance — which you can export to PDF, Word,
-Markdown or CSV.
-
-> Standalone Word, PowerPoint, PDF, Excel and Power BI outputs are **coming soon**: they are being
-> rebuilt to generate from that report rather than alongside it, so a document and the page it came
-> from can never disagree (**AB#6922**).
+frameworks, then produces the deliverables an assessment engagement is normally written by hand:
+a Word report, a PowerPoint readout, a PDF, an Excel evidence pack, an interactive HTML dashboard
+and a Power BI project.
 
 It is **read-only**. Scout never creates, modifies or deletes anything in the tenant, and it holds
 no standing access — it runs under credentials you grant, for as long as you choose to grant them.
@@ -148,39 +143,16 @@ knowing before you read its output:
 - **`[FAIL] … DENIED — N collectors will be empty`** — a real gap. Granting it fills those
   collectors; leaving it means those findings are reported as *not assessed*.
 
----
+### About `IdentityRiskyUser.Read.All`
 
-## 4a. What licence tier affects — and what it does not
+This is the one most often seen as a `[FAIL]`. Two things have to be true for it to return data:
 
-**Scout runs, and produces its full report, on a tenant with no premium Entra licence at all.**
-Licensing changes how much of the *identity* picture can be filled in; it changes nothing about
-the Azure resource inventory or the CAF/WAF assessment, which are control-plane reads.
+1. The application permission is granted **and admin-consented**, and
+2. the tenant is licensed for **Entra ID P2** — Identity Protection is a P2 feature.
 
-Scout detects the tenant's licence itself (from `subscribedSkus`) and reports a licence-gated
-feature as **not licensed — reported as Not assessed**, not as a permission failure. You will not
-be told to grant a permission that cannot help.
-
-| Feature | Needs | Without it |
-|---|---|---|
-| Resource inventory, CAF/WAF assessment, policy and compliance state, Defender findings | **Nothing** — Azure RBAC only | Full coverage |
-| Users, groups, apps, service principals, directory roles, domains, administrative units | **Entra ID Free** | Full coverage |
-| Conditional Access policies, named locations, cross-tenant access | **Entra ID P1** | Reported as *Not assessed*. Conditional Access does not exist to read on a Free tenant |
-| **Risky users / Identity Protection** (`IdentityRiskyUser.Read.All`) | **Entra ID P2** | `Identity/RiskyUsers` reported as *Not assessed*. **Granting the permission does not help** — the endpoint returns nothing without P2 |
-| PIM eligibility and activation (`PrivilegedAccess.Read.AzureResources`) | **Entra ID P2** | Reported as *Not assessed*; standing role assignments are still read |
-
-### Reading the permission audit
-
-Three verdicts, and they mean different things:
-
-| Verdict | Meaning | Action |
-|---|---|---|
-| `[FAIL] … DENIED — N collectors will be empty` | A real gap. The permission is missing and granting it fixes the coverage | Grant it |
-| `[WARN] … NOT LICENSED — requires <product>` | A licence boundary, not a misconfiguration | **None**, unless you intend to buy that tier. Granting the permission will not populate it |
-| `[WARN] … queried but NO collector reads the result. Do not grant it.` | Scout asks for something nothing consumes | **Do not grant it** |
-
-In every case the affected findings are reported as **Not assessed** and named in the report —
-never as a pass, never as a zero, and never silently omitted. A gap you chose not to fund still
-appears as a gap.
+With consent but no P2, the API returns an empty result and Scout reports `Identity/RiskyUsers`
+as not assessed. That is the correct outcome, not a failure to fix: it is a licensing boundary,
+and the report says so rather than implying no users are risky.
 
 ### Security data
 
@@ -245,15 +217,3 @@ report rather than hidden as a pass.
 **How long do you need the access?** Only for the collection run. The collected data can be banked
 once and all reporting done offline afterwards, so access can be revoked as soon as collection
 finishes.
-
-**Do we need Entra ID P1 or P2?** No. Scout runs and reports on a tenant with no premium licence.
-P1 and P2 add identity coverage — Conditional Access and Identity Protection respectively — and
-without them those specific findings are reported as *Not assessed* rather than failing the run.
-See section 4a.
-
-**Advisor recommendations are missing for one subscription.** Azure Advisor needs the
-`Microsoft.Advisor` resource provider registered on each subscription, and it produces nothing
-until it has assessed one. Scout skips that subscription, names it, and carries on — the other
-subscriptions are unaffected. To include it:
-`Register-AzResourceProvider -ProviderNamespace Microsoft.Advisor`. To omit Advisor entirely,
-run with `-SkipAdvisory`.
