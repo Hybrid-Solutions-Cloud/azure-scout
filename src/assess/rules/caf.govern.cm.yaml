@@ -13,6 +13,13 @@ rules:
     query: null
     assert: { type: manual }
     remediation: "Confirm Cost Analysis / Cost Management + Billing is used for full cost visibility across the estate, not only the budget and Advisor signals Scout can evidence."
+    # AB#6853 — the gap register needs the condition that CLOSES the gap (targetState),
+    # not only the action (remediation); the roadmap needs an accountable owner, a
+    # T-shirt effort and the 30-day phase the action belongs to.
+    targetState: "Cost Analysis reviewed on a recurring cadence with full estate visibility"
+    owner: "FinOps / Cloud Finance"
+    effort: S
+    phase: 2
     manual: true
 
   - id: CGOV-CM-02
@@ -21,6 +28,13 @@ rules:
     query: "$.governance.budgets[*]"
     assert: { type: countGreaterThan, value: 0 }
     remediation: "Create Azure Budgets at the subscription or resource-group scope with thresholds aligned to planned spend."
+    # AB#6853 — the gap register needs the condition that CLOSES the gap (targetState),
+    # not only the action (remediation); the roadmap needs an accountable owner, a
+    # T-shirt effort and the 30-day phase the action belongs to.
+    targetState: "A budget with alert thresholds on every subscription carrying material spend"
+    owner: "FinOps / Cloud Finance"
+    effort: S
+    phase: 1
     manual: false
 
   - id: CGOV-CM-03
@@ -29,6 +43,13 @@ rules:
     query: "$.advisor[?(@.Category == 'Cost')]"
     assert: { type: exists }
     remediation: "Review Advisor Cost recommendations, and the orphaned-disk/orphaned-public-IP findings under $.costCleanup, and act on them (resize, deallocate, or delete)."
+    # AB#6853 — the gap register needs the condition that CLOSES the gap (targetState),
+    # not only the action (remediation); the roadmap needs an accountable owner, a
+    # T-shirt effort and the 30-day phase the action belongs to.
+    targetState: "Advisor cost recommendations and orphaned-resource findings triaged on a recurring cadence"
+    owner: "FinOps / Platform Engineering"
+    effort: M
+    phase: 2
     manual: false
 
   - id: CGOV-CM-04
@@ -42,4 +63,11 @@ rules:
     query: null
     assert: { type: manual }
     remediation: "Wire Get-ScoutCostAnomaly.ps1 into the collect pipeline (tracked separately from this reporting feature), or confirm cost-anomaly alerting is configured in Cost Management + Billing directly."
+    # AB#6853 — the gap register needs the condition that CLOSES the gap (targetState),
+    # not only the action (remediation); the roadmap needs an accountable owner, a
+    # T-shirt effort and the 30-day phase the action belongs to.
+    targetState: "Cost-anomaly alerting configured and routed to an accountable owner"
+    owner: "FinOps / Cloud Finance"
+    effort: S
+    phase: 2
     manual: true

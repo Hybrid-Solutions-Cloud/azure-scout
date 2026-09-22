@@ -12,6 +12,13 @@ rules:
     query: null
     assert: { type: manual }
     remediation: "Confirm abuse monitoring and content filtering are configured on AI Foundry / Azure OpenAI deployments -- Scout does not currently collect this configuration."
+    # AB#6853 — the gap register needs the condition that CLOSES the gap (targetState),
+    # not only the action (remediation); the roadmap needs an accountable owner, a
+    # T-shirt effort and the 30-day phase the action belongs to.
+    targetState: "Abuse monitoring and content filtering configured on every Azure OpenAI / AI Foundry deployment"
+    owner: "AI Platform / Security Engineering"
+    effort: M
+    phase: 2
     manual: true
 
   - id: CGOV-AI-02
@@ -21,4 +28,11 @@ rules:
     query: null
     assert: { type: manual }
     remediation: "Confirm customer-facing AI systems are red-teamed on a recurring cadence. This is a process control with no Azure resource artifact for Scout to read."
+    # AB#6853 — the gap register needs the condition that CLOSES the gap (targetState),
+    # not only the action (remediation); the roadmap needs an accountable owner, a
+    # T-shirt effort and the 30-day phase the action belongs to.
+    targetState: "Customer-facing AI systems red-teamed on a documented recurring cadence"
+    owner: "Security Engineering"
+    effort: L
+    phase: 3
     manual: true

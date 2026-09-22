@@ -28,7 +28,7 @@ azure-scout/
 │   │   ├── master-plan.md              #     Consolidated architecture + work-item index
 │   │   ├── enhancement-spec.md         #     Original v2 assessment-platform spec
 │   │   └── task-list.md                #     Delivery task tracking
-│   ├── public/images/                  #   Banner, icons (VitePress serves /public at the site root)
+│   ├── images/                         #   Banner, icons
 │   ├── index.md                        #   Home page
 │   ├── overview.md                     #   Inventory vs Assessment decision guide (first Getting Started page)
 │   ├── prerequisites.md                #   Inventory-mode prerequisites & modules

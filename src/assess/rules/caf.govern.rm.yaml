@@ -12,4 +12,11 @@ rules:
     query: "$.governance.policyAssignments[*]"
     assert: { type: countGreaterThan, value: 0 }
     remediation: "Confirm tag-enforcement policies specifically (not just any policy assignment) are in place and monitored -- see $.tags on collected resources for actual tag coverage."
+    # AB#6853 — the gap register needs the condition that CLOSES the gap (targetState),
+    # not only the action (remediation); the roadmap needs an accountable owner, a
+    # T-shirt effort and the 30-day phase the action belongs to.
+    targetState: "Tag-enforcement policies assigned at every landing-zone root and monitored for compliance"
+    owner: "Governance lead"
+    effort: M
+    phase: 2
     manual: false

@@ -348,7 +348,9 @@ Function Invoke-AzureScout {
             # Inventory-mode formats
             'All', 'Excel', 'Json', 'Markdown', 'AsciiDoc', 'MD', 'Adoc', 'PowerBI',
             # Assessment-mode formats (-Assessment)
-            'Html', 'Pptx', 'JsonEvidence', 'React', 'Pdf', 'Word', 'EChartsDashboard')]
+            # AB#6863: GovernanceReport was missing here as well as from the All list, so it
+            # could not be requested explicitly either.
+            'Html', 'Pptx', 'JsonEvidence', 'React', 'Pdf', 'Word', 'EChartsDashboard', 'GovernanceReport')]
         [string[]]$OutputFormat = @('All'),
         # ── Assessment mode (AB#5540, per AB#5024) ───────────────────────────
         # Supplying -Assessment switches this command from inventory to the
@@ -574,7 +576,7 @@ Function Invoke-AzureScout {
     if ($Assessment -or $CollectOnly.IsPresent -or $FromCollect) {
         $inventoryOnlyFormats = @($OutputFormat) | Where-Object { $_ -in @('Markdown', 'MD', 'AsciiDoc', 'Adoc') }
         if ($inventoryOnlyFormats) {
-            throw "-OutputFormat $($inventoryOnlyFormats -join ', ') is inventory-only and cannot be used with -Assessment. Assessment formats: Html, Pptx, PowerBI, Excel, Json, JsonEvidence, React, Pdf, Word, EChartsDashboard, All."
+            throw "-OutputFormat $($inventoryOnlyFormats -join ', ') is inventory-only and cannot be used with -Assessment. Assessment formats: Html, Pptx, PowerBI, Excel, Json, JsonEvidence, React, Pdf, Word, EChartsDashboard, GovernanceReport, All."
         }
 
         # -FromCollect re-assesses an existing collect.json offline, so it must
@@ -623,7 +625,7 @@ Function Invoke-AzureScout {
     # renderers in one run. The inventory report writers below were written
     # against a scalar, so resolve the requested formats to flags once here.
     $requestedFormats = @($OutputFormat)
-    $assessmentOnlyFormats = $requestedFormats | Where-Object { $_ -in @('Html', 'Pptx', 'JsonEvidence', 'React', 'Pdf', 'Word', 'EChartsDashboard') }
+    $assessmentOnlyFormats = $requestedFormats | Where-Object { $_ -in @('Html', 'Pptx', 'JsonEvidence', 'React', 'Pdf', 'Word', 'EChartsDashboard', 'GovernanceReport') }
     if ($assessmentOnlyFormats) {
         throw "-OutputFormat $($assessmentOnlyFormats -join ', ') is an assessment format. Add -Assessment to run the CAF/WAF assessment, or choose an inventory format: All, Excel, Json, Markdown, AsciiDoc, PowerBI."
     }

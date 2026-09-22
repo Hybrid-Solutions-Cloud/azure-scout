@@ -1,7 +1,7 @@
 # Azure Scout — Reporting Module Rebuild
 
 **Epic:** AB#6450 — Enhance the reporting engine with new formats
-**Status:** ACTIVE — board structure created 2026-08-02 (Features AB#6865, AB#6869, AB#6874, AB#6878, AB#6881, AB#6884, AB#6887)
+**Status:** DRAFT — plan under construction, not approved
 **Author:** drafted 2026-08-01
 
 ---
@@ -145,8 +145,7 @@ report's figures are.
 
 Take the BECU Word/PPTX/XLSX apart section by section and write down, per section: the data it
 needs, whether Scout can supply it today, and what it would take. This converts "make it
-better" into a checklist. A partial teardown exists on the unmerged `feat/ab6450-reporting-v2`
-branch (`pmo/plans/reporting-engine-v2.md` §2) — carry it across and finish it.
+better" into a checklist. Partially done in `docs/design/reporting-engine-v2.md` §2 — finish it.
 
 ## 5. One report per assessment — the structural change
 
