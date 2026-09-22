@@ -119,14 +119,19 @@ failure this document exists to prevent.
 
 | State | Clauses |
 |---|---|
-| **Asserted and passing** | `W-01`–`W-11`, `W-13`, `W-17`; `P-01`, `P-02`, `P-05`; `X-03`; `B-01`–`B-05`; `R-04` |
-| **Asserted elsewhere** | `R-01`, `R-02` — `tests/Report.PerAssessmentContract.Tests.ps1` |
-| **Not yet asserted** | `W-12`; `P-03`, `P-04`; `X-01`, `X-02`, `X-04`, `X-05`; `D-01`–`D-03`; `R-03` |
+| **Asserted and passing** | `W-01`–`W-13`, `W-17`; `P-01`–`P-05`; `X-01`–`X-05`; `D-01`–`D-03`; `B-01`–`B-05`; `R-04` |
+| **Asserted elsewhere** | `R-01`, `R-02`, `R-03` — `tests/Report.PerAssessmentContract.Tests.ps1` |
 | **Judged, never automatic** | `W-14`, `W-15`, `W-16`, `P-06` |
 
-The `D` clauses are blocked on diagram rasterisation (`AB#6737`), and `W-12` is blocked behind
-them: a document cannot embed a figure the pipeline does not produce as an image. That
-dependency is the reason those four sit together.
+Every `automatic` clause in this document is now asserted. The four `judged` ones are not
+oversights — they need a human reading the artefact beside the reference deliverable, and
+automating a proxy for them would recreate the false-green problem the bar exists to prevent.
+
+The `D` clauses were blocked on diagram rasterisation (`AB#6737`), and `W-12` behind them: a
+document cannot embed a figure the pipeline does not produce as an image. That is closed —
+`src/report/Build-ScoutFigure.ps1` rasterises to PNG in managed code, with no Graphviz, no
+headless browser and no `System.Drawing`, because a report that loses its figures on a machine
+missing a native binary is worse than one that never promised them.
 
 **One thing the Power BI clauses cannot prove here.** `B-01`–`B-05` are asserted against the
 emitted PBIP project's files — the TMDL parses as the shape it claims, the relationships name
