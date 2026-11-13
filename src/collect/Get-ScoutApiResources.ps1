@@ -266,6 +266,26 @@ function Get-ScoutApiResources {
 
     $resourceHealthSince = (Get-Date).AddMonths(-6)
 
+    # See the policy block in the subscription loop below.
+    $builtInPolicyCatalogRead = $false
+    $builtInPolicySetCatalogRead = $false
+    $customPolicyFilter = '&$filter=' + [uri]::EscapeDataString("policyType -eq 'Custom'")
+
+    function Select-ScoutCustomPolicyRow {
+        # Keeps only customer-authored definitions. This is the guarantee; the server-side
+        # $filter above is the optimisation, so the result is correct even if a cloud ignores it.
+        # $null (the call failed) stays $null so the failure is still visible downstream.
+        param($Row)
+        if ($null -eq $Row) { return $null }
+        $kept = @(@($Row) | Where-Object {
+            if ($null -eq $_) { return $false }
+            $properties = if ($_.PSObject.Properties['properties']) { $_.properties } else { $null }
+            $policyType = if ($properties -and $properties.PSObject.Properties['policyType']) { [string]$properties.policyType } else { '' }
+            $policyType -notin @('BuiltIn', 'Static')
+        })
+        return , $kept
+    }
+
     $results = foreach ($subscription in $Subscriptions) {
         $subId   = $subscription.id
         $subName = if ($subscription.PSObject.Properties['name']) { $subscription.name } else { $subId }
@@ -325,10 +345,39 @@ function Get-ScoutApiResources {
                 $policyAssignments = Invoke-ScoutApiCall -Method 'POST' -FieldName 'PolicyAssignments' -SubscriptionName $subName `
                     -Uri "$base/Microsoft.PolicyInsights/policyStates/latest/summarize?api-version=2019-10-01"
             }
-            $policySetDefinitions = Invoke-ScoutApiCall -FieldName 'PolicySetDefinitions' -SubscriptionName $subName `
-                -Uri "$base/Microsoft.Authorization/policySetDefinitions?api-version=2023-04-01"
-            $policyDefinitions = Invoke-ScoutApiCall -FieldName 'PolicyDefinitions' -SubscriptionName $subName `
-                -Uri "$base/Microsoft.Authorization/policyDefinitions?api-version=2023-04-01"
+            # Microsoft's built-in policy catalog is identical in every subscription of a tenant.
+            # The unfiltered list returns that whole catalog (about 3,700 definitions and 190
+            # initiatives) plus the subscription's own custom ones, so listing it per subscription
+            # downloaded and stored the same catalog once for every subscription: a nine-
+            # subscription tenant produced 33,291 definition rows of which 3,699 were distinct.
+            # Read the catalog from the first subscription that answers, then ask every later
+            # subscription for its custom definitions only.
+            $setUri = "$base/Microsoft.Authorization/policySetDefinitions?api-version=2023-04-01"
+            $definitionUri = "$base/Microsoft.Authorization/policyDefinitions?api-version=2023-04-01"
+
+            if ($builtInPolicySetCatalogRead) {
+                $policySetDefinitions = Invoke-ScoutApiCall -FieldName 'PolicySetDefinitions' -SubscriptionName $subName -Uri ($setUri + $customPolicyFilter)
+                if ($null -eq $policySetDefinitions) {
+                    $policySetDefinitions = Invoke-ScoutApiCall -FieldName 'PolicySetDefinitions' -SubscriptionName $subName -Uri $setUri
+                }
+                $policySetDefinitions = Select-ScoutCustomPolicyRow -Row $policySetDefinitions
+            }
+            else {
+                $policySetDefinitions = Invoke-ScoutApiCall -FieldName 'PolicySetDefinitions' -SubscriptionName $subName -Uri $setUri
+                if ($null -ne $policySetDefinitions) { $builtInPolicySetCatalogRead = $true }
+            }
+
+            if ($builtInPolicyCatalogRead) {
+                $policyDefinitions = Invoke-ScoutApiCall -FieldName 'PolicyDefinitions' -SubscriptionName $subName -Uri ($definitionUri + $customPolicyFilter)
+                if ($null -eq $policyDefinitions) {
+                    $policyDefinitions = Invoke-ScoutApiCall -FieldName 'PolicyDefinitions' -SubscriptionName $subName -Uri $definitionUri
+                }
+                $policyDefinitions = Select-ScoutCustomPolicyRow -Row $policyDefinitions
+            }
+            else {
+                $policyDefinitions = Invoke-ScoutApiCall -FieldName 'PolicyDefinitions' -SubscriptionName $subName -Uri $definitionUri
+                if ($null -ne $policyDefinitions) { $builtInPolicyCatalogRead = $true }
+            }
         }
 
         [pscustomobject]@{

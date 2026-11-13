@@ -41,6 +41,23 @@ When something goes wrong, read the log before re-running anything.
 | `scout-run.log` | Structured detailed log: run metadata; DEBUG/VERBOSE extraction subphases; collector status, rows, and elapsed time; processing and assessment timing; per-rule evidence counts; renderer completion; warnings; and, on failure, the full error record including script, line, and stack trace. This detail is written by default without enabling console `-Debug` or `-Verbose`. |
 | `scout-console.log` | Transcript of everything printed to the console, warnings included. Skipped on hosts that do not support transcription (including Azure Automation) |
 
+### Azure SDK request detail
+
+For each Azure call, the Az modules can emit about fifty debug records: the token steps, the
+HTTP request, and the full response body. Scout writes that detail to `scout-run.log` only
+when it explains a problem: the call threw, or Azure answered with HTTP 400 or above. A
+successful call adds one line with the dataset, status, attempts and elapsed time.
+
+To capture the full SDK detail for every call, including successful ones, use either:
+
+```powershell
+Invoke-AzureScout -Debug                 # also prints it to the console
+$env:AZURESCOUT_SDK_TRACE = '1'          # log file only; set before the run
+```
+
+Expect a much larger log and a slower scan with the trace on. Response bodies can contain
+configuration values, so treat a traced log as sensitive.
+
 Both land next to the live outputs:
 
 ```

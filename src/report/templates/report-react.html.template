@@ -777,6 +777,7 @@ function categoryBlocksFor(k, v){
   var headCells = cols.map(function(c){ return '<th>'+esc(c)+' ⇅</th>'; }).join('')+'<th>subscription ⇅</th>';
   var table = '<div class="catwrap"><input class="tfilter" placeholder="Filter '+esc(catLeaf(v.label||k)).toLowerCase()+'… (any column)"><div class="twrap"><table><tr>'+headCells+'</tr>'+trs+'</table></div>'+capNote+'</div>';
   var unitNote = '<p class="lede small">'+n(v.count)+' '+esc(v.countUnit||'rows')+(v.resourceCount!=null?' · '+n(v.resourceCount)+' distinct resource identities':'')+'. Rows may describe child objects; dataset totals are not an estate resource count.</p>';
+  if(v.note) unitNote += '<div class="note">'+esc(v.note)+'</div>';
   var execNote = '<p class="lede small depth-exec">'+n(v.count)+' item'+(v.count===1?'':'s')+' collected. Switch to <b>Consultant</b> to browse a sample of '+Math.min(cap,rows.length)+', or <b>Data</b> for every row.</p>';
   return unitNote+execNote+'<div class="depth-cons"><button type="button" class="btn" data-inventory-export="'+esc(k)+'">Export all rows as CSV</button>'+table+'</div>';
 }

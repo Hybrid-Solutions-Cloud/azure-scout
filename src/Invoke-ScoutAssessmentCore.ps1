@@ -368,6 +368,24 @@ function Invoke-ScoutAssessmentCore {
 
         # ingest third-party collectors declared by the chosen assessments
         $ingestors = if ($InventoryOnly) { @() } else { $Assessment | ForEach-Object { $manifest[$_].Ingest } | Select-Object -Unique }
+
+        # An inventory-only report runs no assessment, so it declares no ingestors. That used to
+        # mean data the inventory pass had already collected never reached the report: one field
+        # scan gathered 211 Advisor recommendations and 2 service-retirement notices and its
+        # React report showed none of them. Both are already in memory, so attaching them makes
+        # no Azure call and keeps this path network-free.
+        if ($InventoryOnly -and $FromInventory) {
+            if ($FromInventory.PSObject.Properties['Advisories']) {
+                $collect = Import-AdvisorScores -Collect $collect -FromInventory @($FromInventory.Advisories)
+            }
+            if ($FromInventory.PSObject.Properties['Retirements']) {
+                $retirementRows = @($FromInventory.Retirements | Where-Object { $null -ne $_ })
+                if ($retirementRows.Count -gt 0) {
+                    $collect | Add-Member -NotePropertyName serviceRetirements -NotePropertyValue $retirementRows -Force
+                }
+            }
+        }
+
         foreach ($i in $ingestors) {
             Write-ScoutAssessmentProgress -Status "Ingesting: $i" -PercentComplete 20
             $ingestTimer = [System.Diagnostics.Stopwatch]::StartNew()

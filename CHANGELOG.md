@@ -7,6 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Scans no longer spend most of their time writing the run log. Since 3.17.1 every Azure SDK
+  call was captured at debug level (about fifty records per call) and every record reopened
+  the log file; a nine-subscription field scan spent 121 of its 148 minutes doing that. The
+  log is now written through one open handle, and SDK wire-level detail is written only when a
+  call throws or returns HTTP 400 or above. Run with `-Debug`, or set `AZURESCOUT_SDK_TRACE=1`,
+  to capture it for every call. AB#9298 AB#9300.
+- Effective NSG and effective route lookups for network interfaces now complete. Every
+  `202 Accepted` answer was reported as having no `Location` header because the response
+  headers were unrolled on the way out of a helper function; all 26 lookups in the field scan
+  failed. AB#9299.
+- The built-in Azure Policy catalog is read once per tenant instead of once per subscription.
+  A nine-subscription tenant stored 33,291 policy definition rows of which 3,699 were distinct.
+- The React report lists the policy definitions and initiatives the tenant assigns, evaluates
+  or authored, and says how many unused Microsoft built-ins it left out. The complete catalog
+  stays in `collect.json`, `evidence.json` and `raw-inventory.json`. The same field scan
+  re-renders at 26.6 MB instead of 100.7 MB.
+- Inventory-only React reports now show the management-group hierarchy. The report read a
+  field that only assessment runs fill, so a tenant with thirteen management groups showed
+  "Management groups: 0", an empty Tenant structure page and no management-group diagram.
+- The report's Tenant field shows the tenant's name (from the Entra organization record, then
+  the root management group, then the tenant ID). It previously fell back to the name of the
+  first subscription. Portal links now carry the tenant ID.
+- Inventory-only React reports include the Advisor recommendations and service-retirement
+  notices the scan collected. One field scan gathered 211 recommendations and showed none.
+- Defender regulatory compliance on a subscription without a paid Defender plan is recorded
+  as unavailable without a warning; it is the subscription's tier, not a failed read.
+- Resource types that Azure exposes only through Resource Graph (patch assessment and
+  installation results, for example) are recorded as not applicable for per-resource detail
+  instead of unavailable, so they no longer mark discovery as partial.
+- Guided menu: network diagrams are selected by default; the `Quota usage` option, which
+  changed nothing, is removed; inventory-only runs can set the report cover identity; and
+  data-gated assessments look for earlier runs in the default report directory.
+
 ## [3.17.1] - 2026-09-18 - faster assessment and complete diagnostics
 
 ### Fixed

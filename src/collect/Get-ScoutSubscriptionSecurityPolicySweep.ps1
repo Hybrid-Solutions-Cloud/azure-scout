@@ -93,7 +93,14 @@ function Get-ScoutSubscriptionSecurityPolicySweep {
                     $ProviderRegistrationIsUnavailable -and
                     $message -match '(?i)MissingSubscriptionRegistration|SubscriptionNotRegistered|not registered.+Microsoft\.Security|Microsoft\.Security.+not registered|register to Microsoft\.Security'
 
-                if ($providerUnavailable) {
+                # Regulatory compliance exists only on subscriptions with a paid Defender for Cloud
+                # plan. On the free tier Azure answers "Regulatory compliance is not supported for
+                # subscription '<id>' as it has no standard pricing bundle". That is the state of
+                # the subscription, not a failed read: one field tenant raised this warning for
+                # eight of its nine subscriptions on every scan.
+                $notOfferedOnThisTier = $message -match '(?i)Regulatory compliance is not supported for subscription.+no standard pricing bundle'
+
+                if ($providerUnavailable -or $notOfferedOnThisTier) {
                     return [pscustomobject]@{
                         Data   = @()
                         Status = 'Unavailable'

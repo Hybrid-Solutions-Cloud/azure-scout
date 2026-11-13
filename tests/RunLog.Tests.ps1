@@ -74,20 +74,98 @@ Describe 'Always-on diagnostic capture' {
         $text | Should -Match 'private verbose detail'
     }
 
-    It 'captures SDK streams without contaminating returned data and redacts credentials' {
+    It 'captures SDK streams without contaminating returned data and redacts credentials when a full trace is requested' {
         $DebugPreference = 'SilentlyContinue'
         $VerbosePreference = 'SilentlyContinue'
-        $result = @(Invoke-ScoutDiagnosticOperation -Operation {
-            Microsoft.PowerShell.Utility\Write-Debug 'Authorization: Bearer fake-sensitive-token'
-            Microsoft.PowerShell.Utility\Write-Verbose 'SDK request completed'
-            [pscustomobject]@{ id = 'resource-one' }
-        })
+        $previousTrace = $env:AZURESCOUT_SDK_TRACE
+        $env:AZURESCOUT_SDK_TRACE = '1'
+        try {
+            $result = @(Invoke-ScoutDiagnosticOperation -Operation {
+                Microsoft.PowerShell.Utility\Write-Debug 'Authorization: Bearer fake-sensitive-token'
+                Microsoft.PowerShell.Utility\Write-Verbose 'SDK request completed'
+                [pscustomobject]@{ id = 'resource-one' }
+            })
+        }
+        finally { $env:AZURESCOUT_SDK_TRACE = $previousTrace }
         $result.Count | Should -Be 1
         $result[0].id | Should -Be 'resource-one'
         $text = Get-Content (Join-Path $script:DiagnosticDir 'scout-run.log') -Raw
         $text | Should -Match 'SDK request completed'
         $text | Should -Match 'REDACTED'
         $text | Should -Not -Match 'fake-sensitive-token'
+    }
+
+    It 'does not write SDK wire detail for a successful call unless a trace is requested' {
+        # The 2026-10-05 field run spent 121 of 148 minutes writing ~50 SDK debug records for
+        # each of 609 successful Azure calls. A successful call must cost the log nothing here.
+        $DebugPreference = 'SilentlyContinue'
+        $VerbosePreference = 'SilentlyContinue'
+        $previousTrace = $env:AZURESCOUT_SDK_TRACE
+        $env:AZURESCOUT_SDK_TRACE = $null
+        try {
+            $result = @(Invoke-ScoutDiagnosticOperation -Operation {
+                Microsoft.PowerShell.Utility\Write-Debug 'MSAL token cache detail'
+                Microsoft.PowerShell.Utility\Write-Verbose 'HTTP RESPONSE body detail'
+                [pscustomobject]@{ StatusCode = 200; Content = '{}' }
+            })
+        }
+        finally { $env:AZURESCOUT_SDK_TRACE = $previousTrace }
+        $result.Count | Should -Be 1
+        $text = Get-Content (Join-Path $script:DiagnosticDir 'scout-run.log') -Raw
+        $text | Should -Not -Match 'MSAL token cache detail'
+        $text | Should -Not -Match 'HTTP RESPONSE body detail'
+    }
+
+    It 'writes the held SDK detail when the call returns an HTTP failure status' {
+        $DebugPreference = 'SilentlyContinue'
+        $previousTrace = $env:AZURESCOUT_SDK_TRACE
+        $env:AZURESCOUT_SDK_TRACE = $null
+        try {
+            $result = @(Invoke-ScoutDiagnosticOperation -Operation {
+                Microsoft.PowerShell.Utility\Write-Debug 'request detail for the failing call; Authorization: Bearer leaked-token'
+                [pscustomobject]@{ StatusCode = 400; Content = '{"error":"bad"}' }
+            })
+        }
+        finally { $env:AZURESCOUT_SDK_TRACE = $previousTrace }
+        $result[0].StatusCode | Should -Be 400
+        $text = Get-Content (Join-Path $script:DiagnosticDir 'scout-run.log') -Raw
+        $text | Should -Match 'request detail for the failing call'
+        $text | Should -Not -Match 'leaked-token'
+    }
+
+    It 'writes the held SDK detail when the call throws' {
+        $DebugPreference = 'SilentlyContinue'
+        $previousTrace = $env:AZURESCOUT_SDK_TRACE
+        $env:AZURESCOUT_SDK_TRACE = $null
+        try {
+            { Invoke-ScoutDiagnosticOperation -Operation {
+                Microsoft.PowerShell.Utility\Write-Debug 'request detail before the exception'
+                throw 'service unavailable'
+            } } | Should -Throw '*service unavailable*'
+        }
+        finally { $env:AZURESCOUT_SDK_TRACE = $previousTrace }
+        $text = Get-Content (Join-Path $script:DiagnosticDir 'scout-run.log') -Raw
+        $text | Should -Match 'request detail before the exception'
+    }
+
+    It 'always keeps SDK warnings' {
+        $previousTrace = $env:AZURESCOUT_SDK_TRACE
+        $env:AZURESCOUT_SDK_TRACE = $null
+        try {
+            $null = Invoke-ScoutDiagnosticOperation -Operation {
+                Microsoft.PowerShell.Utility\Write-Warning 'throttled, retrying' -WarningAction Continue 3>&1
+                [pscustomobject]@{ StatusCode = 200 }
+            } 3>$null
+        }
+        finally { $env:AZURESCOUT_SDK_TRACE = $previousTrace }
+        (Get-Content (Join-Path $script:DiagnosticDir 'scout-run.log') -Raw) | Should -Match 'throttled, retrying'
+    }
+
+    It 'keeps one writer open instead of reopening the file for every record' {
+        1..200 | ForEach-Object { Write-AZSCLog -Level INFO -Message "row $_" }
+        $script:AZSCRunLogWriter | Should -Not -BeNullOrEmpty
+        $lines = @(Get-Content (Join-Path $script:DiagnosticDir 'scout-run.log') | Where-Object { $_ -match '\] row \d+$' })
+        $lines.Count | Should -Be 200
     }
 
     It 'preserves terminating SDK failures and their detailed service body' {
