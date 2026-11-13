@@ -236,9 +236,15 @@ function Start-AZSCWizard {
         $answers.Category = if ($categories.Count -eq $inventoryCategories.Count) { @('All') } else { $categories }
 
         Write-Host ''
+        # Every item here changes what the run does. 'Quota usage' used to be listed, but
+        # -QuotaUsage is read nowhere in the pipeline: VM quota is gathered on every run as part
+        # of VM details, so the checkbox did nothing whether ticked or not (AB#7104). A menu item
+        # that does nothing is removed rather than explained.
+        # Network diagrams are on by default: they are a headline deliverable, and leaving the
+        # box unticked silently added -SkipDiagram to every run that accepted the defaults.
         $extras = Read-AZSCWizardChecklist -Title 'Optional report and enrichment features' -Items @(
-            'Include resource tags in reports', 'Security Center findings', 'Cost data', 'Quota usage', 'Network diagrams'
-        ) -DefaultSelected @('Include resource tags in reports')
+            'Include resource tags in reports', 'Security Center findings', 'Cost data', 'Network diagrams'
+        ) -DefaultSelected @('Include resource tags in reports', 'Network diagrams')
         if ($null -eq $extras) { return $null }
         if ($extras -contains 'Include resource tags in reports') { $answers.IncludeTags = [switch]$true }
         if ($extras -contains 'Security Center findings')  { $answers.SecurityCenter = [switch]$true }
@@ -268,15 +274,6 @@ function Start-AZSCWizard {
                 $answers.IncludeCosts = [switch]$true
             }
         }
-        # AB#7104 -- Invoke-AzureScout's -QuotaUsage switch is declared but never read anywhere
-        # in the pipeline: VM quota usage is gathered unconditionally as part of VM details
-        # (gated only by the undocumented -SkipVMDetails, which the wizard does not offer). So
-        # this checkbox cannot no-op the way an uninstalled Az.CostManagement can -- it is
-        # already a no-op in BOTH directions, and setting -QuotaUsage on the command line would
-        # print a flag that does nothing. Tell the operator the truth instead of the flag.
-        Write-Host ''
-        Write-Host '  Note: VM quota usage is already gathered on every run as part of VM details' -ForegroundColor DarkGray
-        Write-Host '  (this checkbox does not change that yet -- AB#7104).' -ForegroundColor DarkGray
         if ($extras -notcontains 'Network diagrams')       { $answers.SkipDiagram = [switch]$true }
     }
 
@@ -325,11 +322,19 @@ function Start-AZSCWizard {
         # prerequisite independently, so a user naming -Assessment SMART explicitly still gets an
         # honest Unknown rather than a fabricated pass.
         if ($assessmentManifest) {
+            # Look where runs are actually written. This used to search only
+            # Documents\AzureScout, but the wizard's own default report directory is
+            # C:\AzureScout on Windows and ~/AzureScout elsewhere, so on a default install the
+            # search found nothing and every data-gated assessment stayed hidden for good.
             $latestCollect = $null
             try {
-                $latestCollect = Get-ChildItem -Path (Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'AzureScout') `
-                    -Filter 'collect.json' -Recurse -File -ErrorAction SilentlyContinue |
-                    Sort-Object LastWriteTime -Descending | Select-Object -First 1
+                $collectRoots = @(
+                    $(if ($IsWindows) { 'C:\AzureScout' } else { Join-Path "$HOME" 'AzureScout' })
+                    (Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'AzureScout')
+                ) | Where-Object { $_ -and (Test-Path -LiteralPath $_ -PathType Container) } | Select-Object -Unique
+                $latestCollect = $collectRoots | ForEach-Object {
+                    Get-ChildItem -LiteralPath $_ -Filter 'collect.json' -Recurse -File -ErrorAction SilentlyContinue
+                } | Sort-Object LastWriteTime -Descending | Select-Object -First 1
             }
             catch { $latestCollect = $null }
 
@@ -380,14 +385,16 @@ function Start-AZSCWizard {
     $dir = Read-AZSCWizardText -Prompt 'Report directory' -Default $defaultDir
     if ($dir) { $answers.ReportDir = $dir }
 
-    # AB#6930 -- report identity, wizard parity with -ReportIdentity. Only asked for an
-    # assessment run: the identity block is the React report's cover/header, and inventory-only
-    # runs never reach that renderer. Every prompt defaults to blank (Enter accepts it), and a
-    # blank answer is simply never added to the hashtable -- Export-React's own neutral defaults
+    # AB#6930 -- report identity, wizard parity with -ReportIdentity. Asked whenever the React
+    # report will be produced: the identity block is that report's cover/header. Inventory-only
+    # runs render the React report too (they have since 3.11.0), so gating this on an assessment
+    # left every inventory report with a blank client name and no way to set one from the menu.
+    # Every prompt defaults to blank (Enter accepts it), and a blank answer is simply never
+    # added to the hashtable -- Export-React's own neutral defaults
     # (Get-ScoutReportIdentityDefault) fill anything the operator skipped, so this step can be
     # skipped in full with four Enters and the report still reads as neutral, never as this
     # product's own name.
-    if ($wantsAssessment) {
+    if ($formats -contains 'React') {
         Write-Host ''
         Write-Host '  Report identity (optional -- blank uses a neutral default; Enter to skip)' -ForegroundColor White
         $reportIdentity = @{}

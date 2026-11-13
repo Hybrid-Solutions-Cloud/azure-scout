@@ -115,4 +115,55 @@ Describe 'Inventory-only live renderers' {
         $html | Should -Match '"entra"\s*:\s*true'
         $html | Should -Match '"assessments"\s*:\s*false'
     }
+
+    It 'carries Advisor recommendations and service retirements the inventory pass already collected' {
+        # Field scan 2026-10-05: 211 Advisor recommendations and 2 retirement notices were
+        # collected and the inventory-only React report contained none of them, because that
+        # path ran no ingestors. Both are in memory already, so no Azure call is needed.
+        $inventoryRoot = Join-Path $script:outRoot 'inventory-only-advisor'
+        $result = & $script:Module {
+            param($outRoot)
+
+            Mock Search-AzGraph { throw 'Inventory-only rendering attempted Resource Graph.' }
+            Mock Get-AzAdvisorRecommendation { throw 'Inventory-only rendering attempted the Advisor API.' }
+            Mock Get-ScoutDefenderPlanSweep { throw 'Inventory-only rendering attempted Defender ARM.' }
+            Mock Get-ScoutExternalIdentitiesPolicy { throw 'Inventory-only rendering attempted Graph.' }
+            Mock Invoke-Assessment { throw 'Inventory-only rendering attempted assessment rules.' }
+
+            $subscription = '11111111-1111-1111-1111-111111111111'
+            $raw = [pscustomobject]@{
+                Resources = @([pscustomobject]@{
+                    id = "/subscriptions/$subscription/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm1"
+                    name = 'vm1'; type = 'microsoft.compute/virtualmachines'; subscriptionId = $subscription
+                    resourceGroup = 'rg'; location = 'eastus'; properties = [pscustomobject]@{}
+                })
+                ResourceContainers = @([pscustomobject]@{
+                    id = $subscription; name = 'Subscription One'
+                    type = 'microsoft.resources/subscriptions'; subscriptionId = $subscription
+                    properties = [pscustomobject]@{ state = 'Enabled' }; tags = $null
+                })
+                EntraResources = @()
+                Advisories = @(
+                    [pscustomobject]@{ subscriptionId = $subscription; properties = [pscustomobject]@{
+                        category = 'Cost'; impact = 'High'; impactedField = 'Microsoft.Compute/virtualMachines'; impactedValue = 'vm1'
+                        shortDescription = [pscustomobject]@{ problem = 'Right-size or shut down underutilized virtual machines'; solution = 'Resize vm1' } } }
+                    [pscustomobject]@{ subscriptionId = $subscription; properties = [pscustomobject]@{
+                        category = 'Security'; impact = 'Medium'; impactedField = 'Microsoft.Compute/virtualMachines'; impactedValue = 'vm1'
+                        shortDescription = [pscustomobject]@{ problem = 'Enable disk encryption'; solution = 'Encrypt' } } }
+                )
+                Retirements = @([pscustomobject]@{ ServiceName = 'Example retiring service'; RetirementDate = '2027-03-31'; subscriptionId = $subscription })
+            }
+
+            Invoke-ScoutAssessmentCore -InventoryOnly -FromInventory $raw -Scope All -OutputFormat React,JsonEvidence -OutputPath $outRoot
+        } $inventoryRoot
+
+        $evidence = Get-Content (Join-Path $result 'evidence.json') -Raw | ConvertFrom-Json -Depth 100
+        @($evidence.advisor).Count | Should -Be 2
+        @($evidence.advisor | Where-Object Category -eq 'Cost')[0].ShortDescriptionProblem | Should -Match 'Right-size'
+        @($evidence.serviceRetirements).Count | Should -Be 1
+
+        $html = Get-Content (Join-Path $result 'report-react.html') -Raw
+        $html | Should -Match 'Right-size or shut down underutilized virtual machines'
+        $html | Should -Match 'Example retiring service'
+    }
 }

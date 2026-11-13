@@ -222,10 +222,71 @@ function Export-React {
     # Root management group's displayName (parent == '') stands in for "tenant display name" --
     # Collect carries no dedicated tenant-name field. Falls back to the first subscription's
     # name, then blank; never throws when governance data wasn't collected.
-    $mgRows = @(Get-ReactSafeProp $Collect @('governance', 'managementGroups'))
+    $mgRows = @(Get-ReactSafeProp $Collect @('governance', 'managementGroups') | Where-Object { $null -ne $_ })
+
+    # governance.managementGroups is filled only by the Governance ingestor, which runs for
+    # assessments that score governance. An inventory-only run left it empty while the
+    # Management/ManagementGroups collector held the whole hierarchy, so the report showed
+    # "Management groups: 0", an empty Tenant structure page and no management-group diagram for
+    # a tenant with thirteen management groups. When the ingestor did not run, build the same
+    # {name, id, displayName, parent} rows from the collected hierarchy. Parent comes from the
+    # collector's Full Path, which is reliable at every depth.
+    $mgRowsFromInventory = $false
+    if ($mgRows.Count -eq 0) {
+        $processedInventory = Get-ReactSafeProp $Collect @('_reportInventory')
+        $collectedMg = $null
+        if ($processedInventory -is [System.Collections.IDictionary]) {
+            if ($processedInventory.Contains('collected.management.ManagementGroups')) { $collectedMg = $processedInventory['collected.management.ManagementGroups'] }
+        }
+        elseif ($processedInventory) {
+            $collectedMgProperty = $processedInventory.PSObject.Properties['collected.management.ManagementGroups']
+            if ($collectedMgProperty) { $collectedMg = $collectedMgProperty.Value }
+        }
+        $collectedMgRows = @(Get-ReactRowProp $collectedMg 'rows' | Where-Object { $null -ne $_ })
+        $mgNameByPath = @{}
+        foreach ($row in $collectedMgRows) {
+            $path = [string](Get-ReactRowProp $row 'Full Path')
+            $name = [string](Get-ReactRowProp $row 'Management Group ID')
+            if ($path -and $name -and -not $mgNameByPath.ContainsKey($path)) { $mgNameByPath[$path] = $name }
+        }
+        $mgRows = @(foreach ($row in $collectedMgRows) {
+            $name = [string](Get-ReactRowProp $row 'Management Group ID')
+            if ([string]::IsNullOrWhiteSpace($name)) { continue }
+            $path = [string](Get-ReactRowProp $row 'Full Path')
+            $separatorIndex = $path.LastIndexOf(' / ')
+            $parentPath = if ($separatorIndex -gt 0) { $path.Substring(0, $separatorIndex) } else { '' }
+            $displayName = [string](Get-ReactRowProp $row 'Display Name (Raw)')
+            if (-not $displayName) { $displayName = ([string](Get-ReactRowProp $row 'Display Name')).Trim() }
+            [pscustomobject]@{
+                name        = $name
+                id          = "/providers/Microsoft.Management/managementGroups/$name"
+                displayName = if ($displayName) { $displayName } else { $name }
+                parent      = if ($parentPath -and $mgNameByPath.ContainsKey($parentPath)) { $mgNameByPath[$parentPath] } else { '' }
+            }
+        })
+        $mgRowsFromInventory = $mgRows.Count -gt 0
+    }
+
+    # Tenant display name, most specific source first. A subscription name is never used: the
+    # previous fallback labelled a nine-subscription tenant with the name of its first
+    # subscription. The Entra organization record is the tenant's actual name; the root
+    # management group's display name is next unless it is still Azure's default.
+    $entraOrganization = @(Get-ReactSafeProp $Collect @('entraResources') | Where-Object {
+            $null -ne $_ -and [string](Get-ReactRowProp $_ 'TYPE') -ieq 'entra/organization'
+        }) | Select-Object -First 1
+    $organizationName = if ($entraOrganization) { [string](Get-ReactRowProp $entraOrganization 'name') } else { '' }
     $rootMg = $mgRows | Where-Object { $null -ne (Get-ReactRowProp $_ 'parent') -and [string](Get-ReactRowProp $_ 'parent') -eq '' } | Select-Object -First 1
-    $tenantDisplayName = if ($rootMg) { Get-ReactRowProp $rootMg 'displayName' }
-                          elseif ($subscriptions.Count -gt 0) { Get-ReactRowProp $subscriptions[0] 'name' }
+    $rootMgName = if ($rootMg) { [string](Get-ReactRowProp $rootMg 'displayName') } else { '' }
+    $tenantIdFallback = [string](Get-ReactSafeProp $metaSrc @('tenantId'))
+    if (-not $tenantIdFallback -and $entraOrganization) { $tenantIdFallback = [string](Get-ReactRowProp $entraOrganization 'tenantId') }
+    if (-not $tenantIdFallback -and $rootMg) {
+        $rootName = [string](Get-ReactRowProp $rootMg 'name')
+        if ($rootName -match '^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$') { $tenantIdFallback = $rootName }
+    }
+    $tenantDisplayName = if ($organizationName) { $organizationName }
+                          elseif ($rootMgName -and $rootMgName -ne 'Tenant Root Group') { $rootMgName }
+                          elseif ($tenantIdFallback) { $tenantIdFallback }
+                          elseif ($rootMgName) { $rootMgName }
                           else { '' }
 
     # productName/Version/Url read from the module's own manifest rather than hardcoded, so a
@@ -262,6 +323,9 @@ function Export-React {
         generatedOn        = (Get-ReactSafeProp $Findings @('GeneratedOn'))
         runId              = $runId
         tenantDisplayName  = $tenantDisplayName
+        # The template builds Azure portal deep links from this; it was never emitted, so every
+        # "open in portal" link was built without a tenant.
+        tenantId           = $tenantIdFallback
         productName        = 'Azure Scout'
         productVersion     = $productVersion
         productUrl         = $productUrl
@@ -1017,6 +1081,103 @@ function Export-React {
         return ($titled -join ' → ')
     }
     $inventory = [ordered]@{}
+
+    # ---- policy catalog scoping ------------------------------------------------------------------
+    # The report describes the customer's tenant. Microsoft's built-in policy catalog (about
+    # 3,700 definitions and 190 initiatives) is identical in every tenant, and embedding all of
+    # it made the policy tables two thirds of a 100 MB report while saying nothing about the
+    # customer. The report keeps what the tenant actually uses or authored:
+    #   - every custom definition and initiative,
+    #   - every definition or initiative an assignment points at,
+    #   - every definition that is a member of an assigned or custom initiative,
+    #   - every definition or initiative a compliance record refers to.
+    # Nothing is discarded: collect.json, evidence.json and raw-inventory.json keep the full
+    # catalog, and each trimmed table says how many catalog entries it left out and where they are.
+    function Get-ReactPolicyValue {
+        # Path walk that reads dictionaries as well as objects: the processed inventory is an
+        # ordered dictionary in-process and a PSCustomObject once it has been through JSON.
+        param($Object, [string[]] $Path)
+        $cur = $Object
+        foreach ($seg in $Path) {
+            if ($null -eq $cur) { return $null }
+            if ($cur -is [System.Collections.IDictionary]) {
+                if (-not $cur.Contains($seg)) { return $null }
+                $cur = $cur[$seg]
+                continue
+            }
+            $prop = $cur.PSObject.Properties[$seg]
+            if (-not $prop) { return $null }
+            $cur = $prop.Value
+        }
+        return $cur
+    }
+    function Get-ReactPolicyLeaf {
+        param($Value)
+        $text = [string]$Value
+        if ([string]::IsNullOrWhiteSpace($text)) { return $null }
+        return ($text.TrimEnd('/') -split '/')[-1].ToLowerInvariant()
+    }
+    $policyInUse = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+    $policyGovernance = Get-ReactPolicyValue $Collect @('governance')
+    $policyRawSets = @(Get-ReactPolicyValue $policyGovernance @('policySetDefinitions') | Where-Object { $null -ne $_ })
+    foreach ($assignment in @(Get-ReactPolicyValue $policyGovernance @('policyAssignments') | Where-Object { $null -ne $_ })) {
+        $leaf = Get-ReactPolicyLeaf (Get-ReactPolicyValue $assignment @('properties', 'policyDefinitionId'))
+        if ($leaf) { $null = $policyInUse.Add($leaf) }
+    }
+    $policyProcessed = Get-ReactPolicyValue $Collect @('_reportInventory')
+    foreach ($datasetKey in @('collected.management.PolicyAssignments', 'collected.management.PolicyComplianceStates')) {
+        $dataset = Get-ReactPolicyValue $policyProcessed @($datasetKey)
+        foreach ($row in @(Get-ReactPolicyValue $dataset @('rows') | Where-Object { $null -ne $_ })) {
+            foreach ($column in @('Definition ID', 'Policy Definition ID', 'Policy Set Definition ID')) {
+                $leaf = Get-ReactPolicyLeaf (Get-ReactRowProp $row $column)
+                if ($leaf) { $null = $policyInUse.Add($leaf) }
+            }
+        }
+    }
+    foreach ($set in $policyRawSets) {
+        $setLeaf = Get-ReactPolicyLeaf (Get-ReactPolicyValue $set @('name'))
+        $setType = [string](Get-ReactPolicyValue $set @('properties', 'policyType'))
+        if (-not ($setType -eq 'Custom' -or ($setLeaf -and $policyInUse.Contains($setLeaf)))) { continue }
+        foreach ($member in @(Get-ReactPolicyValue $set @('properties', 'policyDefinitions') | Where-Object { $null -ne $_ })) {
+            $leaf = Get-ReactPolicyLeaf (Get-ReactPolicyValue $member @('policyDefinitionId'))
+            if ($leaf) { $null = $policyInUse.Add($leaf) }
+        }
+    }
+    function Select-ReactPolicyCatalogRow {
+        # Returns @{ rows; omitted }. Works for raw ARM rows (name + properties.policyType) and
+        # for processed collector rows ('Name' + 'Policy Type').
+        param([object[]] $Rows)
+        $kept = [System.Collections.Generic.List[object]]::new()
+        # Runs collected before the per-subscription catalog fix carry one identical copy of each
+        # built-in entry per subscription. A built-in has one tenant-wide identity, so show it once.
+        $builtInSeen = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+        foreach ($row in @($Rows)) {
+            if ($null -eq $row) { continue }
+            $type = [string](Get-ReactPolicyValue $row @('properties', 'policyType'))
+            if (-not $type) { $type = [string](Get-ReactRowProp $row 'Policy Type') }
+            if (-not $type) { $type = [string](Get-ReactRowProp $row 'PolicyType') }
+            $name = Get-ReactPolicyValue $row @('name')
+            if (-not $name) { $name = Get-ReactRowProp $row 'Name' }
+            if (-not $name) { $name = Get-ReactRowProp $row 'Id' }
+            $leaf = Get-ReactPolicyLeaf $name
+            if ($type -notin @('BuiltIn', 'Static')) { $kept.Add($row); continue }
+            if ($leaf -and $policyInUse.Contains($leaf) -and $builtInSeen.Add($leaf)) { $kept.Add($row) }
+        }
+        return @{ rows = $kept.ToArray(); omitted = (@($Rows).Count - $kept.Count) }
+    }
+    function Get-ReactPolicyCatalogNote {
+        param([int] $Kept, [int] $Omitted, [string] $Kind)
+        if ($Omitted -le 0) { return $null }
+        return ('Showing the {0:N0} {1} this tenant assigns, evaluates or authored. {2:N0} unused Microsoft built-in {1} are identical in every tenant and are left out of this report; the complete catalog is in collect.json, evidence.json and raw-inventory.json.' -f $Kept, $Kind, $Omitted)
+    }
+    $policyCatalogKinds = @{
+        'governance.policyDefinitions'                = 'policy definitions'
+        'governance.policySetDefinitions'             = 'policy initiatives'
+        'collected.management.PolicyDefinitions'      = 'policy definitions'
+        'collected.management.PolicySetDefinitions'   = 'policy initiatives'
+        'domains.management.policyInitiatives'        = 'policy initiatives'
+    }
+
     function Add-ReactInventoryCategory {
         param($Node, [string[]] $PathSegments)
         if ($null -eq $Node) { return }
@@ -1024,12 +1185,19 @@ function Export-React {
             $rows = @($Node)
             $key = ($PathSegments -join '.')
             $shown = $rows
+            $note = $null
+            if ($policyCatalogKinds.ContainsKey($key)) {
+                $scoped = Select-ReactPolicyCatalogRow -Rows $rows
+                $shown = @($scoped.rows)
+                $note = Get-ReactPolicyCatalogNote -Kept $shown.Count -Omitted $scoped.omitted -Kind $policyCatalogKinds[$key]
+            }
             $inventory[$key] = [ordered]@{
                 label     = Get-ReactInventoryLabel -PathSegments $PathSegments
-                count     = $rows.Count
+                count     = $shown.Count
                 rows      = $shown
                 truncated = $null
             }
+            if ($note) { $inventory[$key].note = $note }
             return
         }
         if ($Node -is [System.Collections.IDictionary]) {
@@ -1050,6 +1218,33 @@ function Export-React {
     }
     elseif ($processed) {
         foreach ($property in $processed.PSObject.Properties) { $inventory[$property.Name] = $property.Value }
+    }
+    # Processed collector tables for the policy catalog get the same scoping. The entry is
+    # rebuilt rather than edited so the shared $Collect object (and the evidence companions
+    # written from it) keeps every row.
+    foreach ($catalogKey in @('collected.management.PolicyDefinitions', 'collected.management.PolicySetDefinitions')) {
+        if (-not $inventory.Contains($catalogKey)) { continue }
+        $entry = $inventory[$catalogKey]
+        $scoped = Select-ReactPolicyCatalogRow -Rows @(Get-ReactPolicyValue $entry @('rows'))
+        if ($scoped.omitted -le 0) { continue }
+        $rebuilt = [ordered]@{}
+        if ($entry -is [System.Collections.IDictionary]) { foreach ($field in $entry.Keys) { $rebuilt[$field] = $entry[$field] } }
+        else { foreach ($field in $entry.PSObject.Properties) { $rebuilt[$field.Name] = $field.Value } }
+        $rebuilt.rows = @($scoped.rows)
+        $rebuilt.count = @($scoped.rows).Count
+        if ($rebuilt.Contains('resourceCount')) { $rebuilt.resourceCount = $null }
+        $rebuilt.note = Get-ReactPolicyCatalogNote -Kept $rebuilt.count -Omitted $scoped.omitted -Kind $policyCatalogKinds[$catalogKey]
+        $inventory[$catalogKey] = $rebuilt
+    }
+    # See the management-group block near the top: when the Governance ingestor did not run,
+    # the hierarchy the template draws comes from the collected inventory rows.
+    if ($mgRowsFromInventory) {
+        $inventory['governance.managementGroups'] = [ordered]@{
+            label     = Get-ReactInventoryLabel -PathSegments @('governance', 'managementGroups')
+            count     = $mgRows.Count
+            rows      = @($mgRows)
+            truncated = $null
+        }
     }
     if (@($inventory.Keys | Where-Object { $inventory[$_].count -gt 0 }).Count -gt 0) { $ran.inventory = $true }
     if (@($inventory.Keys | Where-Object { $_ -match '^(collected|domains)\.identity\.' -and $inventory[$_].count -gt 0 }).Count -gt 0) { $ran.entra = $true }

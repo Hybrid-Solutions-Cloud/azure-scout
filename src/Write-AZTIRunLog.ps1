@@ -32,6 +32,14 @@ errors. A broken log is a lost diagnostic, not a lost report.
 This PowerShell Module is part of Azure Scout (AZSC).
 #>
 
+# The run log is held open for the life of the run. Opening, appending and closing the file for
+# every record (the previous Add-Content design) cost 25-240 ms per line on real hosts; a run
+# that captured ~50 SDK debug records per Azure call spent about 12 seconds per call writing
+# them, which turned a scan that needed minutes of Azure time into hours.
+$existingRunLogWriter = Get-Variable -Scope Script -Name AZSCRunLogWriter -ValueOnly -ErrorAction Ignore
+if ($existingRunLogWriter) { try { $existingRunLogWriter.Dispose() } catch { $null = $_ } }
+$script:AZSCRunLogWriter = $null
+$script:AZSCRunLogWriterPath = $null
 $script:AZSCRunLogPath = $null
 $script:AZSCTranscriptPath = $null
 $script:AZSCRunLogStart = $null
@@ -45,6 +53,52 @@ function Protect-ScoutLogText {
     $Text = [regex]::Replace($Text, '(?i)(["'']?(?:access_?token|refresh_?token|id_?token|client_?secret|password|accountkey|sharedaccesskey|connectionstring)["'']?\s*[:=]\s*)(?:"[^"]*"|''[^'']*''|[^\s;&,}]+)', '$1[REDACTED]')
     $Text = [regex]::Replace($Text, '(?i)([?&]sig=)[^&\s"'']+', '$1[REDACTED]')
     return $Text
+}
+
+function Close-ScoutRunLogWriter {
+    if ($script:AZSCRunLogWriter) {
+        try { $script:AZSCRunLogWriter.Dispose() } catch { $null = $_ }
+    }
+    $script:AZSCRunLogWriter = $null
+    $script:AZSCRunLogWriterPath = $null
+}
+
+function Add-ScoutRunLogText {
+    # Appends already-redacted text to the active run log through one long-lived writer.
+    # AutoFlush hands every record to the operating system immediately, so a run that dies
+    # still leaves everything it logged on disk; what is avoided is the per-record open/close.
+    # The file is shared for read, write and delete so an operator can tail it during a run.
+    param([Parameter(Mandatory)][AllowEmptyString()][string]$Text)
+
+    if (-not $script:AZSCRunLogPath) { return }
+    if ($script:AZSCRunLogWriter -and $script:AZSCRunLogWriterPath -ne $script:AZSCRunLogPath) {
+        Close-ScoutRunLogWriter
+    }
+    if (-not $script:AZSCRunLogWriter) {
+        $share = [System.IO.FileShare]::ReadWrite -bor [System.IO.FileShare]::Delete
+        $stream = [System.IO.FileStream]::new(
+            $script:AZSCRunLogPath, [System.IO.FileMode]::Append, [System.IO.FileAccess]::Write, $share)
+        $writer = [System.IO.StreamWriter]::new($stream, [System.Text.UTF8Encoding]::new($false))
+        $writer.AutoFlush = $true
+        $script:AZSCRunLogWriter = $writer
+        $script:AZSCRunLogWriterPath = $script:AZSCRunLogPath
+    }
+    try {
+        $script:AZSCRunLogWriter.Write($Text + [Environment]::NewLine)
+    }
+    catch {
+        # Drop the broken handle so the next record reopens the file instead of failing forever.
+        Close-ScoutRunLogWriter
+        throw
+    }
+}
+
+function Test-ScoutSdkTraceEnabled {
+    # Full SDK wire-level capture (MSAL token steps, HTTP request and response bodies) for
+    # every successful call is opt-in: run with -Debug, or set AZURESCOUT_SDK_TRACE=1.
+    param([string]$ConsoleDebugPreference)
+    if ($ConsoleDebugPreference -in @('Continue', 'Inquire')) { return $true }
+    return ([string]$env:AZURESCOUT_SDK_TRACE) -in @('1', 'true', 'True', 'TRUE')
 }
 
 # Private module commands capture Scout diagnostics even when their console streams are
@@ -78,30 +132,57 @@ function Invoke-ScoutDiagnosticOperation {
     param([Parameter(Mandatory)][scriptblock]$Operation)
     # SDK modules have their own scope, so capture their streams at the request boundary.
     # Only success objects leave this function; diagnostic records never become inventory.
+    #
+    # The SDK emits roughly fifty debug records per Azure call (MSAL token steps plus the full
+    # HTTP request and response body). They are held in memory for the duration of the call and
+    # written to the run log only when they are needed to explain something: the call threw, it
+    # returned an HTTP status of 400 or above, or the operator asked for a full trace
+    # (-Debug, or AZURESCOUT_SDK_TRACE=1). A successful call writes nothing here; its caller
+    # already records the dataset, status, attempts and elapsed time. Warnings are always kept.
     $consoleDebug = $DebugPreference
     $consoleVerbose = $VerbosePreference
     $consoleWarning = $WarningPreference
+    $traceEverything = Test-ScoutSdkTraceEnabled -ConsoleDebugPreference $consoleDebug
     $DebugPreference = 'Continue'
     $VerbosePreference = 'Continue'
     $WarningPreference = 'Continue'
+    $held = [System.Collections.Generic.List[string]]::new()
+    $callState = @{ HttpFailure = $false }
+    $writeHeld = {
+        if ($held.Count -eq 0) { return }
+        $stamp = (Get-Date).ToString('yyyy-MM-dd HH:mm:ss.fff')
+        $block = foreach ($entry in $held) { '[{0}] {1}' -f $stamp, (Protect-ScoutLogText -Text $entry) }
+        try { Add-ScoutRunLogText -Text ($block -join [Environment]::NewLine) }
+        catch { Microsoft.PowerShell.Utility\Write-Debug ('Invoke-ScoutDiagnosticOperation: failed to write SDK diagnostics: ' + $_.Exception.Message) }
+        $held.Clear()
+    }
     try {
         & $Operation 3>&1 4>&1 5>&1 | ForEach-Object {
             if ($_ -is [System.Management.Automation.DebugRecord]) {
-                Write-AZSCLog -Level DEBUG -Message $_.Message -FileOnly
+                $held.Add('[DEBUG] ' + $_.Message)
                 if ($consoleDebug -in @('Continue', 'Inquire')) { Microsoft.PowerShell.Utility\Write-Debug (Protect-ScoutLogText $_.Message) }
             }
             elseif ($_ -is [System.Management.Automation.VerboseRecord]) {
-                Write-AZSCLog -Level VERBOSE -Message $_.Message -FileOnly
+                $held.Add('[VERBOSE] ' + $_.Message)
                 if ($consoleVerbose -in @('Continue', 'Inquire')) { Microsoft.PowerShell.Utility\Write-Verbose (Protect-ScoutLogText $_.Message) }
             }
             elseif ($_ -is [System.Management.Automation.WarningRecord]) {
                 Write-AZSCLog -Level WARN -Message $_.Message -FileOnly
                 if ($consoleWarning -ne 'SilentlyContinue') { Microsoft.PowerShell.Utility\Write-Warning (Protect-ScoutLogText $_.Message) }
             }
-            else { $PSCmdlet.WriteObject($_, $false) }
+            else {
+                # Invoke-AzRestMethod reports HTTP failures as a returned object, not an exception.
+                if ($null -ne $_ -and $_ -isnot [string] -and $_.PSObject.Properties['StatusCode']) {
+                    $statusCode = 0
+                    if ([int]::TryParse([string]$_.StatusCode, [ref]$statusCode) -and $statusCode -ge 400) { $callState.HttpFailure = $true }
+                }
+                $PSCmdlet.WriteObject($_, $false)
+            }
         }
+        if ($traceEverything -or $callState.HttpFailure) { & $writeHeld }
     }
     catch {
+        & $writeHeld
         Write-AZSCLog -Level ERROR -Message $_.Exception.Message -FileOnly
         if ($_.ErrorDetails) { Write-AZSCLog -Level ERROR -Message $_.ErrorDetails.Message -FileOnly }
         throw
@@ -126,6 +207,7 @@ function Start-AZSCRunLog {
             $null = New-Item -Path $DefaultPath -ItemType Directory -Force -ErrorAction Stop
         }
 
+        Close-ScoutRunLogWriter
         $script:AZSCRunLogPath = Join-Path $DefaultPath 'scout-run.log'
         $script:AZSCRunLogStart = Get-Date
 
@@ -260,7 +342,7 @@ function Write-AZSCLog {
                 }
             }
         }
-        Add-Content -Path $script:AZSCRunLogPath -Value (Protect-ScoutLogText -Text ($Lines -join "`n")) -Encoding UTF8 -ErrorAction Stop
+        Add-ScoutRunLogText -Text (Protect-ScoutLogText -Text ($Lines -join "`n"))
     }
     catch {
         # Deliberately silent: a failed log write must not derail the run.
@@ -377,6 +459,7 @@ function Stop-AZSCRunLog {
         Write-Host $Path -ForegroundColor Cyan
     }
 
+    Close-ScoutRunLogWriter
     $script:AZSCRunLogPath = $null
     $script:AZSCRunLogStart = $null
     $script:AZSCPendingLog.Clear()

@@ -665,7 +665,22 @@ Describe 'AB#5648 — API resources: the shim and the retired implementation agr
         $arcSites = @($actualCalls | Where-Object { $_ -match 'Microsoft\.Edge/sites' })
         $arcSites.Count | Should -Be @($script:Subs).Count -Because 'ArcSites is issued exactly once per subscription'
 
-        $comparableActual = @($actualCalls | Where-Object { $_ -notmatch 'Microsoft\.Edge/sites' })
+        # DELIBERATE DIVERGENCE (built-in policy catalog): the retired implementation listed the
+        # full policy and initiative catalog for every subscription, so a nine-subscription
+        # tenant stored Microsoft's identical built-in catalog nine times (33,291 rows, 3,699
+        # distinct). The current implementation reads the catalog from the first subscription
+        # and asks every later one for custom definitions only. Assert that, then strip the
+        # filter so the rest of the sequence is still compared call-for-call.
+        $customFilter = '&$filter=' + [uri]::EscapeDataString("policyType -eq 'Custom'")
+        $policyCalls = @($actualCalls | Where-Object { $_ -match 'Microsoft\.Authorization/policy(Set)?Definitions\?' })
+        $policyCalls.Count | Should -Be (2 * @($script:Subs).Count)
+        @($policyCalls | Select-Object -First 2 | Where-Object { $_.Contains($customFilter) }).Count |
+            Should -Be 0 -Because 'the first subscription reads the full catalog once'
+        @($policyCalls | Select-Object -Skip 2 | Where-Object { -not $_.Contains($customFilter) }).Count |
+            Should -Be 0 -Because 'every later subscription asks for custom definitions only'
+
+        $comparableActual = @($actualCalls | Where-Object { $_ -notmatch 'Microsoft\.Edge/sites' } |
+            ForEach-Object { $_.Replace($customFilter, '') })
         @($referenceCalls | ForEach-Object { & $normalise $_ }) -join "`n" |
             Should -Be (@($comparableActual | ForEach-Object { & $normalise $_ }) -join "`n")
     }

@@ -1,5 +1,124 @@
 # Handoff
 
+## Session 2026-11-13 — "lost work" audit (read-only; no product code changed)
+
+Operator suspected recent performance, diagram and React report work had been lost.
+
+**Git state.** `main` (`dc1dd798`) carries the complete 3.17.1 release: its tree differs from the
+release merge `11be3687` only in `.ai/state/*` and `docs/guide/permissions.md`. The installed
+module (`Documents/PowerShell/Modules/AzureScout/3.17.1`) matches the repo across all 519 compared
+files. No report, diagram or React file has been deleted between v3.5.0/v3.10.0/v3.12.0/v3.16.2 and
+`main`. The 2026-09-22/23 bot/Codex reconciliation (AB#9315) deleted every remote branch except
+`main`/`gh-pages` and fast-forwarded local branches; 26 deleted branch tips were not ancestors of
+`main` (squash-merged PR heads plus August reporting-v2 work). They are now pinned locally under
+`refs/audit-preserve/20261113/*` so `git gc` cannot prune them. Of those, only
+`feat/ab6450-reporting-v2` (2026-08-01: `Build-ScoutNarrative.ps1`, `Build-ScoutReportModel.ps1`,
+V2 Word/PPTX/Excel/Power BI tests, `docs/design/reporting-engine-v2.md`) has content that never
+existed on `main` under any tag. `stash@{0}`/`stash@{1}` hold only superseded `.ai` state and the
+tags-wording fix already on `main`.
+
+**Performance regression found (not lost work — introduced by 3.17.1, AB#9298).** Run
+the 2026-10-05 run folder under `C:/AzureScout` (3.17.1, 9 subscriptions, 5,717 resources) took
+2h48m; extraction 2h28m, operational enrichment alone 1h58m. `AzureQoSEvent` records show 609
+`Invoke-AzRestMethod` calls averaging 12.0 s (121 min total) while MSAL/HTTP timestamps inside each
+call show the real request finishing in under a second. `Invoke-ScoutDiagnosticOperation`
+(`src/Write-AZTIRunLog.ps1:76`) forces `DebugPreference=Continue` around every SDK call and
+`Write-AZSCLog` (`:263`) does one `Add-Content` open/append/close per record: ~50 records per call
+at ~235 ms each in that run. Every log line in that run costs ~240 ms, including INFO lines.
+An isolated benchmark of the same functions on this machine measures ~25 ms per record, so the 10x
+in the live run is not yet explained (candidates: live progress host, Defender on `C:/AzureScout`).
+The log (41 MB, 943k lines) also stores full ARM response bodies, including VM run-command script
+source.
+
+**Report observations from the same run.** `report-react.html` is 100 MB, `collect.json` and
+`evidence.json` are 97 MB each, and `findings.json` is 0 bytes (inventory-only run, no assessment).
+Diagram generation completed with zero errors (`.drawio` 134 KB).
+
+**GitHub (checked with an HCS-brokered token).** PRs #1–#17 merged (#13 is a closed duplicate of
+#14); PR #18 "merge: all unmerged branches into main" was closed unmerged on 2026-09-22 and the
+branches were deleted anyway. Remote has only `main` and `gh-pages`; local `main` == `origin/main`.
+`D:/archive/git-cleanup-2026-11-03` confirms the `azure-scout-performance` worktree was removed on
+2026-11-03 with 0 changed / 0 untracked files and its branch already in `main`.
+
+**Fixes implemented on branch `fix/scan-speed-and-report-detail` (operator said "get it done").**
+Scope from the operator: React report only (Word/Excel/PPTX/PDF/Power BI are future roadmap — do
+not raise them), the guided menu must work end to end, the report must be detailed.
+
+1. `src/Write-AZTIRunLog.ps1` — one long-lived log writer (`Add-ScoutRunLogText`) replaces
+   per-record `Add-Content`; SDK debug/verbose records are held in memory and written only on
+   throw, HTTP >= 400, `-Debug`, or `AZURESCOUT_SDK_TRACE=1`. Benchmark: 1.7 ms/record (was
+   25–240 ms); a simulated SDK call with 50 debug records costs 18.7 ms (was ~1,300 ms locally,
+   ~12,000 ms in the field run).
+2. `src/collect/Get-ScoutOperationalCollectorEnrichment.ps1` — `Get-ScoutHeaderValue` /
+   `Get-ScoutResponseHeader`. The old code returned `HttpResponseHeaders` from a function, which
+   unrolled it, so every 202 was "without a Location header"; all 26 effective NSG/route lookups in
+   the field run failed. Existing tests faked Headers as a hashtable and could not see it.
+3. Same file — a type the provider does not publish at all (patch results: 133 rows in the field
+   run) is `NotAssessed`/not applicable for provider detail, not `Unavailable`.
+4. `src/collect/Get-ScoutApiResources.ps1` — built-in policy catalog read from the first
+   subscription only; later subscriptions ask for `policyType -eq 'Custom'` (with an unfiltered
+   fallback and a local guard). Field run had 33,291 definition rows, 3,699 distinct, 0 custom.
+5. `src/report/renderers/Export-React.ps1` + template — policy tables scoped to custom, assigned,
+   compliance-referenced and assigned-initiative-member definitions, with a note naming how many
+   built-ins were left out. `$Collect` is not modified. Oct 5 data re-renders at 26.6 MB (was
+   100.7 MB): 217 definitions and 1 initiative instead of 3,699 and 188.
+6. `src/Start-AZSCWizard.ps1` — diagrams on by default, no-op `Quota usage` item removed, report
+   identity asked whenever React is selected, RequiresData search includes `C:\AzureScout`.
+
+7. `src/report/renderers/Export-React.ps1` — when `governance.managementGroups` is empty
+   (inventory-only: the Governance ingestor does not run) the hierarchy is built from
+   `collected.management.ManagementGroups` using `Full Path`; tenant name comes from the Entra
+   organization row, then root MG, then tenant id, never a subscription; `meta.tenantId` emitted.
+   Field run showed "Management groups: 0" and the first subscription's name as the tenant; now
+   13 and the tenant's real name.
+8. `src/Invoke-ScoutAssessmentCore.ps1` — inventory-only renders attach the already-collected
+   Advisor rows (`Import-AdvisorScores -FromInventory`) and `serviceRetirements`; no Azure call.
+9. `src/collect/Get-ScoutSubscriptionSecurityPolicySweep.ps1` — "Regulatory compliance is not
+   supported ... no standard pricing bundle" is quiet Unavailable.
+
+Verification: full Pester suite on the final tree, 6 shards, launched `-NonInteractive` with stdin
+redirected (one wizard test assumes a non-interactive host): **3,965 passed, 0 failed, 0 skipped,
+0 failed containers** (baseline before changes: 3,922 at release). StrictMode guard and collector
+definition gate pass. Oct 5 `collect.json` re-rendered offline: 24.9 MB (was 100.7 MB); Overview,
+Inventory & audit and Diagrams pages load in headless Edge with no script errors.
+
+New/changed tests: `tests/Report.ReactTenantStructure.Tests.ps1` (new),
+`tests/Assessment.ReportReturn.Tests.ps1`, `tests/Collect.SubscriptionSecurityPolicySweep.Tests.ps1`,
+`tests/RunLog.Tests.ps1`, `tests/Collect.OperationalCollectorEnrichment.Tests.ps1`,
+`tests/Collect.NonArgInversion.Tests.ps1`, `tests/Report.ReactPolicyScope.Tests.ps1` (new),
+`tests/Wizard.GuidedRun.Tests.ps1` (new, walks the menu end to end). Docs: `CHANGELOG.md`
+Unreleased, `docs/guide/troubleshooting.md`.
+
+**Known remaining findings (not yet fixed).**
+- Expected conditions still logged as WARN/Unavailable: `SubscriptionCostDisabled` cost lookups
+  (5) and one storage account whose blob service returns BadRequest.
+- `Management/ManagementGroups` collector writes "Tenant Root" in `Parent Management Group` for
+  every row regardless of depth (the report no longer depends on it).
+- Inventory-only Overview page still leads with "0 CAF/WAF checks were evaluated" and an empty
+  "Assessment results" block; it should lead with the inventory when no assessment ran.
+- Advisor shows on the Cost optimization pane only (`inventory['advisor']` filtered to Cost);
+  there is no dedicated Advisor page for the other categories beyond the inventory table.
+- `collect.json` and `evidence.json` are still ~97 MB each (full catalog by design); only the
+  HTML was reduced. New scans will be smaller because the catalog is read once.
+- `Start-ScoutPolicyJob.ps1` uses `Select-Object -Unique` over the whole definition list (slow;
+  much smaller now that the catalog is read once).
+- `Export-React` treats `-Findings $null` as one null finding and throws; the product always
+  passes a `Get-Score` object, so this is latent.
+- The wizard's Step 2 "Permissions" only prints a sentence; the real check runs after confirm.
+- The React report has not yet been reviewed page by page in a browser after these changes, and
+  the diagram output has not been compared against the tenant.
+- A real scan has not been run since the fixes. No Azure calls were made in this session.
+
+**Push state.** Commit `80f8be85` on `fix/scan-speed-and-report-detail` is local only. Its first
+version of this file named the scanned tenant and one subscription; the file is corrected in the
+following commit, but `80f8be85` still carries the names in history. This repository is public:
+squash or amend before pushing (an amend was attempted and blocked by the session's permission
+policy). No push, PR or Azure call was made in this session.
+
+**Environment notes.** Pester 5.7.1 (CI pin) is not installed here; 5.9.1 was used. Full suite is
+run in four shards with `scratchpad/run-shard.ps1`; `DeclarativeCollectorGolden.Tests.ps1` takes
+over an hour on this host when other shards run beside it.
+
 ## Session 2026-08-13 — AB#405 live progress implementation and v3.12.5 release
 
 The static v3.12.4 progress line has been replaced on branch

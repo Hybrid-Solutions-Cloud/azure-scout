@@ -423,6 +423,20 @@ Describe 'Get-ScoutSubscriptionSecurityPolicySweep integration contract' {
         @($result.properties.CollectionErrors | Where-Object Dataset -eq 'DefenderAlerts').Count | Should -Be 0
     }
 
+    It 'treats regulatory compliance on a free-tier subscription as expected unavailable, with no warning or collection error' {
+        # Field run 2026-10-05: eight of nine subscriptions raised this as a WARN on every scan.
+        function global:Get-AzRegulatoryComplianceStandard {
+            param($ErrorAction) $null = $ErrorAction
+            throw "Regulatory compliance is not supported for subscription '00000000-0000-0000-0000-000000000001' as it has no standard pricing bundle"
+        }
+
+        $warnings = @()
+        $result = @(Get-ScoutSubscriptionSecurityPolicySweep -Subscriptions @($script:subscriptions[0]) -WarningVariable warnings -WarningAction SilentlyContinue)[0]
+        $result.properties.CollectionStatus.DefenderRegulatoryStandards | Should -Be 'Unavailable'
+        @($result.properties.CollectionErrors | Where-Object Dataset -eq 'DefenderRegulatoryStandards').Count | Should -Be 0
+        @($warnings | Where-Object { [string]$_ -match 'DefenderRegulatoryStandards' }).Count | Should -Be 0
+    }
+
     It 'retries transient Defender alert REST failures with the shared bounded policy' {
         function global:Get-AzSecurityAlert { param($ErrorAction) $null = $ErrorAction; throw [NullReferenceException]::new() }
         $script:alertRestAttempts = 0

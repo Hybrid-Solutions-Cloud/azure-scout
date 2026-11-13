@@ -57,6 +57,67 @@ function Get-ScoutOperationalCollectorEnrichment {
         return $null
     }
 
+    function Get-ScoutHeaderValue {
+        # Reads one HTTP header from whatever shape the caller holds.
+        #
+        # Invoke-AzRestMethod returns Headers as System.Net.Http.Headers.HttpResponseHeaders,
+        # which is enumerable. Returning it from a PowerShell function unrolls it into an array of
+        # key/value pairs, and a property lookup on that array finds nothing. That is how every
+        # 202 Accepted answer was reported as "without a Location or Azure-AsyncOperation header"
+        # while the Location header was plainly present, so no effective NSG or effective route
+        # lookup ever completed. Headers are therefore read here, never passed back through a
+        # function return, and every shape (typed headers, dictionary, unrolled pairs) is handled.
+        param([AllowNull()]$Headers, [Parameter(Mandatory)][string[]]$Name)
+        if ($null -eq $Headers) { return $null }
+        foreach ($candidate in $Name) {
+            if ($Headers -is [System.Net.Http.Headers.HttpHeaders]) {
+                $values = $null
+                if ($Headers.TryGetValues($candidate, [ref]$values)) {
+                    $first = @($values) | Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_) } | Select-Object -First 1
+                    if ($first) { return [string]$first }
+                }
+                continue
+            }
+            if ($Headers -is [System.Collections.IDictionary]) {
+                foreach ($key in $Headers.Keys) {
+                    if ([string]$key -ine $candidate) { continue }
+                    $value = $Headers[$key]
+                    if ($value -is [System.Collections.IEnumerable] -and $value -isnot [string]) { $value = @($value) | Select-Object -First 1 }
+                    if (-not [string]::IsNullOrWhiteSpace([string]$value)) { return [string]$value }
+                }
+                continue
+            }
+            foreach ($entry in @($Headers)) {
+                if ($null -eq $entry) { continue }
+                $keyProperty = $entry.PSObject.Properties['Key']
+                $valueProperty = $entry.PSObject.Properties['Value']
+                if ($keyProperty -and $valueProperty) {
+                    if ([string]$keyProperty.Value -ine $candidate) { continue }
+                    $value = $valueProperty.Value
+                    if ($value -is [System.Collections.IEnumerable] -and $value -isnot [string]) { $value = @($value) | Select-Object -First 1 }
+                    if (-not [string]::IsNullOrWhiteSpace([string]$value)) { return [string]$value }
+                    continue
+                }
+                $direct = $entry.PSObject.Properties[$candidate]
+                if ($direct -and -not [string]::IsNullOrWhiteSpace([string]$direct.Value)) { return [string]$direct.Value }
+            }
+        }
+        return $null
+    }
+
+    function Get-ScoutResponseHeader {
+        param([AllowNull()]$Response, [Parameter(Mandatory)][string[]]$Name)
+        if ($null -eq $Response) { return $null }
+        if ($Response -is [System.Collections.IDictionary]) {
+            foreach ($key in $Response.Keys) {
+                if ([string]$key -ieq 'Headers') { return Get-ScoutHeaderValue -Headers $Response[$key] -Name $Name }
+            }
+            return $null
+        }
+        $headersProperty = $Response.PSObject.Properties['Headers']
+        if ($null -eq $headersProperty) { return $null }
+        return Get-ScoutHeaderValue -Headers $headersProperty.Value -Name $Name
+    }
     function Get-ScoutUniqueResource {
         param([AllowEmptyCollection()][object[]]$InputRows)
         $seen = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
@@ -243,18 +304,7 @@ function Get-ScoutOperationalCollectorEnrichment {
                 if ($null -eq $Response) { throw 'ARM returned no response.' }
                 $Status = Get-ScoutValue -InputObject $Response -Name @('StatusCode')
                 if ([int]$Status -eq 202 -and $PollAsync) {
-                    $headers = Get-ScoutValue -InputObject $Response -Name @('Headers')
-                    $location = $null
-                    if ($headers -is [System.Collections.IDictionary]) {
-                        foreach ($headerKey in $headers.Keys) {
-                            if ([string]$headerKey -notin @('Location', 'Azure-AsyncOperation')) { continue }
-                            $location = [string]$headers[$headerKey]
-                            if ($location) { break }
-                        }
-                    }
-                    elseif ($null -ne $headers) {
-                        $location = [string](Get-ScoutValue -InputObject $headers -Name @('Location', 'Azure-AsyncOperation'))
-                    }
+                    $location = Get-ScoutResponseHeader -Response $Response -Name @('Location', 'Azure-AsyncOperation')
                     if ([string]::IsNullOrWhiteSpace($location)) {
                         throw 'ARM returned status 202 without a Location or Azure-AsyncOperation header.'
                     }
@@ -277,8 +327,8 @@ function Get-ScoutOperationalCollectorEnrichment {
                     $failure = Get-ScoutHttpFailure -Response $Response
                     $statusException = [System.InvalidOperationException]::new("ARM returned status $Status. $($failure.Summary)")
                     $statusException.Data['StatusCode'] = [int]$Status
-                    $responseHeaders = Get-ScoutValue -InputObject $Response -Name @('Headers')
-                    if ($null -ne $responseHeaders) { $statusException.Data['Headers'] = $responseHeaders }
+                    $retryAfterHeader = Get-ScoutResponseHeader -Response $Response -Name @('Retry-After')
+                    if ($retryAfterHeader) { $statusException.Data['RetryAfter'] = $retryAfterHeader }
                     throw $statusException
                 }
                 $Content = Get-ScoutValue -InputObject $Response -Name @('Content')
@@ -310,12 +360,11 @@ function Get-ScoutOperationalCollectorEnrichment {
                     ($Message -match '(?i)InternalServerError|BadGateway|ServiceUnavailable|GatewayTimeout|TooManyRequests')
                 if ($Retryable -and $Attempt -lt $MaxAttempts) {
                     $delayMilliseconds = 500 * $Attempt
-                    $retryHeaders = if ($_.Exception.Data -and $_.Exception.Data.Contains('Headers')) {
-                        $_.Exception.Data['Headers']
+                    $retryAfter = if ($_.Exception.Data -and $_.Exception.Data.Contains('RetryAfter')) {
+                        $_.Exception.Data['RetryAfter']
                     }
-                    elseif ($null -ne $Response) { Get-ScoutValue -InputObject $Response -Name @('Headers') }
+                    elseif ($null -ne $Response) { Get-ScoutResponseHeader -Response $Response -Name @('Retry-After') }
                     else { $null }
-                    $retryAfter = Get-ScoutValue -InputObject $retryHeaders -Name @('Retry-After', 'retry-after')
                     $retrySeconds = 0.0
                     if ($null -ne $retryAfter -and [double]::TryParse([string]$retryAfter, [ref]$retrySeconds)) {
                         $delayMilliseconds = [Math]::Max($delayMilliseconds, [int][Math]::Ceiling($retrySeconds * 1000))
@@ -799,6 +848,17 @@ function Get-ScoutOperationalCollectorEnrichment {
             }
             $apiVersion = @($candidateVersions | Sort-Object -Descending | Select-Object -First 1)
             if ($apiVersion.Count -eq 0 -or [string]::IsNullOrWhiteSpace([string]$apiVersion[0])) {
+                if ($typeMetadata.Count -eq 0) {
+                    # The provider answered and does not list this type at all. Such rows exist
+                    # only in Resource Graph (patch assessment and installation results are the
+                    # common case: 133 of them in one field run), so there is no per-resource GET
+                    # to make and nothing is missing. Recording them as Unavailable marked the
+                    # whole discovery Partial for data Azure never offers.
+                    Add-ScoutOperationalHealth -Dataset 'ProviderDetails.Resource' -Status NotAssessed `
+                        -Reason "Not applicable: Azure does not publish a per-resource detail API for '$resourceType'; the Resource Graph row is the complete record." `
+                        -ParentId $id -ResourceType $resourceType -Collector 'Discovery/ProviderDetails'
+                    continue
+                }
                 Add-ScoutOperationalHealth -Dataset 'ProviderDetails.Resource' -Reason "No API version was advertised for provider type '$providerType'." `
                     -ParentId $id -ResourceType $resourceType -Collector 'Discovery/ProviderDetails'
                 continue

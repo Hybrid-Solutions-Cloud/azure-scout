@@ -122,6 +122,49 @@ Describe 'Get-ScoutOperationalCollectorEnrichment' {
         @($health | Where-Object SourceDataset -eq 'NetworkInterface.EffectiveRouteTable')[0].ResourceIds | Should -Contain $nic.id
     }
 
+    It 'follows the Location header of a real Invoke-AzRestMethod 202 response (typed HttpResponseHeaders)' {
+        # Field defect, 2026-10-05: all 26 effective-NSG and effective-route lookups in a real
+        # tenant failed with "ARM returned status 202 without a Location or
+        # Azure-AsyncOperation header" although the Location header was present. The real
+        # response carries System.Net.Http.Headers.HttpResponseHeaders, which is enumerable; the
+        # reader returned it from a function, PowerShell unrolled it into key/value pairs, and
+        # the property lookup found nothing. The other tests in this file fake Headers as a
+        # hashtable, which is why they never saw it. This one uses the real type.
+        $nic = [pscustomobject]@{
+            id = '/subscriptions/sub-1/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic-1'
+            type = 'microsoft.network/networkinterfaces'; name = 'nic-1'; subscriptionId = 'sub-1'; resourceGroup = 'rg'
+        }
+        $health = [System.Collections.Generic.List[object]]::new()
+        $script:PolledUris = [System.Collections.Generic.List[string]]::new()
+        function global:Invoke-AzRestMethod {
+            param($Path,$Uri,$Method,$Payload,$ErrorAction)
+            $null=$Method,$Payload,$ErrorAction
+            if ($Path -match 'effective(NetworkSecurityGroups|RouteTable)') {
+                $operation = if ($Path -match 'effectiveRouteTable') { 'routes-1' } else { 'nsg-1' }
+                $message = [System.Net.Http.HttpResponseMessage]::new([System.Net.HttpStatusCode]::Accepted)
+                $null = $message.Headers.TryAddWithoutValidation('Location', "https://management.azure.com/subscriptions/sub-1/providers/Microsoft.Network/locations/eastus/operationResults/$operation`?api-version=2025-05-01")
+                $null = $message.Headers.TryAddWithoutValidation('Retry-After', '10')
+                return [pscustomobject]@{ StatusCode=202; Content='null'; Headers=$message.Headers }
+            }
+            if ($Uri) {
+                $script:PolledUris.Add([string]$Uri)
+                if ($Uri -match 'routes-1') { return [pscustomobject]@{ StatusCode=200; Content='{"value":[{"nextHopType":"VnetLocal"}]}' } }
+                return [pscustomobject]@{ StatusCode=200; Content='{"value":[{"effectiveSecurityRules":[{"name":"AllowVnetInBound"}]}]}' }
+            }
+            [pscustomobject]@{ StatusCode=200; Content='{"value":[]}' }
+        }
+
+        $rows = @(Get-ScoutOperationalCollectorEnrichment -Resources @($nic) -Subscriptions @() -CollectionHealth $health -WarningAction SilentlyContinue)
+        $envelope = $rows | Where-Object type -eq 'AZSC/Operational/NetworkInterface'
+
+        $script:PolledUris.Count | Should -Be 2
+        ($script:PolledUris -join "`n") | Should -Match 'operationResults/nsg-1'
+        ($script:PolledUris -join "`n") | Should -Match 'operationResults/routes-1'
+        $envelope.properties.EffectiveNetworkSecurityGroups.value[0].effectiveSecurityRules[0].name | Should -Be 'AllowVnetInBound'
+        $envelope.properties.EffectiveRouteTable.value[0].nextHopType | Should -Be 'VnetLocal'
+        @($health | Where-Object { $_.SourceDataset -like 'NetworkInterface.Effective*' }).Count | Should -Be 0
+    }
+
     It 'resolves a stable provider API version once and retains the provider GET payload' {
         $widget = [pscustomobject]@{
             id = '/subscriptions/sub-1/resourceGroups/rg/providers/Microsoft.Contoso/widgets/widget-1'
@@ -148,6 +191,33 @@ Describe 'Get-ScoutOperationalCollectorEnrichment' {
         $detail.properties.ApiVersion | Should -Be '2025-06-01'
         $detail.properties.Payload.properties.fullSetting | Should -Be 'retained'
         @($script:Calls | Where-Object { $_ -match '/providers/Microsoft\.Contoso\?' }).Count | Should -Be 1
+    }
+
+    It 'records a type the provider does not publish as not applicable, not as missing evidence' {
+        # Field run 2026-10-05: 133 patch-result rows (Resource Graph only, no ARM GET exists)
+        # were each recorded as Unavailable, which marked the whole discovery Partial.
+        $patchRow = [pscustomobject]@{
+            id = '/subscriptions/sub-1/resourceGroups/rg/providers/Microsoft.Contoso/widgets/widget-1/patchResults/latest'
+            type = 'microsoft.contoso/widgets/patchresults'; name = 'latest'; subscriptionId = 'sub-1'; resourceGroup = 'rg'
+        }
+        $health = [System.Collections.Generic.List[object]]::new()
+        function global:Invoke-AzRestMethod {
+            param($Path,$Uri,$Method,$Payload,$ErrorAction)
+            $null=$Uri,$Method,$Payload,$ErrorAction
+            $script:Calls.Add($Path)
+            if ($Path -match '/providers/Microsoft\.Contoso\?api-version=2021-04-01$') {
+                return [pscustomobject]@{ StatusCode=200; Content='{"resourceTypes":[{"resourceType":"widgets","apiVersions":["2025-06-01"]}]}' }
+            }
+            [pscustomobject]@{ StatusCode=200; Content='{"value":[]}' }
+        }
+
+        $null = @(Get-ScoutOperationalCollectorEnrichment -Resources @($patchRow) -Subscriptions @() -IncludeProviderResourceDetails -CollectionHealth $health)
+
+        $record = @($health | Where-Object SourceDataset -eq 'ProviderDetails.Resource')
+        $record.Count | Should -Be 1
+        $record[0].Status | Should -Be 'NotAssessed'
+        $record[0].Reason | Should -Match '^Not applicable: Azure does not publish a per-resource detail API'
+        @($script:Calls | Where-Object { $_ -match 'patchResults/latest\?api-version' }).Count | Should -Be 0
     }
 
     It 'records provider-detail denial against only the affected resource and still emits its envelope' {
