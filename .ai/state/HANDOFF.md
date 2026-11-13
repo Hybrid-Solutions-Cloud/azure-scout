@@ -109,11 +109,10 @@ Unreleased, `docs/guide/troubleshooting.md`.
   the diagram output has not been compared against the tenant.
 - A real scan has not been run since the fixes. No Azure calls were made in this session.
 
-**Push state.** Commit `80f8be85` on `fix/scan-speed-and-report-detail` is local only. Its first
-version of this file named the scanned tenant and one subscription; the file is corrected in the
-following commit, but `80f8be85` still carries the names in history. This repository is public:
-squash or amend before pushing (an amend was attempted and blocked by the session's permission
-policy). No push, PR or Azure call was made in this session.
+**Push state.** The work is one squashed commit on `fix/scan-speed-and-report-detail`. An earlier
+local commit named the scanned tenant in this file; it was squashed away before anything was
+pushed. This repository is public: keep tenant and subscription names out of commits, PR text and
+these notes. No Azure call was made in this session.
 
 **Environment notes.** Pester 5.7.1 (CI pin) is not installed here; 5.9.1 was used. Full suite is
 run in four shards with `scratchpad/run-shard.ps1`; `DeclarativeCollectorGolden.Tests.ps1` takes
