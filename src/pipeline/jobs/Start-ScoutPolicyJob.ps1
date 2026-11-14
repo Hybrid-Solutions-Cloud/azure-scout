@@ -39,7 +39,17 @@ function Start-AZSCPolicyJob {
     Set-StrictMode -Off
 
 
-    $poltmp = $PolicyDef | Select-Object -Property id,properties -Unique
+    # Index the definitions by id once. This used to be `Select-Object -Unique` over several
+    # thousand rows followed by a full scan per assigned policy, which cost about 28 seconds on a
+    # nine-subscription tenant. Ids compare case-insensitively, as `-eq` did.
+    $policyPropertiesById = [System.Collections.Generic.Dictionary[string, object]]::new([System.StringComparer]::OrdinalIgnoreCase)
+    foreach ($definition in @($PolicyDef)) {
+        if ($null -eq $definition) { continue }
+        $definitionId = [string]$definition.id
+        if (-not [string]::IsNullOrEmpty($definitionId) -and -not $policyPropertiesById.ContainsKey($definitionId)) {
+            $policyPropertiesById[$definitionId] = $definition.properties
+        }
+    }
 
     $tmp = foreach ($1 in $PolicyAssign.policyAssignments)
         {
@@ -65,7 +75,9 @@ function Start-AZSCPolicyJob {
 
             foreach ($2 in $1.policyDefinitions)
                 {
-                    $Pol = (($poltmp | Where-Object {$_.id -eq $2.policyDefinitionId}).properties)
+                    $Pol = $null
+                    $lookupId = [string]$2.policyDefinitionId
+                    if (-not [string]::IsNullOrEmpty($lookupId)) { $null = $policyPropertiesById.TryGetValue($lookupId, [ref]$Pol) }
                     if(![string]::IsNullOrEmpty($Pol))
                         {
                             $PolResUnkown = ($2.results.resourceDetails | Where-Object {$_.complianceState -eq 'unknown'} | Select-Object -ExpandProperty Count)

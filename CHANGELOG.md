@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- The policy processing step indexes definitions by id instead of scanning several thousand rows
+  per assigned policy (about 28 seconds on a nine-subscription tenant). AB#9300.
 - Sign-in logs are read as five week-long windows instead of one 30-day request. On a live
   tenant the single request returned 504 Gateway Timeout after two minutes on every attempt,
   leaving the sign-in dependent tables empty; the windows return every row in about 75 seconds.
