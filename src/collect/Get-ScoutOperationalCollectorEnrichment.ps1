@@ -385,6 +385,17 @@ function Get-ScoutOperationalCollectorEnrichment {
                     return [PSCustomObject]@{ __AZSCStatus = 'OperationInProgress' }
                 }
 
+                if ($Message -match 'SubscriptionCostDisabled') {
+                    # The billing account has cost visibility turned off for this subscription.
+                    # That is a billing setting, not a fault and not something a role assignment
+                    # can change, so it is recorded once as not applicable instead of warning on
+                    # every scan.
+                    Complete-ScoutOperationalRequest -Dataset $Dataset -Timer $requestTimer -Status NotSupported -Attempts $Attempt
+                    Add-ScoutOperationalHealth -Dataset $Dataset -Status NotAssessed -ParentId $ParentId `
+                        -Reason 'Not applicable: the billing account does not allow cost data to be viewed for this subscription (SubscriptionCostDisabled). No role assignment can enable it.'
+                    return [PSCustomObject]@{ __AZSCError = $Message }
+                }
+
                 Write-Warning "Get-ScoutOperationalCollectorEnrichment: $Dataset failed for '$ParentId': $Message"
                 Complete-ScoutOperationalRequest -Dataset $Dataset -Timer $requestTimer -Status Failed -Attempts $Attempt
                 Add-ScoutOperationalHealth -Dataset $Dataset -Reason $Message -ParentId $ParentId
