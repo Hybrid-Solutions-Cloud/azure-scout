@@ -812,6 +812,38 @@ function pageOverview(){
       '<h3 style="margin:6px 0 4px">'+esc(sp.title)+'</h3><p>'+(spNames?'Affected today: '+spNames+'.':'Nothing in scope satisfies this check today.')+' '+esc(String(sp.remediation||'').split(/(?<=\.)\s/)[0]||'')+'</p>'+
       '<a href="'+esc(betterLearnUrl(sp))+'" rel="noopener">Microsoft guidance →</a></div>';
   }
+  var collBox = '<div class="collbox"><div class="ci"><span class="cl">✓ Collection</span><span class="cv">Read-only</span></div>'+
+  '<div class="ci"><span class="cl">Tenant</span><span class="cv">'+esc(meta.tenantDisplayName||'')+'</span></div>'+
+  '<div class="ci"><span class="cl">Run</span><span class="cv mono">'+esc(meta.runId||'')+'</span></div>'+
+  '<div class="ci"><span class="cl">Collected</span><span class="cv">'+esc((meta.generatedOn||'').slice(0,16).replace('T',' '))+'</span></div>'+
+  '<div class="ci"><span class="cl">Subscriptions in scope</span><span class="cv">'+subscriptions.length+'</span></div>'+
+  '<div class="ci"><span class="cl">Method</span><span class="cv">Azure Resource Graph + ARM</span></div></div>';
+  // An inventory-only run evaluates no CAF/WAF checks. Leading with "0 checks evaluated" and a
+  // row of zero tiles hid what the run did collect, so that run gets an inventory overview.
+  if(assessments.length===0){
+    var invCount = function(k){ return ((inventory[k]||{}).count)||0; };
+    var kpiLink = function(label, value, foot, anchor){
+      return '<a class="kpi tilelink goto" data-gopage="inv" href="#'+anchor+'"><div class="l">'+label+'</div><div class="v">'+n(value)+'</div><div class="f">'+foot+'</div></a>';
+    };
+    var biggest = invEntries.slice().sort(function(a,b){ return (b[1].count||0)-(a[1].count||0); }).slice(0,12);
+    return '<h2>Overview</h2>'+collBox+
+    '<p class="lede"><b>This run inventoried '+n(invTotal)+' evidence rows in '+invEntries.length+' categories across '+subscriptions.length+' subscriptions.</b> No CAF/WAF assessment was selected for this run, so there are no scores or findings; run an assessment to add them.</p>'+
+    '<div class="kpis">'+
+    kpiLink('Evidence rows', invTotal, invEntries.length+' categories →', 'top')+
+    kpiLink('Subscriptions', subscriptions.length, 'view list →', 'inv-structure')+
+    kpiLink('Management groups', invCount('governance.managementGroups'), 'view hierarchy →', 'inv-structure')+
+    kpiLink('Advisor recommendations', invCount('advisor'), 'Microsoft Advisor →', 'top')+
+    kpiLink('Policy assignments', invCount('governance.policyAssignments'), 'governance →', 'top')+
+    kpiLink('Entra objects', safeArr(DATA.entraResources).length, 'identity →', 'top')+
+    '</div>'+
+    '<div class="eyebrow">Where to go</div><div class="menutiles">'+
+    '<a class="mtile goto" data-gopage="inv" href="#top"><div class="mt">📦 Inventory &amp; audit</div><div class="md">'+n(invTotal)+' evidence rows in '+invEntries.length+' categories · what exists, and what looks wrong</div></a>'+
+    '<a class="mtile goto" data-gopage="data" href="#top"><div class="mt">🗃️ Data</div><div class="md">Every evidence row</div></a></div>'+
+    '<div class="eyebrow">Largest categories collected</div>'+
+    '<div class="twrap"><table><tr><th>Category</th><th class="num">Rows</th></tr>'+
+    biggest.map(function(p){ return '<tr><td>'+esc((p[1].label||p[1].title||p[0]))+'</td><td class="num">'+n(p[1].count||0)+'</td></tr>'; }).join('')+
+    '</table></div>';
+  }
   return '<h2>Overview</h2>'+
   '<div class="collbox"><div class="ci"><span class="cl">✓ Collection</span><span class="cv">Read-only</span></div>'+
   '<div class="ci"><span class="cl">Tenant</span><span class="cv">'+esc(meta.tenantDisplayName||'')+'</span></div>'+
@@ -2362,7 +2394,8 @@ function buildMarkdownExport(){
   var md = [];
   md.push('# '+(identity.reportTitle||'Azure Inventory and Assessment'));
   md.push('\n'+(identity.clientName||'')+' · '+(identity.classification||'')+' · run '+(meta.runId||'')+' · generated '+(meta.generatedOn||'').slice(0,16).replace('T',' '));
-  md.push('\n**'+counts.total+' CAF/WAF checks evaluated** — '+counts.pass+' met, '+counts.partial+' partially met, '+counts.fail+' not met ('+counts.high+' high severity), '+counts.manual+' manual, '+counts.notAssessed+' not assessed, '+counts.unknown+' unknown, '+counts.error+' errors. Estate: '+n(invTotal)+' items across '+subscriptions.length+' subscriptions.');
+  if(assessments.length===0) md.push('\n**Inventory run** — '+n(invTotal)+' evidence rows in '+invEntries.length+' categories across '+subscriptions.length+' subscriptions. No CAF/WAF assessment was selected for this run.');
+  else md.push('\n**'+counts.total+' CAF/WAF checks evaluated** — '+counts.pass+' met, '+counts.partial+' partially met, '+counts.fail+' not met ('+counts.high+' high severity), '+counts.manual+' manual, '+counts.notAssessed+' not assessed, '+counts.unknown+' unknown, '+counts.error+' errors. Estate: '+n(invTotal)+' items across '+subscriptions.length+' subscriptions.');
   assessments.forEach(function(a){
     var s = a.score || {};
     md.push('\n## '+a.name);

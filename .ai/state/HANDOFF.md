@@ -156,6 +156,11 @@ Third round, branch `fix/signin-windows-and-provider-list`, from profiling the r
    subscription and the REST endpoint is just as slow (7 to 10 s), so only parallelism across
    subscriptions would help. Not changed.
 
+PRs #21 and #22 merged (admin override after CI passed). Third live scan: 12m19s, extraction
+7m31s, 222 sign-in rows, zero Graph timeouts. The empty cost table is correct: the tenant's
+billing account blocks cost data (`SubscriptionCostDisabled`), now recorded as not applicable.
+Branch `fix/inventory-overview-page` gives inventory-only runs their own Overview page.
+
 Still open: `finops.costRows` is empty in the report although nine cost rows were extracted;
 `Import-Module AzureScout` takes 35 to 48 s; the security sweep is serial (about 13 s per
 subscription); the per-subscription `Get-AzRoleAssignment` in the pre-check costs 1 to 3 s each.
