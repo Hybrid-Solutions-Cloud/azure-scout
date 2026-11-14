@@ -526,12 +526,32 @@ function Invoke-AZSCPermissionAudit {
             Write-Host "        No action is required unless that service should be used in this subscription." -ForegroundColor DarkGray
             Write-Host ''
 
+            # One listing call instead of one call per provider. Asking for each namespace
+            # separately took 6 to 8 seconds apiece against a live tenant (about 100 seconds
+            # for the fourteen below); the full listing returns in about 5 seconds.
+            $providerStates = @{}
+            $providerListError = $null
+            try {
+                foreach ($registration in @(Get-AzResourceProvider -ListAvailable -ErrorAction Stop)) {
+                    if ($null -eq $registration) { continue }
+                    $namespaceProperty = $registration.PSObject.Properties['ProviderNamespace']
+                    $stateProperty = $registration.PSObject.Properties['RegistrationState']
+                    if ($namespaceProperty -and $namespaceProperty.Value -and $stateProperty) {
+                        $providerStates[[string]$namespaceProperty.Value] = [string]$stateProperty.Value
+                    }
+                }
+            }
+            catch {
+                $providerListError = $_
+            }
+
             foreach ($kvp in $criticalProviders.GetEnumerator()) {
                 $provider = $kvp.Key
                 $purpose  = $kvp.Value
                 try {
-                    $reg = Get-AzResourceProvider -ProviderNamespace $provider -ErrorAction Stop
-                    $state = ($reg | Select-Object -ExpandProperty RegistrationState -First 1)
+                    if ($providerListError) { throw $providerListError }
+                    # A namespace missing from the listing is not offered to this subscription.
+                    $state = if ($providerStates.ContainsKey($provider)) { $providerStates[$provider] } else { 'NotRegistered' }
                     $status = if ($state -eq 'Registered') { 'Pass' } elseif ($state -in 'Registering','Unregistering') { 'Warn' } else { 'Info' }
                     $skipText = if ($status -eq 'Info') { " (modules for this service will be skipped)" } else { '' }
                     Write-AuditLine -Status $status -Text "$provider  [$state]  — $purpose$skipText"
@@ -684,7 +704,9 @@ function Invoke-AZSCPermissionAudit {
                 }
 
                 try {
-                    $null = Invoke-AZSCGraphRequest -Uri $probe.Uri -SinglePage -TenantID $tenantId -SuppressFailureWarning
+                    # A catalog entry may name a cheaper request that proves the same permission.
+                    $probeUri = if ($probe.ContainsKey('ProbeUri') -and $probe.ProbeUri) { $probe.ProbeUri } else { $probe.Uri }
+                    $null = Invoke-AZSCGraphRequest -Uri $probeUri -SinglePage -TenantID $tenantId -SuppressFailureWarning
                     $r = New-CheckResult -Check $checkName -Status 'Pass' -Message "$($impact.Permission) — $purpose ($($impact.CollectorCount) collectors)"
                     Write-AuditLine -Status Pass -Text "$checkName  [$($impact.CollectorCount) collectors]"
                 }

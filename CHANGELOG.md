@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Sign-in logs are read as five week-long windows instead of one 30-day request. On a live
+  tenant the single request returned 504 Gateway Timeout after two minutes on every attempt,
+  leaving the sign-in dependent tables empty; the windows return every row in about 75 seconds.
+  The permission pre-check now proves sign-in log access with a one-row request instead of
+  running the full 30-day query. AB#9300.
+- The permission pre-check reads resource provider registration with one listing call instead
+  of fourteen separate calls of 6 to 8 seconds each, removing about 100 seconds from the start
+  of every scan. AB#9300.
 - The custom-only policy read now uses the filter Azure accepts (`policyType eq 'Custom'`). The
   `-eq` spelling from the REST reference was rejected with HTTP 400 on every subscription after
   the first, so each one fell back to re-reading the full built-in catalog. AB#9300.

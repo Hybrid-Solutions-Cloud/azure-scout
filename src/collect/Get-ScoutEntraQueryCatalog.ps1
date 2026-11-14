@@ -33,7 +33,23 @@ function Get-ScoutEntraQueryCatalog {
     [OutputType([hashtable])]
     param()
 
-    $signInStart = (Get-Date).ToUniversalTime().AddDays(-30).ToString('yyyy-MM-ddTHH:mm:ssZ')
+    $signInNow = (Get-Date).ToUniversalTime()
+    $signInStamp = { param([int]$DaysAgo) $signInNow.AddDays(-$DaysAgo).ToString('yyyy-MM-ddTHH:mm:ssZ') }
+    $signInStart = & $signInStamp 30
+    $signInSelect = 'id,createdDateTime,userId,userPrincipalName,appId,appDisplayName,clientAppUsed,status,conditionalAccessStatus,appliedConditionalAccessPolicies,isInteractive,ipAddress,location,deviceDetail,riskDetail,riskLevelAggregated,riskState'
+
+    # Graph cannot always answer one 30-day sign-in query: on a live tenant it returned
+    # 504 Gateway Timeout after two minutes on every attempt, while the same 30 days asked for
+    # as week-long windows returned every row in about 75 seconds. The windows are half-open
+    # (ge start, lt end) so no sign-in is read twice.
+    $signInWindowUris = @(
+        foreach ($window in @(@(7, 0), @(14, 7), @(21, 14), @(28, 21), @(30, 28))) {
+            $upperBound = if ($window[1] -eq 0) { '' } else { " and createdDateTime lt $(& $signInStamp $window[1])" }
+            "/v1.0/auditLogs/signIns?`$filter=createdDateTime ge $(& $signInStamp $window[0])$upperBound&`$select=$signInSelect&`$top=1000"
+        }
+    )
+    # The permission pre-check only needs to know the call is allowed, not read 30 days of logs.
+    $signInProbeUri = "/v1.0/auditLogs/signIns?`$filter=createdDateTime ge $(& $signInStamp 1)&`$select=id&`$top=1"
 
     # No unary comma: the catalog is never empty, so the usual "preserve an empty array" idiom
     # would only wrap seventeen hashtables inside one object and make every caller's @() count
@@ -112,6 +128,8 @@ function Get-ScoutEntraQueryCatalog {
         @{
             Name         = 'Sign-ins (Last 30 Days)'
             Uri          = "/v1.0/auditLogs/signIns?`$filter=createdDateTime ge $signInStart&`$select=id,createdDateTime,userId,userPrincipalName,appId,appDisplayName,clientAppUsed,status,conditionalAccessStatus,appliedConditionalAccessPolicies,isInteractive,ipAddress,location,deviceDetail,riskDetail,riskLevelAggregated,riskState&`$top=1000"
+            WindowUris   = $signInWindowUris
+            ProbeUri     = $signInProbeUri
             Type         = 'entra/signins'
             NameProperty = 'userPrincipalName'
             Permission   = 'AuditLog.Read.All'

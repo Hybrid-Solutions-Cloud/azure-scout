@@ -241,7 +241,19 @@ function Start-AZSCEntraExtraction {
             # Pin token acquisition to the tenant the operator requested. Without this,
             # Invoke-AZSCGraphRequest can use an ambient context from another tenant and the
             # normalizer below would then incorrectly stamp those objects with $TenantID.
-            $result = Invoke-AZSCGraphRequest -Uri $query.Uri -TenantID $TenantID -RequiredScopes @($query.Permission)
+            if ($query.ContainsKey('WindowUris') -and @($query.WindowUris).Count -gt 0) {
+                # A dataset too large for one Graph request is read as consecutive time windows.
+                $windowRows = [System.Collections.Generic.List[object]]::new()
+                foreach ($windowUri in @($query.WindowUris)) {
+                    foreach ($windowRow in @(Invoke-AZSCGraphRequest -Uri $windowUri -TenantID $TenantID -RequiredScopes @($query.Permission))) {
+                        if ($null -ne $windowRow) { $windowRows.Add($windowRow) }
+                    }
+                }
+                $result = if ($windowRows.Count -gt 0) { $windowRows.ToArray() } else { $null }
+            }
+            else {
+                $result = Invoke-AZSCGraphRequest -Uri $query.Uri -TenantID $TenantID -RequiredScopes @($query.Permission)
+            }
             $collectedAt = Get-Date
 
             if ($null -ne $result) {

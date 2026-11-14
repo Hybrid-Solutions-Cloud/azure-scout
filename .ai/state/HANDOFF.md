@@ -139,11 +139,26 @@ Two defects the live scan exposed, fixed on branch `fix/policy-filter-and-graph-
 2. The 30-day `auditLogs/signIns` Graph query returned 504 after two minutes, six times in a row
    (12 minutes). 504 is now retried once.
 
-Still open after the live scan: the management-group access probe takes two minutes
-(`Get-AzManagementGroup -Expand -Recurse`); the sign-in query itself still times out on this
-tenant, so legacy-authentication rows are empty; the subscription security and policy sweep took
-4m16s; `finops.costRows` is empty in the report although nine cost rows were extracted;
-`Import-Module AzureScout` takes about 48 s.
+PR #20 (those two fixes) merged with an admin override after CI passed. A second live scan on
+that code took 21m14s (extraction 9m57s, report 24.3 MB, zero policy 400s).
+
+Third round, branch `fix/signin-windows-and-provider-list`, from profiling the remaining waits:
+
+1. Sign-in logs. One 30-day `auditLogs/signIns` request never completes on this tenant (504 at
+   120 s), although it sometimes succeeded in the first scan (that is why Entra object counts
+   differed by 223 between scans). Week-long half-open windows return all rows in about 75 s.
+   The catalog entry now carries `WindowUris` (extraction) and `ProbeUri` (permission pre-check).
+2. The "two-minute management-group probe" was not the probe (0.7 s). It was the provider
+   registration section of `Invoke-AZSCPermissionAudit`: fourteen
+   `Get-AzResourceProvider -ProviderNamespace` calls at 6 to 8 s each. Replaced by one
+   `-ListAvailable` call (about 5 s warm).
+3. The security and policy sweep is not a stall. `Get-AzSecurityAssessment` takes 6 to 7 s per
+   subscription and the REST endpoint is just as slow (7 to 10 s), so only parallelism across
+   subscriptions would help. Not changed.
+
+Still open: `finops.costRows` is empty in the report although nine cost rows were extracted;
+`Import-Module AzureScout` takes 35 to 48 s; the security sweep is serial (about 13 s per
+subscription); the per-subscription `Get-AzRoleAssignment` in the pre-check costs 1 to 3 s each.
 
 **Environment notes.** Pester 5.7.1 (CI pin) is not installed here; 5.9.1 was used. Full suite is
 run in four shards with `scratchpad/run-shard.ps1`; `DeclarativeCollectorGolden.Tests.ps1` takes
