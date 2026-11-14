@@ -162,7 +162,13 @@ function Invoke-AZSCGraphRequest {
                 # Handle 429 (throttled) and 5xx (transient server errors)
                 if ($statusCode -eq 429 -or ($statusCode -ge 500 -and $statusCode -lt 600)) {
                     $retryCount++
-                    if ($retryCount -gt $MaxRetries) {
+                    # 504 Gateway Timeout means Graph already spent its full server-side budget
+                    # (about two minutes) on this exact query. Repeating it five times repeats the
+                    # same wait: a live nine-subscription scan lost 12 minutes this way on the
+                    # 30-day sign-in log query. One retry covers a transient gateway fault.
+                    $gatewayTimeoutExhausted = ($statusCode -eq 504 -and $retryCount -gt 1)
+                    if ($retryCount -gt $MaxRetries -or $gatewayTimeoutExhausted) {
+                        if ($gatewayTimeoutExhausted) { $MaxRetries = $retryCount - 1 }
                         if (-not $SuppressFailureWarning) {
                             Write-Warning "Graph API request failed after $MaxRetries retries: $($_.Exception.Message)"
                         }

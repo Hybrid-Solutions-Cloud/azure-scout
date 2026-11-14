@@ -671,7 +671,7 @@ Describe 'AB#5648 — API resources: the shim and the retired implementation agr
         # distinct). The current implementation reads the catalog from the first subscription
         # and asks every later one for custom definitions only. Assert that, then strip the
         # filter so the rest of the sequence is still compared call-for-call.
-        $customFilter = '&$filter=' + [uri]::EscapeDataString("policyType -eq 'Custom'")
+        $customFilter = '&$filter=' + [uri]::EscapeDataString("policyType eq 'Custom'")
         $policyCalls = @($actualCalls | Where-Object { $_ -match 'Microsoft\.Authorization/policy(Set)?Definitions\?' })
         $policyCalls.Count | Should -Be (2 * @($script:Subs).Count)
         @($policyCalls | Select-Object -First 2 | Where-Object { $_.Contains($customFilter) }).Count |

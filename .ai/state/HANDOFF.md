@@ -112,7 +112,38 @@ Unreleased, `docs/guide/troubleshooting.md`.
 **Push state.** The work is one squashed commit on `fix/scan-speed-and-report-detail`. An earlier
 local commit named the scanned tenant in this file; it was squashed away before anything was
 pushed. This repository is public: keep tenant and subscription names out of commits, PR text and
-these notes. No Azure call was made in this session.
+these notes.
+
+**Merge and live scan (later the same day).** PR #19 merged to `main` with an admin override at
+the operator's instruction (CI green; the required review was skipped). The merged code was copied
+over the installed 3.17.1 module folder and a read-only live scan was run against the same
+nine-subscription lab tenant as the 2026-10-05 field run, same switches, using the operator's
+cached Az sign-in.
+
+| Measure | 2026-10-05 (3.17.1) | 2026-11-13 (merged) |
+|---|---|---|
+| Total run time | 2h48m | 35m56s |
+| Extraction phase | most of the run | 14m25s |
+| React report size | 100.7 MB | 25.8 MB |
+| Management groups in report | 0 | 13 |
+| Advisor recommendations in report | 0 | 377 |
+| Effective NSG / route lookups | all failed | succeed (about 1 s each) |
+| Policy definitions stored | 33,291 | 3,758 (217 shown in the report) |
+| Collectors failed | n/a | 0 of 314 |
+
+Two defects the live scan exposed, fixed on branch `fix/policy-filter-and-graph-504`:
+
+1. The custom-policy filter was rejected with HTTP 400 `UnsupportedFilter`. Azure accepts
+   `policyType eq 'Custom'`, not the `-eq` form in the REST reference (verified with direct GETs:
+   `eq` returns 200, `-eq` returns 400). The fallback kept results correct but saved no time.
+2. The 30-day `auditLogs/signIns` Graph query returned 504 after two minutes, six times in a row
+   (12 minutes). 504 is now retried once.
+
+Still open after the live scan: the management-group access probe takes two minutes
+(`Get-AzManagementGroup -Expand -Recurse`); the sign-in query itself still times out on this
+tenant, so legacy-authentication rows are empty; the subscription security and policy sweep took
+4m16s; `finops.costRows` is empty in the report although nine cost rows were extracted;
+`Import-Module AzureScout` takes about 48 s.
 
 **Environment notes.** Pester 5.7.1 (CI pin) is not installed here; 5.9.1 was used. Full suite is
 run in four shards with `scratchpad/run-shard.ps1`; `DeclarativeCollectorGolden.Tests.ps1` takes

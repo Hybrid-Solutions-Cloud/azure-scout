@@ -279,6 +279,28 @@ Describe 'Invoke-AZSCGraphRequest' {
         }
     }
 
+    # ── Gateway timeout is retried once, not MaxRetries times ─────────
+    Context 'Gateway Timeout (504)' {
+
+        BeforeAll {
+            Mock Get-AZSCGraphToken {
+                return @{ 'Authorization' = 'Bearer mock-token'; 'Content-Type' = 'application/json' }
+            } -ModuleName AzureScout
+            Mock Start-Sleep { } -ModuleName AzureScout
+            Mock Invoke-RestMethod {
+                $mockResponse = [System.Net.Http.HttpResponseMessage]::new([System.Net.HttpStatusCode]::GatewayTimeout)
+                throw [Microsoft.PowerShell.Commands.HttpResponseException]::new('Gateway Timeout', $mockResponse)
+            } -ModuleName AzureScout
+        }
+
+        It 'Stops after one retry so a slow query is not repeated five times' {
+            { InModuleScope 'AzureScout' {
+                Invoke-AZSCGraphRequest -Uri '/v1.0/auditLogs/signIns' -MaxRetries 5 -SuppressFailureWarning
+            } } | Should -Throw
+            Should -Invoke Invoke-RestMethod -ModuleName AzureScout -Times 2 -Exactly -Scope It
+        }
+    }
+
     # ── Token Refresh ─────────────────────────────────────────────────
     Context 'Token Handling' {
 

@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- The custom-only policy read now uses the filter Azure accepts (`policyType eq 'Custom'`). The
+  `-eq` spelling from the REST reference was rejected with HTTP 400 on every subscription after
+  the first, so each one fell back to re-reading the full built-in catalog. AB#9300.
+- A Microsoft Graph 504 Gateway Timeout is retried once instead of five times. A live scan lost
+  12 minutes repeating a 30-day sign-in log query that timed out after two minutes each time.
+  AB#9300.
 - Scans no longer spend most of their time writing the run log. Since 3.17.1 every Azure SDK
   call was captured at debug level (about fifty records per call) and every record reopened
   the log file; a nine-subscription field scan spent 121 of its 148 minutes doing that. The
