@@ -269,7 +269,9 @@ function Get-ScoutApiResources {
     # See the policy block in the subscription loop below.
     $builtInPolicyCatalogRead = $false
     $builtInPolicySetCatalogRead = $false
-    $customPolicyFilter = '&$filter=' + [uri]::EscapeDataString("policyType -eq 'Custom'")
+    # Azure accepts `policyType eq 'Custom'` here. The `-eq` spelling shown in the REST reference
+    # is rejected with HTTP 400 UnsupportedFilter (verified against a live tenant 2026-11-13).
+    $customPolicyFilter = '&$filter=' + [uri]::EscapeDataString("policyType eq 'Custom'")
 
     function Select-ScoutCustomPolicyRow {
         # Keeps only customer-authored definitions. This is the guarantee; the server-side
