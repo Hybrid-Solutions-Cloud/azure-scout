@@ -339,6 +339,26 @@ Describe 'Get-ScoutOperationalCollectorEnrichment' {
         ($script:Calls -join "`n") | Should -Not -Match 'arc-1/providers/microsoft.insights/metrics'
         ($Rows | Where-Object type -eq 'AZSC/Operational/ARCServers').properties.CpuMetrics.__AZSCStatus | Should -Be 'NotSupportedForArc'
     }
+    It 'records a billing-disabled cost lookup as not applicable without a warning' {
+        # Live scan 2026-11-13: every scan warned once per subscription whose billing account
+        # hides cost data. No role assignment can change that, so it is not a fault.
+        $health = [System.Collections.Generic.List[object]]::new()
+        function global:Invoke-AzRestMethod {
+            param($Path,$Method,$Payload,$ErrorAction) $null=$Method,$Payload,$ErrorAction
+            if ($Path -match 'Microsoft.CostManagement/query') {
+                return [pscustomobject]@{ StatusCode=400; Content='{"error":{"code":"SubscriptionCostDisabled","message":"Customer does not have the privilege to see the cost"}}' }
+            }
+            [pscustomobject]@{StatusCode=200;Content='{"value":[]}' }
+        }
+        $null = @(Get-ScoutOperationalCollectorEnrichment -Resources $script:Resources -Subscriptions @([pscustomobject]@{Id='sub-1';Name='Subscription One';TenantId='tenant-a'}) -CollectionHealth $health -WarningVariable Warnings)
+
+        ($Warnings -join "`n") | Should -Not -Match 'EstimatedCost'
+        $costHealth = @($health | Where-Object SourceDataset -eq 'VirtualMachine.EstimatedCost')
+        $costHealth.Count | Should -Be 1
+        $costHealth[0].Status | Should -Be 'NotAssessed'
+        $costHealth[0].Reason | Should -Match '^Not applicable: the billing account'
+    }
+
     It 'retries a 429 with backoff and eventually succeeds instead of failing immediately' {
         $script:AttemptCount = 0
         function global:Invoke-AzRestMethod {

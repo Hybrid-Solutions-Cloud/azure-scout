@@ -220,9 +220,16 @@ Describe 'Start-AZSCEntraExtraction' {
             $gated = @(Get-ScoutEntraQueryCatalog | Where-Object { $_.ContainsKey('RequireDelegatedScope') -and $_.RequireDelegatedScope })
             foreach ($query in $gated) {
                 $outcome = @($result.QueryOutcomes | Where-Object Type -eq $query.Type)[0]
+                # A windowed dataset (sign-ins) is read as one request per time window.
+                $expectedUris = @(if ($query.ContainsKey('WindowUris')) { $query.WindowUris } else { $query.Uri })
                 $outcome.Status | Should -Be 'Success'
-                $outcome.Count | Should -Be 1
-                Should -Invoke Invoke-AZSCGraphRequest -Times 1 -Scope It -ParameterFilter { $Uri -eq $query.Uri }
+                $outcome.Count | Should -Be $expectedUris.Count
+                foreach ($expectedUri in $expectedUris) {
+                    Should -Invoke Invoke-AZSCGraphRequest -Times 1 -Scope It -ParameterFilter { $Uri -eq $expectedUri }
+                }
+                if ($query.ContainsKey('WindowUris')) {
+                    Should -Invoke Invoke-AZSCGraphRequest -Times 0 -Scope It -ParameterFilter { $Uri -eq $query.Uri }
+                }
             }
         }
 
@@ -235,7 +242,9 @@ Describe 'Start-AZSCEntraExtraction' {
             Mock Get-AZSCGraphToken { @{ Authorization = "Bearer e30.$b64.sig"; 'Content-Type' = 'application/json' } }
             Mock Test-ScoutTenantLicence { $true }
             Mock Invoke-AZSCGraphRequest {
-                $entry = @(Get-ScoutEntraQueryCatalog | Where-Object Uri -eq $Uri)[0]
+                $entry = @(Get-ScoutEntraQueryCatalog | Where-Object {
+                        $_.Uri -eq $Uri -or ($_.ContainsKey('WindowUris') -and @($_.WindowUris) -contains $Uri)
+                    })[0]
                 if ($entry.ContainsKey('RequireDelegatedScope') -and $entry.RequireDelegatedScope) { return $null }
                 return @([pscustomobject]@{ id = 'available'; displayName = 'Available' })
             }

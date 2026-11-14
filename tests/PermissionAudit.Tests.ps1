@@ -309,7 +309,8 @@ Describe 'Invoke-AZSCPermissionAudit — Entra audit survives null/scalar Graph 
             [pscustomobject]@{ Subscription = [pscustomobject]@{ Id = $Subscription } }
         }
         Mock -CommandName Get-AzResourceProvider -MockWith {
-            [PSCustomObject]@{ RegistrationState = 'Registered' }
+            [PSCustomObject]@{ ProviderNamespace = 'Microsoft.Security'; RegistrationState = 'Registered' }
+            [PSCustomObject]@{ ProviderNamespace = 'Microsoft.Insights'; RegistrationState = 'NotRegistered' }
         }
         # Graph token acquisition succeeds, but every Graph request returns $null —
         # simulating an empty/absent Graph response rather than a hard failure.
@@ -341,6 +342,13 @@ Describe 'Invoke-AZSCPermissionAudit — Entra audit survives null/scalar Graph 
     It 'ProviderResults reflects the single scalar-collapsing subscription without throwing on .Count' {
         , $script:Result.ProviderResults | Should -Not -BeNullOrEmpty
         $script:Result.ProviderResults.Count | Should -BeGreaterThan 0
+    }
+
+    It 'reads provider registration with one listing call, not one call per provider' {
+        Should -Invoke Get-AzResourceProvider -Times 1 -Exactly -Scope Describe
+        ($script:Result.ProviderResults | Where-Object Provider -eq 'Microsoft.Security').RegistrationState | Should -Be 'Registered'
+        ($script:Result.ProviderResults | Where-Object Provider -eq 'Microsoft.Insights').RegistrationState | Should -Be 'NotRegistered'
+        ($script:Result.ProviderResults | Where-Object Provider -eq 'Microsoft.Search').RegistrationState | Should -Be 'NotRegistered'
     }
 
     It 'does not audit an explicitly disabled subscription as runnable scope' {

@@ -92,7 +92,7 @@ Describe 'AB#7187 — probe-loop branch placement (source analysis)' {
     It 'checks both known availability gates before issuing the endpoint probe' {
         $licenceIdx  = Get-AuditSourceIndex 'Test-ScoutTenantLicence -SkuPattern \$req\.SkuPattern'
         $cliScopeIdx = Get-AuditSourceIndex '@\(\$tokenClaim\.Scopes\) -notcontains \[string\]\$impact\.Permission'
-        $probeIdx    = Get-AuditSourceIndex '\$null = Invoke-AZSCGraphRequest -Uri \$probe\.Uri'
+        $probeIdx    = Get-AuditSourceIndex '\$null = Invoke-AZSCGraphRequest -Uri \$probeUri'
         $licenceIdx | Should -BeLessThan $probeIdx
         $cliScopeIdx | Should -BeLessThan $probeIdx
     }
