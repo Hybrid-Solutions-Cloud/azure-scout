@@ -22,10 +22,11 @@ verifiedAgainst: "docs/frameworks/casa-question-set.md, 32 items across 7 domain
 # four other rule files already carry, not introduced here. Citing any of those fields would be
 # exactly the empty-collection false-pass class this epic exists to kill, so those items are
 # `manual: true` below even where the enumeration's own collector column reads (Partial) or (✅).
-# Two items moved the OTHER way: CASA-CO-01 and CASA-CO-04 are automated here because this story
-# (AB#6821) wired domains.security.keyVaultKeys into collect.json for the first time, and because
+# One item moved the OTHER way: CASA-CO-04 is automated here because
 # domains.analytics.purviewAccounts (Epic AB#6741) turned out to already be collected even though
 # the enumeration recorded Purview as an uncollected gap.
+# CASA-CO-01 (key-management controls) has no rule: answering it needs the keys inside a Key Vault,
+# and AzureScout never reads anything inside a Key Vault -- it inventories vault configuration only.
 rules:
   # ---- TR: Understand security teams and roles (fully organisational) ----------------------------
   - id: CASA-TR-01
@@ -154,15 +155,6 @@ rules:
     manual: true
 
   # ---- CO: Confidentiality --------------------------------------------------------------------
-  - id: CASA-CO-01
-    title: "Encryption and key-management controls enforce confidentiality"
-    severity: high
-    # domains.security.keyVaultKeys is wired by this story (AB#6821) -- existence of CMK material
-    # in the tenant, not proof it is applied to every sensitive data store.
-    query: "$.domains.security.keyVaultKeys[*]"
-    assert: { type: exists, gate: "$.domains.security.keyVaultKeysAvailable" }
-    remediation: "CASA-CO-01. No Key Vault key was found in scope. Enforce confidentiality with encryption and centralized key management -- key existence alone does not confirm every sensitive data store actually uses it; verify the binding for each store directly."
-    manual: false
   - id: CASA-CO-02
     title: "Identity and access policies restrict access to sensitive data"
     severity: high

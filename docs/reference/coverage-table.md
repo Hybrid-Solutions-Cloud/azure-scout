@@ -36,10 +36,10 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | Migration | 6 | Azure Migrate projects, assessments and discovery sites; Database Migration Services, Data Box, and Azure Stack Edge. |
 | Monitor | 25 | Alert rules, Application Insights, data collection rules, diagnostic settings, and Log Analytics. |
 | Networking | 25 | Virtual networks, NSGs, load balancers, gateways, Front Door, Firewall, Bastion, and ExpressRoute. |
-| Security | 24 | Defender for Cloud, Key Vault and its secret/key expiry, Sentinel, HSMs, WAF and DDoS policies, and Entra Domain Services. |
+| Security | 22 | Defender for Cloud, Key Vault (ARM configuration only), Sentinel, HSMs, WAF and DDoS policies, and Entra Domain Services. |
 | Storage | 17 | Storage accounts and their containers, shares and lifecycle policies; NetApp Files, snapshots, encryption sets, and Elastic SAN. |
 | Web | 14 | App Services and plans, Function Apps, slots, Static Web Apps, SignalR, Web PubSub, and Communication Services. |
-| **Total** | **314** | across all 18 of Microsoft's published service categories |
+| **Total** | **312** | across all 18 of Microsoft's published service categories |
 
 ## AI Category (31 modules)
 
@@ -375,7 +375,7 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | VirtualWAN | `microsoft.network/virtualwans` | Virtual WAN |
 | vNETPeering | `microsoft.network/virtualnetworks` | Peering |
 
-## Security Category (24 modules)
+## Security Category (22 modules)
 
 | Module | Resource Type | Worksheet |
 |--------|---------------|-----------|
@@ -395,8 +395,6 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | DefenderSecureScore | `AZSC/Subscription/SecurityPolicySweep` | Defender Secure Score |
 | DefenderUnhealthyRecommendations | `AZSC/Derived/DefenderUnhealthyRecommendation` | Defender Recommendations |
 | EntraDomainServices | `microsoft.aad/domainservices` | Entra Domain Services |
-| KeyVaultKeys | `AZSC/ARMChild/KeyVaultKeys` | Key Vault Keys |
-| KeyVaultSecrets | `AZSC/ARMChild/KeyVaultSecrets` | Key Vault Secrets |
 | ManagedHSM | `microsoft.keyvault/managedhsms` | Managed HSM |
 | Sentinel | `microsoft.operationsmanagement/solutions` · `microsoft.securityinsights/onboardingstates` | Sentinel |
 | SentinelDataConnectors | `AZSC/ARMChild/SentinelDataConnectors` | Sentinel Connectors |

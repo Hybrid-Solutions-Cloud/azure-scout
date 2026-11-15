@@ -76,8 +76,8 @@ foreach ($m in $queryMatches) {
 # canonical payload-shape doc (lines 19-73 of that file), not left as "needs manual check".
 # None of these are `type =~` KQL filters (they're ARM-child sweeps or a legacy subscription-wide
 # security/policy sweep), so the static regex above can never see them -- this table is the
-# result of actually reading the canonical shape comment and the governance/keyvault wiring code
-# (the raw-governance pass at ~line 1065, the KeyVault ARM-child sweep at ~line 1309,
+# result of actually reading the canonical shape comment and the governance wiring code
+# (the raw-governance pass at ~line 1065,
 # Get-ScoutDefenderPlanSweep at ~line 1383) and matching each collector to a real verdict.
 $syntheticVerdicts = @{
     'azsc/armchild/arcsites'                       = @{ Wired=$true;  Reason='canonical shape line 53: hybrid.arcSites[] -- always present as a key, populated when -IncludeAzureLocalArm is passed (AB#6803)' }
@@ -89,8 +89,6 @@ $syntheticVerdicts = @{
     'azsc/management/managementgroup'              = @{ Wired=$true;  Reason='canonical shape line 34: governance.managementGroups[]' }
     'azsc/governance/policyassignment'             = @{ Wired=$true;  Reason='canonical shape line 34: governance.policyAssignments[] -- filled by the raw-governance pass' }
     'azsc/governance/resourcelock'                 = @{ Wired=$true;  Reason='canonical shape line 34: governance.resourceLocks[] -- filled by the raw-governance pass' }
-    'azsc/armchild/keyvaultkeys'                   = @{ Wired=$true;  Reason='canonical shape line 48: security.keyVaultKeys[] -- ARM-child sweep, ConvertTo-ScoutKeyVaultChildRow, ~line 1338 (AB#6821)' }
-    'azsc/armchild/keyvaultsecrets'                 = @{ Wired=$true;  Reason='canonical shape line 47: security.keyVaultSecrets[] -- ARM-child sweep, ConvertTo-ScoutKeyVaultChildRow, ~line 1338 (AB#6821)' }
 
     'azsc/armchild/mlcomputes'                     = @{ Wired=$false; Reason='canonical shape documents ai.mlWorkspaces[] only (workspace-level scalars); no mlComputes child key exists in the payload' }
     'azsc/armchild/mldatasets'                     = @{ Wired=$false; Reason='not in the canonical payload shape -- ai.mlWorkspaces[] carries no child datasets key' }

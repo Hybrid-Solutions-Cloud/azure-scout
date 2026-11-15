@@ -4,7 +4,7 @@ description: How much of each enumerated framework Azure Scout actually has a ru
 
 # Framework Coverage
 
-Across every framework Azure Scout enumerates, **221 of 647 items (34%) have a rule behind them**.
+Across every framework Azure Scout enumerates, **220 of 647 items (34%) have a rule behind them**.
 
 ::: warning Read this number the right way
 Scout **enumerates** each framework in full — see [Frameworks](../frameworks/README.md) — and a test
@@ -34,14 +34,14 @@ and a fresh regeneration disagree.
 | [`casa-question-set`](../frameworks/casa-question-set.md) | 37 | 37 | **100%** | 3 / 3 |
 | [`waf-ai-workload-checklist`](../frameworks/waf-ai-workload-checklist.md) | 34 | 34 | **100%** | 1 / 1 |
 | [`waf-azure-local-checklist`](../frameworks/waf-azure-local-checklist.md) | 33 | 33 | **100%** | 1 / 1 |
-| [`waf-avs-workload-checklist`](../frameworks/waf-avs-workload-checklist.md) | 27 | 27 | **100%** | 1 / 1 |
+| [`waf-avs-workload-checklist`](../frameworks/waf-avs-workload-checklist.md) | 27 | 26 | **96%** | 1 / 1 |
 | [`cloud-governance-question-set`](../frameworks/cloud-governance-question-set.md) | 23 | 18 | **78%** | 1 / 1 |
 | [`devops-capability-question-set`](../frameworks/devops-capability-question-set.md) | 20 | 20 | **100%** | 2 / 2 |
 | [`waf-avd-workload-checklist`](../frameworks/waf-avd-workload-checklist.md) | 20 | 20 | **100%** | 1 / 1 |
 | [`smart-question-set`](../frameworks/smart-question-set.md) | 1 | 1 | **100%** | 1 / 1 |
 | `avs-landing-zone-question-set` | — | — | *not enumerated with item ids* | — |
 | `finops-review-question-set` | — | — | *not enumerated with item ids* | — |
-| **Total** | **647** | **221** | **34%** | |
+| **Total** | **647** | **220** | **34%** | |
 
 ::: warning Where item coverage reads 0%, check the areas column
 `caf-landing-zone-design-areas` enumerates individual recommendations (`AUT-DEV-01`,
@@ -70,5 +70,9 @@ The specific items with no rule of their own. This is the backlog, stated rather
 ### `cloud-governance-question-set` — 5 of 23 uncovered
 
 `CGOV-PROC-01`, `CGOV-PROC-02`, `CGOV-PROC-03`, `CGOV-PROC-04`, `CGOV-PROC-05`
+
+### `waf-avs-workload-checklist` — 1 of 27 uncovered
+
+`AVS-SEC-05`
 
 

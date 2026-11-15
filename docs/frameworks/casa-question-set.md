@@ -11,9 +11,8 @@ This is the AB#6812 enumeration for target #13 in the audit's fourteen-assessmen
 (`pmo/audits/AZURE-SCOUT-AUDIT.md` §14): *"Cloud Adoption Security Assessment (CASA) — Aligned to
 the CAF Secure methodology, which Scout does not model at all."* Per §9 note in that same document,
 this assessment depends on RBAC assignments and Key Vault child collectors. `manifests/collectors/
-Identity/RoleAssignments.psd1` and `manifests/collectors/Security/KeyVaultSecrets.psd1` /
-`KeyVaultKeys.psd1` already exist and are cited below; `Security/KeyVaultCertificates.psd1` is being
-added in a parallel workstream and is cited as planned, not yet present.
+Identity/RoleAssignments.psd1` already exists and is cited below. The Key Vault secret and key collectors were
+removed (AB#9300): AzureScout never reads anything inside a Key Vault, so those checks are manual.
 
 ## What CASA is
 
@@ -89,7 +88,7 @@ resource configuration.
 
 | # | Item | Scout can evidence? |
 |---|---|---|
-| CASA-CO-01 | Encryption and key-management controls enforce confidentiality | ✅ `Security/KeyVaultKeys`, `Security/Vault` ("Enable for Disk Encryption") |
+| CASA-CO-01 | Encryption and key-management controls enforce confidentiality | ❌ Unanswerable — answering it needs the keys inside a Key Vault, which AzureScout never reads; `Security/Vault` shows vault configuration only |
 | CASA-CO-02 | Identity and access policies restrict access to sensitive data | ⚠️ Partial — `Identity/RoleAssignments` |
 | CASA-CO-03 | Network segmentation restricts access to confidential data paths | ⚠️ Partial — `Networking/NetworkSecurityGroup`, `Networking/PrivateEndpoint` |
 | CASA-CO-04 | Data classification and sensitivity labelling controls are applied | ❌ Microsoft Purview is not collected by Scout |
@@ -124,7 +123,7 @@ resource configuration.
 
 ## What this means for the rule file
 
-**8 of 32 items are fully answerable, 15 are partial, 9 are organisational and permanently out of
+**7 of 32 items are fully answerable, 15 are partial, 1 (`CASA-CO-01`) is unanswerable because it needs the contents of a Key Vault, and 9 are organisational and permanently out of
 reach.** The `TR` domain (6 items) is entirely manual by nature — no ARM resource encodes a RACI
 chart — and should be surfaced as a manual questionnaire section rather than omitted, per the
 pattern `smart.migration.yaml` already established for SMART's organisational items. The strongest

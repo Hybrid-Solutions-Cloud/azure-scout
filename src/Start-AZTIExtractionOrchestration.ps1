@@ -103,7 +103,7 @@ function Resolve-AZSCExtractionCategoryPlan {
     $supportedArmChildren = @(
         'MLComputes', 'MLDatasets', 'MLDatastores', 'MLEndpoints', 'MLModels', 'MLPipelines',
         'OpenAIDeployments', 'SearchIndexes', 'AVDApplications', 'AppInsightsProactiveDetection',
-        'LAWorkspaceLinkedServices', 'LAWorkspaceSavedSearches', 'KeyVaultSecrets', 'KeyVaultKeys',
+        'LAWorkspaceLinkedServices', 'LAWorkspaceSavedSearches',
         'LAWorkspaceTables', 'SentinelDataConnectors', 'SentinelIngestion',
         'StorageBlobContainers', 'StorageFileShares', 'StorageLifecyclePolicies', 'StorageQueues',
         'StorageTables', 'BackupInstances', 'ResourceDiagnosticSettings', 'ReservationUtilization',

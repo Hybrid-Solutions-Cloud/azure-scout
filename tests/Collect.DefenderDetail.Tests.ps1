@@ -4,8 +4,9 @@
 <#
     AB#7063 (Story AB#7059, Feature AB#7069, Epic AB#7099) -- Defender-for-Cloud detail plumbing.
 
-    manifests/collectors/Security/*.psd1 has 17 collectors; before this pass only 4 (defenderPlans,
-    keyVaults, keyVaultKeys, keyVaultSecrets) reached the assessment payload the React report
+    manifests/collectors/Security/*.psd1 had 17 collectors; before this pass only defenderPlans and
+    keyVaults (plus two Key Vault content listings since removed, AB#9300) reached the assessment
+    payload the React report
     renders. This closes the gap for the three collectors that ARE ordinary ARG-indexed types --
     WafPolicies, DdosProtectionPlans, ApplicationSecurityGroups -- the same class of defect and fix
     pattern AB#7064/AB#7065/AB#7066 already used.

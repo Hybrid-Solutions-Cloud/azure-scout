@@ -6,7 +6,7 @@ description: Complete catalog of AzureScout inventory collectors across all 18 o
 
 ## Overview
 
-AzureScout ships **314 collector definitions** across **18 categories** — Microsoft's
+AzureScout ships **312 collector definitions** across **18 categories** — Microsoft's
 eighteen published service categories, as listed on the Azure portal's All services page.
 The `Identity` category queries Microsoft Graph rather than ARM; those collectors are also
 cataloged on the [Entra ID Modules](entra-modules.md) page.
@@ -396,9 +396,9 @@ Virtual networks, NSGs, load balancers, gateways, Front Door, Firewall, Bastion,
 | VirtualWAN | `microsoft.network/virtualwans` |
 | vNETPeering | `microsoft.network/virtualnetworks` *(filtered)* |
 
-### Security (24 modules)
+### Security (22 modules)
 
-Defender for Cloud, Key Vault and its secret/key expiry, Sentinel, HSMs, WAF and DDoS policies, and Entra Domain Services.
+Defender for Cloud, Key Vault (ARM configuration only), Sentinel, HSMs, WAF and DDoS policies, and Entra Domain Services.
 
 | Module | Resource Type |
 |--------|---------------|
@@ -418,8 +418,6 @@ Defender for Cloud, Key Vault and its secret/key expiry, Sentinel, HSMs, WAF and
 | DefenderSecureScore | `AZSC/Subscription/SecurityPolicySweep` |
 | DefenderUnhealthyRecommendations | `AZSC/Derived/DefenderUnhealthyRecommendation` |
 | EntraDomainServices | `microsoft.aad/domainservices` |
-| KeyVaultKeys | `AZSC/ARMChild/KeyVaultKeys` |
-| KeyVaultSecrets | `AZSC/ARMChild/KeyVaultSecrets` |
 | ManagedHSM | `microsoft.keyvault/managedhsms` |
 | Sentinel | `microsoft.operationsmanagement/solutions` · `microsoft.securityinsights/onboardingstates` *(filtered)* |
 | SentinelDataConnectors | `AZSC/ARMChild/SentinelDataConnectors` |

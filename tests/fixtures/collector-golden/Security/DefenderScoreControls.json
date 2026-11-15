@@ -3,7 +3,7 @@
   "Category": "Security",
   "Name": "DefenderScoreControls",
   "FixturePath": "tests/fixtures/collector-equivalence/Security.json",
-  "FixtureSha256": "1554d9d2bcde29c7f184150be063fb144575f4ba719b2885258c5b659a174239",
+  "FixtureSha256": "f6f84e032b8e6a1511835f3b3e2828d25a742cbdd0f9192170807e531b5498ec",
   "Rows": [
     "Control=<null>|Current Score=<null>|Healthy Resources=<null>|ID=<null>|Max Score=<null>|Not Applicable=<null>|Percentage=<null>|Resource U=j:1|Subscription ID=s:00000000-0000-0000-0000-000000000001|Unhealthy Resources=<null>|Weight=<null>",
     "Control=<null>|Current Score=<null>|Healthy Resources=<null>|ID=<null>|Max Score=<null>|Not Applicable=<null>|Percentage=<null>|Resource U=j:1|Subscription ID=s:00000000-0000-0000-0000-000000000001|Unhealthy Resources=<null>|Weight=<null>",

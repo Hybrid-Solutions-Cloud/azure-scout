@@ -55,7 +55,7 @@ $CategoryBlurb = @{
     Migration   = 'Azure Migrate projects, assessments and discovery sites; Database Migration Services, Data Box, and Azure Stack Edge.'
     Monitor     = 'Alert rules, Application Insights, data collection rules, diagnostic settings, and Log Analytics.'
     Networking  = 'Virtual networks, NSGs, load balancers, gateways, Front Door, Firewall, Bastion, and ExpressRoute.'
-    Security    = 'Defender for Cloud, Key Vault and its secret/key expiry, Sentinel, HSMs, WAF and DDoS policies, and Entra Domain Services.'
+    Security    = 'Defender for Cloud, Key Vault (ARM configuration only), Sentinel, HSMs, WAF and DDoS policies, and Entra Domain Services.'
     Storage     = 'Storage accounts and their containers, shares and lifecycle policies; NetApp Files, snapshots, encryption sets, and Elastic SAN.'
     Web         = 'App Services and plans, Function Apps, slots, Static Web Apps, SignalR, Web PubSub, and Communication Services.'
 }

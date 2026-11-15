@@ -2,9 +2,9 @@
   "Schema": "azure-scout/collector-rowcounts/v1",
   "GeneratedAt": "2026-08-01T00:08:10.9909127-04:00",
   "Totals": {
-    "Collectors": 240,
+    "Collectors": 238,
     "WithRows": 39,
-    "Empty": 201,
+    "Empty": 199,
     "Failed": 0,
     "Rows": 1416.0
   },
@@ -1468,20 +1468,6 @@
     {
       "Category": "Security",
       "Collector": "EntraDomainServices",
-      "Rows": 0,
-      "Verdict": "Empty",
-      "Error": null
-    },
-    {
-      "Category": "Security",
-      "Collector": "KeyVaultKeys",
-      "Rows": 0,
-      "Verdict": "Empty",
-      "Error": null
-    },
-    {
-      "Category": "Security",
-      "Collector": "KeyVaultSecrets",
       "Rows": 0,
       "Verdict": "Empty",
       "Error": null

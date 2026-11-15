@@ -151,8 +151,7 @@ $ErrorActionPreference = 'Stop'
                       ai{cognitiveAccounts[{identityType,cmkEnabled}],
                          mlWorkspaces[{workspaceKind,publicAccess,identityType}],          (AB#6818)
                          searchServices[{sku}]},                                           (AB#6818)
-                      security{keyVaults[], keyVaultSecrets[{contentType,enabled,expires}],
-                               keyVaultKeys[{enabled,expires}],
+                      security{keyVaults[],
                                attestationProviders[{status,trustModel,publicNetworkAccess}], (AB#7089)
                                appComplianceReports[{triggerType}],                        (AB#7110)
                                applicationSecurityGroups[],                                (AB#7110)
@@ -1340,8 +1339,9 @@ resources | where type =~ "microsoft.managedidentity/userassignedidentities"
 '@
         # ---- AB#7063 (Story AB#7059, Feature AB#7069, Epic AB#7099) -- Defender-for-Cloud
         # detail collectors, Security(17) coverage gap ------------------------------------------
-        # manifests/collectors/Security/*.psd1 has 17 collectors; only defenderPlans/keyVaults/
-        # keyVaultKeys/keyVaultSecrets (4) reached the assessment payload before this pass.
+        # manifests/collectors/Security/*.psd1 had 17 collectors; only defenderPlans/keyVaults
+        # (plus the since-removed Key Vault secret/key listings) reached the assessment payload
+        # before this pass.
         #
         # Wired here -- ordinary ARG-indexed `resources` table rows, same fix pattern as
         # AB#7064/7065/7066:
@@ -2688,17 +2688,6 @@ resources
             # envelopes, not the five inventory-report datasets the same sweep can return, so
             # it pays two REST calls per subscription rather than seven. -SkipApiResourceSweep
             # is deliberately NOT set, because the policy definitions are the point.
-            # AB#6821 (Feature AB#6748, Epic AB#6454) -- CASA scores confidentiality/integrity
-            # controls that live on Key Vault CHILD objects (a secret's contentType distinguishes
-            # a certificate from a plain secret; both carry attributes.enabled/exp), which are not
-            # completely Resource Graph or ARM indexed. Scout uses metadata-only Key Vault LIST
-            # operations and never requests secret values or private key material.
-            # -ArmChildDataset scopes Get-ScoutArmChildResource to exactly these two datasets
-            # (KeyVaultSecrets, KeyVaultKeys) rather than its full 'All' sweep (ML/Search/Storage/
-            # Backup/diagnostics children an assessment collect has no rule that reads), so the
-            # added cost is bounded to two paged metadata LIST operations per Key Vault in scope,
-            # not per-parent across every dataset the declarative inventory collectors need.
-            #
             # -IncludeUpdateManagerResources (AB#7107 AB#7108, Story AB#7059, Feature AB#7069,
             # Epic AB#7099) is the second -Include* switch this path needs, added the same way
             # -IncludeBackupResources was by AB#6835 above: `patchassessmentresources` and
@@ -2708,7 +2697,6 @@ resources
             # on the default assessment collect, same tradeoff class as the backup-items call.
             $rawArgs = @{
                 IncludeTags = $true; IncludeBackupResources = $true; TenantWideDefinitionsOnly = $true
-                IncludeArmChildResources = $true; ArmChildDataset = @('KeyVaultSecrets', 'KeyVaultKeys')
                 IncludeUpdateManagerResources = $true; CollectBillingEvidence = $true
                 CollectEntraDiagnosticSettings = $true
             }
@@ -2722,13 +2710,14 @@ resources
             # collected either way; this only adds calls, never removes any.
             if ($IncludeAzureLocalArm) {
                 $rawArgs.IncludeArmChildResources = $true
+                $rawArgs.ArmChildDataset = @('AzureLocalVirtualMachineInstances')
                 $rawArgs.TenantWideDefinitionsOnly = $false
             }
             $rawInventory = Get-ScoutRawInventory @rawArgs
         }
         catch {
             # The raw pass owns child/API datasets that the typed query pack cannot reproduce
-            # (for example Key Vault keys/secrets). Falling through would turn those unavailable
+            # (for example the Azure Local virtual machine instances). Falling through would turn those unavailable
             # sources into empty arrays and allow false Pass findings, so the default assessment
             # path must fail closed. The explicit legacy -Source TypedQueries mode remains
             # available to callers that intentionally accept its narrower contract.
@@ -3108,78 +3097,6 @@ resources
     # distinct id, matching the policyInitiatives dedup immediately above.
     $policyDefinitions = @(Get-ScoutTenantWideDefinitionRow -EnvelopeType 'AZSC/Management/PolicyDefinition' | Sort-Object Id -Unique)
     $policySetDefinitions = @(Get-ScoutTenantWideDefinitionRow -EnvelopeType 'AZSC/Management/PolicySetDefinition' | Sort-Object Id -Unique)
-
-    # ---- Key Vault children: secrets and keys (AB#6821, Epic AB#6454) -------------------------
-    # These rows come from Get-ScoutArmChildResource's ARM REST sweep (see the ArmChildDataset
-    # note above) rather than Resource Graph -- $rawInventory.Resources carries them as
-    # AZSC/ARMChild/KeyVaultSecrets and AZSC/ARMChild/KeyVaultKeys rows, one per secret/key
-    # version-less object, with ConvertTo-ArmChildRow's synthetic PARENTNAME/PARENTID/
-    # subscriptionId/RESOURCEGROUP columns identifying which vault each one belongs to. Field
-    # names below (contentType, attributes.enabled/exp/nbf) are the documented Key Vault
-    # GetSecrets/GetKeys list-response shape -- the exact fields
-    # manifests/collectors/Security/KeyVaultSecrets.psd1 / KeyVaultKeys.psd1 already read to
-    # render the Excel worksheet (Content Type, Enabled, Expires), so a rule here and that
-    # worksheet agree on what a given secret/key looks like.
-    function ConvertTo-ScoutKeyVaultChildRow {
-        param([Parameter(Mandatory)] $Row)
-        # Get-ScoutArmChildResource preserves the service payload under `.properties`, matching
-        # every declarative collector. The original assessment adapter incorrectly looked for
-        # contentType/attributes at the synthetic row's top level, so real runs silently erased
-        # certificate classification, enabled state and expiry even when collection succeeded.
-        $data = if ($Row.PSObject.Properties['properties'] -and $Row.properties) {
-            $Row.properties
-        }
-        else {
-            $Row
-        }
-        $attrs = if ($data.PSObject.Properties['attributes']) { $data.attributes } else { $null }
-        $enabledValue = $null
-        if ($attrs -and $attrs.PSObject.Properties['enabled']) {
-            $enabledValue = $attrs.enabled
-        }
-        [pscustomobject]@{
-            id             = if ($Row.PSObject.Properties['id']) { [string]$Row.id } else { $null }
-            keyVaultName   = if ($Row.PSObject.Properties['PARENTNAME']) { [string]$Row.PARENTNAME } else { $null }
-            keyVaultId     = if ($Row.PSObject.Properties['PARENTID']) { [string]$Row.PARENTID } else { $null }
-            subscriptionId = if ($Row.PSObject.Properties['subscriptionId']) { [string]$Row.subscriptionId } else { $null }
-            resourceGroup  = if ($Row.PSObject.Properties['RESOURCEGROUP']) { [string]$Row.RESOURCEGROUP } else { $null }
-            # Certificates are secrets whose contentType is x-pkcs12 (PFX) or x-pem-file (PEM) --
-            # Key Vault has no separate "certificate" list API result shape at this level; see
-            # src/collect/Get-ScoutArmChildResource.ps1 (~line 453) and
-            # manifests/collectors/Security/KeyVaultSecrets.psd1's $Kind derivation.
-            contentType    = if ($data.PSObject.Properties['contentType']) { [string]$data.contentType } else { $null }
-            enabled        = ConvertTo-ScoutBool $enabledValue
-            expires        = if ($attrs -and $attrs.PSObject.Properties['exp']) { $attrs.exp } else { $null }
-        }
-    }
-    $keyVaultSecrets = @()
-    $keyVaultKeys = @()
-    if ($rawInventory -and $rawInventory.PSObject.Properties['Resources'] -and $rawInventory.Resources) {
-        $keyVaultSecrets = @(
-            $rawInventory.Resources |
-                Where-Object { $_ -and $_.PSObject.Properties['type'] -and $_.type -eq 'AZSC/ARMChild/KeyVaultSecrets' } |
-                ForEach-Object { ConvertTo-ScoutKeyVaultChildRow -Row $_ }
-        )
-        $keyVaultKeys = @(
-            $rawInventory.Resources |
-                Where-Object { $_ -and $_.PSObject.Properties['type'] -and $_.type -eq 'AZSC/ARMChild/KeyVaultKeys' } |
-                ForEach-Object { ConvertTo-ScoutKeyVaultChildRow -Row $_ }
-        )
-    }
-    $keyVaultSecretsAvailable = -not [bool]@(
-        $rawCollectionHealth | Where-Object {
-            $_ -and $_.PSObject.Properties['Source'] -and [string]$_.Source -eq 'ARM Child' -and
-            $_.PSObject.Properties['SourceDataset'] -and [string]$_.SourceDataset -eq 'KeyVaultSecrets' -and
-            $_.PSObject.Properties['Status'] -and [string]$_.Status -in @('Unavailable', 'Failed')
-        }
-    ).Count
-    $keyVaultKeysAvailable = -not [bool]@(
-        $rawCollectionHealth | Where-Object {
-            $_ -and $_.PSObject.Properties['Source'] -and [string]$_.Source -eq 'ARM Child' -and
-            $_.PSObject.Properties['SourceDataset'] -and [string]$_.SourceDataset -eq 'KeyVaultKeys' -and
-            $_.PSObject.Properties['Status'] -and [string]$_.Status -in @('Unavailable', 'Failed')
-        }
-    ).Count
 
     # ---- invocation-local security/policy sweep reuse (AB#7279) -------------------------------
     # The completed inventory extraction already appends one AZSC/Subscription/
@@ -3719,13 +3636,10 @@ resources
                 containerAppEnvironments = $r.containerAppEnvironments
                 containerGroups = $r.containerGroups
             }
-            # keyVaultSecrets/keyVaultKeys (AB#6821) carry the expiry and rotation metadata CASA
-            # scores; they come from the ARM-child sweep, not from the ARG keyVaults row.
+            # keyVaults is the ARM control-plane view of each vault (configuration only). Nothing
+            # inside a vault -- secrets, keys, certificates or their metadata -- is ever read.
             security     = [pscustomobject]@{
                 keyVaults = $r.keyVaults
-                keyVaultSecrets = $keyVaultSecrets; keyVaultKeys = $keyVaultKeys
-                keyVaultSecretsAvailable = $keyVaultSecretsAvailable
-                keyVaultKeysAvailable = $keyVaultKeysAvailable
                 # AB#7110 -- Security plumbing.
                 # AB#7089 (Story AB#7071, Feature AB#7069, Epic AB#7099) -- Security
                 # coverage-gap close-out.

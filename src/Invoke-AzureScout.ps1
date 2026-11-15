@@ -1083,7 +1083,7 @@ Function Invoke-AzureScout {
         if ($Scope -ne 'EntraOnly') {
             Write-Host '  Coverage contract:' -ForegroundColor Cyan
             Write-Host '    ARM Reader inventories resource parents and control-plane configuration.' -ForegroundColor DarkGray
-            Write-Host '    Key Vault Reader adds key/secret metadata; Management Group Reader at tenant root adds the full hierarchy.' -ForegroundColor DarkGray
+            Write-Host '    Management Group Reader at tenant root adds the full hierarchy. Key Vault contents (secrets, keys, certificates) are never read.' -ForegroundColor DarkGray
             Write-Host '    Missing optional detail is recorded as a coverage gap; discovered parent resources are retained.' -ForegroundColor DarkGray
         }
         Write-Host ''
@@ -1188,13 +1188,6 @@ Function Invoke-AzureScout {
     $PolicySetDef = $ExtractionData.PolicySetDef
     $CollectionHealth = if ($ExtractionData.PSObject.Properties['CollectionHealth']) { @($ExtractionData.CollectionHealth) } else { @() }
 
-    $KeyVaultCoverageGaps = @($CollectionHealth | Where-Object {
-            $_.PSObject.Properties['SourceDataset'] -and $_.SourceDataset -in @('KeyVaultSecrets', 'KeyVaultKeys') -or
-            $_.PSObject.Properties['Dataset'] -and $_.Dataset -in @('KeyVaultSecrets', 'KeyVaultKeys')
-        })
-    if ($KeyVaultCoverageGaps.Count -gt 0) {
-        Write-Warning "Azure Scout coverage: Key Vault key/secret metadata is incomplete. Parent vaults remain inventoried; assign Key Vault Reader for metadata-only access. See collection-health.json for details."
-    }
     $ManagementGroupCoverageGaps = @($CollectionHealth | Where-Object {
             $_.PSObject.Properties['SourceDataset'] -and $_.SourceDataset -eq 'ManagementGroups' -or
             $_.PSObject.Properties['Dataset'] -and $_.Dataset -eq 'ManagementGroups'

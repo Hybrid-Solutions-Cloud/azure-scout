@@ -44,8 +44,7 @@ BeforeAll {
                 web = [pscustomobject]@{ webApps = @() }
                 containers = [pscustomobject]@{ aksClusters = @(); containerRegistries = @() }
                 security = [pscustomobject]@{
-                    keyVaults = @(); keyVaultSecrets = @(); keyVaultKeys = @()
-                    keyVaultSecretsAvailable = $true; keyVaultKeysAvailable = $true
+                    keyVaults = @()
                 }
                 ai = [pscustomobject]@{ cognitiveAccounts = @() }
                 hybrid = [pscustomobject]@{ arcServers = @(); arcExtensions = @(); azureLocalClusters = @() }
@@ -65,7 +64,7 @@ Describe 'AB#6820 -- avs.workload.yaml and caf.avslandingzone.yaml load and gate
     It 'both load through Get-RuleSet with the frameworkversion the gate requires' {
         $set = Get-RuleSet -Patterns @('avs.workload', 'caf.avslandingzone')
         $set.Count | Should -Be 2
-        ($set | Where-Object Framework -eq 'AVS').Rules.Count | Should -Be 27
+        ($set | Where-Object Framework -eq 'AVS').Rules.Count | Should -Be 26
         ($set | Where-Object Framework -eq 'CAF').Rules.Count | Should -Be 25
         $set | ForEach-Object { $_.FrameworkVersion | Should -Not -BeNullOrEmpty }
     }
@@ -75,7 +74,7 @@ Describe 'AB#6820 -- avs.workload.yaml and caf.avslandingzone.yaml load and gate
         $collect = New-EmptyCollect
         $findings = Invoke-Assessment -Collect $collect -RuleSet $set -Assessment 'Workload: AVS'
 
-        $findings.Count | Should -Be (27 + 25)
+        $findings.Count | Should -Be (26 + 25)
         ($findings | Where-Object Status -ne 'Unknown') | Should -BeNullOrEmpty -Because 'requires: gates the whole set when compute.privateClouds[*] returns zero rows'
         ($findings | Select-Object -First 1).Remediation | Should -Match 'Not assessed'
     }
@@ -113,11 +112,11 @@ Describe 'AB#6820 -- avs.workload.yaml and caf.avslandingzone.yaml load and gate
 
 Describe 'AB#6821 -- casa.security.yaml loads and scores real collected data' {
 
-    It 'loads through Get-RuleSet with 32 rules and a frameworkversion' {
+    It 'loads through Get-RuleSet with 31 rules and a frameworkversion' {
         $set = Get-RuleSet -Patterns @('casa.*')
         $set.Count | Should -Be 1
         $set[0].Framework | Should -Be 'CASA'
-        $set[0].Rules.Count | Should -Be 32
+        $set[0].Rules.Count | Should -Be 31
         $set[0].FrameworkVersion | Should -Not -BeNullOrEmpty
     }
 
@@ -126,28 +125,16 @@ Describe 'AB#6821 -- casa.security.yaml loads and scores real collected data' {
         @($set[0].Requires).Count | Should -Be 0
     }
 
-    It 'is proven non-vacuous: CASA-CO-01 flips from Fail to Pass when a Key Vault key is collected' {
-        $set = Get-RuleSet -Patterns @('casa.*')
-        $collect = New-EmptyCollect
-        $before = Invoke-Assessment -Collect $collect -RuleSet $set -Assessment 'Microsoft: CASA'
-        ($before | Where-Object Id -eq 'CASA-CO-01').Status | Should -Be 'Fail'
-
-        $collect.domains.security.keyVaultKeys = @(
-            [pscustomobject]@{ id = '.../keys/k1'; keyVaultName = 'kv1'; keyVaultId = '.../vaults/kv1'; subscriptionId = 's1'; resourceGroup = 'rg1'; contentType = $null; enabled = $true; expires = $null }
-        )
-        $after = Invoke-Assessment -Collect $collect -RuleSet $set -Assessment 'Microsoft: CASA'
-        ($after | Where-Object Id -eq 'CASA-CO-01').Status | Should -Be 'Pass'
-    }
-
-    It 'marks only Key Vault key-dependent rules NotAssessed when key metadata is incomplete' {
+    It 'has no rule that needs the contents of a Key Vault (CASA-CO-01 and WAF-AVS-SEC-05 were removed)' {
         $casa = Get-RuleSet -Patterns @('casa.*')
-        $collect = New-EmptyCollect
-        $collect.domains.security.keyVaultKeysAvailable = $false
-
-        $findings = Invoke-Assessment -Collect $collect -RuleSet $casa -Assessment 'Microsoft: CASA'
-
-        ($findings | Where-Object Id -eq 'CASA-CO-01').Status | Should -Be 'NotAssessed'
-        ($findings | Where-Object Id -eq 'CASA-CO-03').Status | Should -Be 'Fail'
+        $avs = Get-RuleSet -Patterns @('avs.workload*')
+        @($casa[0].Rules.Id).Count | Should -BeGreaterThan 0 -Because 'the guard below must be looking at real rules'
+        @($avs[0].Rules.Id).Count | Should -BeGreaterThan 0 -Because 'the guard below must be looking at real rules'
+        @($casa[0].Rules.Id) | Should -Not -Contain 'CASA-CO-01'
+        @($avs[0].Rules.Id) | Should -Not -Contain 'WAF-AVS-SEC-05'
+        foreach ($rule in @($casa[0].Rules) + @($avs[0].Rules)) {
+            [string]$rule.Query | Should -Not -Match 'keyVault(Keys|Secrets)'
+        }
     }
 
     It 'is proven non-vacuous: CASA-CO-04 flips from Fail to Pass when a Purview account is collected' {
@@ -219,7 +206,7 @@ Describe 'AB#6820 -- compute.privateClouds: the typed-query and inventory-shapin
     }
 }
 
-Describe 'AB#6821 -- Invoke-Collect extracts Key Vault secrets/keys from the ARM-child sweep' {
+Describe 'AB#9300 -- Invoke-Collect never reads or projects Key Vault secrets/keys' {
 
     BeforeAll {
         function Import-Module {             [Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Intentional local override of a built-in cmdlet to stub Azure/PowerShell calls for the test -- this is the point of the mock.')]
@@ -228,7 +215,7 @@ param([Parameter(ValueFromRemainingArguments)] $Rest) }
         . (Join-Path -Path $script:Root -ChildPath 'src/collect/Invoke-Collect.ps1')
     }
 
-    It 'shapes AZSC/ARMChild/KeyVaultSecrets and KeyVaultKeys rows into domains.security, and requests the scoped ArmChildDataset' {
+    It 'requests no Key Vault child datasets and projects no secret/key rows into domains.security' {
         $script:capturedIncludeArmChild = $null
         $script:capturedArmChildDataset = $null
         function Get-ScoutRawInventory {
@@ -241,19 +228,14 @@ param(
             $script:capturedIncludeArmChild = [bool]$IncludeArmChildResources
             $script:capturedArmChildDataset = $ArmChildDataset
 
+            # Even if a stale inventory still carried legacy Key Vault child rows, nothing may
+            # project them into the assessment payload.
             [pscustomobject]@{
                 Resources = @(
                     [pscustomobject]@{
                         id = '.../vaults/kv1/secrets/s1'; type = 'AZSC/ARMChild/KeyVaultSecrets'
                         properties = [pscustomobject]@{
                             contentType = 'text/plain'; attributes = [pscustomobject]@{ enabled = $true; exp = $null }
-                        }
-                        PARENTID = '.../vaults/kv1'; PARENTNAME = 'kv1'; subscriptionId = 'sub1'; RESOURCEGROUP = 'rg1'
-                    }
-                    [pscustomobject]@{
-                        id = '.../vaults/kv1/secrets/cert1'; type = 'AZSC/ARMChild/KeyVaultSecrets'
-                        properties = [pscustomobject]@{
-                            contentType = 'application/x-pkcs12'; attributes = [pscustomobject]@{ enabled = $true; exp = 1234567890 }
                         }
                         PARENTID = '.../vaults/kv1'; PARENTNAME = 'kv1'; subscriptionId = 'sub1'; RESOURCEGROUP = 'rg1'
                     }
@@ -271,14 +253,16 @@ param([Parameter(ValueFromRemainingArguments)] $Rest); return @() }
 
         $collect = Invoke-Collect -Categories @('*')
 
-        $script:capturedIncludeArmChild | Should -Be $true
-        @($script:capturedArmChildDataset) | Should -Be @('KeyVaultSecrets', 'KeyVaultKeys')
+        # AzureScout never reads inside a Key Vault, so the assessment collect requests no
+        # ARM-child sweep (no Azure Local opt-in here) and carries no secret/key projection.
+        $script:capturedIncludeArmChild | Should -Be $false
+        @($script:capturedArmChildDataset) | Should -Not -Contain 'KeyVaultSecrets'
+        @($script:capturedArmChildDataset) | Should -Not -Contain 'KeyVaultKeys'
 
-        $collect.domains.security.keyVaultSecrets.Count | Should -Be 2
-        $collect.domains.security.keyVaultKeys.Count | Should -Be 1
-        ($collect.domains.security.keyVaultSecrets | Where-Object id -match 'cert1').contentType | Should -Be 'application/x-pkcs12'
-        ($collect.domains.security.keyVaultSecrets | Where-Object id -match 'cert1').enabled | Should -BeTrue
-        ($collect.domains.security.keyVaultSecrets | Where-Object id -match 'cert1').expires | Should -Be 1234567890
-        $collect.domains.security.keyVaultKeys[0].keyVaultName | Should -Be 'kv1'
+        $security = $collect.domains.security
+        foreach ($removed in 'keyVaultSecrets', 'keyVaultKeys', 'keyVaultSecretsAvailable', 'keyVaultKeysAvailable') {
+            $security.PSObject.Properties[$removed] | Should -BeNullOrEmpty -Because "domains.security.$removed was removed (AB#9300)"
+        }
+        $security.PSObject.Properties['keyVaults'] | Should -Not -BeNullOrEmpty
     }
 }
