@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- A FileStorage (files-only) storage account no longer logs a blob service failure. It has no
+  blob service, so Azure answered the lookup with 400 "Blob is not supported for the account",
+  which surfaced as "invalid status code 'BadRequest'". The lookup is now skipped for that
+  account kind and recorded as not supported, as the file service already was. AB#9300.
 - The React report Overview page for an inventory-only run now leads with what was collected
   (evidence rows, subscriptions, management groups, Advisor recommendations, policy assignments,
   Entra objects and the largest categories) instead of "0 CAF/WAF checks were evaluated" and a
