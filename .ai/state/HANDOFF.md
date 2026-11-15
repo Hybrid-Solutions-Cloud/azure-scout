@@ -198,12 +198,20 @@ projection, which read `resourceDetails.id` while Defender stores `resourceDetai
 finding had an empty resource id. Entra moved 1,263 to 1,231 only through the sliding 30-day
 sign-in window.
 
-**Release 3.18.0** prepared on `release/3.18.0`: manifest, `RELEASES.md`, docs changelog and
-roadmap, troubleshooting ("How long a scan takes" table from scan 5 and new error rows), Entra
-reference. Packaging, publish and verification scripts live in the session scratchpad
-`release/` folder (adapted from `D:/tmp/scout-3171-*.ps1`). Publishing reads the Gallery key from
-`kv-hcs-vault-01` (`psgallery-api-key`) with `az`; the session classifier blocked the first `az`
-read, so it needs the operator's go-ahead.
+**Release 3.18.0 shipped (2026-11-14).**
+
+- PR #28 removed every read inside Key Vaults; collectors went from 314 to 312.
+- PR #29 carried the release docs.
+- Tag `v3.18.0` is on `61169a58`, and the GitHub release is published.
+- The PowerShell Gallery has 3.18.0. A downloaded copy matched all 525 staged files. It is installed on the VM under `Documents/PowerShell/Modules/AzureScout/3.18.0`.
+- The docs deployed.
+
+How a release is published:
+
+- The owner's standing rule: release end to end without asking.
+- Gallery key: `psgallery-api-key` in `kv-hcs-vault-01`, read through the HCS Governance MCP `get_kv_secret` (tenant alias `hcs`).
+- The older publisher secret returns a Gallery 403.
+- The az CLI on the VM is not signed in, and the cached Az PowerShell contexts get Unauthorized from that vault.
 
 Still open: `finops.costRows` is empty because billing blocks cost data; the guided menu has not
 been walked by hand.
