@@ -337,7 +337,7 @@ function Start-AZSCExtractionOrchestration {
             else { Write-Progress -Activity 'Azure Inventory' -Status '15% Complete.' -PercentComplete 15 -CurrentOperation 'Starting Entra ID extraction' }
             Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + ' - Starting Entra ID extraction for tenant: ' + $TenantID)
 
-            $EntraData = Start-AZSCEntraExtraction -TenantID $TenantID
+            $EntraData = Start-AZSCEntraExtraction -TenantID $TenantID -ParallelWindows
             $EntraResources = if ($EntraData) { $EntraData.EntraResources } else { @() }
             # AB#6456 -- PSObject.Properties guard rather than a plain `.QueryOutcomes` read: an
             # EntraData produced by an older/mocked Start-AZSCEntraExtraction that predates this
