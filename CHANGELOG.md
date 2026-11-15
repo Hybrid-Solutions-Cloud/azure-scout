@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- `-CheckResourceProviders` reads each subscription's provider registrations with one listing
+  instead of one call per provider. A full scan of a nine-subscription tenant spent nine minutes
+  here, about a minute per subscription, before collection started. AB#9300
+- The Defender assessment prefetch retries a transient answer (408, 429 or 5xx) twice. One 502
+  sent a subscription to the slow per-subscription pass and doubled the security sweep, from
+  51 seconds to 2 minutes. AB#9300
+- Opt-in sources that were not read no longer report "complete, 0 rows". Okta, Entra Connect and
+  Active Directory, and Azure DevOps are marked not assessed with the reason when their switch was
+  not given, and Azure DevOps is marked not assessed when no organization can be discovered. Before,
+  the report said the tenant had no DevOps projects when Scout had not looked. AB#9300
+- Regulatory compliance on a free-tier Defender subscription, and Defender data on a subscription
+  without the Microsoft.Security provider, are reported as not assessed with that reason, not as
+  "the subscription-scoped dataset was not available". AB#9300
+- A refused reservation or savings plan read names the role that grants it (Reservations Reader at
+  `/providers/Microsoft.Capacity`, Savings plan Reader at `/providers/Microsoft.BillingBenefits`)
+  instead of only "ARM returned HTTP 403". AB#9300
+- `collection-health.json` reads `Complete` when the only entries are not-assessed sources; only a
+  failed, unavailable or partial read makes a run `Partial`. AB#9300
+- The startup line says "PowerShell on Windows identified" instead of "PowerShell Desktop
+  Identified" on PowerShell 7. AB#9300
+
 ## [3.18.0] - 2026-11-14 - minutes, not hours
 
 ### Changed

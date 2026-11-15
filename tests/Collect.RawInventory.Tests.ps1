@@ -526,6 +526,33 @@ param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGr
         @($result.CollectionHealth | Where-Object Dataset -like 'SecurityPolicy/DefenderSecureScoreControls*').Count | Should -Be 0
     }
 
+    It 'reports a dataset Azure does not offer on the subscription as not assessed, with the stated reason' {
+        function Get-ScoutSubscriptionSecurityPolicySweep {
+            param([object[]] $Subscriptions)
+            [pscustomobject]@{
+                id = 'sweep-sub-1'; type = 'AZSC/Subscription/SecurityPolicySweep'
+                subscriptionId = $Subscriptions[0].id; subscriptionName = $Subscriptions[0].name
+                properties = [pscustomobject]@{
+                    CollectionStatus = [pscustomobject]@{
+                        DefenderAlerts = 'Success'; DefenderAssessments = 'Success'; DefenderPricing = 'Success'
+                        DefenderSecureScores = 'Success'; DefenderSecureScoreControls = 'Success'
+                        DefenderRegulatoryStandards = 'Unavailable'
+                        SubscriptionDiagnosticSettings = 'Success'; PolicyComplianceStates = 'Success'
+                    }
+                    CollectionErrors = @()
+                    CollectionReasons = [pscustomobject]@{ DefenderRegulatoryStandards = 'Not applicable: free tier.' }
+                }
+            }
+        }
+
+        $result = Get-ScoutRawInventory -IncludeSubscriptionSecurityPolicy
+        $health = @($result.CollectionHealth | Where-Object Dataset -like 'SecurityPolicy/DefenderRegulatoryStandards*')
+
+        $health.Count | Should -Be 1
+        $health[0].Status | Should -Be 'NotAssessed'
+        $health[0].Reason | Should -Be 'Not applicable: free tier.'
+    }
+
     It 'feeds API results into tenant-wide envelopes without changing assessment-shaped rows' {
         $script:apiSubscriptions = @()
         function Get-ScoutApiResources {

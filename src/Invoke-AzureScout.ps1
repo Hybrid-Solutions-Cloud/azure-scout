@@ -947,11 +947,30 @@ Function Invoke-AzureScout {
         )
         # AB#368 - the caller's subscription context is restored after the sweep, including
         # when a provider lookup throws part way through.
+        #
+        # One listing per subscription instead of one call per provider. Asking for each of the ten
+        # namespaces separately took about six seconds apiece on a live tenant: a minute per
+        # subscription, nine minutes for nine, before collection even started.
         Invoke-AZSCInSubscriptionContext -Subscription $Subscriptions -Process {
             param($sub)
+            $providerStates = @{}
+            try {
+                foreach ($registration in @(Get-AzResourceProvider -ListAvailable -ErrorAction Stop)) {
+                    if ($null -eq $registration) { continue }
+                    $namespaceProperty = $registration.PSObject.Properties['ProviderNamespace']
+                    $stateProperty = $registration.PSObject.Properties['RegistrationState']
+                    if ($namespaceProperty -and $namespaceProperty.Value -and $stateProperty) {
+                        $providerStates[[string]$namespaceProperty.Value] = [string]$stateProperty.Value
+                    }
+                }
+            }
+            catch {
+                Write-Host "  [INFO] [$($sub.Name)] resource provider registration could not be read: $($_.Exception.Message)" -ForegroundColor DarkGray
+                return
+            }
             foreach ($provider in $criticalProviders) {
-                $reg = Get-AzResourceProvider -ProviderNamespace $provider -ErrorAction SilentlyContinue
-                if ($reg -and $reg.RegistrationState -ne 'Registered') {
+                $state = if ($providerStates.ContainsKey($provider)) { $providerStates[$provider] } else { 'NotRegistered' }
+                if ($state -ne 'Registered') {
                     Write-Host "  [INFO] [$($sub.Name)] $provider is not registered — modules for this service will be skipped (this is expected if you don't use this service)." -ForegroundColor DarkGray
                 }
             }
