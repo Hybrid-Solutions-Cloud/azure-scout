@@ -4,7 +4,7 @@ description: The held legacy worksheet metadata and columns declared by each Azu
 
 # Collector Fields
 
-What each collector can shape internally. **All 314 collectors** declare legacy worksheet
+What each collector can shape internally. **All 312 collectors** declare legacy worksheet
 metadata and an ordered column list.
 
 [ARM Modules](./arm-modules.md) answers *what is covered* — collector to resource type.
@@ -364,7 +364,7 @@ produced nothing** — that file, not this page, tells you whether an empty coll
 | **VirtualWAN** | Virtual WAN | `Subscription`, `Resource Group`, `Name`, `Location`, `Retiring Feature`, `Retiring Date`, `Allow BranchToBranch Traffic`, `Allow VnetToVnet Traffic`, `Disable Vpn Encryption`, `HUB Name`, `HUB Location`, `HUB Address Prefix`, `HUB Gateway Preference`, `HUB Router ASN`, `HUB Router IPs`, `Virtual Site Name`, `Device Vendor`, `Device Vendor IpAddress`, `Link Provider name`, `Link Speed in Mbps`, `Virtual Site Private Address Space`, `Resource U` |
 | **vNETPeering** | Peering | `Subscription`, `Resource Group`, `Location`, `Zone`, `Peering Name`, `VNET Name`, `Address Space`, `Peering VNet`, `Peering Address Space`, `Peering State`, `Peering Use Remote Gateways`, `Peering Allow Gateway Transit`, `Peering Allow Forwarded Traffic`, `Peering Do Not Verify Remote Gateways`, `Peering Allow Virtual NetworkAccess`, `Resource U` |
 
-## Security (24 collectors)
+## Security (22 collectors)
 
 | Collector | Worksheet | Columns |
 |---|---|---|
@@ -384,8 +384,6 @@ produced nothing** — that file, not this page, tells you whether an empty coll
 | **DefenderSecureScore** | Defender Secure Score | `Subscription`, `Secure Score Name`, `Current Score`, `Max Score`, `Score Percentage`, `Healthy Resources`, `Unhealthy Resources`, `Not Applicable Resources`, `Weight`, `Portal Link`, `Resource U` |
 | **DefenderUnhealthyRecommendations** | Defender Recommendations | `Recommendation`, `Severity`, `Affected Resources`, `Subscriptions`, `Potential Score Impact`, `Score Impact Status`, `Secure Score Controls`, `Resource U` |
 | **EntraDomainServices** | Entra Domain Services | `Subscription`, `Resource Group`, `Name`, `Location`, `Domain Name`, `SKU`, `Provisioning State`, `Sync Scope`, `TLS v1 Enabled`, `NTLM v1 Enabled`, `Kerberos RC4`, `LDAPS Enabled`, `LDAPS External`, `Retiring Feature`, `Retiring Date`, `Resource U` |
-| **KeyVaultKeys** | Key Vault Keys | `Subscription`, `Resource Group`, `Key Vault`, `Key`, `Key Type`, `Key Size`, `Curve`, `Enabled`, `Expires`, `Days To Expiry`, `Expiry Status`, `Rotation Policy`, `Resource U` |
-| **KeyVaultSecrets** | Key Vault Secrets | `Subscription`, `Resource Group`, `Key Vault`, `Secret`, `Content Type`, `Kind`, `Enabled`, `Expires`, `Days To Expiry`, `Expiry Status`, `Not Before`, `Created`, `Updated`, `Resource U` |
 | **ManagedHSM** | Managed HSM | `Subscription`, `Resource Group`, `Name`, `Location`, `SKU`, `SKU Family`, `Provisioning State`, `HSM URI`, `Public Network Access`, `Purge Protection`, `Soft Delete Days`, `Security Domain`, `Retiring Feature`, `Retiring Date`, `Resource U` |
 | **Sentinel** | Sentinel | `Subscription`, `Resource Group`, `Name`, `Location`, `Resource Kind`, `Workspace`, `Provisioning State`, `Customer Managed Key`, `Plan`, `Retiring Feature`, `Retiring Date`, `Resource U` |
 | **SentinelDataConnectors** | Sentinel Connectors | `Workspace`, `Connector`, `Kind`, `Tenant ID`, `Subscription ID`, `Data Types`, `Resource U` |

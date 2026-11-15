@@ -116,7 +116,7 @@ Describe 'Get-ScoutRawInventory -- optional helper lifetime' {
 
         $result = Get-ScoutRawInventory `
             -IncludeArmChildResources `
-            -ArmChildDataset @('KeyVaultSecrets', 'KeyVaultKeys') `
+            -ArmChildDataset @('MLComputes', 'MLDatasets') `
             -WarningAction SilentlyContinue
 
         Get-Command Get-ScoutArmChildResource -CommandType Function -ErrorAction SilentlyContinue |
@@ -212,6 +212,62 @@ param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGr
         $assessmentQuery.Query | Should -Match 'remediationDescription'
         $assessmentQuery.Query | Should -Not -Match '\|\s*project\s+\$columns'
         @($script:securityQueries | Where-Object Query -match 'microsoft\.security/attackpaths').Count | Should -Be 1
+        # Resource Graph keys are case-sensitive and Defender stores the assessed resource as `Id`.
+        $assessmentQuery.Query | Should -Match ([regex]::Escape('tostring(properties.resourceDetails.Id)'))
+    }
+
+    It 'drops Defender findings for top-level resources the unfiltered sweep no longer returns' {
+        $live = '/subscriptions/s1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm-live'
+        $deleted = '/subscriptions/s1/resourceGroups/rg/providers/Microsoft.HybridCompute/machines/arc-deleted'
+        $child = '/subscriptions/s1/resourceGroups/rg/providers/Microsoft.Sql/servers/sql1/databases/db1'
+        $otherSubscription = '/subscriptions/s2/resourceGroups/rg/providers/Microsoft.HybridCompute/machines/arc-unswept'
+        function Search-AzGraph {
+            param([string] $Query, [int] $First, [Parameter(ValueFromRemainingArguments)] $Rest)
+            $null = $First, $Rest
+            if ($Query -match '^resourcecontainers\b') { return @(New-MockSubscriptionRow -Id 's1') }
+            if ($Query -match '^resources\b') {
+                return @([pscustomobject]@{ id = $live; name = 'vm-live'; type = 'microsoft.compute/virtualmachines'; subscriptionId = 's1' })
+            }
+            if ($Query -match '^securityresources\b' -and $Query -match 'microsoft\.security/assessments') {
+                return @(foreach ($target in @($live, $deleted, $child, $otherSubscription, '/subscriptions/s1')) {
+                        [pscustomobject]@{
+                            id         = "$target/providers/Microsoft.Security/assessments/a"
+                            type       = 'microsoft.security/assessments'
+                            properties = [pscustomobject]@{ resourceDetails = [pscustomobject]@{ id = $target.ToUpperInvariant() -replace '^/SUBSCRIPTIONS', '/subscriptions' } }
+                        }
+                    })
+            }
+            return @()
+        }
+
+        $inventory = Get-ScoutRawInventory -IncludeSecurityCenter
+
+        $kept = @($inventory.Security | ForEach-Object { [string]$_.properties.resourceDetails.id })
+        $kept.Count | Should -Be 4
+        $kept -join "`n" | Should -Not -Match '(?i)arc-deleted'
+        $kept -join "`n" | Should -Match '(?i)vm-live'
+        $kept -join "`n" | Should -Match '(?i)databases/db1'
+        $kept -join "`n" | Should -Match '(?i)arc-unswept'
+    }
+
+    It 'keeps every Defender finding when the resource sweep is filtered by type' {
+        function Search-AzGraph {
+            param([string] $Query, [int] $First, [Parameter(ValueFromRemainingArguments)] $Rest)
+            $null = $First, $Rest
+            if ($Query -match '^resourcecontainers\b') { return @(New-MockSubscriptionRow -Id 's1') }
+            if ($Query -match '^securityresources\b' -and $Query -match 'microsoft\.security/assessments') {
+                return @([pscustomobject]@{
+                        id         = '/subscriptions/s1/resourceGroups/rg/providers/Microsoft.HybridCompute/machines/arc-1/providers/Microsoft.Security/assessments/a'
+                        type       = 'microsoft.security/assessments'
+                        properties = [pscustomobject]@{ resourceDetails = [pscustomobject]@{ id = '/subscriptions/s1/resourceGroups/rg/providers/Microsoft.HybridCompute/machines/arc-1' } }
+                    })
+            }
+            return @()
+        }
+
+        $inventory = Get-ScoutRawInventory -IncludeSecurityCenter -ResourceTypes @('microsoft.compute/virtualmachines')
+
+        @($inventory.Security).Count | Should -Be 1
     }
 
     It 'returns the Start-AZTIGraphExtraction-compatible shape' {
@@ -346,36 +402,15 @@ param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGr
             throw 'simulated helper failure'
         }
 
-        $result = Get-ScoutRawInventory -IncludeArmChildResources -ArmChildDataset KeyVaultKeys -WarningAction SilentlyContinue
+        $result = Get-ScoutRawInventory -IncludeArmChildResources -ArmChildDataset MLComputes -WarningAction SilentlyContinue
 
         $health = @($result.CollectionHealth | Where-Object { $_.Source -eq 'ARM Child' -and $_.Operation -eq 'Sweep' })
         @($health).Count | Should -Be 1
         $health[0].Dataset | Should -Be 'Resources'
-        $health[0].SourceDataset | Should -Be 'KeyVaultKeys'
+        $health[0].SourceDataset | Should -Be 'MLComputes'
         $health[0].Status | Should -Be 'Failed'
-        $health[0].ResourceTypes | Should -Be @('AZSC/ARMChild/KeyVaultKeys')
-        $health[0].Collectors | Should -Contain 'Security/KeyVaultKeys'
-    }
-
-    It 'propagates a Key Vault child denial into the rule-level availability gate' {
-        function Get-ScoutArmChildResource {
-            param([object[]] $Resources, [string[]] $Dataset, [System.Collections.IList] $CollectionHealth)
-            $null = $Resources, $Dataset
-            [void]$CollectionHealth.Add([pscustomobject]@{
-                    Dataset = 'KeyVaultKeys'; Operation = 'KeyVaultKeys'; Status = 'Unavailable'
-                    Reason = 'simulated Key Vault child denial'; ResourceTypes = @('AZSC/ARMChild/KeyVaultKeys')
-                })
-        }
-
-        $raw = Get-ScoutRawInventory -IncludeArmChildResources -ArmChildDataset KeyVaultKeys
-        $mapped = @($raw.CollectionHealth | Where-Object SourceDataset -eq 'KeyVaultKeys')
-        @($mapped).Count | Should -Be 1
-        $mapped[0].Collectors | Should -Contain 'Security/KeyVaultKeys'
-
-        $collect = Invoke-Collect -FromInventory $raw -Categories Security -Scope ArmOnly -WarningAction SilentlyContinue
-
-        $collect.domains.security.keyVaultKeysAvailable | Should -BeFalse
-        @($collect._meta.collectionHealth | Where-Object SourceDataset -eq 'KeyVaultKeys').Count | Should -Be 1
+        $health[0].ResourceTypes | Should -Be @('AZSC/ARMChild/MLComputes')
+        $health[0].Collectors | Should -Contain 'AI/MLComputes'
     }
 
     It 'appends one subscription security/policy envelope per resolved subscription when requested' {
@@ -396,6 +431,39 @@ param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGr
         $script:sweepSubscriptions.Count | Should -Be 1
         $script:sweepSubscriptions[0][0].id | Should -Be 'sub-1'
         @($result.Resources | Where-Object type -eq 'AZSC/Subscription/SecurityPolicySweep').Count | Should -Be 1
+    }
+
+    It 'drops per-subscription Defender assessments of resources the sweep no longer returns' {
+        $live = '/subscriptions/sub-1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm-live'
+        $deleted = '/subscriptions/sub-1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm-deleted'
+        function Search-AzGraph {
+            param([string] $Query, [int] $First, [Parameter(ValueFromRemainingArguments)] $Rest)
+            $null = $First, $Rest
+            if ($Query -match '^resourcecontainers\b') { return @(New-MockSubscriptionRow -Id 'sub-1') }
+            if ($Query -match '^resources\b') {
+                return @([pscustomobject]@{ id = $live; name = 'vm-live'; type = 'microsoft.compute/virtualmachines'; subscriptionId = 'sub-1' })
+            }
+            return @()
+        }
+        function Get-ScoutSubscriptionSecurityPolicySweep {
+            param([object[]] $Subscriptions)
+            $null = $Subscriptions
+            [pscustomobject]@{
+                id = 'sweep-sub-1'; type = 'AZSC/Subscription/SecurityPolicySweep'; subscriptionId = 'sub-1'
+                properties = [pscustomobject]@{
+                    DefenderAssessments = @(
+                        [pscustomobject]@{ Id = "$live/providers/Microsoft.Security/assessments/a"; ResourceDetails = [pscustomobject]@{ Id = $live } }
+                        [pscustomobject]@{ Id = "$deleted/providers/Microsoft.Security/assessments/a"; ResourceDetails = [pscustomobject]@{ Id = $deleted } }
+                    )
+                }
+            }
+        }
+
+        $result = Get-ScoutRawInventory -IncludeSubscriptionSecurityPolicy
+
+        $sweep = @($result.Resources | Where-Object type -eq 'AZSC/Subscription/SecurityPolicySweep')[0]
+        @($sweep.properties.DefenderAssessments).Count | Should -Be 1
+        $sweep.properties.DefenderAssessments[0].ResourceDetails.Id | Should -Be $live
     }
 
     It 'maps each failed subscription sweep dataset only to its owning collector' -TestCases @(
@@ -923,21 +991,19 @@ param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGr
         } | Should -Throw '*assessment scoring stopped because required inventory datasets are unavailable*'
     }
 
-    It 'continues scoring with explicit Key Vault availability gates when one child source is unavailable' {
+    It 'continues scoring and keeps the health record when one granular ARM-child source is unavailable' {
         $raw = [pscustomobject]@{
             Resources = @()
             ResourceContainers = @(New-MockSubscriptionRow -Id 'aaa')
             CollectionHealth = @([pscustomobject]@{
-                    Dataset = 'Resources'; Source = 'ARM Child'; SourceDataset = 'KeyVaultKeys'
-                    Status = 'Unavailable'; Reason = 'simulated Key Vault child denial'
-                    ResourceTypes = @('AZSC/ARMChild/KeyVaultKeys'); Collectors = @('Security/KeyVaultKeys')
+                    Dataset = 'Resources'; Source = 'ARM Child'; SourceDataset = 'MLComputes'
+                    Status = 'Unavailable'; Reason = 'simulated ARM child denial'
+                    ResourceTypes = @('AZSC/ARMChild/MLComputes'); Collectors = @('AI/MLComputes')
                 })
         }
 
-        $collect = Invoke-Collect -FromInventory $raw -Categories 'Security' -Scope ArmOnly -WarningAction SilentlyContinue
+        $collect = Invoke-Collect -FromInventory $raw -Categories 'AI' -Scope ArmOnly -WarningAction SilentlyContinue
 
-        $collect.domains.security.keyVaultKeysAvailable | Should -BeFalse
-        $collect.domains.security.keyVaultSecretsAvailable | Should -BeTrue
         @($collect._meta.collectionHealth).Count | Should -Be 1
     }
 

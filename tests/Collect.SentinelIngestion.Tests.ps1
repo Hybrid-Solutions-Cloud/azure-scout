@@ -5,10 +5,8 @@ $ErrorActionPreference = 'Stop'
 Describe 'Sentinel ingestion evidence' {
     BeforeAll {
         . "$PSScriptRoot/../src/collect/Get-ScoutArmChildResource.ps1"
-        function global:Get-AzContext { [pscustomobject]@{ Environment = [pscustomobject]@{ Name='AzureCloud' } } }
-        function global:Get-AzEnvironment { [pscustomobject]@{ AzureKeyVaultDnsSuffix='vault.azure.net'; AzureKeyVaultServiceEndpointResourceId='https://vault.azure.net' } }
         function global:Invoke-AzRestMethod { throw 'ARM should not be called by this dataset' }
-        function global:Invoke-WebRequest { throw 'Key Vault should not be called by this dataset' }
+        function global:Invoke-WebRequest { throw 'No direct web request should be made by this dataset' }
     }
     AfterAll {
         foreach ($name in 'Get-AzContext','Get-AzEnvironment','Invoke-AzRestMethod','Invoke-WebRequest','Get-AzAccessToken','Invoke-RestMethod') {

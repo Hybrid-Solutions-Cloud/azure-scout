@@ -173,7 +173,5 @@ This answers "is the plumbing there", not "does it return rows in a real tenant"
 
 | Collector | Synthetic type | Reason |
 |---|---|---|
-| `KeyVaultKeys` | `azsc/armchild/keyvaultkeys` | canonical shape line 48: security.keyVaultKeys[] -- ARM-child sweep, ConvertTo-ScoutKeyVaultChildRow, ~line 1338 (AB#6821) |
-| `KeyVaultSecrets` | `azsc/armchild/keyvaultsecrets` | canonical shape line 47: security.keyVaultSecrets[] -- ARM-child sweep, ConvertTo-ScoutKeyVaultChildRow, ~line 1338 (AB#6821) |
 
 

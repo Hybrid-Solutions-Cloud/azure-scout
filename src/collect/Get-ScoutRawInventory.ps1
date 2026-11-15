@@ -5,6 +5,70 @@ if (-not (Get-Command Invoke-ScoutDiagnosticOperation -ErrorAction SilentlyConti
 
 <#
 .SYNOPSIS
+    Drops Defender assessments whose assessed resource no longer exists.
+
+.DESCRIPTION
+    The caller passes the rows of an unfiltered Resource Graph `resources` sweep. Every
+    top-level resource in a resource group is in that table, so an assessment whose assessed
+    resource is a top-level resource-group resource absent from the sweep refers to a deleted
+    resource and is dropped. Assessments on subscriptions, resource groups and child resources
+    are kept, as is everything in a subscription the sweep returned no rows for (the sweep may
+    have failed there). Ids compare case-insensitively.
+#>
+function Remove-ScoutStaleSecurityAssessment {
+    [CmdletBinding()]
+    [OutputType([object[]])]
+    param(
+        [Parameter(Mandatory)][AllowEmptyCollection()][object[]] $Assessments,
+        [Parameter(Mandatory)][AllowEmptyCollection()][object[]] $Resources
+    )
+
+    $resourceIds = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+    $sweptSubscriptions = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+    foreach ($resource in $Resources) {
+        if ($null -eq $resource) { continue }
+        $idProperty = $resource.PSObject.Properties['id']
+        if ($null -eq $idProperty -or [string]::IsNullOrWhiteSpace([string]$idProperty.Value)) { continue }
+        $null = $resourceIds.Add([string]$idProperty.Value)
+        if ([string]$idProperty.Value -match '(?i)^/subscriptions/([^/]+)/') { $null = $sweptSubscriptions.Add($Matches[1]) }
+    }
+
+    $kept = [System.Collections.Generic.List[object]]::new()
+    $dropped = 0
+    foreach ($assessment in $Assessments) {
+        if ($null -eq $assessment) { continue }
+        $assessedId = $null
+        $properties = $assessment.PSObject.Properties['properties']
+        if ($null -ne $properties -and $null -ne $properties.Value) {
+            $details = $properties.Value.PSObject.Properties['resourceDetails']
+            if ($null -ne $details -and $null -ne $details.Value -and $null -ne $details.Value.PSObject.Properties['id']) {
+                $assessedId = [string]$details.Value.id
+            }
+        }
+        if ([string]::IsNullOrWhiteSpace($assessedId)) {
+            $assessmentId = if ($null -ne $assessment.PSObject.Properties['id']) { [string]$assessment.id } else { '' }
+            $assessedId = ($assessmentId -split '(?i)/providers/Microsoft\.Security/assessments/')[0]
+        }
+
+        # Top-level resource-group resource: /subscriptions/{s}/resourceGroups/{g}/providers/{namespace}/{type}/{name}
+        $isTopLevel = $assessedId -match '(?i)^/subscriptions/([^/]+)/resourceGroups/[^/]+/providers/[^/]+/[^/]+/[^/]+$'
+        $subscriptionSwept = $isTopLevel -and $sweptSubscriptions.Contains($Matches[1])
+
+        if ($subscriptionSwept -and -not $resourceIds.Contains($assessedId)) {
+            $dropped++
+            continue
+        }
+        $kept.Add($assessment)
+    }
+
+    if ($dropped -gt 0) {
+        Write-Verbose "Get-ScoutRawInventory: dropped $dropped Defender assessment(s) for resources that no longer exist."
+    }
+    return $kept.ToArray()
+}
+
+<#
+.SYNOPSIS
     The single Resource Graph pass src/collect owns -- the raw superset both the typed
     assessment queries and the legacy inventory extraction can be shaped from (AB#5639).
 
@@ -97,8 +161,8 @@ if (-not (Get-Command Invoke-ScoutDiagnosticOperation -ErrorAction SilentlyConti
     Which ARM child dataset(s) to collect when -IncludeArmChildResources is set -- passed straight
     through to Get-ScoutArmChildResource's own -Dataset parameter. Defaults to 'All' (every
     dataset that function supports), matching the pre-AB#6821 behaviour for callers that already
-    set -IncludeArmChildResources without naming a subset. A caller that only needs, say, the two
-    Key Vault child datasets (the assessment collect path, AB#6821) names them explicitly so the
+    set -IncludeArmChildResources without naming a subset. A caller that only needs, say, the Azure
+    Local virtual machine instances (the assessment collect path) names them explicitly so the
     ARM REST sweep is not paying for ML/Search/Storage/Backup/diagnostics children nothing reads.
 
 .PARAMETER IncludeSubscriptionSecurityPolicy
@@ -321,8 +385,6 @@ function Get-ScoutRawInventory {
         'azsc/armchild/laworkspacetables' = @('microsoft.operationalinsights/workspaces')
         'azsc/armchild/sentineldataconnectors' = @('microsoft.operationalinsights/workspaces')
         'azsc/armchild/sentinelingestion' = @('microsoft.operationalinsights/workspaces')
-        'azsc/armchild/keyvaultsecrets' = @('microsoft.keyvault/vaults')
-        'azsc/armchild/keyvaultkeys' = @('microsoft.keyvault/vaults')
         'azsc/armchild/storageblobcontainers' = @('microsoft.storage/storageaccounts')
         'azsc/armchild/storagefileshares' = @('microsoft.storage/storageaccounts')
         'azsc/armchild/storagelifecyclepolicies' = @('microsoft.storage/storageaccounts')
@@ -843,13 +905,25 @@ function Get-ScoutRawInventory {
 
     $security = @()
     if ($IncludeSecurityCenter) {
+        # Resource Graph keys are case-sensitive: Defender stores the assessed resource as
+        # `resourceDetails.Id` (capital I), so reading `.id` alone returned an empty id for every
+        # row and no finding could be linked to its resource.
+        #
         # Full Defender assessment payloads regularly exceed Resource Graph's 16 MiB response
         # ceiling even with row paging. The legacy report consumes only this narrow shape, so
         # project it server-side and use a conservative page size. The paging helper also halves
         # the page on ResponsePayloadTooLarge as a final safety net.
-        $securityProperties = "bag_pack('resourceDetails',bag_pack('id',tostring(properties.resourceDetails.id)),'metadata',bag_pack('categories',properties.metadata.categories,'severity',tostring(properties.metadata.severity),'remediationDescription',tostring(properties.metadata.remediationDescription),'implementationEffort',tostring(properties.metadata.implementationEffort),'userImpact',tostring(properties.metadata.userImpact),'threats',properties.metadata.threats),'displayName',tostring(properties.displayName),'status',bag_pack('code',tostring(properties.status.code)))"
+        $securityProperties = "bag_pack('resourceDetails',bag_pack('id',coalesce(tostring(properties.resourceDetails.Id),tostring(properties.resourceDetails.ResourceId),tostring(properties.resourceDetails.id))),'metadata',bag_pack('categories',properties.metadata.categories,'severity',tostring(properties.metadata.severity),'remediationDescription',tostring(properties.metadata.remediationDescription),'implementationEffort',tostring(properties.metadata.implementationEffort),'userImpact',tostring(properties.metadata.userImpact),'threats',properties.metadata.threats),'displayName',tostring(properties.displayName),'status',bag_pack('code',tostring(properties.status.code)))"
         $securityQuery = "securityresources $rgClause | where type =~ 'microsoft.security/assessments' and properties['status']['code'] == 'Unhealthy' $mgJoinClause | project id,name,type,tenantId,resourceGroup,subscriptionId,properties=$securityProperties | order by id asc"
         $security = Invoke-ScoutRawTable -Query $securityQuery -LoopName 'Security Center' -Subscriptions $resolvedSubscriptionIds -AffectedResourceTypes @('microsoft.security/assessments') -AffectedCollectorSource 'Security Center' -PageSize 200
+
+        # Defender keeps assessments for a resource for some time after the resource is deleted.
+        # A live scan counted 364 findings for two Azure Arc machines that no longer existed.
+        # Only an unfiltered resource sweep proves a resource is gone, so filtered runs keep
+        # every row.
+        if ($CollectResourceTable -and $resolvedResourceTypes.Count -eq 0 -and [string]::IsNullOrEmpty($tagClause)) {
+            $security = @(Remove-ScoutStaleSecurityAssessment -Assessments @($security) -Resources @($resources))
+        }
 
         # Defender CSPM attack paths are exposed through securityresources, not ARM REST. Keep
         # the complete graphComponent/assessments payload in the raw resource ledger.
@@ -1034,8 +1108,15 @@ function Get-ScoutRawInventory {
             if ($null -ne $sweepCommand -and $sweepCommand.Parameters.ContainsKey('PrefetchAssessments')) {
                 $sweepArguments['PrefetchAssessments'] = $true
             }
+            $pruneStaleAssessments = $CollectResourceTable -and $resolvedResourceTypes.Count -eq 0 -and [string]::IsNullOrEmpty($tagClause)
+            $sweptResources = if ($pruneStaleAssessments) { @($resources) } else { @() }
             foreach ($row in @(Get-ScoutSubscriptionSecurityPolicySweep @sweepArguments)) {
                 if ($null -eq $row) { continue }
+                # The per-subscription Defender list also keeps assessments of deleted resources.
+                $assessmentsProperty = $row.properties.PSObject.Properties['DefenderAssessments']
+                if ($pruneStaleAssessments -and $null -ne $assessmentsProperty -and @($assessmentsProperty.Value).Count -gt 0) {
+                    $assessmentsProperty.Value = @(Remove-ScoutStaleSecurityAssessment -Assessments @($assessmentsProperty.Value) -Resources $sweptResources)
+                }
                 $resources.Add($row)
                 if ($row.properties.PSObject.Properties['SourceOperations']) {
                     foreach ($operation in @($row.properties.SourceOperations)) {

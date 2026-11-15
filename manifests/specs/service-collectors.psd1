@@ -1230,81 +1230,13 @@ $DataCollectionRule = if(![string]::IsNullOrEmpty($data.defaultIngestionSettings
         # no subscription join off `$1.subscriptionId` alone.
         # ---------------------------------------------------------------------------------------
         @{
-            Category = 'Security'
-            Name = 'KeyVaultSecrets'
-            Worksheet = 'Key Vault Secrets'
-            ResourceTypes = @('AZSC/ARMChild/KeyVaultSecrets')
-            Identity = @(
-                @{ Name = 'ID';             Expression = '$1.id' }
-                @{ Name = 'Subscription';   Expression = '$sub1.Name' }
-                @{ Name = 'Resource Group'; Expression = '$1.RESOURCEGROUP' }
-                @{ Name = 'Key Vault';      Expression = '$1.PARENTNAME' }
-                @{ Name = 'Secret';         Expression = '$SecretName' }
-            )
-            TagLoop = $null
-            Fields = @(
-                @{ Name = 'Content Type';   Expression = '$data.contentType' }
-                @{ Name = 'Kind';           Expression = '$Kind' }
-                @{ Name = 'Enabled';        Expression = '[string]$data.attributes.enabled' }
-                @{ Name = 'Expires';        Expression = '$Expires' }
-                @{ Name = 'Days To Expiry'; Expression = '[string]$DaysToExpiry' }
-                @{ Name = 'Expiry Status';  Expression = '$ExpiryStatus' }
-                @{ Name = 'Not Before';     Expression = '$NotBefore' }
-                @{ Name = 'Created';        Expression = '$Created' }
-                @{ Name = 'Updated';        Expression = '$Updated' }
-            )
-            Preamble = @'
-$sub1 = $SUB | Where-Object { $_.id -eq $1.subscriptionId }
-$SecretName = if([string]::IsNullOrEmpty($1.name)){$null}else{(([string]$1.name) -split '/')[-1]}
-$Kind = if($data.contentType -match 'x-pkcs12|x-pem-file'){'Certificate'}else{'Secret'}
-$Expires = if($null -eq $data.attributes.exp){''}else{[string]([datetime]::UnixEpoch).AddSeconds([double]$data.attributes.exp).ToString('yyyy-MM-dd')}
-$DaysToExpiry = if($null -eq $data.attributes.exp){$null}else{[math]::Floor(((([datetime]::UnixEpoch).AddSeconds([double]$data.attributes.exp)) - $ScoutRunTime).TotalDays)}
-$ExpiryStatus = if($null -eq $DaysToExpiry){'No expiry set'}elseif($DaysToExpiry -lt 0){'EXPIRED'}elseif($DaysToExpiry -le 30){'Expires within 30 days'}elseif($DaysToExpiry -le 90){'Expires within 90 days'}else{'OK'}
-$NotBefore = if($null -eq $data.attributes.nbf){''}else{[string]([datetime]::UnixEpoch).AddSeconds([double]$data.attributes.nbf).ToString('yyyy-MM-dd')}
-$Created = if($null -eq $data.attributes.created){''}else{[string]([datetime]::UnixEpoch).AddSeconds([double]$data.attributes.created).ToString('yyyy-MM-dd')}
-$Updated = if($null -eq $data.attributes.updated){''}else{[string]([datetime]::UnixEpoch).AddSeconds([double]$data.attributes.updated).ToString('yyyy-MM-dd')}
-'@
-        }
-        @{
-            Category = 'Security'
-            Name = 'KeyVaultKeys'
-            Worksheet = 'Key Vault Keys'
-            ResourceTypes = @('AZSC/ARMChild/KeyVaultKeys')
-            Identity = @(
-                @{ Name = 'ID';             Expression = '$1.id' }
-                @{ Name = 'Subscription';   Expression = '$sub1.Name' }
-                @{ Name = 'Resource Group'; Expression = '$1.RESOURCEGROUP' }
-                @{ Name = 'Key Vault';      Expression = '$1.PARENTNAME' }
-                @{ Name = 'Key';            Expression = '$KeyName' }
-            )
-            TagLoop = $null
-            Fields = @(
-                @{ Name = 'Key Type';       Expression = '$data.kty' }
-                @{ Name = 'Key Size';       Expression = '[string]$data.keySize' }
-                @{ Name = 'Curve';          Expression = '$data.curveName' }
-                @{ Name = 'Enabled';        Expression = '[string]$data.attributes.enabled' }
-                @{ Name = 'Expires';        Expression = '$Expires' }
-                @{ Name = 'Days To Expiry'; Expression = '[string]$DaysToExpiry' }
-                @{ Name = 'Expiry Status';  Expression = '$ExpiryStatus' }
-                @{ Name = 'Rotation Policy'; Expression = '[string]$data.rotationPolicy.lifetimeActions.Count' }
-            )
-            Preamble = @'
-$sub1 = $SUB | Where-Object { $_.id -eq $1.subscriptionId }
-$KeyName = if([string]::IsNullOrEmpty($1.name)){$null}else{(([string]$1.name) -split '/')[-1]}
-$Expires = if($null -eq $data.attributes.exp){''}else{[string]([datetime]::UnixEpoch).AddSeconds([double]$data.attributes.exp).ToString('yyyy-MM-dd')}
-$DaysToExpiry = if($null -eq $data.attributes.exp){$null}else{[math]::Floor(((([datetime]::UnixEpoch).AddSeconds([double]$data.attributes.exp)) - $ScoutRunTime).TotalDays)}
-$ExpiryStatus = if($null -eq $DaysToExpiry){'No expiry set'}elseif($DaysToExpiry -lt 0){'EXPIRED'}elseif($DaysToExpiry -le 30){'Expires within 30 days'}elseif($DaysToExpiry -le 90){'Expires within 90 days'}else{'OK'}
-'@
-        }
-        @{
             # AB#6829. `Reservations` (General/Reservations) already lists what was BOUGHT; this
             # renders what the Microsoft.Consumption `reservationSummaries` child call says about
             # how much of it is USED. Field names follow the documented ReservationSummary schema
             # (learn.microsoft.com/javascript/api/@azure/arm-consumption/reservationsummary) --
             # unverified against a live tenant, same caveat as every other ARMChild collector here.
             # A reservation whose most recent monthly grain has not closed yet produces no child
-            # row at all (see Get-ScoutArmChildResource), which is an absence, not a zero -- the
-            # vault-with-no-items class this file's Key Vault collectors also have to get right.
+            # row at all (see Get-ScoutArmChildResource), which is an absence, not a zero.
             Category = 'General'
             Name = 'ReservationUtilization'
             Worksheet = 'Reservation Utilization'

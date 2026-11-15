@@ -82,8 +82,6 @@ function Get-ScoutArmChildResource {
             'LAWorkspaceTables',
             'SentinelDataConnectors',
             'SentinelIngestion',
-            'KeyVaultSecrets',
-            'KeyVaultKeys',
             'StorageBlobContainers',
             'StorageFileShares',
             'StorageLifecyclePolicies',
@@ -121,8 +119,6 @@ function Get-ScoutArmChildResource {
         'LAWorkspaceTables',
         'SentinelDataConnectors',
         'SentinelIngestion',
-        'KeyVaultSecrets',
-        'KeyVaultKeys',
         'StorageBlobContainers',
         'StorageFileShares',
         'StorageLifecyclePolicies',
@@ -184,10 +180,6 @@ function Get-ScoutArmChildResource {
     $FailedHealthDatasets = [System.Collections.Generic.HashSet[string]]::new(
         [System.StringComparer]::OrdinalIgnoreCase
     )
-    $KeyVaultMetadataFailures = @{
-        KeyVaultSecrets = [System.Collections.Generic.List[object]]::new()
-        KeyVaultKeys    = [System.Collections.Generic.List[object]]::new()
-    }
 
     function Get-ArmParentValue {
         param(
@@ -286,7 +278,7 @@ function Get-ScoutArmChildResource {
             # ARM list endpoints may paginate even tiny-looking datasets. AB#7358's tenant
             # reconciliation exposed first-page-only handling while auditing child resources.
             # Follow nextLink here once for every ARM-child consumer instead of teaching each
-            # dataset its own paging loop. Key Vault metadata uses the separate paged helper below.
+            # dataset its own paging loop.
             $Items = [System.Collections.Generic.List[object]]::new()
             $SeenPaths = [System.Collections.Generic.HashSet[string]]::new(
                 [System.StringComparer]::OrdinalIgnoreCase
@@ -412,141 +404,6 @@ function Get-ScoutArmChildResource {
         }
     }
 
-    function Get-KeyVaultMetadataContent {
-        param(
-            [Parameter(Mandatory)][AllowEmptyString()][string]$VaultUri,
-            [Parameter(Mandatory)][ValidateSet('secrets', 'keys')][string]$ObjectKind,
-            [Parameter(Mandatory)][string]$DatasetName,
-            [Parameter(Mandatory)][string]$ParentName
-        )
-
-        $CurrentUri = $null
-        $requestStartedAt = $null
-
-        function Get-KeyVaultHttpStatusCode {
-            param([Parameter(Mandatory)][System.Management.Automation.ErrorRecord]$ErrorRecord)
-
-            $ResponseProperty = $ErrorRecord.Exception.PSObject.Properties['Response']
-            if ($ResponseProperty -and $null -ne $ResponseProperty.Value) {
-                $StatusProperty = $ResponseProperty.Value.PSObject.Properties['StatusCode']
-                if ($StatusProperty -and $null -ne $StatusProperty.Value) {
-                    try { return [int]$StatusProperty.Value } catch { return $null }
-                }
-            }
-            if ($ErrorRecord.Exception.Data -and $ErrorRecord.Exception.Data.Contains('StatusCode')) {
-                try { return [int]$ErrorRecord.Exception.Data['StatusCode'] } catch { return $null }
-            }
-            $StatusMatch = [regex]::Match(
-                [string]$ErrorRecord.Exception.Message,
-                '(?i)(?:HTTP|status(?:\s+code)?)\D{0,20}(?<code>[1-5]\d{2})(?!\d)'
-            )
-            if ($StatusMatch.Success) { return [int]$StatusMatch.Groups['code'].Value }
-            return $null
-        }
-
-        try {
-            if ($KeyVaultTokenError) { throw $KeyVaultTokenError }
-            if ($null -eq $KeyVaultToken) { throw 'Key Vault metadata token was not acquired.' }
-            if ([string]::IsNullOrWhiteSpace($VaultUri)) { throw 'The vault metadata did not contain a vault URI.' }
-
-            $BaseUri = $VaultUri.TrimEnd('/')
-            $CurrentUri = "$BaseUri/${ObjectKind}?api-version=7.4&maxresults=25"
-
-            $Items = [System.Collections.Generic.List[object]]::new()
-            $SeenUris = [System.Collections.Generic.HashSet[string]]::new(
-                [System.StringComparer]::OrdinalIgnoreCase
-            )
-            while ($CurrentUri) {
-                $requestStartedAt = Get-Date
-                if (-not $SeenUris.Add($CurrentUri)) {
-                    throw "Key Vault returned a repeated nextLink '$CurrentUri'."
-                }
-
-                # This is the Key Vault LIST operation, not GET-secret. Its response contains
-                # names, tags and lifecycle attributes only. The whitelist in
-                # ConvertTo-KeyVaultArmChild also intentionally discards any unrecognised field,
-                # so a secret value can never enter the raw inventory even if an API changes.
-                $Response = Invoke-WebRequest -Uri $CurrentUri -Method GET -Authentication Bearer `
-                    -Token $KeyVaultToken -SkipHttpErrorCheck -ErrorAction Stop
-                if ($null -eq $Response) { throw 'Key Vault returned no response.' }
-
-                $Status = $Response.PSObject.Properties['StatusCode']
-                if ($Status -and ([int]$Status.Value -lt 200 -or [int]$Status.Value -ge 300)) {
-                    throw "Key Vault returned status $($Status.Value)"
-                }
-                $ContentProperty = $Response.PSObject.Properties['Content']
-                if ($null -eq $ContentProperty -or [string]::IsNullOrWhiteSpace([string]$ContentProperty.Value)) {
-                    throw 'Key Vault returned no content.'
-                }
-                $Content = if ($ContentProperty.Value -is [string]) {
-                    $ContentProperty.Value | ConvertFrom-Json
-                }
-                else {
-                    $ContentProperty.Value
-                }
-                $ValueProperty = $Content.PSObject.Properties['value']
-                if ($null -eq $ValueProperty) { throw 'Key Vault list response did not contain a value collection.' }
-                foreach ($Item in @($ValueProperty.Value)) {
-                    if ($null -ne $Item) {
-                        $Item | Add-Member -NotePropertyName '__AZSCSource' -NotePropertyValue ([pscustomobject][ordered]@{
-                                Source      = 'Azure Key Vault metadata API'
-                                Dataset     = $DatasetName
-                                Operation   = 'LIST metadata'
-                                Uri         = $CurrentUri
-                                ApiVersion  = '7.4'
-                                CollectedAt = (Get-Date).ToString('o')
-                            }) -Force
-                        $Items.Add($Item)
-                    }
-                }
-                if ($null -ne $SourceOperations) {
-                    [void]$SourceOperations.Add([pscustomobject][ordered]@{
-                            Source      = 'Azure Key Vault metadata API'
-                            Dataset     = $DatasetName
-                            ParentName  = $ParentName
-                            Operation   = 'LIST metadata'
-                            Uri         = $CurrentUri
-                            ApiVersion  = '7.4'
-                            Status      = if (@($ValueProperty.Value).Count -eq 0) { 'Empty' } else { 'Success' }
-                            Count       = @($ValueProperty.Value).Count
-                            Reason      = $null
-                            StartedAt   = $requestStartedAt.ToString('o')
-                            CompletedAt = (Get-Date).ToString('o')
-                        })
-                }
-
-                $NextLinkProperty = $Content.PSObject.Properties['nextLink']
-                $CurrentUri = if ($NextLinkProperty) { [string]$NextLinkProperty.Value } else { $null }
-            }
-            return [pscustomobject]@{ value = @($Items) }
-        }
-        catch {
-            $StatusCode = Get-KeyVaultHttpStatusCode -ErrorRecord $_
-            if ($null -ne $SourceOperations) {
-                [void]$SourceOperations.Add([pscustomobject][ordered]@{
-                        Source      = 'Azure Key Vault metadata API'
-                        Dataset     = $DatasetName
-                        ParentName  = $ParentName
-                        Operation   = 'LIST metadata'
-                        Uri         = if ($CurrentUri) { $CurrentUri } else { $VaultUri }
-                        ApiVersion  = '7.4'
-                        Status      = 'Failed'
-                        Count       = 0
-                        Reason      = $_.Exception.Message
-                        StartedAt   = if ($requestStartedAt) { $requestStartedAt.ToString('o') } else { (Get-Date).ToString('o') }
-                        CompletedAt = (Get-Date).ToString('o')
-                    })
-            }
-            $KeyVaultMetadataFailures[$DatasetName].Add([pscustomobject]@{
-                    ParentName = $ParentName
-                    HttpStatus = $StatusCode
-                    Reason     = $_.Exception.Message
-                })
-            Write-Verbose "Get-ScoutArmChildResource: '$DatasetName' metadata list unavailable for vault '$ParentName': $($_.Exception.Message)"
-            return $null
-        }
-    }
-
     function Test-StorageServiceSupported {
         param(
             [Parameter(Mandatory)]$Parent,
@@ -561,60 +418,6 @@ function Get-ScoutArmChildResource {
             'Queue' { return $Kind -in @('Storage', 'StorageV2') }
             'Table' { return $Kind -in @('Storage', 'StorageV2') }
         }
-    }
-
-    function ConvertTo-KeyVaultArmChild {
-        param(
-            [Parameter(Mandatory)]$Metadata,
-            [Parameter(Mandatory)]$Parent,
-            [Parameter(Mandatory)][ValidateSet('secrets', 'keys')][string]$ObjectKind
-        )
-
-        $Identifier = if ($ObjectKind -eq 'keys' -and $Metadata.PSObject.Properties['kid']) {
-            [string]$Metadata.kid
-        }
-        elseif ($Metadata.PSObject.Properties['id']) {
-            [string]$Metadata.id
-        }
-        else {
-            $null
-        }
-        if ([string]::IsNullOrWhiteSpace($Identifier)) { return $null }
-
-        $IdentifierPath = if ([uri]::IsWellFormedUriString($Identifier, [System.UriKind]::Absolute)) {
-            ([uri]$Identifier).AbsolutePath
-        }
-        else {
-            $Identifier
-        }
-        $Segments = @($IdentifierPath.Trim('/') -split '/')
-        $KindIndex = [array]::IndexOf($Segments, $ObjectKind)
-        if ($KindIndex -lt 0 -or $KindIndex + 1 -ge $Segments.Count) { return $null }
-        $Name = $Segments[$KindIndex + 1]
-        $ParentId = [string](Get-ArmParentValue -InputObject $Parent -Name @('id', 'ID'))
-        $ParentLocation = Get-ArmParentValue -InputObject $Parent -Name @('location', 'LOCATION')
-
-        $Properties = [ordered]@{}
-        foreach ($NameToCopy in 'attributes', 'contentType', 'managed', 'kty', 'keySize', 'curveName', 'rotationPolicy') {
-            $Property = $Metadata.PSObject.Properties[$NameToCopy]
-            if ($Property) { $Properties[$NameToCopy] = $Property.Value }
-        }
-        if ($ObjectKind -eq 'secrets') { $Properties['secretUri'] = $Identifier }
-        else { $Properties['keyUri'] = $Identifier }
-
-        $TagsProperty = $Metadata.PSObject.Properties['tags']
-        $row = [pscustomobject][ordered]@{
-            id         = "$ParentId/$ObjectKind/$Name"
-            name       = $Name
-            type       = "Microsoft.KeyVault/vaults/$ObjectKind"
-            location   = $ParentLocation
-            tags       = if ($TagsProperty) { $TagsProperty.Value } else { $null }
-            properties = [pscustomobject]$Properties
-        }
-        if ($Metadata.PSObject.Properties['__AZSCSource']) {
-            $row | Add-Member -NotePropertyName '__AZSCSource' -NotePropertyValue $Metadata.__AZSCSource -Force
-        }
-        return $row
     }
 
     function Get-ArmChildItemSet {
@@ -715,9 +518,6 @@ function Get-ScoutArmChildResource {
     $LogAnalyticsParents = @($Resources | Where-Object {
         (Get-ArmParentValue -InputObject $_ -Name @('type', 'TYPE')) -ieq 'microsoft.operationalinsights/workspaces'
     })
-    $KeyVaultParents = @($Resources | Where-Object {
-        (Get-ArmParentValue -InputObject $_ -Name @('type', 'TYPE')) -ieq 'microsoft.keyvault/vaults'
-    })
     $StorageAccountParents = @($Resources | Where-Object {
         (Get-ArmParentValue -InputObject $_ -Name @('type', 'TYPE')) -ieq 'microsoft.storage/storageaccounts'
     })
@@ -739,31 +539,6 @@ function Get-ScoutArmChildResource {
     $HybridComputeMachineParents = @($Resources | Where-Object {
         (Get-ArmParentValue -InputObject $_ -Name @('type', 'TYPE')) -ieq 'microsoft.hybridcompute/machines'
     })
-
-    $KeyVaultToken = $null
-    $KeyVaultTokenError = $null
-    $KeyVaultDnsSuffix = $null
-    if ($KeyVaultParents.Count -gt 0 -and @($Selected | Where-Object { $_ -in @('KeyVaultSecrets', 'KeyVaultKeys') }).Count -gt 0) {
-        try {
-            $AzContext = Get-AzContext -ErrorAction Stop
-            $EnvironmentName = [string]$AzContext.Environment.Name
-            $AzEnvironment = Get-AzEnvironment -Name $EnvironmentName -ErrorAction Stop
-            $KeyVaultDnsSuffix = [string]$AzEnvironment.AzureKeyVaultDnsSuffix
-            $KeyVaultResourceUrl = [string]$AzEnvironment.AzureKeyVaultServiceEndpointResourceId
-            if ([string]::IsNullOrWhiteSpace($KeyVaultResourceUrl)) {
-                throw "Azure environment '$EnvironmentName' does not expose a Key Vault token resource."
-            }
-            $TokenResponse = Get-AzAccessToken -ResourceUrl $KeyVaultResourceUrl -AsSecureString `
-                -InformationAction SilentlyContinue -WarningAction SilentlyContinue -ErrorAction Stop
-            if ($null -eq $TokenResponse -or $TokenResponse.Token -isnot [securestring]) {
-                throw 'Get-AzAccessToken returned no secure Key Vault token.'
-            }
-            $KeyVaultToken = $TokenResponse.Token
-        }
-        catch {
-            $KeyVaultTokenError = $_
-        }
-    }
 
     foreach ($DatasetName in $Selected) {
         switch ($DatasetName) {
@@ -1119,58 +894,6 @@ function Get-ScoutArmChildResource {
                 }
             }
 
-            # --- Key Vault children (AB#6837 / AB#7358 / Feature AB#6751) -------------------------
-            #
-            # These are metadata-only Key Vault LIST calls. Generic ARM child-resource listing
-            # returns only secrets/keys created as ARM deployment resources and produced a
-            # plausible but incomplete 9/150 result in AB#7358's tenant reconciliation. Key Vault
-            # Reader supplies the list/readMetadata data actions without permission to read a
-            # secret value. Scout never calls an individual secret URI and whitelists the list
-            # response into the existing ARM-child contract below.
-            #
-            # Certificates are materialised as secrets whose `contentType` is
-            # `application/x-pkcs12` or
-            # `application/x-pem-file`, and that secret's `attributes.exp` IS the certificate's
-            # expiry -- so certificate expiry does come back here, under the secrets dataset, with
-            # the content type identifying it. A separate certificate dataset would add no signal
-            # to the current expiry assessment and would require another metadata API operation.
-            'KeyVaultSecrets' {
-                foreach ($Parent in $KeyVaultParents) {
-                    $ParentName = [string](Get-ArmParentValue -InputObject $Parent -Name @('name', 'NAME'))
-                    $ParentProperties = Get-ArmParentValue -InputObject $Parent -Name @('properties', 'PROPERTIES')
-                    $VaultUri = if ($ParentProperties) {
-                        Get-ArmParentValue -InputObject $ParentProperties -Name @('vaultUri', 'VAULTURI')
-                    }
-                    if ([string]::IsNullOrWhiteSpace([string]$VaultUri) -and -not [string]::IsNullOrWhiteSpace($KeyVaultDnsSuffix)) {
-                        $VaultUri = "https://$ParentName.$KeyVaultDnsSuffix/"
-                    }
-                    $Content = Get-KeyVaultMetadataContent -VaultUri ([string]$VaultUri) -ObjectKind secrets `
-                        -DatasetName $DatasetName -ParentName $ParentName
-                    foreach ($Metadata in @(Get-ArmChildItemSet -Content $Content)) {
-                        $Child = ConvertTo-KeyVaultArmChild -Metadata $Metadata -Parent $Parent -ObjectKind secrets
-                        if ($Child) { ConvertTo-ArmChildRow -Child $Child -Parent $Parent -DatasetName $DatasetName }
-                    }
-                }
-            }
-            'KeyVaultKeys' {
-                foreach ($Parent in $KeyVaultParents) {
-                    $ParentName = [string](Get-ArmParentValue -InputObject $Parent -Name @('name', 'NAME'))
-                    $ParentProperties = Get-ArmParentValue -InputObject $Parent -Name @('properties', 'PROPERTIES')
-                    $VaultUri = if ($ParentProperties) {
-                        Get-ArmParentValue -InputObject $ParentProperties -Name @('vaultUri', 'VAULTURI')
-                    }
-                    if ([string]::IsNullOrWhiteSpace([string]$VaultUri) -and -not [string]::IsNullOrWhiteSpace($KeyVaultDnsSuffix)) {
-                        $VaultUri = "https://$ParentName.$KeyVaultDnsSuffix/"
-                    }
-                    $Content = Get-KeyVaultMetadataContent -VaultUri ([string]$VaultUri) -ObjectKind keys `
-                        -DatasetName $DatasetName -ParentName $ParentName
-                    foreach ($Metadata in @(Get-ArmChildItemSet -Content $Content)) {
-                        $Child = ConvertTo-KeyVaultArmChild -Metadata $Metadata -Parent $Parent -ObjectKind keys
-                        if ($Child) { ConvertTo-ArmChildRow -Child $Child -Parent $Parent -DatasetName $DatasetName }
-                    }
-                }
-            }
-
             # --- Storage children (AB#6834) --------------------------------------------------------
             #
             # Also control plane. `blobServices/default/containers` returns each container's
@@ -1385,29 +1108,5 @@ function Get-ScoutArmChildResource {
                 }
             }
         }
-    }
-
-    foreach ($DatasetName in @('KeyVaultSecrets', 'KeyVaultKeys')) {
-        $Failures = @($KeyVaultMetadataFailures[$DatasetName])
-        if ($Failures.Count -eq 0) { continue }
-
-        $StatusSummary = @(
-            $Failures | Group-Object HttpStatus | Sort-Object Name | ForEach-Object {
-                $Label = if ([string]::IsNullOrWhiteSpace([string]$_.Name)) { 'unknown status' } else { "HTTP $($_.Name)" }
-                "$Label`: $($_.Count)"
-            }
-        ) -join ', '
-        $Reason = "$($Failures.Count) vault(s) unavailable ($StatusSummary). Assign Key Vault Reader for metadata access; parent vault resources remain inventoried."
-        if ($null -ne $CollectionHealth) {
-            [void]$CollectionHealth.Add([pscustomobject]@{
-                    Dataset       = $DatasetName
-                    Operation     = "$DatasetName.MetadataList"
-                    Status        = 'Unavailable'
-                    Reason        = $Reason
-                    ResourceTypes = @("AZSC/ARMChild/$DatasetName")
-                    FailedParents = @($Failures.ParentName)
-                })
-        }
-        Write-Warning "Get-ScoutArmChildResource: '$DatasetName' metadata unavailable for $Reason"
     }
 }

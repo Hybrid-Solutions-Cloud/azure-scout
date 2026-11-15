@@ -70,16 +70,16 @@ Describe 'Test-ScoutPermission -- unknown/missing manifest key crash class (Stri
         @($results | Where-Object Check -eq 'ARM Reader @ MG root').Count | Should -Be 1
     }
 
-    It 'requests Key Vault Reader only for assessments that consume key metadata (AB#7358)' {
+    It 'never requests a Key Vault role, because AzureScout does not read inside Key Vaults' {
         $manifest = @{
             'Microsoft: CASA' = @{ Ingest = @('Governance') }
-            'Assess: Compute' = @{ Ingest = @() }
+            'Workload: AVS'   = @{ Ingest = @() }
         }
 
         $casa = Test-ScoutPermission -Assessment @('Microsoft: CASA') -Manifest $manifest 6>$null
-        $compute = Test-ScoutPermission -Assessment @('Assess: Compute') -Manifest $manifest 6>$null
+        $avs = Test-ScoutPermission -Assessment @('Workload: AVS') -Manifest $manifest 6>$null
 
-        @($casa | Where-Object Check -eq 'Key Vault Reader @ MG root').Count | Should -Be 1
-        @($compute | Where-Object Check -eq 'Key Vault Reader @ MG root').Count | Should -Be 0
+        @($casa | Where-Object Check -like 'Key Vault*').Count | Should -Be 0
+        @($avs | Where-Object Check -like 'Key Vault*').Count | Should -Be 0
     }
 }

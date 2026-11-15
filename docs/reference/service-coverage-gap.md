@@ -550,7 +550,7 @@ Source: [azure.microsoft.com/products?categories=security](https://azure.microso
 | Azure Front Door | Collected (cross-category: Networking) | `Frontdoor` |
 | Azure Information Protection | Out of scope (AB#7089) | deprecated/superseded — the AIP Unified Labeling add-in was retired in April 2024 and the AIP P1 standalone offer stopped for new customers in January 2024; the capability now lives entirely inside Microsoft Purview Information Protection (sensitivity labels, Microsoft 365 compliance center), which is Graph/Purview compliance surface, not an ARM resource type and not part of this repo's Entra-tenant-admin Graph surface |
 | Microsoft Sentinel | Collected | `Sentinel` |
-| Azure Key Vault | Collected | `Vault`, `KeyVaultKeys`, `KeyVaultSecrets` |
+| Azure Key Vault | Collected | `Vault` (vault configuration only; secrets, keys and certificates are never read) |
 | Azure confidential ledger | Collected | `ConfidentialLedger` |
 | Azure VPN Gateway | Collected (cross-category: Networking) | `VirtualNetworkGateways` |
 | Azure Web Application Firewall | Collected (cross-category: Networking) | `WafPolicies` |
