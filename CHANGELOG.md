@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Defender for Cloud findings for deleted resources are no longer counted. Defender keeps a
+  resource's assessments for some time after the resource is deleted; on a live tenant 719 of 865
+  findings belonged to four deleted Azure Arc machines and one deleted VM, and the per-subscription
+  list carried nine more for three deleted VMs. Each one was confirmed deleted (HTTP 404). When the
+  resource sweep is unfiltered, a finding whose top-level resource is absent from the sweep is
+  dropped; filtered runs keep every finding. AB#9300.
+- Each Defender finding now keeps the resource it was raised on. Resource Graph keys are
+  case-sensitive and Defender stores the resource as `resourceDetails.Id`; the query read
+  `resourceDetails.id`, so every finding came back with an empty resource id. AB#9300.
 - A FileStorage (files-only) storage account no longer logs a blob service failure. It has no
   blob service, so Azure answered the lookup with 400 "Blob is not supported for the account",
   which surfaced as "invalid status code 'BadRequest'". The lookup is now skipped for that
