@@ -54,7 +54,7 @@ manifests, so the two can no longer drift the way a hand-maintained second copy 
 | PIM Assignments | `/roleManagement/directory/roleAssignments` | `RoleManagement.Read.Directory` | Privileged Identity Management (PIM) role assignments |
 | Conditional Access Policies | `/identity/conditionalAccess/policies` | `Policy.Read.All` | Conditional Access policies |
 | Authentication Method Registration Details | `/reports/authenticationMethods/userRegistrationDetails` | `Reports.Read.All` | Per-user MFA registration, capability, and registered methods |
-| Sign-ins (last 30 days) | `/auditLogs/signIns` | `AuditLog.Read.All` | CA report-only impact, legacy authentication, and last-sign-in correlations |
+| Sign-ins (last 30 days) | `/auditLogs/signIns`, read as five week-long windows at the same time | `AuditLog.Read.All` | CA report-only impact, legacy authentication, and last-sign-in correlations |
 | Directory Role Assignment Schedules | `/roleManagement/directory/roleAssignmentSchedules` | `RoleAssignmentSchedule.Read.Directory` | Active/permanent PIM schedules |
 | Directory Role Eligibility Schedules | `/roleManagement/directory/roleEligibilitySchedules` | `RoleEligibilitySchedule.Read.Directory` | Eligible PIM schedules |
 | Access Review Definitions | `/identityGovernance/accessReviews/definitions` | `AccessReview.Read.All` | Access-review definitions and instances |

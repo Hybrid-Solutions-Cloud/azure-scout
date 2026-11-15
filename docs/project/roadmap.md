@@ -41,7 +41,17 @@ All collector definitions, source retirement, strict runtime contracts, and repo
 complete. The remaining release steps are package validation, broad test-suite completion, tag, and
 publication. Historical v2 entries below are retained as release history rather than current status.
 
-## Current Release — v3.17.1 — faster scans and complete diagnostics
+## Current Release — v3.18.0 — minutes, not hours
+
+Version 3.18.0 cuts a nine-subscription tenant scan from 2 hours 48 minutes to 8 minutes. The
+slowest reads (sign-in logs and Defender assessments) now run concurrently, the permission
+pre-check lists provider registration once, the policy step indexes its definitions, and a Graph
+504 is retried once. Scout no longer reads anything inside a Key Vault; vaults are inventoried
+from their Azure Resource Manager configuration only. Defender findings for deleted resources are
+dropped, every finding keeps the resource it was raised on, and inventory-only runs get their own
+Overview page. See AB#9300.
+
+## Previous Release — v3.17.1 — faster scans and complete diagnostics
 
 Version 3.17.1 shares one discovery build and assessment query index, detaches evidence,
 and avoids repeated companion serialization. The main log retains sanitized Scout and SDK

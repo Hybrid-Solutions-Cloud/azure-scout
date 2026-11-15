@@ -30,6 +30,31 @@ description: Common errors and solutions when running AzureScout.
 | A held Excel-renderer compatibility test reports `0x80040154 REGDB_E_CLASSNOTREG` | Obsolete module/test path attempted Excel COM | Upgrade the test target. The retained renderer uses EPPlus/ImportExcel; live React/JSON runs do not execute chart customization. |
 | `The term 'Invoke-AzCostManagementQuery' is not recognized` | `Az.CostManagement` missing, and before v2.5.3 `-IncludeCosts` treated that as fatal | Upgrade. Since v2.5.3 the run continues without cost data and warns instead. To collect costs, `Install-Module Az.CostManagement -Scope CurrentUser`. |
 | `The property '<name>' cannot be found on this object` during extraction | Module older than v2.5.3 | Upgrade. This was a StrictMode member-enumeration fault that fired whenever an Azure API returned an empty result for **every** subscription — see [Changelog](../project/changelog.md). |
+| `KeyVaultSecrets` / `KeyVaultKeys metadata unavailable ... HTTP 403 ... Assign Key Vault Reader` | Module older than v3.18.0 listed secret and key metadata from inside each vault | Upgrade. Since v3.18.0 Scout never reads inside a Key Vault: vaults are inventoried from their Azure Resource Manager configuration only, so no Key Vault data-plane role is needed. |
+| The Defender finding count drops between two runs although nothing changed | Defender for Cloud keeps a resource's assessments for some time after the resource is deleted. Before v3.18.0 Scout counted them. | Expected since v3.18.0. When the resource sweep is unfiltered, findings for top-level resources that no longer exist are dropped. Runs filtered by `-ResourceType` or tag keep every finding. |
+| `StorageAccounts.BlobService failed ... invalid status code 'BadRequest'` | A `FileStorage` (files-only) account has no blob service and Azure answers 400 | Upgrade. Since v3.18.0 the blob lookup is skipped for that account kind and recorded as not supported. |
+| Cost rows empty and the log says `SubscriptionCostDisabled` | The billing account does not allow cost data to be viewed for that subscription | Not a Scout or RBAC problem. Since v3.18.0 it is recorded as not applicable instead of a warning. See the cost row above. |
+| `Graph ... auditLogs/signIns ... 504 Gateway Timeout` | Module older than v3.18.0 read 30 days of sign-ins in one request, which large tenants cannot answer within two minutes | Upgrade. Sign-ins are now read as five week-long windows at the same time, and a 504 is retried once instead of five times. |
+
+## How long a scan takes
+
+Measured on a nine-subscription tenant with about 3,400 resources and Entra, Defender, costs and
+tags included (`-Scope All -Category All -SecurityCenter -IncludeCosts -IncludeTags`):
+
+| Phase | Typical time | What it waits on |
+|-------|--------------|------------------|
+| Module import | 15 to 40 s | Loading the Az and Microsoft Graph modules Scout requires (about 10 s warm) |
+| Permission pre-check | about 30 s | One resource-provider listing, role assignments per subscription, one-row Graph probes |
+| Resource Graph and ARM child resources | about 40 s | Paged Resource Graph queries, then child-resource reads |
+| Subscription security and policy | about 50 s | Defender assessments for every subscription read at the same time, then per-subscription Defender, diagnostic-setting and policy-state reads |
+| Operational enrichment | about 65 s | Per-VM, per-storage-account and per-NIC lookups |
+| ARM REST, tenant-wide and governance reads | about 80 s | Policy definitions and assignments, management groups, role assignments, budgets, locks |
+| Entra ID | about 20 s | Directory datasets, then sign-ins as five concurrent week-long windows |
+| Processing and React report | about 2.5 minutes | 300+ collectors, assessments and the report build |
+
+That run took **8 minutes in total**. The same tenant took 2 hours 48 minutes on v3.17.1.
+`scout-run.log` records every phase with its elapsed time (`Extraction subphase ...` lines), so a
+slow run can be compared phase by phase against this table.
 
 ## Run logs
 
