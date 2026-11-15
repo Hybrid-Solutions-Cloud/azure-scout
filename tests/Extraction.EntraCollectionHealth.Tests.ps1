@@ -42,7 +42,19 @@ Describe 'Start-AZSCExtractionOrchestration Entra collection health' {
     It 'preserves disabled query outcomes without marking a healthy run Partial' {
         $result = Start-AZSCExtractionOrchestration -Scope EntraOnly -TenantID 'tenant-test'
 
-        @($result.CollectionHealth).Count | Should -Be 0
+        # Only the opt-in sources that were not requested appear, and only as not assessed.
+        @($result.CollectionHealth | Where-Object Status -ne 'NotAssessed').Count | Should -Be 0
+        @($result.CollectionHealth | Where-Object Dataset -like 'Entra/*').Count | Should -Be 0
+    }
+
+    It 'marks Okta, on-premises identity and Azure DevOps as not requested when their switches are absent' {
+        $result = Start-AZSCExtractionOrchestration -Scope EntraOnly -TenantID 'tenant-test'
+        $notRequested = @($result.CollectionHealth | Where-Object Operation -eq 'Not requested')
+
+        @($notRequested.Dataset | Sort-Object) | Should -Be @('Azure DevOps', 'HybridIdentity/Local', 'Okta')
+        @($notRequested.Status | Sort-Object -Unique) | Should -Be @('NotAssessed')
+        @(($notRequested | Where-Object Dataset -eq 'Okta').ResourceTypes) | Should -Be @('AZSC/Okta/*')
+        @(($notRequested | Where-Object Dataset -eq 'Azure DevOps').Collectors) | Should -Contain 'DevOps/DevOpsProjects'
     }
 
     It 'retains an enabled Entra failure while excluding disabled catalog entries' {
@@ -51,10 +63,11 @@ Describe 'Start-AZSCExtractionOrchestration Entra collection health' {
         }
 
         $result = Start-AZSCExtractionOrchestration -Scope EntraOnly -TenantID 'tenant-test'
+        $entraHealth = @($result.CollectionHealth | Where-Object Dataset -like 'Entra/*')
 
-        @($result.CollectionHealth).Count | Should -Be 1
-        $result.CollectionHealth[0].Dataset | Should -Be 'Entra/Users'
-        $result.CollectionHealth[0].Status | Should -Be 'Failed'
-        @($result.CollectionHealth[0].ResourceTypes) | Should -Be @('entra/users')
+        $entraHealth.Count | Should -Be 1
+        $entraHealth[0].Dataset | Should -Be 'Entra/Users'
+        $entraHealth[0].Status | Should -Be 'Failed'
+        @($entraHealth[0].ResourceTypes) | Should -Be @('entra/users')
     }
 }

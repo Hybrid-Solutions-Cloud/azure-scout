@@ -83,7 +83,10 @@ function Get-ScoutBillingEvidence {
             [Parameter(Mandatory)][string] $Dataset,
             [Parameter(Mandatory)][string] $Uri,
             [ValidateSet('GET', 'POST')][string] $Method = 'GET',
-            [switch] $OptionalForAgreement
+            [switch] $OptionalForAgreement,
+            # Appended to the reason when Azure refuses the read (401/403), so the report names
+            # the role that grants it instead of a bare status code.
+            [string] $AccessHint
         )
         $items = [System.Collections.Generic.List[object]]::new()
         $seenUris = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
@@ -139,6 +142,8 @@ function Get-ScoutBillingEvidence {
                 $expectedAgreementGap = $OptionalForAgreement -and $statusCode -in @(400, 404, 409)
                 $status = if ($expectedAgreementGap) { 'NotApplicable' } else { 'Unavailable' }
                 $reason = $_.Exception.Message
+                $denied = $statusCode -in @(401, 403) -or $reason -match '\bHTTP (401|403)\b'
+                if ($denied -and -not [string]::IsNullOrWhiteSpace($AccessHint)) { $reason = "$reason $AccessHint" }
                 $sourceOperations.Add([pscustomobject][ordered]@{
                         Source = 'Azure Resource Manager Billing API'
                         Dataset = $Dataset
@@ -194,8 +199,12 @@ function Get-ScoutBillingEvidence {
         }
     }
 
-    $null = Invoke-BillingList -Dataset 'ReservationOrders' -Uri '/providers/Microsoft.Capacity/reservationOrders?api-version=2022-11-01'
-    $null = Invoke-BillingList -Dataset 'SavingsPlanOrders' -Uri '/providers/Microsoft.BillingBenefits/savingsPlanOrders?api-version=2022-11-01'
+    # Reservations and savings plans are tenant-level resources that subscription roles do not
+    # reach; each has its own reader role (learn.microsoft.com, cost-management-billing).
+    $null = Invoke-BillingList -Dataset 'ReservationOrders' -Uri '/providers/Microsoft.Capacity/reservationOrders?api-version=2022-11-01' `
+        -AccessHint 'Reading reservation orders needs the Reservations Reader role at /providers/Microsoft.Capacity, or a billing reader role.'
+    $null = Invoke-BillingList -Dataset 'SavingsPlanOrders' -Uri '/providers/Microsoft.BillingBenefits/savingsPlanOrders?api-version=2022-11-01' `
+        -AccessHint 'Reading savings plan orders needs the Savings plan Reader role at /providers/Microsoft.BillingBenefits, or a billing reader role.'
 
     # Subscription vending is an organizational process, not an Azure control-plane object. Keep
     # that evidence gap explicit rather than inventing an answer from role assignments.

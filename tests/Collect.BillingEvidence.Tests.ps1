@@ -83,6 +83,30 @@ Describe 'Get-ScoutBillingEvidence' {
         @($result.Resources).Count | Should -Be 0
     }
 
+    It 'names the role that grants a denied reservation or savings plan read' {
+        function global:Invoke-AzRestMethod {
+            param([string] $Path, [string] $Uri, [string] $Method, [string] $Payload, [string] $ErrorAction)
+            $null = $Method, $Payload, $ErrorAction
+            $requestUri = if ($Uri) { $Uri } else { $Path }
+            if ($requestUri -match 'reservationOrders|savingsPlanOrders') {
+                return [pscustomobject]@{ StatusCode = 403; Content = '{"error":{"code":"AuthorizationFailed"}}' }
+            }
+            return New-BillingRestResponse
+        }
+
+        $result = Get-ScoutBillingEvidence
+        $reservations = @($result.CollectionHealth | Where-Object Dataset -eq 'Billing/ReservationOrders')
+        $savingsPlans = @($result.CollectionHealth | Where-Object Dataset -eq 'Billing/SavingsPlanOrders')
+
+        $reservations.Count | Should -Be 1
+        $reservations[0].Reason | Should -Match 'HTTP 403'
+        $reservations[0].Reason | Should -Match 'Reservations Reader role at /providers/Microsoft\.Capacity'
+        $savingsPlans.Count | Should -Be 1
+        $savingsPlans[0].Reason | Should -Match 'Savings plan Reader role at /providers/Microsoft\.BillingBenefits'
+        # A role hint is only for a refusal, never for an unrelated failure.
+        @($result.CollectionHealth | Where-Object Dataset -eq 'Billing/BillingAccounts').Count | Should -Be 0
+    }
+
     It 'ships importable billing report manifests' {
         foreach ($name in 'BillingAccounts','BillingHierarchy','BillingRoles','BillingBenefits') {
             { Import-PowerShellDataFile (Join-Path $script:RepoRoot "manifests/collectors/Management/$name.psd1") } | Should -Not -Throw

@@ -484,6 +484,32 @@ function Start-AZSCExtractionOrchestration {
         }
     }
 
+    # Opt-in sources that were not requested were never read. Without a health entry their
+    # worksheets read "complete, 0 rows", which claims the tenant has no Okta policies, no
+    # DevOps projects or no Entra Connect server when Scout simply did not look.
+    if (-not $IncludeOkta.IsPresent) {
+        $CollectionHealth.Add([pscustomobject]@{
+                Dataset = 'Okta'; Operation = 'Not requested'; Status = 'NotAssessed'
+                Reason = 'Not requested: Okta is read only with -IncludeOkta, -OktaOrganizationUrl and -OktaApiToken.'
+                ResourceTypes = @('AZSC/Okta/*')
+            })
+    }
+    if (-not $IncludeOnPremisesIdentity.IsPresent) {
+        $CollectionHealth.Add([pscustomobject]@{
+                Dataset = 'HybridIdentity/Local'; Operation = 'Not requested'; Status = 'NotAssessed'
+                Reason = 'Not requested: Entra Connect and Active Directory are read only with -IncludeOnPremisesIdentity, on a host that runs them.'
+                ResourceTypes = @('AZSC/HybridIdentity/*')
+            })
+    }
+    if (-not ($IncludeDevOps.IsPresent -and $extractionPlan.IncludeDevOps)) {
+        $CollectionHealth.Add([pscustomobject]@{
+                Dataset = 'Azure DevOps'; Operation = 'Not requested'; Status = 'NotAssessed'
+                Reason = 'Not requested: Azure DevOps is read only with -IncludeDevOps.'
+                ResourceTypes = @('devops/*')
+                Collectors = @('DevOps/DevOpsProjects', 'DevOps/DevOpsPipelines', 'DevOps/DevOpsServiceConnections', 'DevOps/DevOpsRepositories', 'DevOps/DevOpsAgentPools')
+            })
+    }
+
     # Return a clean resource contract even when an optional producer emitted no pipeline value.
     $Resources = @($Resources | Where-Object { $null -ne $_ })
 

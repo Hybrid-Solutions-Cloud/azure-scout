@@ -419,7 +419,9 @@ function Invoke-ScoutProcessing {
             [pscustomobject]@{
                 Schema      = 'azure-scout/collection-health/v1'
                 GeneratedAt = $Started.ToString('o')
-                Overall     = if (@($CollectionHealth).Count -gt 0) { 'Partial' } else { 'Complete' }
+                # NotAssessed means there was nothing to read (a feature the tenant does not use,
+                # an opt-in source that was not requested); it is not a gap in what was collected.
+                Overall     = if (@($CollectionHealth | Where-Object { $null -ne $_ -and [string]$_.Status -ne 'NotAssessed' }).Count -gt 0) { 'Partial' } else { 'Complete' }
                 Datasets    = @($CollectionHealth)
             } | ConvertTo-Json -Depth 8 | Out-File -LiteralPath $CollectionHealthPath -Encoding utf8
         }
