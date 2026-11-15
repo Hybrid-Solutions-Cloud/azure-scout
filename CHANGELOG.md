@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.18.0] - 2026-11-14 - minutes, not hours
+
 ### Changed
 
 - AzureScout no longer reads secret or key metadata from inside Key Vaults. Vaults are
