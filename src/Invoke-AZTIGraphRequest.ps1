@@ -258,7 +258,7 @@ function Invoke-AZSCGraphRequest {
     nextLink. Rows are returned in the order the URIs were given.
 
     Used for datasets split into time windows. On a live tenant five week-long sign-in log
-    windows took 32 to 116 seconds one after another and 10 to 17 seconds together.
+    windows took 34 to 116 seconds one after another and about 13 seconds together.
 
     Falls back to reading every URI one after another when no bearer token is available to hand
     to the worker threads (for example when the Microsoft.Graph.Authentication provider is in use).

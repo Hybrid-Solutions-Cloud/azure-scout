@@ -49,7 +49,11 @@ function Get-ScoutSubscriptionSecurityPolicySweep {
     param(
         [Parameter(Mandatory)]
         [AllowEmptyCollection()]
-        [object[]] $Subscriptions
+        [object[]] $Subscriptions,
+
+        # Read Defender assessments for every subscription at the same time before the
+        # per-subscription pass. The assessments list is the slowest call in the sweep.
+        [switch] $PrefetchAssessments
     )
 
     if ($Subscriptions.Count -eq 0) {
@@ -355,6 +359,84 @@ function Get-ScoutSubscriptionSecurityPolicySweep {
         $null
     }
 
+    function Get-ScoutDefenderAssessmentPrefetch {
+        param(
+            [Parameter(Mandatory)][AllowEmptyCollection()][string[]]$SubscriptionIds,
+            [string]$TenantId
+        )
+
+        # Returns subscriptionId -> raw REST assessment rows for every subscription whose list
+        # call succeeded. A subscription that is missing here is read by the per-subscription
+        # pass exactly as before, so a failed or unavailable prefetch costs nothing but time.
+        $prefetched = @{}
+        if ($SubscriptionIds.Count -lt 2) { return $prefetched }
+
+        try {
+            $armUrl = 'https://management.azure.com/'
+            $context = Get-AzContext -ErrorAction SilentlyContinue
+            if ($null -ne $context -and $null -ne $context.PSObject.Properties['Environment'] -and $null -ne $context.Environment -and
+                $null -ne $context.Environment.PSObject.Properties['ResourceManagerUrl'] -and
+                -not [string]::IsNullOrWhiteSpace([string]$context.Environment.ResourceManagerUrl)) {
+                $armUrl = [string]$context.Environment.ResourceManagerUrl
+            }
+            $tokenParams = @{ ResourceUrl = $armUrl; AsSecureString = $true; ErrorAction = 'Stop'; WarningAction = 'SilentlyContinue' }
+            if (-not [string]::IsNullOrWhiteSpace($TenantId)) { $tokenParams['TenantId'] = $TenantId }
+            $token = Get-AzAccessToken @tokenParams
+            $authorization = 'Bearer ' + ($token.Token | ConvertFrom-SecureString -AsPlainText)
+        }
+        catch {
+            Write-Verbose "Get-ScoutSubscriptionSecurityPolicySweep: assessment prefetch skipped, no ARM token: $($_.Exception.Message)"
+            return $prefetched
+        }
+
+        $baseUrl = $armUrl.TrimEnd('/')
+        $timer = [System.Diagnostics.Stopwatch]::StartNew()
+        try {
+            $SubscriptionIds | ForEach-Object -ThrottleLimit 8 -Parallel {
+                $subscriptionId = $_
+                $rows = [System.Collections.Generic.List[object]]::new()
+                $uri = "$using:baseUrl/subscriptions/$subscriptionId/providers/Microsoft.Security/assessments?api-version=2021-06-01"
+                try {
+                    do {
+                        $response = Invoke-RestMethod -Uri $uri -Method GET -Headers @{ Authorization = $using:authorization } -TimeoutSec 120 -ErrorAction Stop
+                        $uri = $null
+                        if ($null -ne $response) {
+                            if ($response.PSObject.Properties.Name -contains 'value') {
+                                foreach ($row in @($response.value)) { if ($null -ne $row) { $rows.Add($row) } }
+                            }
+                            if ($response.PSObject.Properties.Name -contains 'nextLink') { $uri = [string]$response.nextLink }
+                        }
+                    } while (-not [string]::IsNullOrWhiteSpace($uri))
+                    [pscustomobject]@{ SubscriptionId = $subscriptionId; Rows = $rows.ToArray(); Error = '' }
+                }
+                catch {
+                    [pscustomobject]@{ SubscriptionId = $subscriptionId; Rows = @(); Error = [string]$_.Exception.Message }
+                }
+            } | ForEach-Object {
+                if ([string]::IsNullOrEmpty($_.Error)) { $prefetched[[string]$_.SubscriptionId] = @($_.Rows) }
+                else { Write-Verbose "Get-ScoutSubscriptionSecurityPolicySweep: assessment prefetch failed for one subscription, it will be read in the per-subscription pass: $($_.Error)" }
+            }
+        }
+        catch {
+            Write-Verbose "Get-ScoutSubscriptionSecurityPolicySweep: assessment prefetch unavailable: $($_.Exception.Message)"
+        }
+        Write-Verbose ('Get-ScoutSubscriptionSecurityPolicySweep: assessment prefetch read {0} of {1} subscription(s) in {2} ms' -f $prefetched.Count, $SubscriptionIds.Count, $timer.ElapsedMilliseconds)
+        return $prefetched
+    }
+
+    $prefetchedAssessments = @{}
+    if ($PrefetchAssessments) {
+        $prefetchIds = @(foreach ($candidate in $Subscriptions) {
+                $candidateId = if ($null -ne $candidate) { $candidate.PSObject.Properties['id'] } else { $null }
+                if ($null -ne $candidateId -and -not [string]::IsNullOrWhiteSpace([string]$candidateId.Value)) { [string]$candidateId.Value }
+            })
+        $prefetchTenantId = if ($null -ne $originalContext -and $null -ne $originalContext.PSObject.Properties['Tenant'] -and $null -ne $originalContext.Tenant -and $null -ne $originalContext.Tenant.PSObject.Properties['Id']) {
+            [string]$originalContext.Tenant.Id
+        }
+        else { '' }
+        $prefetchedAssessments = Get-ScoutDefenderAssessmentPrefetch -SubscriptionIds $prefetchIds -TenantId $prefetchTenantId
+    }
+
     $results = try {
         foreach ($subscription in $Subscriptions) {
             $idProperty = $subscription.PSObject.Properties['id']
@@ -449,7 +531,14 @@ function Get-ScoutSubscriptionSecurityPolicySweep {
                 -SubscriptionName $subscriptionName `
                 -MaxAttempts 3 `
                 -ProviderRegistrationIsUnavailable `
-                -Operation { Get-ScoutDefenderAssessments -SubscriptionId $subscriptionId }
+                -Operation {
+                    if ($prefetchedAssessments.ContainsKey($subscriptionId)) {
+                        @(foreach ($prefetchedRow in @($prefetchedAssessments[$subscriptionId])) {
+                                if ($null -ne $prefetchedRow) { ConvertFrom-ScoutDefenderAssessmentRestRow -Assessment $prefetchedRow }
+                            })
+                    }
+                    else { Get-ScoutDefenderAssessments -SubscriptionId $subscriptionId }
+                }
 
             $queries.DefenderPricing = Invoke-ScoutDefenderPricingDataset -SubscriptionName $subscriptionName
 

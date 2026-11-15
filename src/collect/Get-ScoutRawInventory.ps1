@@ -1027,7 +1027,14 @@ function Get-ScoutRawInventory {
         $securityPolicyStartCount = $resources.Count
         $securityPolicyStatus = 'Completed'
         try {
-            foreach ($row in @(Get-ScoutSubscriptionSecurityPolicySweep -Subscriptions $subscriptionEnvelopes)) {
+            # Defender assessments are the slowest call in the sweep, so they are read for every
+            # subscription at once. A stand-in sweep without the switch is called as before.
+            $sweepArguments = @{ Subscriptions = $subscriptionEnvelopes }
+            $sweepCommand = Get-Command -Name Get-ScoutSubscriptionSecurityPolicySweep -ErrorAction SilentlyContinue
+            if ($null -ne $sweepCommand -and $sweepCommand.Parameters.ContainsKey('PrefetchAssessments')) {
+                $sweepArguments['PrefetchAssessments'] = $true
+            }
+            foreach ($row in @(Get-ScoutSubscriptionSecurityPolicySweep @sweepArguments)) {
                 if ($null -eq $row) { continue }
                 $resources.Add($row)
                 if ($row.properties.PSObject.Properties['SourceOperations']) {

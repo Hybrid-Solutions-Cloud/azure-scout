@@ -495,3 +495,105 @@ Describe 'Get-ScoutSubscriptionSecurityPolicySweep integration contract' {
         $script:contextCalls.Count | Should -Be 0
     }
 }
+
+Describe 'Get-ScoutSubscriptionSecurityPolicySweep assessment prefetch' {
+    BeforeAll {
+        # A loopback HTTP listener stands in for Azure Resource Manager: the prefetch runs on
+        # worker threads, which cannot see the stubbed Az commands.
+        $script:armPort = 0
+        $script:armListener = $null
+        foreach ($candidate in (Get-Random -Minimum 20000 -Maximum 40000 -Count 10)) {
+            try {
+                $listener = [System.Net.HttpListener]::new()
+                $listener.Prefixes.Add("http://localhost:$candidate/")
+                $listener.Start()
+                $script:armListener = $listener
+                $script:armPort = $candidate
+                break
+            }
+            catch { continue }
+        }
+        $script:armServer = [powershell]::Create()
+        $null = $script:armServer.AddScript({
+                param($Listener, $Port)
+                while ($Listener.IsListening) {
+                    try { $context = $Listener.GetContext() } catch { break }
+                    $target = $context.Request.Url.PathAndQuery
+                    $status = 200
+                    $body = if ($target -like '/subscriptions/sub-1/*page=2*') {
+                        '{"value":[{"id":"/a/sub-1/2","name":"a2","properties":{"displayName":"Second","status":{"code":"Healthy"}}}]}'
+                    }
+                    elseif ($target -like '/subscriptions/sub-1/*') {
+                        '{"value":[{"id":"/a/sub-1/1","name":"a1","properties":{"displayName":"First","status":{"code":"Unhealthy"}}}],"nextLink":"http://localhost:' + $Port + '/subscriptions/sub-1/providers/Microsoft.Security/assessments?page=2"}'
+                    }
+                    else {
+                        $status = 500
+                        '{"error":{"code":"InternalServerError"}}'
+                    }
+                    $bytes = [Text.Encoding]::UTF8.GetBytes($body)
+                    $context.Response.StatusCode = $status
+                    $context.Response.ContentType = 'application/json'
+                    $context.Response.OutputStream.Write($bytes, 0, $bytes.Length)
+                    $context.Response.Close()
+                }
+            }).AddArgument($script:armListener).AddArgument($script:armPort)
+        $null = $script:armServer.BeginInvoke()
+    }
+
+    AfterAll {
+        if ($script:armListener) { $script:armListener.Stop(); $script:armListener.Close() }
+        if ($script:armServer) { $script:armServer.Dispose() }
+    }
+
+    BeforeEach {
+        Initialize-ScoutSweepStub
+        $script:tokenCalls = 0
+        function global:Get-AzContext {
+            param($ErrorAction)
+            $null = $ErrorAction
+            [pscustomobject]@{
+                Subscription = [pscustomobject]@{ Id = 'original-sub' }
+                Environment  = [pscustomobject]@{ ResourceManagerUrl = "http://localhost:$script:armPort/" }
+            }
+        }
+        function global:Get-AzAccessToken {
+            param($ResourceUrl, [switch]$AsSecureString, $TenantId, $ErrorAction, $WarningAction)
+            $null = $ResourceUrl, $AsSecureString, $TenantId, $ErrorAction, $WarningAction
+            $script:tokenCalls++
+            $secureToken = [securestring]::new()
+            foreach ($character in 'stub-token'.ToCharArray()) { $secureToken.AppendChar($character) }
+            [pscustomobject]@{ Token = $secureToken }
+        }
+    }
+
+    AfterEach {
+        Clear-ScoutSweepStub
+        Remove-Item 'Function:\Get-AzAccessToken' -Force -ErrorAction SilentlyContinue
+    }
+
+    It 'uses prefetched assessments, follows nextLink and leaves a failed subscription to the cmdlet' {
+        $script:armListener | Should -Not -BeNullOrEmpty
+
+        $results = @(Get-ScoutSubscriptionSecurityPolicySweep -Subscriptions $script:subscriptions -PrefetchAssessments)
+
+        $script:tokenCalls | Should -Be 1
+        $first = @($results[0].properties.DefenderAssessments)
+        $first.Count | Should -Be 2
+        $first[0].Id | Should -Be '/a/sub-1/1'
+        $first[0].DisplayName | Should -Be 'First'
+        $first[0].Status.code | Should -Be 'Unhealthy'
+        $first[1].Name | Should -Be 'a2'
+        $results[0].properties.CollectionStatus.DefenderAssessments | Should -Be 'Success'
+        # sub-1 came from the prefetch, so the cmdlet ran only for sub-2, whose prefetch failed.
+        $script:assessmentAttempts.ContainsKey('sub-1') | Should -BeFalse
+        $script:assessmentAttempts['sub-2'] | Should -Be 1
+        $results[1].properties.DefenderAssessments[0].Name | Should -Be 'assessment-sub-2'
+    }
+
+    It 'does not prefetch unless asked' {
+        $results = @(Get-ScoutSubscriptionSecurityPolicySweep -Subscriptions $script:subscriptions)
+
+        $script:tokenCalls | Should -Be 0
+        $results[0].properties.DefenderAssessments[0].Name | Should -Be 'assessment-sub-1'
+    }
+}
