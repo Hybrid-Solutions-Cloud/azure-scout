@@ -161,9 +161,52 @@ PRs #21 and #22 merged (admin override after CI passed). Third live scan: 12m19s
 billing account blocks cost data (`SubscriptionCostDisabled`), now recorded as not applicable.
 Branch `fix/inventory-overview-page` gives inventory-only runs their own Overview page.
 
-Still open: `finops.costRows` is empty in the report although nine cost rows were extracted;
-`Import-Module AzureScout` takes 35 to 48 s; the security sweep is serial (about 13 s per
-subscription); the per-subscription `Get-AzRoleAssignment` in the pre-check costs 1 to 3 s each.
+PR #23 merged; fourth live scan 11m15s. Merged branches deleted on GitHub and locally (only
+`main` and `gh-pages` remain). The tip of the old `agent/ab7279-run-errors-3.12.3` branch had one
+unmerged notes-only commit; it is kept under `refs/audit-preserve/20261113/*`.
+
+**2026-11-14.** Three more PRs, each admin-merged after `test-and-lint` passed:
+
+| PR | Change | Measured on the lab tenant |
+|---|---|---|
+| #24 | FileStorage accounts skip the blob service lookup (Azure returns 400 "Blob is not supported") | the one remaining storage warning is gone |
+| #25 | The five sign-in windows are read concurrently (`Invoke-AZSCGraphRequestParallel`) | 34 s in sequence, about 13 s together |
+| #26 | Defender assessments are prefetched for all subscriptions concurrently | sweep 103 s to 49 s, same 347 assessments |
+
+Fifth live scan with all of it installed: **8m10s** (extraction 4m14s, processing 2m31s,
+report 26.9 MB), two warnings (the Key Vault 403 below), zero storage or Graph failures.
+
+Profiled and left alone: `Get-AzComputeResourceSku` is 3 to 10 s per region with VMs (one region
+here), `Get-AzVMUsage` 0.3 s. `Import-Module AzureScout` is about 17 s warm, of which about 10 s
+is loading the required Az/Graph modules and about 4 s is dot-sourcing
+`src/report/renderers/Export-EChartsDashboard.ps1` (1 MB).
+
+**Live-probe caution.** The default Az context on this VM is a different, 42-subscription tenant.
+Pin each ad-hoc probe to the lab tenant with `Set-AzContext -Context <lab context> -Scope Process`
+first. `scratchpad/live-scan.ps1` already pins with `-Scope Process`.
+
+**Owner ruling (2026-11-14): Scout must never read inside a Key Vault.** It inventories vaults
+and their ARM configuration only. The `KeyVaultSecrets`/`KeyVaultKeys` data-plane datasets (and
+the two CASA/AVS checks that needed them) were removed; that also removes the Key Vault 403.
+
+**Defender count drop explained.** Scan 4 reported 865 findings and scan 5 reported 499 with no
+tenant change. Every disappearing finding belonged to Azure Arc machines and VMs that were already
+deleted (all GETs 404); Defender keeps a deleted resource's assessments for a while. Real counts
+were 146 and 144. PR #27 drops findings for top-level resources absent from an unfiltered resource
+sweep (both the Resource Graph rows and the per-subscription list) and fixes the Resource Graph
+projection, which read `resourceDetails.id` while Defender stores `resourceDetails.Id`, so every
+finding had an empty resource id. Entra moved 1,263 to 1,231 only through the sliding 30-day
+sign-in window.
+
+**Release 3.18.0** prepared on `release/3.18.0`: manifest, `RELEASES.md`, docs changelog and
+roadmap, troubleshooting ("How long a scan takes" table from scan 5 and new error rows), Entra
+reference. Packaging, publish and verification scripts live in the session scratchpad
+`release/` folder (adapted from `D:/tmp/scout-3171-*.ps1`). Publishing reads the Gallery key from
+`kv-hcs-vault-01` (`psgallery-api-key`) with `az`; the session classifier blocked the first `az`
+read, so it needs the operator's go-ahead.
+
+Still open: `finops.costRows` is empty because billing blocks cost data; the guided menu has not
+been walked by hand.
 
 **Environment notes.** Pester 5.7.1 (CI pin) is not installed here; 5.9.1 was used. Full suite is
 run in four shards with `scratchpad/run-shard.ps1`; `DeclarativeCollectorGolden.Tests.ps1` takes

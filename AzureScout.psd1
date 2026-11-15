@@ -12,7 +12,7 @@
 RootModule = 'AzureScout.psm1'
 
 # Version number of this module.
-ModuleVersion = '3.17.1'
+ModuleVersion = '3.18.0'
 
 # Supported PSEditions
 CompatiblePSEditions = @('Core')
@@ -166,7 +166,7 @@ PrivateData = @{
         IconUri = 'https://raw.githubusercontent.com/Hybrid-Solutions-Cloud/azure-scout/main/docs/public/images/azurescout-icon.svg'
 
         # ReleaseNotes of this module
-        ReleaseNotes = 'v3.17.1 - One discovery build and shared assessment query index, detached evidence and faster companion output. Always-on sanitized debug logging, accurate Graph failure classification, Sentinel query fixes and NIC applicability checks. Resource-tag menu wording corrected. AB#9294 AB#9295 AB#9296 AB#9297 AB#9298 AB#9299 AB#9300 AB#9301 AB#9302 AB#9303 AB#9304 AB#9306. See CHANGELOG.md.'
+        ReleaseNotes = 'v3.18.0 - Scans finish in minutes, not hours: a nine-subscription tenant went from 2h48m to 8m. Sign-ins are read as concurrent week-long windows, Defender assessments for all subscriptions at once, provider registration with one listing, and policy definitions through an index; a Graph 504 is retried once. Scout no longer reads anything inside Key Vaults. Defender findings for deleted resources are dropped and every finding keeps its resource id. Inventory-only runs get their own Overview page. AB#9300. See CHANGELOG.md.'
 
         # Prerelease string of this module
         # Prerelease = ''
