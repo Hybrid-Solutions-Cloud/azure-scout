@@ -343,6 +343,25 @@ Describe 'Invoke-ScoutProcessing — the pipeline end to end' {
         $healthArtifact.Datasets[0].Dataset | Should -Be 'Synthetic unavailable source'
     }
 
+    It 'keeps the run Complete when the only health entries are not-assessed sources' {
+        $health = @([pscustomobject]@{
+                Dataset = 'Okta'
+                Status = 'NotAssessed'
+                Reason = 'Not requested: Okta is read only with -IncludeOkta.'
+                ResourceTypes = @('nothing')
+            })
+
+        $summary = Invoke-ScoutProcessing -Resources $script:SampleResources -DefaultPath $script:RunPath `
+            -InventoryRoot $script:FixtureRoot -DefinitionRoot $script:DefinitionRoot `
+            -CollectionHealth $health -WarningAction SilentlyContinue
+
+        $row = $summary.CollectorRows | Where-Object Collector -eq 'Nothing'
+        $row.Verdict | Should -Be 'NotAssessed'
+        $row.AvailabilityReason | Should -Match 'Not requested'
+        $healthArtifact = Get-Content -Raw $summary.CollectionHealthPath | ConvertFrom-Json
+        $healthArtifact.Overall | Should -Be 'Complete'
+    }
+
     It 'applies collector-specific source health without poisoning unrelated collectors' {
         $health = @([pscustomobject]@{
                 Dataset = 'Resources'

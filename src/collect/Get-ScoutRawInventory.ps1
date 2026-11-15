@@ -1130,18 +1130,27 @@ function Get-ScoutRawInventory {
                     }
                     else { @() }
                     $contextError = @($collectionErrors | Where-Object Dataset -eq 'Context' | Select-Object -First 1)
+                    # A dataset Azure does not offer on this subscription (a free-tier Defender
+                    # plan, an unregistered provider) carries a stated reason. That is the
+                    # subscription's state, not a failed read, so it is reported as not assessed.
+                    $reasonsProperty = $row.properties.PSObject.Properties['CollectionReasons']
                     foreach ($status in $statusProperty.Value.PSObject.Properties) {
                         $statusValue = [string]$status.Value
                         $isUnavailable = $statusValue -in @('Unavailable', 'Failed') -or
                             ($statusValue -eq 'Skipped' -and $contextError.Count -gt 0)
                         if ($isUnavailable) {
                             $datasetError = @($collectionErrors | Where-Object Dataset -eq $status.Name | Select-Object -First 1)
+                            $statedReason = if ($reasonsProperty -and $reasonsProperty.Value -and $reasonsProperty.Value.PSObject.Properties[$status.Name]) {
+                                [string]$reasonsProperty.Value.PSObject.Properties[$status.Name].Value
+                            }
+                            else { $null }
                             $reason = if ($datasetError.Count -gt 0) { [string]$datasetError[0].Message }
+                            elseif ($statedReason) { $statedReason }
                             elseif ($contextError.Count -gt 0) { [string]$contextError[0].Message }
                             else { 'The subscription-scoped dataset was not available.' }
                             $collectionHealth.Add([pscustomobject]@{
                                     Dataset       = "SecurityPolicy/$($status.Name) [$($row.subscriptionName)]"
-                                    Status        = if ($statusValue -eq 'Skipped') { 'Unavailable' } else { $statusValue }
+                                    Status        = if ($statusValue -eq 'Skipped') { 'Unavailable' } elseif ($datasetError.Count -eq 0 -and $statedReason) { 'NotAssessed' } else { $statusValue }
                                     Reason        = $reason
                                     ResourceTypes = @('AZSC/Subscription/SecurityPolicySweep')
                                     Collectors     = @($securityPolicyCollectorMap[$status.Name])

@@ -102,6 +102,29 @@ Describe 'Start-AZSCDevOpsExtraction paging' {
         $health[0].Reason | Should -Match 'HTTP 403'
     }
 
+    It 'reports every DevOps dataset as not assessed when no organization can be discovered' {
+        # The profile lookup returns nothing, so no organization is known and nothing is read.
+        Mock Invoke-AZSCDevOpsRestPage {
+            return [pscustomobject]@{ Headers = @{}; Body = [pscustomobject]@{ value = @() } }
+        }
+
+        $result = Start-AZSCDevOpsExtraction -TenantID 'tenant-a' -WarningAction SilentlyContinue
+        $health = @($result.CollectionHealth)
+
+        @($result.DevOpsResources).Count | Should -Be 0
+        $health.Count | Should -Be 5
+        @($health.Status | Sort-Object -Unique) | Should -Be @('NotAssessed')
+        @($health.Collectors) | Should -Contain 'DevOps/DevOpsProjects'
+        @($health.Reason | Sort-Object -Unique) | Should -Match '-DevOpsOrganization'
+    }
+
+    It 'marks opt-in sources that were not requested as not assessed, never as empty' {
+        $source = Get-Content -LiteralPath (Join-Path $script:Root 'src/Start-AZTIExtractionOrchestration.ps1') -Raw
+        $source | Should -Match "Reason = 'Not requested: Okta is read only with -IncludeOkta"
+        $source | Should -Match "Reason = 'Not requested: Entra Connect and Active Directory are read only with -IncludeOnPremisesIdentity"
+        $source | Should -Match "Reason = 'Not requested: Azure DevOps is read only with -IncludeDevOps.'"
+    }
+
     It 'threads DevOps collection health into the orchestration result contract' {
         $source = Get-Content -LiteralPath (Join-Path $script:Root 'src/Start-AZTIExtractionOrchestration.ps1') -Raw
         $source | Should -Match "DevOpsData\.PSObject\.Properties\['CollectionHealth'\]"

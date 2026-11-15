@@ -264,7 +264,19 @@ function Start-AZSCDevOpsExtraction {
 
         if (-not $orgs -or $orgs.Count -eq 0) {
             Write-Warning 'No Azure DevOps organizations could be discovered from the signed-in identity. Service principals cannot enumerate organizations — pass -DevOpsOrganization to name them explicitly. Skipping Azure DevOps extraction.'
-            return [PSCustomObject]@{ DevOpsResources = @(); CollectionHealth = @() }
+            # Without these entries every DevOps worksheet read "complete, 0 rows", which says the
+            # organization has no projects when nothing was read at all.
+            $health = foreach ($datasetName in $devOpsDatasetContract.Keys) {
+                $contract = $devOpsDatasetContract[$datasetName]
+                [pscustomobject]@{
+                    Dataset       = "Azure DevOps: $datasetName"
+                    Status        = 'NotAssessed'
+                    Reason        = 'Not assessed: no Azure DevOps organization could be discovered from the signed-in identity. Name them with -DevOpsOrganization.'
+                    ResourceTypes = @($contract.Type)
+                    Collectors    = @($contract.Collector)
+                }
+            }
+            return [PSCustomObject]@{ DevOpsResources = @(); CollectionHealth = @($health) }
         }
         Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + ' - Discovered ' + $orgs.Count + ' organization(s).')
     }

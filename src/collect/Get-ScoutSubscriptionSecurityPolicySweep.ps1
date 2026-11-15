@@ -105,10 +105,18 @@ function Get-ScoutSubscriptionSecurityPolicySweep {
                 $notOfferedOnThisTier = $message -match '(?i)Regulatory compliance is not supported for subscription.+no standard pricing bundle'
 
                 if ($providerUnavailable -or $notOfferedOnThisTier) {
+                    # The reason travels with the result so collection health can say why the
+                    # dataset is empty, instead of a bare "not available".
                     return [pscustomobject]@{
                         Data   = @()
                         Status = 'Unavailable'
                         Error  = $null
+                        Reason = if ($notOfferedOnThisTier) {
+                            'Not applicable: regulatory compliance needs a paid Microsoft Defender for Cloud plan, and this subscription is on the free tier.'
+                        }
+                        else {
+                            'Not applicable: the Microsoft.Security resource provider is not registered on this subscription.'
+                        }
                     }
                 }
 
@@ -152,7 +160,12 @@ function Get-ScoutSubscriptionSecurityPolicySweep {
 
         $message = (@($pricingErrors | ForEach-Object { $_.Exception.Message }) -join '; ')
         if ($message -match '(?i)MissingSubscriptionRegistration|SubscriptionNotRegistered|not registered.+Microsoft\.Security|Microsoft\.Security.+not registered|register to Microsoft\.Security') {
-            return [pscustomobject]@{ Data = @(); Status = 'Unavailable'; Error = $null }
+            return [pscustomobject]@{
+                Data   = @()
+                Status = 'Unavailable'
+                Error  = $null
+                Reason = 'Not applicable: the Microsoft.Security resource provider is not registered on this subscription.'
+            }
         }
 
         Write-Warning "Get-ScoutSubscriptionSecurityPolicySweep: 'DefenderPricing' failed for subscription '$SubscriptionName': $message"
@@ -398,7 +411,26 @@ function Get-ScoutSubscriptionSecurityPolicySweep {
                 $uri = "$using:baseUrl/subscriptions/$subscriptionId/providers/Microsoft.Security/assessments?api-version=2021-06-01"
                 try {
                     do {
-                        $response = Invoke-RestMethod -Uri $uri -Method GET -Headers @{ Authorization = $using:authorization } -TimeoutSec 120 -ErrorAction Stop
+                        # A single 502 from Defender used to send the whole subscription to the
+                        # slow per-subscription pass (about a minute on a live tenant). Retry a
+                        # transient answer twice before giving up on the prefetch.
+                        $attempt = 0
+                        while ($true) {
+                            try {
+                                $response = Invoke-RestMethod -Uri $uri -Method GET -Headers @{ Authorization = $using:authorization } -TimeoutSec 120 -ErrorAction Stop
+                                break
+                            }
+                            catch {
+                                $attempt++
+                                $statusCode = 0
+                                try { $statusCode = [int]$_.Exception.Response.StatusCode } catch { $statusCode = 0 }
+                                $transient = $statusCode -in @(408, 429, 500, 502, 503, 504) -or
+                                    $_.Exception -is [System.Threading.Tasks.TaskCanceledException] -or
+                                    [string]$_.Exception.Message -match '(?i)timed out|Bad Gateway|Service Unavailable|Gateway Timeout'
+                                if (-not $transient -or $attempt -ge 3) { throw }
+                                Start-Sleep -Milliseconds (500 * $attempt)
+                            }
+                        }
                         $uri = $null
                         if ($null -ne $response) {
                             if ($response.PSObject.Properties.Name -contains 'value') {
@@ -576,12 +608,17 @@ function Get-ScoutSubscriptionSecurityPolicySweep {
                 -SubscriptionName $subscriptionName `
                 -Operation { Get-AzPolicyState -SubscriptionId $subscriptionId -ErrorAction Stop }
 
+            $reasons = [ordered]@{}
             foreach ($datasetName in @($emptyData.Keys)) {
                 $query = $queries[$datasetName]
                 $emptyData[$datasetName] = @($query.Data)
                 $statuses[$datasetName] = $query.Status
                 if ($null -ne $query.Error) {
                     $collectionErrors.Add($query.Error)
+                }
+                $reasonProperty = $query.PSObject.Properties['Reason']
+                if ($reasonProperty -and -not [string]::IsNullOrWhiteSpace([string]$reasonProperty.Value)) {
+                    $reasons[$datasetName] = [string]$reasonProperty.Value
                 }
             }
 
@@ -626,6 +663,7 @@ function Get-ScoutSubscriptionSecurityPolicySweep {
                     PolicyComplianceStates         = @($emptyData.PolicyComplianceStates)
                     CollectionStatus               = [pscustomobject] $statuses
                     CollectionErrors               = @($collectionErrors)
+                    CollectionReasons              = [pscustomobject] $reasons
                     SourceOperations               = $sourceOperations
                 }
             }

@@ -36,7 +36,9 @@ function Test-AZSCPS {
 
         }
         else {
-            Write-Host "PowerShell Desktop Identified." -ForegroundColor Cyan
+            # 'PowerShell Desktop' is the platform key the rest of the module uses for Windows;
+            # the message names what the user is actually running.
+            Write-Host "PowerShell on Windows identified." -ForegroundColor Cyan
             $PlatOS          = 'PowerShell Desktop'
 
         }

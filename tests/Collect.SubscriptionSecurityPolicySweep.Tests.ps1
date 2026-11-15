@@ -190,6 +190,7 @@ Describe 'Get-ScoutSubscriptionSecurityPolicySweep integration contract' {
             'PolicyComplianceStates',
             'CollectionStatus',
             'CollectionErrors'
+            'CollectionReasons'
             'SourceOperations'
         )
     }
@@ -435,6 +436,8 @@ Describe 'Get-ScoutSubscriptionSecurityPolicySweep integration contract' {
         $result.properties.CollectionStatus.DefenderRegulatoryStandards | Should -Be 'Unavailable'
         @($result.properties.CollectionErrors | Where-Object Dataset -eq 'DefenderRegulatoryStandards').Count | Should -Be 0
         @($warnings | Where-Object { [string]$_ -match 'DefenderRegulatoryStandards' }).Count | Should -Be 0
+        # The reason travels with the row so collection health can explain the empty dataset.
+        $result.properties.CollectionReasons.DefenderRegulatoryStandards | Should -Match 'paid Microsoft Defender for Cloud plan'
     }
 
     It 'retries transient Defender alert REST failures with the shared bounded policy' {
@@ -513,15 +516,24 @@ Describe 'Get-ScoutSubscriptionSecurityPolicySweep assessment prefetch' {
             }
             catch { continue }
         }
+        # Request counts per subscription, shared with the listener thread.
+        $script:armHits = [hashtable]::Synchronized(@{})
         $script:armServer = [powershell]::Create()
         $null = $script:armServer.AddScript({
-                param($Listener, $Port)
+                param($Listener, $Port, $Hits)
                 while ($Listener.IsListening) {
                     try { $context = $Listener.GetContext() } catch { break }
                     $target = $context.Request.Url.PathAndQuery
                     $status = 200
+                    $hitKey = if ($target -like '/subscriptions/sub-1/*page=2*') { 'sub-1-page-2' } elseif ($target -like '/subscriptions/sub-1/*') { 'sub-1' } else { 'other' }
+                    $Hits[$hitKey] = 1 + [int]$Hits[$hitKey]
                     $body = if ($target -like '/subscriptions/sub-1/*page=2*') {
                         '{"value":[{"id":"/a/sub-1/2","name":"a2","properties":{"displayName":"Second","status":{"code":"Healthy"}}}]}'
+                    }
+                    elseif ($target -like '/subscriptions/sub-1/*' -and $Hits['sub-1'] -eq 1) {
+                        # The first answer for sub-1 is a transient gateway error; the retry succeeds.
+                        $status = 502
+                        '{"error":{"code":"BadGateway"}}'
                     }
                     elseif ($target -like '/subscriptions/sub-1/*') {
                         '{"value":[{"id":"/a/sub-1/1","name":"a1","properties":{"displayName":"First","status":{"code":"Unhealthy"}}}],"nextLink":"http://localhost:' + $Port + '/subscriptions/sub-1/providers/Microsoft.Security/assessments?page=2"}'
@@ -536,7 +548,7 @@ Describe 'Get-ScoutSubscriptionSecurityPolicySweep assessment prefetch' {
                     $context.Response.OutputStream.Write($bytes, 0, $bytes.Length)
                     $context.Response.Close()
                 }
-            }).AddArgument($script:armListener).AddArgument($script:armPort)
+            }).AddArgument($script:armListener).AddArgument($script:armPort).AddArgument($script:armHits)
         $null = $script:armServer.BeginInvoke()
     }
 
@@ -588,6 +600,20 @@ Describe 'Get-ScoutSubscriptionSecurityPolicySweep assessment prefetch' {
         $script:assessmentAttempts.ContainsKey('sub-1') | Should -BeFalse
         $script:assessmentAttempts['sub-2'] | Should -Be 1
         $results[1].properties.DefenderAssessments[0].Name | Should -Be 'assessment-sub-2'
+    }
+
+    It 'retries a transient prefetch answer and gives up after three attempts on a persistent failure' {
+        $script:armHits.Clear()
+
+        $results = @(Get-ScoutSubscriptionSecurityPolicySweep -Subscriptions $script:subscriptions -PrefetchAssessments)
+
+        # sub-1: a 502, then success on the retry, so it never reaches the slow per-subscription pass.
+        $script:armHits['sub-1'] | Should -Be 2
+        $script:assessmentAttempts.ContainsKey('sub-1') | Should -BeFalse
+        @($results[0].properties.DefenderAssessments).Count | Should -Be 2
+        # sub-2 answers 500 every time: three attempts, then the per-subscription pass reads it.
+        $script:armHits['other'] | Should -Be 3
+        $script:assessmentAttempts['sub-2'] | Should -Be 1
     }
 
     It 'does not prefetch unless asked' {
