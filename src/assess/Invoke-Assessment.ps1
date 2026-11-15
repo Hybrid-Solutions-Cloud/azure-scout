@@ -14,6 +14,10 @@ function Invoke-Assessment {
 
     if ($null -eq $QueryContext) { $QueryContext = New-ScoutQueryContext -InputObject $Collect }
 
+    # Resolved once per call, not once per rule: Get-Command costs ~0.5-0.8 ms and the answer cannot
+    # change while this assessment's rules run.
+    $ruleTimingLogAvailable = [bool](Get-Command -Name 'Write-AZSCLog' -ErrorAction SilentlyContinue)
+
     function Write-ScoutRuleTiming {
         param(
             [Parameter(Mandatory)] [string] $RuleId,
@@ -22,7 +26,7 @@ function Invoke-Assessment {
             [Parameter(Mandatory)] [System.Diagnostics.Stopwatch] $Timer
         )
         if ($Timer.IsRunning) { $Timer.Stop() }
-        if (Get-Command -Name 'Write-AZSCLog' -ErrorAction SilentlyContinue) {
+        if ($ruleTimingLogAvailable) {
             Write-AZSCLog -Level 'DEBUG' -Message (
                 'Assessment rule {0}: status={1}; evidence={2}; elapsed={3}' -f
                     $RuleId, $Status, $EvidenceCount, $Timer.Elapsed.ToString('dd\:hh\:mm\:ss\.fff')

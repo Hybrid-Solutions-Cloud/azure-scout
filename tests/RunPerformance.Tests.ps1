@@ -75,6 +75,127 @@ Describe 'Run-owned assessment query index (AB#9303, AB#9304)' {
     }
 }
 
+Describe 'Query context cost while a transcript is active (AB#9300)' {
+    # Every scan starts a transcript (Start-AZSCRunLog). While one is active PowerShell stringifies
+    # each argument a command is bound to: a [pscustomobject] argument has ToString() called on every
+    # property value. Once the index is built the context's `Token` is the whole collect as a JToken,
+    # so a [pscustomobject] context re-serialised the entire document on every Invoke-Rule,
+    # Resolve-JsonPath and Resolve-RuleJoin call -- ~0.55 s each on a 30 MB collect, 426 s over 722
+    # rule evaluations. The probe counts ToString() calls so the guard needs no timing threshold.
+    BeforeAll {
+        if (-not ('ScoutQueryContextProbe' -as [type])) {
+            Add-Type -TypeDefinition @'
+public sealed class ScoutQueryContextProbe
+{
+    public static int ToStringCalls;
+    public override string ToString() { ToStringCalls++; return "probe"; }
+}
+'@
+        }
+        # Binding the argument is the whole point; the body only has to exist.
+        function Invoke-ProbeBind { param($Argument) $null = $PSBoundParameters }
+
+        # Runs $Action with a transcript active and returns how many times the probe was stringified.
+        # $null means the host cannot transcribe, so the caller skips rather than passing vacuously.
+        function Measure-ProbeUnderTranscript {
+            param([scriptblock]$Action)
+            $path = Join-Path $TestDrive ("transcript-{0}.log" -f [guid]::NewGuid().ToString('N'))
+            try { $null = Start-Transcript -Path $path -Force }
+            catch { return $null }
+            try {
+                [ScoutQueryContextProbe]::ToStringCalls = 0
+                & $Action
+                return [ScoutQueryContextProbe]::ToStringCalls
+            }
+            finally { $null = Stop-Transcript }
+        }
+
+        # The probe only proves something if this host really does stringify arguments under
+        # transcription -- the old [pscustomobject] shape is the positive control.
+        $script:ControlCalls = Measure-ProbeUnderTranscript {
+            Invoke-ProbeBind -Argument ([pscustomobject]@{ Token = [ScoutQueryContextProbe]::new() })
+        }
+    }
+
+    It 'builds the context as a hashtable carrying InputObject, Token and ParseCount' {
+        $inputData = [pscustomobject]@{ rows = @() }
+        $context = New-ScoutQueryContext $inputData
+        $context | Should -BeOfType [hashtable]
+        [object]::ReferenceEquals($context.InputObject, $inputData) | Should -BeTrue
+        $context.Token | Should -BeNullOrEmpty
+        $context.ParseCount | Should -Be 0
+    }
+
+    It 'does not stringify the index when the context is passed to a command' {
+        if ($null -eq $script:ControlCalls) { Set-ItResult -Skipped -Because 'this host cannot start a transcript'; return }
+        if ($script:ControlCalls -lt 1) { Set-ItResult -Skipped -Because 'this host does not stringify arguments under transcription, so the regression cannot be observed'; return }
+        $context = New-ScoutQueryContext ([pscustomobject]@{ rows = @() })
+        $context.Token = [ScoutQueryContextProbe]::new()
+        $calls = Measure-ProbeUnderTranscript { Invoke-ProbeBind -Argument $context }
+        $calls | Should -Be 0
+    }
+
+    It 'does not stringify the index on the per-rule path: Invoke-Rule, Resolve-JsonPath and Invoke-Assessment' {
+        if ($null -eq $script:ControlCalls) { Set-ItResult -Skipped -Because 'this host cannot start a transcript'; return }
+        if ($script:ControlCalls -lt 1) { Set-ItResult -Skipped -Because 'this host does not stringify arguments under transcription, so the regression cannot be observed'; return }
+        $inputData = [pscustomobject]@{
+            rows  = @([pscustomobject]@{ id = 'a'; name = 'one' }, [pscustomobject]@{ id = 'b'; name = 'two' })
+            other = @([pscustomobject]@{ ref = 'a' })
+        }
+        # Token is the probe, not a real index: a manual rule with no query never reads Token, so
+        # nothing but argument stringification can touch it.
+        $probeContext = New-ScoutQueryContext $inputData
+        $probeContext.Token = [ScoutQueryContextProbe]::new()
+        $manual = [pscustomobject]@{
+            id = 'PERF-M'; title = 't'; severity = 'low'; manual = $true; query = $null
+            assert = [pscustomobject]@{ type = 'manual' }; remediation = 'r'
+        }
+        $set = [pscustomobject]@{ Area = 'Test'; Framework = 'CAF'; Rules = @($manual) }
+        $calls = Measure-ProbeUnderTranscript {
+            $null = Invoke-Rule -Rule $manual -Collect $inputData -QueryContext $probeContext
+            $null = Resolve-JsonPath -InputObject $inputData -QueryContext $probeContext -Path ''
+            $null = Invoke-Assessment -Collect $inputData -RuleSet @($set) -Assessment 'Probe' -QueryContext $probeContext
+        }
+        $calls | Should -Be 0
+    }
+
+    It 'produces identical findings with and without an active transcript' {
+        $inputData = [pscustomobject]@{
+            rows    = @([pscustomobject]@{ id = 'a'; public = $true }, [pscustomobject]@{ id = 'b'; public = $false }, [pscustomobject]@{ id = 'c'; public = $true })
+            related = @([pscustomobject]@{ ref = 'a' })
+        }
+        $rules = @(
+            [pscustomobject]@{ id = 'T-1'; title = 'exists'; severity = 'high'; manual = $false; query = '$.rows[?(@.public == true)]'; assert = [pscustomobject]@{ type = 'countEquals'; value = 0 }; remediation = 'fix' }
+            [pscustomobject]@{ id = 'T-2'; title = 'percent'; severity = 'low'; manual = $false; query = '$.rows[?(@.public == false)]'; assert = [pscustomobject]@{ type = 'percentageAtLeast'; value = 50; denominatorQuery = '$.rows[*]' }; remediation = 'fix' }
+            [pscustomobject]@{ id = 'T-3'; title = 'manual'; severity = 'low'; manual = $true; query = '$.rows[*]'; assert = [pscustomobject]@{ type = 'manual' }; remediation = 'review' }
+            [pscustomobject]@{ id = 'T-4'; title = 'join'; severity = 'medium'; manual = $false; assert = [pscustomobject]@{ type = 'countEquals'; value = 0 }; remediation = 'link'
+                join = [pscustomobject]@{ left = '$.rows[*]'; leftKey = 'id'; right = '$.related[*]'; rightKey = 'ref'; mode = 'leftOnly' } }
+        )
+        $set = [pscustomobject]@{ Area = 'Test'; Framework = 'CAF'; FrameworkVersion = '1'; Weight = 1.0; Rules = $rules }
+        $project = {
+            param($Findings)
+            @($Findings | ForEach-Object {
+                    $evidence = @($_.Evidence | ForEach-Object {
+                            if ($_ -is [Newtonsoft.Json.Linq.JToken]) { $_.ToString([Newtonsoft.Json.Formatting]::None) }
+                            else { $_ | ConvertTo-Json -Depth 10 -Compress }
+                        })
+                    '{0}|{1}|{2}|{3}|{4}' -f $_.Id, $_.Status, $_.EvidenceCount, $_.Assessment, ($evidence -join ',')
+                })
+        }
+        $plain = & $project (Invoke-Assessment -Collect $inputData -RuleSet @($set) -Assessment 'Parity' -QueryContext (New-ScoutQueryContext $inputData))
+
+        $path = Join-Path $TestDrive 'parity-transcript.log'
+        try { $null = Start-Transcript -Path $path -Force } catch { Set-ItResult -Skipped -Because 'this host cannot start a transcript'; return }
+        try { $transcribed = & $project (Invoke-Assessment -Collect $inputData -RuleSet @($set) -Assessment 'Parity' -QueryContext (New-ScoutQueryContext $inputData)) }
+        finally { $null = Stop-Transcript }
+
+        $plain.Count | Should -Be 4
+        $transcribed | Should -Be $plain
+        ($plain -join "`n") | Should -Match 'T-1\|Fail\|2\|Parity'
+        ($plain -join "`n") | Should -Match 'T-4\|Fail\|2\|Parity'
+    }
+}
+
 Describe 'Run-owned discovery reuse (AB#9300, AB#9302)' {
     BeforeEach {
         $resource = [pscustomobject]@{

@@ -1,5 +1,43 @@
 # Handoff
 
+## Session 2026-11-15 — assessment rule-phase overhead (branch `perf/assessment-rule-overhead`, local only)
+
+Goal: the 3.18.0 live run spent 426 s on 722 rule evaluations (0.4-2 s each, even for Manual rules
+with `query: null`). Not pushed, no PR opened, no Azure calls; reproduced offline from a saved
+`collect.json`.
+
+**Root cause (measured, not a guess).** While a transcript is active (`Start-AZSCRunLog` starts one
+on every scan) PowerShell stringifies every argument bound to a command. `New-ScoutQueryContext`
+returned a `[pscustomobject]` whose `Token` property is the whole collect as a `JToken`, so each call
+to `Invoke-Rule`, `Resolve-JsonPath` and `Resolve-RuleJoin` re-serialised the ~30 MB document
+(~0.55 s per call). Probe results: a `[pscustomobject]` argument gets `ToString()` on each property
+value, a bare object gets `ToString()` once, a bare `IEnumerable` is enumerated, and a hashtable or
+ordered dictionary is not touched. Large arrays and lists of ordinary objects are cheap
+(0.6 ms for 20,000 rows), so the effect is specific to arguments with an expensive `ToString` or
+enumerator. Rejected by measurement: GC pressure (a 3.7 GB ballast heap changed nothing), logging
+(`Write-ScoutRuleTiming` stops the timer first), `Get-Command`, `Add-Member`, YAML (not in the
+per-rule timer).
+
+**Fix.** `New-ScoutQueryContext` returns a hashtable (same `InputObject`/`Token`/`ParseCount`
+members). Smaller, safe extras: `Get-ScoutRuleRowKey` is defined once at file scope instead of per
+`Invoke-Rule` call; `Invoke-Assessment` resolves `Get-Command Write-AZSCLog` once per call;
+`Get-RuleSet` filters files with a plain loop and shares parsed YAML documents between calls that
+carry no `-Overrides` (key = path + size + write time; override calls neither read nor populate it).
+
+**Numbers** (offline, transcript active, all 46 assessments, 710 findings): rule phase 582 s to 12 s;
+sum of per-rule time 547 s to 8.3 s, of which 7.4 s is the one-off JSON index build; `Get-RuleSet`
+6.6 s to 2.2 s. Findings: 710 of 710 identical across every property, evidence included, and the
+offline set matches the live `findings.json` on Assessment/Id/Status/EvidenceCount.
+
+**Not done, deliberately.** Memoising repeated rule evaluations: 237 of 630 evaluations repeat an
+earlier rule id, but after the fix they cost 0.22 s in total, so there is nothing left to save.
+
+**Next.** The one-off index build (`ConvertTo-Json` about 1 s, `JToken.Parse` about 6 s for 29 MB, not
+helped by `LineInfoHandling.Ignore`, `DateParseHandling.None`, tiering or GC settings) is now the
+largest single item in the phase. Tests: 680 passed, 0 failed across 32 assessment-related files
+(including 4 new transcript tests in `RunPerformance.Tests.ps1` and 4 `Get-RuleSet` cache tests in
+`Assessment.Config.Tests.ps1`); PSScriptAnalyzer reports no new findings.
+
 ## Session 2026-11-13 — "lost work" audit (read-only; no product code changed)
 
 Operator suspected recent performance, diagram and React report work had been lost.

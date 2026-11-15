@@ -7,8 +7,10 @@
     plus the Get-RuleSet -Overrides threshold-override hook they feed.
 
     Tracks ADO Stories AB#373 (load), AB#374 (save), AB#375 (hardcoded fallback).
-    Pure-logic tests -- no Azure connection, no live rule-file mutation (Get-RuleSet
-    reads YAML fresh on every call, so overrides never leak between tests).
+    Pure-logic tests -- no Azure connection, no live rule-file mutation. Get-RuleSet
+    shares parsed rule documents between calls that carry no overrides (AB#9300); a call
+    that carries overrides always parses fresh and never populates that cache, so
+    overrides never leak between tests.
 #>
 
 BeforeAll {
@@ -211,6 +213,74 @@ Describe 'Get-RuleSet -Overrides' {
         $ruleSet = Get-RuleSet -Patterns @('waf.security') -Overrides @{ 'WAF-SE-05' = 99 }
         $rule = $ruleSet.Rules | Where-Object id -eq 'WAF-SE-05'
         $rule.assert.type | Should -Be 'manual'
+    }
+}
+
+Describe 'Get-RuleSet parsed-document cache (AB#9300)' {
+    # A full run loads 78 rule files for 46 assessments but only 43 are distinct, and
+    # ConvertFrom-Yaml is ~85 ms a file, so unchanged files are parsed once and shared.
+    BeforeAll {
+        $script:CacheRuleDir = "$root/src/assess/rules"
+        function Write-CacheFixture {
+            param([string]$Path, [string[]]$RuleIds)
+            $lines = @('area: CacheFixture', 'framework: "CAF: Cache fixture"', 'frameworkversion: "2026-11-15"', 'weight: 1.0', 'rules:')
+            foreach ($id in $RuleIds) {
+                $lines += "  - id: $id"
+                $lines += "    title: `"fixture $id`""
+                $lines += '    severity: low'
+                $lines += '    query: null'
+                $lines += '    assert: { type: manual }'
+                $lines += '    remediation: "n/a"'
+                $lines += '    manual: true'
+            }
+            $lines | Out-File -LiteralPath $Path -Encoding utf8
+        }
+    }
+
+    It 'shares the parsed rules between calls that carry no overrides' {
+        $first = Get-RuleSet -Patterns @('waf.security')
+        $second = Get-RuleSet -Patterns @('waf.security')
+        @($first.Rules).Count | Should -BeGreaterThan 0
+        @($second.Rules).Count | Should -Be @($first.Rules).Count
+        # Same parsed rule objects, not equal copies: that is the saving.
+        [object]::ReferenceEquals(@($first.Rules)[0], @($second.Rules)[0]) | Should -BeTrue
+        $second.Area | Should -Be $first.Area
+        $second.FrameworkVersion | Should -Be $first.FrameworkVersion
+    }
+
+    It 'never lets an override leak into the shared rules or later plain calls' {
+        $before = ((Get-RuleSet -Patterns @('waf.security')).Rules | Where-Object id -eq 'WAF-SE-02').assert.value
+        $patched = Get-RuleSet -Patterns @('waf.security') -Overrides @{ 'WAF-SE-02' = 2 }
+        (($patched.Rules | Where-Object id -eq 'WAF-SE-02').assert.value) | Should -Be 2
+        $after = ((Get-RuleSet -Patterns @('waf.security')).Rules | Where-Object id -eq 'WAF-SE-02').assert.value
+        $before | Should -Be 5
+        $after | Should -Be 5
+        [object]::ReferenceEquals(@($patched.Rules)[0], @((Get-RuleSet -Patterns @('waf.security')).Rules)[0]) | Should -BeFalse
+    }
+
+    It 'matches patterns case-insensitively, once per file, in directory order' {
+        @(Get-RuleSet -Patterns @('WAF.SECURITY')).Count | Should -Be 1
+        @(Get-RuleSet -Patterns @('waf.sec*', 'waf.security')).Count | Should -Be 1
+        $both = @(Get-RuleSet -Patterns @('waf.security', 'caf.identity'))
+        $both.Count | Should -Be 2
+        @(Get-RuleSet -Patterns @('zzz-no-such-rule-file')).Count | Should -Be 0
+        @(Get-RuleSet -Patterns @()).Count | Should -Be 0
+    }
+
+    It 're-reads a rule file that was edited after it was cached' {
+        $fixture = Join-Path -Path $script:CacheRuleDir -ChildPath 'zzz-ab9300-cache.yaml'
+        try {
+            Write-CacheFixture -Path $fixture -RuleIds @('ZZZ-CACHE-01')
+            @((Get-RuleSet -Patterns @('zzz-ab9300-cache')).Rules).Count | Should -Be 1
+
+            Write-CacheFixture -Path $fixture -RuleIds @('ZZZ-CACHE-01', 'ZZZ-CACHE-02')
+            $edited = @((Get-RuleSet -Patterns @('zzz-ab9300-cache')).Rules)
+            $edited.Count | Should -Be 2
+            $edited[1].id | Should -Be 'ZZZ-CACHE-02'
+        }
+        finally {
+            if (Test-Path -LiteralPath $fixture) { Remove-Item -LiteralPath $fixture -Force }
+        }
     }
 }
 
