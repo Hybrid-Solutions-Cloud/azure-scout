@@ -761,14 +761,30 @@ function Get-ScoutOperationalCollectorEnrichment {
                     $File = [PSCustomObject]@{ __AZSCError = $FileError }
                 }
                 else {
-                    try {
-                        $Blob = Invoke-ScoutOperationalTrackedCommand -Dataset 'StorageAccounts.BlobService' -Operation {
-                            Get-AzStorageBlobServiceProperty -ResourceGroupName (Get-ScoutValue $Account @('resourceGroup', 'RESOURCEGROUP')) -Name (Get-ScoutValue $Account @('name', 'NAME')) -ErrorAction Stop
-                        }
+                    # A FileStorage account has no blob service. Azure answers the lookup with
+                    # 400 FeatureNotSupportedForAccount, which the cmdlet reports only as "invalid
+                    # status code 'BadRequest'", so the account kind is the reliable signal.
+                    $AccountKind = [string](Get-ScoutValue $Account @('kind', 'Kind', 'KIND'))
+                    if ($AccountKind -eq 'FileStorage') {
+                        Write-Verbose "Get-ScoutOperationalCollectorEnrichment: StorageAccounts.BlobService is not supported for FileStorage account '$Id'."
+                        $Blob = [PSCustomObject]@{ __AZSCStatus = 'NotSupported' }
                     }
-                    catch {
-                        Write-Warning "Get-ScoutOperationalCollectorEnrichment: StorageAccounts.BlobService failed for '$Id': $($_.Exception.Message)"
-                        $Blob = [PSCustomObject]@{ __AZSCError = $_.Exception.Message }
+                    else {
+                        try {
+                            $Blob = Invoke-ScoutOperationalTrackedCommand -Dataset 'StorageAccounts.BlobService' -Operation {
+                                Get-AzStorageBlobServiceProperty -ResourceGroupName (Get-ScoutValue $Account @('resourceGroup', 'RESOURCEGROUP')) -Name (Get-ScoutValue $Account @('name', 'NAME')) -ErrorAction Stop
+                            } -QuietUnsupportedPattern '(?i)Blob is not supported for the account'
+                        }
+                        catch {
+                            if ($_.Exception.Message -match '(?i)Blob is not supported for the account') {
+                                Write-Verbose "Get-ScoutOperationalCollectorEnrichment: StorageAccounts.BlobService is not supported for '$Id'."
+                                $Blob = [PSCustomObject]@{ __AZSCStatus = 'NotSupported' }
+                            }
+                            else {
+                                Write-Warning "Get-ScoutOperationalCollectorEnrichment: StorageAccounts.BlobService failed for '$Id': $($_.Exception.Message)"
+                                $Blob = [PSCustomObject]@{ __AZSCError = $_.Exception.Message }
+                            }
+                        }
                     }
                     try {
                         $File = Invoke-ScoutOperationalTrackedCommand -Dataset 'StorageAccounts.FileService' -Operation {

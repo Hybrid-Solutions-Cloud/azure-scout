@@ -426,6 +426,35 @@ Describe 'Get-ScoutOperationalCollectorEnrichment' {
         ($warnings -join "`n") | Should -Not -Match 'FileService'
         @($health | Where-Object SourceDataset -eq 'StorageAccounts.FileService').Count | Should -Be 0
     }
+    It 'skips the blob service lookup for a FileStorage account without a warning or health failure' {
+        $fileAccount = [pscustomobject]@{ id='/subscriptions/sub-1/resourceGroups/rg/providers/Microsoft.Storage/storageAccounts/files-1'; type='microsoft.storage/storageaccounts'; kind='FileStorage'; name='files-1'; subscriptionId='sub-1'; resourceGroup='rg' }
+        $health = [System.Collections.Generic.List[object]]::new()
+        $warnings = @()
+
+        $rows = @(Get-ScoutOperationalCollectorEnrichment -Resources @($fileAccount) -Subscriptions @() `
+                -CollectionHealth $health -WarningVariable warnings)
+        $storage = $rows | Where-Object type -eq 'AZSC/Operational/StorageAccount'
+
+        $script:BlobCalls | Should -Be 0
+        $script:FileCalls | Should -Be 1
+        $storage.properties.BlobService.__AZSCStatus | Should -Be 'NotSupported'
+        $storage.properties.FileService.Name | Should -Be 'files-1'
+        ($warnings -join "`n") | Should -Not -Match 'BlobService'
+        @($health | Where-Object SourceDataset -eq 'StorageAccounts.BlobService').Count | Should -Be 0
+    }
+    It 'normalizes an unsupported storage blob service without a warning or health failure' {
+        function global:Get-AzStorageBlobServiceProperty { throw 'Blob is not supported for the account.' }
+        $health = [System.Collections.Generic.List[object]]::new()
+        $warnings = @()
+
+        $rows = @(Get-ScoutOperationalCollectorEnrichment -Resources $script:Resources -Subscriptions @() `
+                -CollectionHealth $health -WarningVariable warnings)
+        $storage = $rows | Where-Object type -eq 'AZSC/Operational/StorageAccount'
+
+        $storage.properties.BlobService.__AZSCStatus | Should -Be 'NotSupported'
+        ($warnings -join "`n") | Should -Not -Match 'BlobService'
+        @($health | Where-Object SourceDataset -eq 'StorageAccounts.BlobService').Count | Should -Be 0
+    }
     It 'treats a persistent 409 as a distinct in-progress status, not a generic error' {
         # The 409 branch of Invoke-ScoutOperationalArm still matters for the remaining query-style
         # POSTs (Cost Management, Policy Insights) even though assessPatches no longer runs.
