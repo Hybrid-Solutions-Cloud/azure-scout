@@ -45,7 +45,10 @@ function Start-AZSCEntraExtraction {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)]
-        [string]$TenantID
+        [string]$TenantID,
+
+        # Read a dataset's time windows at the same time instead of one after another.
+        [switch]$ParallelWindows
     )
 
     $allEntraResources = [System.Collections.Generic.List[object]]::new()
@@ -244,9 +247,16 @@ function Start-AZSCEntraExtraction {
             if ($query.ContainsKey('WindowUris') -and @($query.WindowUris).Count -gt 0) {
                 # A dataset too large for one Graph request is read as consecutive time windows.
                 $windowRows = [System.Collections.Generic.List[object]]::new()
-                foreach ($windowUri in @($query.WindowUris)) {
-                    foreach ($windowRow in @(Invoke-AZSCGraphRequest -Uri $windowUri -TenantID $TenantID -RequiredScopes @($query.Permission))) {
+                if ($ParallelWindows) {
+                    foreach ($windowRow in @(Invoke-AZSCGraphRequestParallel -Uri @($query.WindowUris) -TenantID $TenantID -RequiredScopes @($query.Permission))) {
                         if ($null -ne $windowRow) { $windowRows.Add($windowRow) }
+                    }
+                }
+                else {
+                    foreach ($windowUri in @($query.WindowUris)) {
+                        foreach ($windowRow in @(Invoke-AZSCGraphRequest -Uri $windowUri -TenantID $TenantID -RequiredScopes @($query.Permission))) {
+                            if ($null -ne $windowRow) { $windowRows.Add($windowRow) }
+                        }
                     }
                 }
                 $result = if ($windowRows.Count -gt 0) { $windowRows.ToArray() } else { $null }

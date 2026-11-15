@@ -379,3 +379,91 @@ Describe 'Invoke-AZSCGraphRequest' {
         }
     }
 }
+
+Describe 'Invoke-AZSCGraphRequestParallel' {
+
+    Context 'No bearer token can be handed to worker threads' {
+
+        BeforeAll {
+            Mock Get-AZSCGraphToken {
+                return @{ 'X-AzureScout-GraphProvider' = 'Microsoft.Graph.Authentication' }
+            } -ModuleName AzureScout
+            Mock Invoke-AZSCGraphRequest {
+                return @([PSCustomObject]@{ id = "row-for-$Uri" })
+            } -ModuleName AzureScout
+        }
+
+        It 'reads every URI one after another, in the order given' {
+            $rows = InModuleScope 'AzureScout' {
+                Invoke-AZSCGraphRequestParallel -Uri @('/v1.0/a', '/v1.0/b', '/v1.0/c') -TenantID 'tenant-a'
+            }
+            @($rows).id | Should -Be @('row-for-/v1.0/a', 'row-for-/v1.0/b', 'row-for-/v1.0/c')
+            Should -Invoke Invoke-AZSCGraphRequest -ModuleName AzureScout -Times 3 -Exactly -Scope It
+        }
+    }
+
+    Context 'Concurrent first pages against a local endpoint' {
+
+        BeforeAll {
+            # A loopback HTTP listener stands in for Graph: worker threads cannot see Pester mocks.
+            $script:Port = 0
+            $script:Listener = $null
+            foreach ($candidate in (Get-Random -Minimum 20000 -Maximum 40000 -Count 10)) {
+                try {
+                    $listener = [System.Net.HttpListener]::new()
+                    $listener.Prefixes.Add("http://localhost:$candidate/")
+                    $listener.Start()
+                    $script:Listener = $listener
+                    $script:Port = $candidate
+                    break
+                }
+                catch { continue }
+            }
+            $script:Server = [powershell]::Create()
+            $null = $script:Server.AddScript({
+                param($Listener, $Port)
+                while ($Listener.IsListening) {
+                    try { $context = $Listener.GetContext() } catch { break }
+                    $path = $context.Request.Url.AbsolutePath
+                    $status = 200
+                    $body = switch ($path) {
+                        '/w0' { '{"value":[{"id":"w0-1"},{"id":"w0-2"}]}' }
+                        '/w1' { '{"value":[{"id":"w1-1"}],"@odata.nextLink":"http://localhost:' + $Port + '/w1-page2"}' }
+                        '/w2' { $status = 500; '{"error":{"code":"boom"}}' }
+                        default { '{"value":[]}' }
+                    }
+                    $bytes = [Text.Encoding]::UTF8.GetBytes($body)
+                    $context.Response.StatusCode = $status
+                    $context.Response.ContentType = 'application/json'
+                    $context.Response.OutputStream.Write($bytes, 0, $bytes.Length)
+                    $context.Response.Close()
+                }
+            }).AddArgument($script:Listener).AddArgument($script:Port)
+            $script:ServerHandle = $script:Server.BeginInvoke()
+
+            Mock Get-AZSCGraphToken {
+                return @{ 'Authorization' = 'Bearer mock-token'; 'Content-Type' = 'application/json' }
+            } -ModuleName AzureScout
+            # The serial helper completes what the concurrent pass could not: later pages and failures.
+            Mock Invoke-AZSCGraphRequest {
+                return @([PSCustomObject]@{ id = "serial:$(([uri]$Uri).AbsolutePath)" })
+            } -ModuleName AzureScout
+        }
+
+        AfterAll {
+            if ($script:Listener) { $script:Listener.Stop(); $script:Listener.Close() }
+            if ($script:Server) { $script:Server.Dispose() }
+        }
+
+        It 'returns rows in URI order, follows a nextLink and re-reads a failed first page' {
+            $script:Listener | Should -Not -BeNullOrEmpty
+            $uris = @("http://localhost:$($script:Port)/w0", "http://localhost:$($script:Port)/w1", "http://localhost:$($script:Port)/w2")
+            $rows = InModuleScope 'AzureScout' -Parameters @{ Uris = $uris } {
+                param($Uris)
+                Invoke-AZSCGraphRequestParallel -Uri $Uris -TenantID 'tenant-a' -TimeoutSec 20
+            }
+            @($rows).id | Should -Be @('w0-1', 'w0-2', 'w1-1', 'serial:/w1-page2', 'serial:/w2')
+            Should -Invoke Invoke-AZSCGraphRequest -ModuleName AzureScout -Times 2 -Exactly -Scope It
+        }
+    }
+}

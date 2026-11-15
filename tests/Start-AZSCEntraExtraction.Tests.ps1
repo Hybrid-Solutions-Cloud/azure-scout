@@ -513,5 +513,22 @@ Describe 'Start-AZSCEntraExtraction' {
             $rows[0].properties.verifierDid | Should -Be 'did:web:contoso.com'
         }
     }
+
+    Context "Windowed datasets read concurrently" {
+        It "hands every window to the concurrent reader in one call when -ParallelWindows is set" {
+            Mock Test-ScoutTenantLicence { $true }
+            Mock Invoke-AZSCGraphRequest { @() }
+            Mock Invoke-AZSCGraphRequestParallel { @([pscustomobject]@{ id = "s1" }, [pscustomobject]@{ id = "s2" }) }
+            $windowed = @(Get-ScoutEntraQueryCatalog | Where-Object { $_.ContainsKey("WindowUris") })[0]
+
+            $result = Start-AZSCEntraExtraction -TenantID "test-tenant" -ParallelWindows
+
+            Should -Invoke Invoke-AZSCGraphRequestParallel -Times 1 -Exactly -Scope It -ParameterFilter { @($Uri).Count -eq @($windowed.WindowUris).Count }
+            foreach ($windowUri in @($windowed.WindowUris)) {
+                Should -Invoke Invoke-AZSCGraphRequest -Times 0 -Scope It -ParameterFilter { $Uri -eq $windowUri }
+            }
+            @($result.EntraResources | Where-Object { $_.TYPE -eq $windowed.Type }).Count | Should -Be 2
+        }
+    }
 }
 } # end InModuleScope

@@ -246,3 +246,124 @@ function Invoke-AZSCGraphRequest {
 
     return $allResults.ToArray()
 }
+
+<#
+.SYNOPSIS
+    Reads several Microsoft Graph collection URIs at the same time.
+
+.DESCRIPTION
+    Sends the first page of every URI concurrently, then completes each one in order through
+    Invoke-AZSCGraphRequest: a URI whose first page failed is re-read from the start (so it gets
+    the normal retry handling and error), and a URI with more pages is followed from its
+    nextLink. Rows are returned in the order the URIs were given.
+
+    Used for datasets split into time windows. On a live tenant five week-long sign-in log
+    windows took 32 to 116 seconds one after another and 10 to 17 seconds together.
+
+    Falls back to reading every URI one after another when no bearer token is available to hand
+    to the worker threads (for example when the Microsoft.Graph.Authentication provider is in use).
+
+.PARAMETER Uri
+    Relative ("/v1.0/...") or absolute Graph URIs, GET only.
+#>
+function Invoke-AZSCGraphRequestParallel {
+    [CmdletBinding()]
+    [OutputType([object[]])]
+    param(
+        [Parameter(Mandatory)]
+        [string[]]$Uri,
+
+        [string]$TenantID,
+        [string[]]$RequiredScopes = @(),
+
+        [ValidateRange(1, 16)]
+        [int]$ThrottleLimit = 5,
+
+        [int]$TimeoutSec = 150
+    )
+
+    $rows = [System.Collections.Generic.List[object]]::new()
+    $serialRead = {
+        param([string]$TargetUri)
+        foreach ($row in @(Invoke-AZSCGraphRequest -Uri $TargetUri -TenantID $TenantID -RequiredScopes $RequiredScopes)) {
+            if ($null -ne $row) { $rows.Add($row) }
+        }
+    }
+
+    $headers = Get-AZSCGraphToken -TenantID $TenantID -Scopes $RequiredScopes
+    $authorization = if ($headers -is [System.Collections.IDictionary] -and $headers.Contains('Authorization')) { [string]$headers['Authorization'] } else { '' }
+    $usesMgGraph = ($headers -is [System.Collections.IDictionary] -and $headers.Contains('X-AzureScout-GraphProvider') -and
+        $headers['X-AzureScout-GraphProvider'] -eq 'Microsoft.Graph.Authentication')
+    if ($Uri.Count -lt 2 -or $usesMgGraph -or [string]::IsNullOrWhiteSpace($authorization)) {
+        foreach ($target in $Uri) { & $serialRead $target }
+        return $rows.ToArray()
+    }
+
+    $environmentName = 'AzureCloud'
+    try {
+        $azContext = Get-AzContext -ErrorAction SilentlyContinue
+        if ($azContext -and $azContext.PSObject.Properties.Name -contains 'Environment' -and
+            $azContext.Environment -and $azContext.Environment.PSObject.Properties.Name -contains 'Name') {
+            $environmentName = [string]$azContext.Environment.Name
+        }
+    }
+    catch { Write-Debug "Invoke-AZSCGraphRequestParallel: Azure context not readable, assuming AzureCloud: $($_.Exception.Message)" }
+    $baseUrl = switch ($environmentName) {
+        'AzureUSGovernment' { 'https://graph.microsoft.us' }
+        'AzureChinaCloud'   { 'https://microsoftgraph.chinacloudapi.cn' }
+        default             { 'https://graph.microsoft.com' }
+    }
+
+    $index = 0
+    $work = foreach ($target in $Uri) {
+        [pscustomobject]@{
+            Index   = $index++
+            Uri     = $target
+            FullUri = if ($target -match '^https?://') { $target } else { "$baseUrl$target" }
+        }
+    }
+
+    $timer = [System.Diagnostics.Stopwatch]::StartNew()
+    $firstPages = @{}
+    try {
+        $work | ForEach-Object -ThrottleLimit $ThrottleLimit -Parallel {
+            $item = $_
+            try {
+                $response = Invoke-RestMethod -Uri $item.FullUri -Method GET -Headers @{ Authorization = $using:authorization } -TimeoutSec $using:TimeoutSec -ErrorAction Stop
+                $hasValue = ($null -ne $response -and $response.PSObject.Properties.Name -contains 'value')
+                $hasNext = ($null -ne $response -and $response.PSObject.Properties.Name -contains '@odata.nextLink')
+                [pscustomobject]@{
+                    Index    = $item.Index
+                    Rows     = if ($hasValue) { @($response.value) } elseif ($null -ne $response) { @($response) } else { @() }
+                    NextLink = if ($hasNext) { [string]$response.'@odata.nextLink' } else { '' }
+                    Error    = ''
+                }
+            }
+            catch {
+                [pscustomobject]@{ Index = $item.Index; Rows = @(); NextLink = ''; Error = [string]$_.Exception.Message }
+            }
+        } | ForEach-Object { $firstPages[[int]$_.Index] = $_ }
+    }
+    catch {
+        Write-Debug "Invoke-AZSCGraphRequestParallel: concurrent read unavailable, reading one at a time: $($_.Exception.Message)"
+        $firstPages = @{}
+    }
+    Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + " - Graph concurrent first pages: $($firstPages.Count) of $(@($work).Count) in $($timer.ElapsedMilliseconds) ms")
+
+    foreach ($item in $work) {
+        $page = if ($firstPages.ContainsKey([int]$item.Index)) { $firstPages[[int]$item.Index] } else { $null }
+        if ($null -eq $page -or -not [string]::IsNullOrEmpty($page.Error)) {
+            if ($null -ne $page) {
+                Write-Debug "Invoke-AZSCGraphRequestParallel: first page failed for $($item.FullUri), re-reading with retries: $($page.Error)"
+            }
+            & $serialRead $item.Uri
+            continue
+        }
+        foreach ($row in @($page.Rows)) {
+            if ($null -ne $row) { $rows.Add($row) }
+        }
+        if (-not [string]::IsNullOrEmpty($page.NextLink)) { & $serialRead $page.NextLink }
+    }
+
+    return $rows.ToArray()
+}

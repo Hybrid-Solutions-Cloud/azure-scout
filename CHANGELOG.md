@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (evidence rows, subscriptions, management groups, Advisor recommendations, policy assignments,
   Entra objects and the largest categories) instead of "0 CAF/WAF checks were evaluated" and a
   row of zero tiles. The Markdown export says the same. AB#9300.
+- The five sign-in log windows are read at the same time instead of one after another. On a live
+  tenant they took 32 to 116 seconds in sequence and 10 to 17 seconds together, returning the
+  same rows. A window that fails or has more pages is completed by the existing retrying
+  reader. AB#9300.
 - The policy processing step indexes definitions by id instead of scanning several thousand rows
   per assigned policy (about 28 seconds on a nine-subscription tenant). AB#9300.
 - Sign-in logs are read as five week-long windows instead of one 30-day request. On a live
