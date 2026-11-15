@@ -88,7 +88,7 @@ Source: [Security, governance, and compliance for Azure VMware Solution](https:/
 | WAF-AVS-SEC-02 | `cloudadmin`/network-admin built-in accounts are centrally managed and used only in break-glass scenarios, with domain-services-sourced accounts for routine access | ❌ Unanswerable — vCenter/NSX-T-internal RBAC configuration, not ARM-readable |
 | WAF-AVS-SEC-03 | Guest VM identity uses centralized AD DS/LDAP, integrated with Microsoft Entra ID | ⚠️ Partial — `Identity/*` collectors evidence Entra-side configuration; guest-VM domain-join state isn't collected |
 | WAF-AVS-SEC-04 | Network security controls are implemented — traffic filtering, WAF/OWASP compliance, unified firewall management, DDoS protection | ⚠️ Partial — `Networking/*` collectors (Azure Firewall, WAF policy, DDoS protection plan) evidence the Azure-side controls; NSX-T-internal filtering isn't collected |
-| WAF-AVS-SEC-05 | vSAN datastores use customer-managed key (CMK) encryption via Key Vault | ⚠️ Partial — `Security/KeyVaultKeys` shows CMK material exists; whether it's bound to the AVS vSAN datastore isn't collected |
+| WAF-AVS-SEC-05 | vSAN datastores use customer-managed key (CMK) encryption via Key Vault | ❌ Unanswerable — answering it needs the keys inside a Key Vault, which AzureScout never reads; confirm CMK use and its binding to the AVS vSAN datastore directly |
 | WAF-AVS-SEC-06 | vCenter Server access is via a dedicated privileged access workstation (PAW) | ❌ Unanswerable — an access-pattern practice |
 | WAF-AVS-SEC-07 | Inbound and outbound internet traffic to/from guest workloads is logged and monitored (SIEM integration) | ⚠️ Partial — `Monitor/*` and `Security/DefenderAlerts` evidence logging infrastructure exists generally; AVS-specific traffic-logging configuration isn't collected |
 | WAF-AVS-SEC-08 | Backups are centrally managed with RBAC and delayed-delete/soft-delete protection | ✅ `Management/RecoveryVault` (soft-delete state), `Management/BackupInstances` |
@@ -116,14 +116,14 @@ Source: same page — **Governance** section (Environment governance + Workload 
 | Area | Items | Answerable (✅) | Partial (⚠️) | Unanswerable (❌) |
 |---|---|---|---|---|
 | Reliability | 8 | 2 | 2 | 4 |
-| Security | 11 | 2 | 4 | 5 |
+| Security | 11 | 2 | 3 | 6 |
 | Governance | 8 | 3 | 2 | 3 |
-| **Total** | **27** | **7** | **8** | **12** |
+| **Total** | **27** | **7** | **7** | **13** |
 
 7 of 27 items (26%) map cleanly to an existing collector. This is the weakest-covered of the four
 checklists in this release, for two compounding reasons: much of what makes an AVS deployment
 well-architected lives inside vCenter/NSX-T/vSAN configuration that Azure Resource Graph cannot see
-at all (12 of 27 items are unanswerable for exactly this reason), and — unlike the other three
+at all (13 of 27 items are unanswerable for exactly this reason), and — unlike the other three
 workloads — there is no published Cost Optimization, Operational Excellence, or Performance
 Efficiency source to enumerate in the first place.
 

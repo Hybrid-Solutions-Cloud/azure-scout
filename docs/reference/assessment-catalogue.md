@@ -5,7 +5,7 @@ description: Every CAF, WAF and specialised assessment Azure Scout performs, wit
 # Assessment Catalogue
 
 Azure Scout ships **46 assessments** backed by **44 rule files** holding
-**395 rules**, of which **173 are evaluated automatically** and
+**393 rules**, of which **171 are evaluated automatically** and
 **222 require manual confirmation**.
 
 Run one, several, or all of them:
@@ -88,7 +88,7 @@ worklist, not a grade.
 
 | Assessment | What it covers | Rules | Automated | Manual | Gov | Rule files |
 |---|---|--:|--:|--:|:-:|---|
-| **Microsoft: CASA** | Cloud Adoption Security Assessment — cloud security maturity aligned to the CAF Secure methodology (question text is Scout's own inference from the published CAF Secure checklist, not Microsoft's numbered CASA questions; see docs/frameworks/casa-question-set.md) | 32 | 8 | 24 | **Gov** | `casa.security` |
+| **Microsoft: CASA** | Cloud Adoption Security Assessment — cloud security maturity aligned to the CAF Secure methodology (question text is Scout's own inference from the published CAF Secure checklist, not Microsoft's numbered CASA questions; see docs/frameworks/casa-question-set.md) | 31 | 7 | 24 | **Gov** | `casa.security` |
 | **Microsoft: DevOps Capability** | DevOps Capability Assessment -- scores against the Microsoft DevOps Resource Center's five practice phases (docs/frameworks/devops-capability-question-set.md). The assessment itself and its question numbering are INFERRED, not Microsoft-published. A DIFFERENT, narrower assessment than "CAF: Platform automation and DevOps" (the landing-zone design area) -- the two overlap in subject but are not the same enumeration. Azure DevOps access is opt-in (-IncludeDevOps) and sits behind its own auth boundary; when it was not granted, the affected findings report NotAssessed, never a scored zero. | 18 | 9 | 9 | **Gov** | `devops.capability` |
 | **Microsoft: FinOps Review** | FinOps Review -- scores against the FinOps Framework's 22 published capabilities (docs/frameworks/finops-review-question-set.md). The assessment itself and its question numbering are INFERRED, not Microsoft-published -- Microsoft names the assessment and publishes the framework, but not the assessment's own question text. Cost data sits behind the EA/MCA billing permission system, a different boundary than ARM Reader; when that gate blocks the pull, the affected findings report NotAssessed, never a scored zero. | 22 | 7 | 15 | **Gov** | `finops.review` |
 | **Microsoft: SMART Migration** | Strategic Migration Assessment — migration readiness (see docs/frameworks/smart-question-set.md) | 11 | 7 | 4 | **Gov** | `smart.migration` |
@@ -97,7 +97,7 @@ worklist, not a grade.
 | **Scout: Governance Baseline** | Management sub-bundle — policy assignments, locks, budgets | 7 | 4 | 3 | **Gov** | `caf.governance` |
 | **Scout: Monitoring Baseline** | Monitor sub-bundle (subset of "Assess: Monitor") — diagnostic settings coverage only | 6 | 3 | 3 |  | `waf.operational` |
 | **Scout: Update Manager** | Management sub-bundle (subset of "Assess: Management") — patch/update compliance only | 6 | 5 | 1 |  | `caf.management` |
-| **Workload: AVS** | Azure VMware Solution workload — Reliability, Security, and Governance coverage (no published WAF pillar service guide exists for AVS; see docs/frameworks/waf-avs-workload-checklist.md) | 27 | 9 | 18 | **Gov** | `avs.workload` |
+| **Workload: AVS** | Azure VMware Solution workload — Reliability, Security, and Governance coverage (no published WAF pillar service guide exists for AVS; see docs/frameworks/waf-avs-workload-checklist.md) | 26 | 8 | 18 | **Gov** | `avs.workload` |
 | **Workload: AVS Landing Zone** | Azure VMware Solution Landing Zone Assessment Review — platform readiness (see docs/frameworks/avs-landing-zone-question-set.md) | 25 | 9 | 16 | **Gov** | `caf.avslandingzone` |
 
 ## Rule files
@@ -106,7 +106,7 @@ Each file declares one framework area. An assessment selects files by glob.
 
 | Rule file | Rules | Automated | Manual |
 |---|--:|--:|--:|
-| `avs.workload` | 27 | 9 | 18 |
+| `avs.workload` | 26 | 8 | 18 |
 | `caf.ai` | 5 | 4 | 1 |
 | `caf.analytics` | 5 | 3 | 2 |
 | `caf.avslandingzone` | 25 | 9 | 16 |
@@ -132,7 +132,7 @@ Each file declares one framework area. An assessment selects files by glob.
 | `caf.security` | 7 | 6 | 1 |
 | `caf.storage` | 6 | 4 | 2 |
 | `caf.web` | 6 | 4 | 2 |
-| `casa.security` | 32 | 8 | 24 |
+| `casa.security` | 31 | 7 | 24 |
 | `compliance.initiative` | 0 | 0 | 0 |
 | `devops.capability` | 18 | 9 | 9 |
 | `finops.review` | 22 | 7 | 15 |
@@ -151,6 +151,6 @@ Each file declares one framework area. An assessment selects files by glob.
 | `waf.security` | 7 | 5 | 2 |
 | `xr.crossresource` | 6 | 6 | 0 |
 
-**Total — 44 files, 395 rules, 173 automated, 222 manual.**
+**Total — 44 files, 393 rules, 171 automated, 222 manual.**
 
 

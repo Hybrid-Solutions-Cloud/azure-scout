@@ -108,55 +108,17 @@ BeforeAll {
         }
     }
 
-    function Get-KeyVaultResponseStub {
-        function global:Get-AzContext {
-            [pscustomobject]@{ Environment = [pscustomobject]@{ Name = 'AzureCloud' } }
-        }
-        function global:Get-AzEnvironment {
-            param([string]$Name)
-            $null = $Name
-            [pscustomobject]@{
-                AzureKeyVaultDnsSuffix = 'vault.azure.net'
-                AzureKeyVaultServiceEndpointResourceId = 'https://vault.azure.net'
-            }
-        }
-        function global:Get-AzAccessToken {
-            param(
-                [string]$ResourceUrl,
-                [switch]$AsSecureString,
-                [Parameter(ValueFromRemainingArguments)]$Rest
-            )
-            $null = $ResourceUrl, $AsSecureString, $Rest
-            [pscustomobject]@{ Token = [securestring]::new() }
-        }
-        function global:Invoke-WebRequest {
-            [CmdletBinding()]
-            param(
-                [string]$Uri,
-                [string]$Method,
-                [string]$Authentication,
-                [securestring]$Token,
-                [switch]$SkipHttpErrorCheck,
-                [Parameter(ValueFromRemainingArguments)]$Rest
-            )
-            $null = $Method, $Authentication, $Token, $SkipHttpErrorCheck, $Rest
-            Invoke-AzRestMethod -Path $Uri -Method GET
-        }
-    }
-
     Get-ArmChildResponseStub
-    Get-KeyVaultResponseStub
 }
 
 AfterAll {
-    foreach ($Name in 'Invoke-AzRestMethod', 'Get-AzContext', 'Get-AzEnvironment', 'Get-AzAccessToken', 'Invoke-WebRequest') {
+    foreach ($Name in 'Invoke-AzRestMethod', 'Get-AzAccessToken', 'Invoke-WebRequest') {
         Remove-Item -Path "Function:\$Name" -Force -ErrorAction SilentlyContinue
     }
 }
 
 BeforeEach {
     Get-ArmChildResponseStub
-    Get-KeyVaultResponseStub
 }
 
 Describe 'Get-ScoutArmChildResource - supported-dataset contract' {
@@ -401,62 +363,6 @@ Describe 'Get-ScoutArmChildResource - selection, ordering and resilience' {
         )
     }
 
-    It 'lists every Key Vault secret metadata page without requesting a secret value (AB#7358)' {
-        $vault = Get-TestParent -Type 'microsoft.keyvault/vaults' -Name 'kv-paged' `
-            -Properties @{ vaultUri = 'https://kv-paged.vault.azure.net/' }
-        $script:keyVaultCalls = [System.Collections.Generic.List[string]]::new()
-        $script:keyVaultTokenResource = $null
-        function global:Get-AzAccessToken {
-            param(
-                [string]$ResourceUrl,
-                [switch]$AsSecureString,
-                [Parameter(ValueFromRemainingArguments)]$Rest
-            )
-            $null = $AsSecureString, $Rest
-            $script:keyVaultTokenResource = $ResourceUrl
-            [pscustomobject]@{ Token = [securestring]::new() }
-        }
-        function global:Invoke-WebRequest {
-            [CmdletBinding()]
-            param(
-                [string]$Uri,
-                [string]$Method,
-                [string]$Authentication,
-                [securestring]$Token,
-                [switch]$SkipHttpErrorCheck,
-                [Parameter(ValueFromRemainingArguments)]$Rest
-            )
-            $null = $Method, $Authentication, $Token, $SkipHttpErrorCheck, $Rest
-            $script:keyVaultCalls.Add($Uri)
-            $payload = if ($Uri -eq 'https://kv-paged.vault.azure.net/secrets/next-page') {
-                @{ value = @(@{ id = 'https://kv-paged.vault.azure.net/secrets/secret-two'; attributes = @{ enabled = $true } }) }
-            }
-            else {
-                @{
-                    value = @(@{ id = 'https://kv-paged.vault.azure.net/secrets/secret-one'; attributes = @{ enabled = $true } })
-                    nextLink = 'https://kv-paged.vault.azure.net/secrets/next-page'
-                }
-            }
-            [pscustomobject]@{ StatusCode = 200; Content = ($payload | ConvertTo-Json -Depth 8 -Compress) }
-        }
-
-        $rows = @(Get-ScoutArmChildResource -Resources @($vault) -Dataset KeyVaultSecrets)
-
-        $rows.Count | Should -Be 2
-        @($rows.name | Sort-Object) | Should -Be @('secret-one', 'secret-two')
-        @($rows.id | Sort-Object) | Should -Be @(
-            "$($vault.id)/secrets/secret-one"
-            "$($vault.id)/secrets/secret-two"
-        )
-        $rows[0].properties.PSObject.Properties['value'] | Should -BeNullOrEmpty
-        $script:keyVaultTokenResource | Should -Be 'https://vault.azure.net'
-        $script:keyVaultCalls | Should -Be @(
-            'https://kv-paged.vault.azure.net/secrets?api-version=7.4&maxresults=25'
-            'https://kv-paged.vault.azure.net/secrets/next-page'
-        )
-        ($script:keyVaultCalls -join "`n") | Should -Not -Match '/secrets/[^?]+\?api-version='
-    }
-
     It 'treats an absent storage lifecycle policy as empty without warning or terminating error' {
         $storage = Get-TestParent -Type 'microsoft.storage/storageaccounts' -Name 'storage-one'
         function global:Invoke-AzRestMethod {
@@ -560,8 +466,6 @@ Describe 'Get-ScoutArmChildResource - selection, ordering and resilience' {
             @{ Dataset = 'LAWorkspaceSavedSearches'; Parent = Get-TestParent -Type 'microsoft.operationalinsights/workspaces' -Name 'law'; NotFoundIsEmpty = $false }
             @{ Dataset = 'LAWorkspaceTables'; Parent = Get-TestParent -Type 'microsoft.operationalinsights/workspaces' -Name 'law'; NotFoundIsEmpty = $false }
             @{ Dataset = 'SentinelDataConnectors'; Parent = Get-TestParent -Type 'microsoft.operationalinsights/workspaces' -Name 'law'; NotFoundIsEmpty = $false }
-            @{ Dataset = 'KeyVaultSecrets'; Parent = Get-TestParent -Type 'microsoft.keyvault/vaults' -Name 'kv'; NotFoundIsEmpty = $false }
-            @{ Dataset = 'KeyVaultKeys'; Parent = Get-TestParent -Type 'microsoft.keyvault/vaults' -Name 'kv'; NotFoundIsEmpty = $false }
             @{ Dataset = 'StorageBlobContainers'; Parent = Get-TestParent -Type 'microsoft.storage/storageaccounts' -Name 'storage'; NotFoundIsEmpty = $false }
             @{ Dataset = 'StorageFileShares'; Parent = Get-TestParent -Type 'microsoft.storage/storageaccounts' -Name 'storage'; NotFoundIsEmpty = $false }
             @{ Dataset = 'StorageLifecyclePolicies'; Parent = Get-TestParent -Type 'microsoft.storage/storageaccounts' -Name 'storage'; NotFoundIsEmpty = $true }
@@ -629,29 +533,6 @@ Describe 'Get-ScoutArmChildResource - selection, ordering and resilience' {
                         'MalformedJson' { return [pscustomobject]@{ StatusCode = 200; Content = '{not-json' } }
                     }
                 }
-                function global:Invoke-WebRequest {
-                    [CmdletBinding()]
-                    param(
-                        [string]$Uri,
-                        [string]$Method,
-                        [string]$Authentication,
-                        [securestring]$Token,
-                        [switch]$SkipHttpErrorCheck
-                    )
-                    $null = $Method, $Authentication, $Token, $SkipHttpErrorCheck
-                    $response = Invoke-AzRestMethod -Path $Uri -Method GET
-                    if ($script:ArmMatrixOutcome -eq 'Success200') {
-                        $kind = if ($Uri -match '/keys(?:\?|/)') { 'keys' } else { 'secrets' }
-                        $identifierName = if ($kind -eq 'keys') { 'kid' } else { 'id' }
-                        $item = @{ attributes = @{ enabled = $true } }
-                        $item[$identifierName] = "https://kv.vault.azure.net/$kind/item-one"
-                        return [pscustomobject]@{
-                            StatusCode = 200
-                            Content = (@{ value = @($item) } | ConvertTo-Json -Depth 8 -Compress)
-                        }
-                    }
-                    return $response
-                }
 
                 $warnings = @()
                 $health = [System.Collections.Generic.List[object]]::new()
@@ -691,6 +572,63 @@ Describe 'Get-ScoutArmChildResource - selection, ordering and resilience' {
         }
     }
 
+    It 'never reads inside a Key Vault: no data-plane token, no vault.azure.net request, no Key Vault content datasets (AB#9300)' {
+        # The dataset names are gone from the public contract, so asking for them is a parameter
+        # validation error rather than a silent no-op.
+        $declaredDatasets = @(
+            (Get-Command Get-ScoutArmChildResource).Parameters['Dataset'].Attributes |
+                Where-Object { $_ -is [System.Management.Automation.ValidateSetAttribute] } |
+                ForEach-Object ValidValues
+        )
+        $declaredDatasets | Should -Not -Contain 'KeyVaultSecrets'
+        $declaredDatasets | Should -Not -Contain 'KeyVaultKeys'
+        { Get-ScoutArmChildResource -Resources @() -Dataset KeyVaultSecrets } | Should -Throw
+        { Get-ScoutArmChildResource -Resources @() -Dataset KeyVaultKeys } | Should -Throw
+
+        # Record every token request and every direct web request while sweeping ALL datasets
+        # with a Key Vault in the parent set.
+        $script:kvGuardTokenResources = [System.Collections.Generic.List[string]]::new()
+        $script:kvGuardWebRequests = [System.Collections.Generic.List[string]]::new()
+        function global:Get-AzAccessToken {
+            param(
+                [string]$ResourceUrl,
+                [Parameter(ValueFromRemainingArguments)]$Rest
+            )
+            $null = $Rest
+            $script:kvGuardTokenResources.Add([string]$ResourceUrl)
+            [pscustomobject]@{ Token = [securestring]::new() }
+        }
+        function global:Invoke-WebRequest {
+            [CmdletBinding()]
+            param(
+                [string]$Uri,
+                [Parameter(ValueFromRemainingArguments)]$Rest
+            )
+            $null = $Rest
+            $script:kvGuardWebRequests.Add($Uri)
+            [pscustomobject]@{ StatusCode = 200; Content = '{"value":[]}' }
+        }
+
+        $vault = Get-TestParent -Type 'microsoft.keyvault/vaults' -Name 'kv-guard' `
+            -Properties @{ vaultUri = 'https://kv-guard.vault.azure.net/' }
+        $rows = @(Get-ScoutArmChildResource -Resources (@($vault) + $script:Parents) -WarningAction SilentlyContinue)
+
+        @($script:kvGuardTokenResources | Where-Object { $_ -match 'vault' }).Count | Should -Be 0 -Because 'no Key Vault resource token may be requested (the Log Analytics token for Sentinel ingestion is unrelated)'
+        @($script:kvGuardWebRequests | Where-Object { $_ -match 'vault' }).Count | Should -Be 0 -Because 'no Key Vault data-plane web request may be made'
+        ($script:ArmCalls -join "`n") | Should -Not -Match 'vault\.azure\.net'
+        @($rows | Where-Object { $_.TYPE -match 'KeyVault(Secrets|Keys)' }).Count | Should -Be 0
+
+        # The vault itself is still inventoried through the ARM control plane (diagnostic settings).
+        @($script:ArmCalls | Where-Object { $_ -like "$($vault.id)/providers/Microsoft.Insights/diagnosticSettings*" }).Count |
+            Should -BeGreaterThan 0
+
+        # Nothing under src/ may name the Key Vault data-plane endpoint or its token resource.
+        $sourceText = (Get-ChildItem -LiteralPath (Join-Path $script:RepoRoot 'src') -Recurse -Filter '*.ps1' -File |
+                ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw }) -join "`n"
+        $sourceText | Should -Not -Match 'vault\.azure\.net'
+        $sourceText | Should -Not -Match 'AzureKeyVaultServiceEndpointResourceId'
+    }
+
     It 'skips unsupported storage services without warning or failed health' {
         $parents = @(
             Get-TestParent -Type 'microsoft.storage/storageaccounts' -Name 'blob-only' -Kind 'BlobStorage'
@@ -707,28 +645,6 @@ Describe 'Get-ScoutArmChildResource - selection, ordering and resilience' {
         $script:ArmCalls[0] | Should -Match 'file-only/fileServices/default/shares'
         @($warnings).Count | Should -Be 0
         @($health).Count | Should -Be 0
-    }
-
-    It 'aggregates Key Vault metadata denials into one warning and one health record per dataset' {
-        $vaults = @(
-            Get-TestParent -Type 'microsoft.keyvault/vaults' -Name 'kv-one' -Properties @{ vaultUri = 'https://kv-one.vault.azure.net/' }
-            Get-TestParent -Type 'microsoft.keyvault/vaults' -Name 'kv-two' -Properties @{ vaultUri = 'https://kv-two.vault.azure.net/' }
-        )
-        function global:Invoke-WebRequest {
-            throw [System.InvalidOperationException]::new('HTTP status code 403 Forbidden')
-        }
-        $health = [System.Collections.Generic.List[object]]::new()
-        $warnings = @()
-
-        $rows = @(Get-ScoutArmChildResource -Resources $vaults -Dataset KeyVaultSecrets `
-                -CollectionHealth $health -WarningVariable warnings)
-
-        $rows | Should -BeNullOrEmpty
-        @($warnings).Count | Should -Be 1
-        $warnings[0].Message | Should -Match '2 vault\(s\) unavailable'
-        @($health).Count | Should -Be 1
-        $health[0].FailedParents | Should -Be @('kv-one', 'kv-two')
-        $health[0].Reason | Should -Match 'Key Vault Reader'
     }
 
     It 'attributes every nested remote-operation failure to its public owning dataset' {

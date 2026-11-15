@@ -147,9 +147,9 @@ Describe 'assessment category evidence closure' {
             _meta = [pscustomobject]@{
                 categories = @('*')
                 collectionHealth = @([pscustomobject]@{
-                        Dataset = 'Resources'; Source = 'ARM Child'; SourceDataset = 'KeyVaultKeys'
-                        Status = 'Unavailable'; ResourceTypes = @('AZSC/ARMChild/KeyVaultKeys')
-                        Collectors = @('Security/KeyVaultKeys')
+                        Dataset = 'Resources'; Source = 'ARM Child'; SourceDataset = 'MLComputes'
+                        Status = 'Unavailable'; ResourceTypes = @('AZSC/ARMChild/MLComputes')
+                        Collectors = @('AI/MLComputes')
                     })
             }
         }

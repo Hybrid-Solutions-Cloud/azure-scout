@@ -97,8 +97,8 @@ if (-not (Get-Command Invoke-ScoutDiagnosticOperation -ErrorAction SilentlyConti
     Which ARM child dataset(s) to collect when -IncludeArmChildResources is set -- passed straight
     through to Get-ScoutArmChildResource's own -Dataset parameter. Defaults to 'All' (every
     dataset that function supports), matching the pre-AB#6821 behaviour for callers that already
-    set -IncludeArmChildResources without naming a subset. A caller that only needs, say, the two
-    Key Vault child datasets (the assessment collect path, AB#6821) names them explicitly so the
+    set -IncludeArmChildResources without naming a subset. A caller that only needs, say, the Azure
+    Local virtual machine instances (the assessment collect path) names them explicitly so the
     ARM REST sweep is not paying for ML/Search/Storage/Backup/diagnostics children nothing reads.
 
 .PARAMETER IncludeSubscriptionSecurityPolicy
@@ -321,8 +321,6 @@ function Get-ScoutRawInventory {
         'azsc/armchild/laworkspacetables' = @('microsoft.operationalinsights/workspaces')
         'azsc/armchild/sentineldataconnectors' = @('microsoft.operationalinsights/workspaces')
         'azsc/armchild/sentinelingestion' = @('microsoft.operationalinsights/workspaces')
-        'azsc/armchild/keyvaultsecrets' = @('microsoft.keyvault/vaults')
-        'azsc/armchild/keyvaultkeys' = @('microsoft.keyvault/vaults')
         'azsc/armchild/storageblobcontainers' = @('microsoft.storage/storageaccounts')
         'azsc/armchild/storagefileshares' = @('microsoft.storage/storageaccounts')
         'azsc/armchild/storagelifecyclepolicies' = @('microsoft.storage/storageaccounts')

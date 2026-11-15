@@ -33,8 +33,8 @@ Describe 'v3 declarative collector cutover' {
         # seven collectors found by independent tenant reconciliation, bringing the catalog to 285.
         # AB#7441 adds 29 evidence-completeness collectors spanning Entra, hybrid identity, Okta,
         # billing, Defender, Log Analytics/Sentinel, and storage exposure, bringing the catalog to
-        # 314. The number remains pinned so an accidental removal is still a release-gate failure.
-        $Collectors.Count | Should -Be 314
+        # 314, then the removal of the two Key Vault content collectors (KeyVaultSecrets, KeyVaultKeys) brought it to 312. The number remains pinned so an accidental removal is still a release-gate failure.
+        $Collectors.Count | Should -Be 312
         @($Collectors | Where-Object { -not $_.HasDeclarativeDefinition }).Count | Should -Be 0
         @($Collectors | Where-Object { $_.Path }).Count | Should -Be 0
     }

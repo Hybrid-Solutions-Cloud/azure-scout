@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- AzureScout no longer reads secret or key metadata from inside Key Vaults. Vaults are
+  inventoried from their Azure Resource Manager configuration only (network rules, access model,
+  soft delete, purge protection, private endpoints and diagnostic settings), so no Key Vault role
+  or data-plane token is needed. The Key Vault Secrets and Key Vault Keys collectors were removed
+  (312 collectors remain), the two CASA/AVS checks that needed vault contents (CASA-CO-01 and
+  WAF-AVS-SEC-05) were removed, and the "KeyVaultSecrets/KeyVaultKeys metadata unavailable ...
+  Key Vault Reader" 403 warning is gone. AB#9300.
+
 ### Fixed
 
 - A FileStorage (files-only) storage account no longer logs a blob service failure. It has no

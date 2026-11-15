@@ -128,7 +128,7 @@ Source: [Responsible AI in Azure workloads](https://learn.microsoft.com/en-us/az
 | # | Item | Scout collector |
 |---|---|---|
 | WAF-AI-RAI-01 | Develop policies enforcing responsible-AI practices at each lifecycle stage | ❌ Organisational |
-| WAF-AI-RAI-02 | Protect user data — collect only what's necessary, apply technical controls | ⚠️ Partial — `Security/KeyVaultSecrets`, `Security/KeyVaultKeys` evidence secret-handling infrastructure; data-minimisation practice itself isn't scorable |
+| WAF-AI-RAI-02 | Protect user data — collect only what's necessary, apply technical controls | ⚠️ Partial — `Security/Vault` evidences secret-handling infrastructure (vault configuration only); data-minimisation practice itself isn't scorable |
 | WAF-AI-RAI-03 | Keep AI decisions clear and understandable to users | ❌ Unanswerable — a UX/transparency practice |
 | WAF-AI-RAI-04 | Implement agentic AI safeguards (auditability, RBAC, circuit breakers) | ⚠️ Partial — `Identity/ConditionalAccess` and RBAC-assignment collectors (where present) evidence access control exists; circuit-breaker/auditability configuration is not collected |
 
