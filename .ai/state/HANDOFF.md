@@ -1,10 +1,14 @@
 # Handoff
 
-## Session 2026-11-15 — assessment rule-phase overhead (branch `perf/assessment-rule-overhead`, local only)
+## Session 2026-11-15 — full live scan of 3.18.0 and its fixes
 
-Goal: the 3.18.0 live run spent 426 s on 722 rule evaluations (0.4-2 s each, even for Manual rules
-with `query: null`). Not pushed, no PR opened, no Azure calls; reproduced offline from a saved
-`collect.json`.
+A full scan of the published 3.18.0 (inventory, `-Assessment All`, every extra) found the issues
+fixed by PR #31 (provider check, Defender prefetch retry, honest opt-in coverage, stated reasons,
+billing role hints, collection-health overall) and the assessment overhead fixed on
+`perf/assessment-rule-overhead`.
+
+Assessment overhead: the live run spent 426 s on 722 rule evaluations (0.4-2 s each, even for Manual
+rules with `query: null`). Reproduced offline from a saved `collect.json`, no Azure calls.
 
 **Root cause (measured, not a guess).** While a transcript is active (`Start-AZSCRunLog` starts one
 on every scan) PowerShell stringifies every argument bound to a command. `New-ScoutQueryContext`
