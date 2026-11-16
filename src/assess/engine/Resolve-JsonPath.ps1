@@ -15,7 +15,17 @@ function New-ScoutQueryContext {
 
     # Owned by one immutable assessment snapshot, never a module/global cache. Parse lazily
     # so manual-only assessments do not pay for a JSON conversion (AB#9303).
-    [pscustomobject]@{ InputObject = $InputObject; Token = $null; ParseCount = 0 }
+    #
+    # This MUST stay a hashtable, never a [pscustomobject]. While a transcript is active (every
+    # scan starts one via Start-AZSCRunLog) PowerShell stringifies each argument a command is
+    # bound to. For a [pscustomobject] that calls ToString() on every property value, and once the
+    # index is built `Token` is the whole collect as a JToken -- so every function that received the
+    # context (Invoke-Rule, Resolve-JsonPath, Resolve-RuleJoin) re-serialised the entire ~30 MB
+    # document to indented JSON on EVERY call. Measured: ~0.55 s per call, which is what turned a
+    # ~10 s rule phase into 426 s on a live run (722 evaluations, ~0.6 s each, even for Manual rules
+    # that read nothing). A hashtable argument is not stringified and not enumerated, so the same
+    # call costs ~2 ms. Callers read `.InputObject`, `.Token` and `.ParseCount` exactly as before.
+    @{ InputObject = $InputObject; Token = $null; ParseCount = 0 }
 }
 
 function Resolve-JsonPath {

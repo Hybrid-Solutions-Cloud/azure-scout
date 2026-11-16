@@ -2,6 +2,10 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
+# Parsed rule documents keyed by file path + size + write time (see Get-RuleSet). Reset whenever this
+# file is loaded, so a re-imported module starts empty.
+$script:ScoutRuleDocumentCache = @{}
+
 <#
 .SYNOPSIS
     Load rule files matching the supplied glob patterns.
@@ -24,9 +28,26 @@ function Get-RuleSet {
 
     Import-Module powershell-yaml -ErrorAction Stop
     $ruleDir = "$PSScriptRoot/../rules"
-    $files = Get-ChildItem $ruleDir -Filter *.yaml | Where-Object {
-        $f = $_.BaseName
-        $Patterns | Where-Object { $f -like $_ }
+    # A plain loop, not `Get-ChildItem | Where-Object { $Patterns | Where-Object ... }`: that nested
+    # pipeline cost ~35 ms per call (44 rule files), paid once per assessment. Same wildcard
+    # semantics (-like, case-insensitive, any pattern matches) and the same directory order.
+    $files = foreach ($candidate in (Get-ChildItem $ruleDir -Filter *.yaml)) {
+        $baseName = $candidate.BaseName
+        foreach ($pattern in $Patterns) {
+            if ($baseName -like $pattern) { $candidate; break }
+        }
+    }
+
+    # Parsed rule documents are shared between calls when no -Overrides are supplied. A full run
+    # loads 78 rule files for 46 assessments but only 43 of them are distinct (waf.security,
+    # waf.cost, caf.management ... are each reused by up to five assessments), and ConvertFrom-Yaml
+    # is a pure-PowerShell walk of the YAML tree at ~85 ms per file -- about half of this
+    # function's time. The key is path + size + write time, so an edited or replaced file is
+    # re-read. Rules are read-only to every consumer, and -Overrides patches rule objects IN PLACE,
+    # so a call that carries overrides neither reads nor populates the cache.
+    $useCache = -not ($Overrides -and $Overrides.Count -gt 0)
+    if (-not (Get-Variable -Scope Script -Name ScoutRuleDocumentCache -ErrorAction Ignore)) {
+        $script:ScoutRuleDocumentCache = @{}
     }
     $sets = foreach ($file in $files) {
         # ConvertFrom-Yaml returns a plain Hashtable (not a PSCustomObject) -- dotting into
@@ -34,7 +55,14 @@ function Get-RuleSet {
         # `area`/`framework`/`weight`, or an empty file, which parses to $null outright)
         # throws PropertyNotFoundException under Set-StrictMode -Version Latest rather
         # than returning $null, so every top-level key is read via ContainsKey below.
-        $doc = ConvertFrom-Yaml (Get-Content $file.FullName -Raw)
+        $cacheKey = '{0}|{1}|{2}' -f $file.FullName, $file.Length, $file.LastWriteTimeUtc.Ticks
+        if ($useCache -and $script:ScoutRuleDocumentCache.ContainsKey($cacheKey)) {
+            $doc = $script:ScoutRuleDocumentCache[$cacheKey]
+        }
+        else {
+            $doc = ConvertFrom-Yaml (Get-Content $file.FullName -Raw)
+            if ($useCache -and $null -ne $doc) { $script:ScoutRuleDocumentCache[$cacheKey] = $doc }
+        }
         if ($null -eq $doc) {
             Write-Warning "Get-RuleSet: '$($file.Name)' parsed to an empty/null YAML document -- skipping this rule file."
             continue

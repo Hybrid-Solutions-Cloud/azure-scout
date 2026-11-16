@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Assessment rules now evaluate in about a millisecond each instead of about 0.6 s each. Every scan
+  runs inside a console transcript, and while a transcript is active PowerShell turns each argument
+  it passes to a command into text. The assessment's query context was a custom object that held the
+  whole collect as a parsed JSON tree, so every rule evaluation, and every JSONPath lookup inside it,
+  re-serialised the entire 30 MB document, even for Manual rules that read nothing. The context is
+  now a hashtable, which PowerShell leaves alone. Measured offline on the 3.18.0 live collect with a
+  transcript active (710 findings, 46 assessments): the 630 rule evaluations took 547 s before and
+  8.3 s after, of which 7.4 s is the one-off JSON index build, so the rules themselves went from
+  537 s to about 0.9 s. Rule files are also parsed once per run instead of once per assessment that
+  uses them (78 loads of 43 distinct files; `Get-RuleSet` 6.6 s to 2.2 s). The whole rule phase went
+  from 582 s to 12 s. Findings are unchanged: all 710 match field for field, evidence included.
+  AB#9300.
+
 ### Fixed
 
 - `-CheckResourceProviders` reads each subscription's provider registrations with one listing
