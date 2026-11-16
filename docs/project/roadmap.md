@@ -41,7 +41,19 @@ All collector definitions, source retirement, strict runtime contracts, and repo
 complete. The remaining release steps are package validation, broad test-suite completion, tag, and
 publication. Historical v2 entries below are retained as release history rather than current status.
 
-## Current Release — v3.18.0 — minutes, not hours
+## Current Release — v3.18.1 — a full scan without the waits
+
+Version 3.18.1 fixes what a full live scan of 3.18.0 (inventory, every assessment, every extra)
+turned up. Assessment rules take about a millisecond each instead of about half a second: the query
+index was being re-serialised on every rule call while the run log was recording, and the rule
+phase drops from almost 8 minutes to about 12 seconds with identical findings.
+`-CheckResourceProviders` reads each subscription's providers with one listing instead of ten calls,
+which removes nine minutes on a nine-subscription tenant, and a temporary Defender error is retried.
+Sources that were not read (Okta, on-premises identity, Azure DevOps without an organization) say
+"not assessed" with the reason instead of "complete, 0 rows", and denied billing reads name the role
+that grants them. See AB#9300.
+
+## Previous Release — v3.18.0 — minutes, not hours
 
 Version 3.18.0 cuts a nine-subscription tenant scan from 2 hours 48 minutes to 8 minutes. The
 slowest reads (sign-in logs and Defender assessments) now run concurrently, the permission

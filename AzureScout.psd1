@@ -12,7 +12,7 @@
 RootModule = 'AzureScout.psm1'
 
 # Version number of this module.
-ModuleVersion = '3.18.0'
+ModuleVersion = '3.18.1'
 
 # Supported PSEditions
 CompatiblePSEditions = @('Core')
@@ -166,7 +166,7 @@ PrivateData = @{
         IconUri = 'https://raw.githubusercontent.com/Hybrid-Solutions-Cloud/azure-scout/main/docs/public/images/azurescout-icon.svg'
 
         # ReleaseNotes of this module
-        ReleaseNotes = 'v3.18.0 - Scans finish in minutes, not hours: a nine-subscription tenant went from 2h48m to 8m. Sign-ins are read as concurrent week-long windows, Defender assessments for all subscriptions at once, provider registration with one listing, and policy definitions through an index; a Graph 504 is retried once. Scout no longer reads anything inside Key Vaults. Defender findings for deleted resources are dropped and every finding keeps its resource id. Inventory-only runs get their own Overview page. AB#9300. See CHANGELOG.md.'
+        ReleaseNotes = 'v3.18.1 - A full scan without the waits. Assessment rules run in about a millisecond each instead of about half a second, so the rule phase drops from almost 8 minutes to about 12 seconds with identical findings. -CheckResourceProviders reads each subscription with one listing, and a temporary Defender error is retried. Okta, on-premises identity and Azure DevOps report "not assessed" with the reason when they were not read, free-tier Defender gaps carry their reason, denied billing reads name the role that grants them, and a run is Partial only for real gaps. AB#9300. See CHANGELOG.md.'
 
         # Prerelease string of this module
         # Prerelease = ''

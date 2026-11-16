@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.18.1] - 2026-11-15 - a full scan without the waits
+
 ### Changed
 
 - Assessment rules now evaluate in about a millisecond each instead of about 0.6 s each. Every scan
