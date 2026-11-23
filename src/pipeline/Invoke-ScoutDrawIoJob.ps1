@@ -74,4 +74,16 @@ function Invoke-AZSCDrawIOJob {
                 Write-AZSCLog -Level 'WARN' -Message "Draw.io diagram build failed: $($_.Exception.Message)"
             }
         }
+    finally
+        {
+            # One run, one log: the builder and its background jobs write DiagramLogFile.log next
+            # to the diagram cache; fold it into scout-run.log and remove it.
+            try {
+                if ($DiagramCache -and (Get-Command -Name 'Add-ScoutFileToRunLog' -ErrorAction SilentlyContinue)) {
+                    $diagramLog = Join-Path (Split-Path -Parent ([string]$DiagramCache).TrimEnd('\', '/')) 'DiagramLogFile.log'
+                    Add-ScoutFileToRunLog -Path $diagramLog -Label 'DIAGRAM'
+                }
+            }
+            catch { Write-Debug ('Invoke-AZSCDrawIOJob: could not fold the diagram log into the run log: ' + $_.Exception.Message) }
+        }
 }

@@ -2701,6 +2701,23 @@ resources
                 CollectEntraDiagnosticSettings = $true
             }
             if ($ManagementGroupId) { $rawArgs.ManagementGroupId = $ManagementGroupId }
+            elseif ($TenantID) {
+                # Name the tenant's subscriptions explicitly, as the inventory path does. Without
+                # -Subscription, Search-AzGraph falls back to whatever subscriptions the current Az
+                # context lists, and in a multi-tenant assessment-only run that list was empty for
+                # the second tenant: every Resource Graph query failed with
+                # NoValidSubscriptionsInQueryRequest ("Given: ''") and the tenant's assessment
+                # stopped after eight seconds. Best effort: if the listing itself fails, keep the
+                # old context-default behaviour rather than failing here.
+                try {
+                    $tenantSubscriptionIds = @(Get-AzSubscription -TenantId $TenantID -ErrorAction Stop -WarningAction SilentlyContinue |
+                        Where-Object { -not $_.PSObject.Properties['State'] -or [string]$_.State -in @('Enabled', 'Warned', 'PastDue') } |
+                        ForEach-Object { [string]$_.Id } | Where-Object { $_ } | Select-Object -Unique)
+                    if ($tenantSubscriptionIds.Count -gt 0) { $rawArgs.SubscriptionIds = $tenantSubscriptionIds }
+                    Write-Verbose "Invoke-Collect: scoping Resource Graph to $($tenantSubscriptionIds.Count) subscription(s) in tenant $TenantID."
+                }
+                catch { Write-Warning "Invoke-Collect: could not list the subscriptions in tenant '$TenantID'; Resource Graph will use the current Azure context's subscriptions: $($_.Exception.Message)" }
+            }
             # AB#6803 -- -IncludeAzureLocalArm turns on BOTH switches this needs:
             # -IncludeArmChildResources (the per-parent AzureLocalVirtualMachineInstances sweep)
             # and dropping -TenantWideDefinitionsOnly to $false (the fuller ARM REST sweep that
@@ -3354,7 +3371,19 @@ resources
             if (-not (Get-Command Get-ScoutExternalIdentitiesPolicy -ErrorAction SilentlyContinue)) {
                 . (Join-Path $PSScriptRoot 'Get-ScoutExternalIdentitiesPolicy.ps1')
             }
-            $externalIdentitiesPolicy = Get-ScoutExternalIdentitiesPolicy -TenantID $TenantID
+            # Collect once: reuse the inventory pass's copy of the policy when it has one.
+            $inventoryPolicy = $null
+            if ($rawInventory -and $rawInventory.PSObject.Properties['EntraResources']) {
+                $inventoryRow = @($rawInventory.EntraResources | Where-Object {
+                        $null -ne $_ -and ([string]$(if ($_.PSObject.Properties['TYPE']) { $_.TYPE } elseif ($_.PSObject.Properties['type']) { $_.type })) -ieq 'entra/externalidentities'
+                    }) | Select-Object -First 1
+                if ($inventoryRow) {
+                    $inventoryPolicy = if ($inventoryRow.PSObject.Properties['properties']) { $inventoryRow.properties } elseif ($inventoryRow.PSObject.Properties['PROPERTIES']) { $inventoryRow.PROPERTIES } else { $null }
+                }
+            }
+            $policyArgs = @{ TenantID = $TenantID }
+            if ($null -ne $inventoryPolicy) { $policyArgs.FromInventoryPolicy = $inventoryPolicy }
+            $externalIdentitiesPolicy = Get-ScoutExternalIdentitiesPolicy @policyArgs
         }
         catch {
             Write-Warning "Invoke-Collect: the External Identities policy collection failed; domains.identity.externalIdentitiesPolicy will report Collected = `$false for this run: $($_.Exception.Message)"

@@ -41,12 +41,12 @@ All collector definitions, source retirement, strict runtime contracts, and repo
 complete. The remaining release steps are package validation, broad test-suite completion, tag, and
 publication. Historical v2 entries below are retained as release history rather than current status.
 
-## Current Release — v3.18.2 — a menu without the pause, a log for every run
+## Current Release — v3.18.2 — a menu without the pause, one log for every run
 
 Version 3.18.2 removes the minute-long pause the guided menu showed before the assessment list
 (the data-gate check now parses the newest collect.json once instead of once per gate) and gives
 assessment-only runs a `scout-run.log`, so every child of an assessment-only multi-tenant run can
-be watched while it collects. A multi-tenant run stopped with Ctrl+C is marked `Interrupted` at once instead of staying `Running`. See AB#9300.
+be watched while it collects. A multi-tenant run stopped with Ctrl+C is marked `Interrupted` at once instead of staying `Running`. Every run writes one log file, `scout-run.log` (a multi-tenant run writes one at its root with a section per tenant), and a multi-tenant assessment-only run no longer fails every tenant after the first with an empty subscription list. Resource detail reads and policy-state reads run concurrently (a 42-subscription tenant spent about 10 minutes waiting on them one at a time), and a combined run makes no Azure or Graph calls of its own for the assessment. See AB#9300.
 
 ## Previous Release — v3.18.1 — a full scan without the waits
 

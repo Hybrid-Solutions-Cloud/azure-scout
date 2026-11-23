@@ -46,7 +46,12 @@ function Get-ScoutExternalIdentitiesPolicy {
     [CmdletBinding()]
     [OutputType([pscustomobject])]
     param(
-        [string] $TenantID
+        [string] $TenantID,
+
+        # The policy as the inventory pass already read it (the `entra/externalidentities` row's
+        # properties). When supplied, no Graph call is made: a combined run used to fetch this
+        # policy twice, once for the inventory and again for the assessment.
+        [AllowNull()] $FromInventoryPolicy
     )
 
     $notCollected = [pscustomobject]@{
@@ -66,7 +71,8 @@ function Get-ScoutExternalIdentitiesPolicy {
     # '.value' wrapper) when the response carries no such property. -SinglePage is not strictly
     # required for a singleton response, but is set anyway so a future change to this endpoint's
     # shape can never accidentally start paginating a policy object.
-    $result = Invoke-AZSCGraphRequest -Uri '/v1.0/policies/crossTenantAccessPolicy/default' -SinglePage -TenantID $TenantID
+    $result = if ($null -ne $FromInventoryPolicy) { $FromInventoryPolicy }
+        else { Invoke-AZSCGraphRequest -Uri '/v1.0/policies/crossTenantAccessPolicy/default' -SinglePage -TenantID $TenantID }
 
     if ($null -eq $result) { return $notCollected }
 

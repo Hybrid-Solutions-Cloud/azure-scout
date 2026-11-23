@@ -404,6 +404,77 @@ function Get-ScoutOperationalCollectorEnrichment {
         }
     }
 
+    function Get-ScoutOperationalParallelGet {
+        <#
+            Fetches many independent ARM GETs concurrently (8 at a time, the same limit the
+            Defender prefetch uses) and returns a map of path -> parsed response for the ones that
+            answered 2xx. Anything that failed is simply absent, so the caller sends it through
+            Invoke-ScoutOperationalArm, which owns retries, warnings and health records. No
+            behaviour depends on this pass succeeding; it only removes waiting.
+        #>
+        param([AllowEmptyCollection()][string[]]$Paths)
+        $results = @{}
+        $unique = @($Paths | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -Unique)
+        if ($unique.Count -lt 2) { return $results }
+        # When Invoke-AzRestMethod is not the real Az cmdlet (a test stub or mock), every request
+        # must go through it, so this pass stays out of the way.
+        $restCommand = Get-Command Invoke-AzRestMethod -ErrorAction SilentlyContinue
+        if ($null -eq $restCommand -or $restCommand.CommandType -ne 'Cmdlet') { return $results }
+        try {
+            $armUrl = 'https://management.azure.com/'
+            $context = Get-AzContext -ErrorAction SilentlyContinue
+            if ($null -ne $context -and $null -ne $context.PSObject.Properties['Environment'] -and $null -ne $context.Environment -and
+                $null -ne $context.Environment.PSObject.Properties['ResourceManagerUrl'] -and
+                -not [string]::IsNullOrWhiteSpace([string]$context.Environment.ResourceManagerUrl)) {
+                $armUrl = [string]$context.Environment.ResourceManagerUrl
+            }
+            $tokenParams = @{ ResourceUrl = $armUrl; AsSecureString = $true; ErrorAction = 'Stop'; WarningAction = 'SilentlyContinue' }
+            if ($null -ne $context -and $null -ne $context.PSObject.Properties['Tenant'] -and $null -ne $context.Tenant -and
+                -not [string]::IsNullOrWhiteSpace([string]$context.Tenant.Id)) { $tokenParams['TenantId'] = [string]$context.Tenant.Id }
+            $token = Get-AzAccessToken @tokenParams
+            $authorization = 'Bearer ' + ($token.Token | ConvertFrom-SecureString -AsPlainText)
+        }
+        catch {
+            Write-ScoutOperationalDetail -Level VERBOSE -Message "Operational parallel fetch skipped, no ARM token: $($_.Exception.Message)"
+            return $results
+        }
+        $baseUrl = $armUrl.TrimEnd('/')
+        $timer = [System.Diagnostics.Stopwatch]::StartNew()
+        try {
+            $unique | ForEach-Object -ThrottleLimit 8 -Parallel {
+                $path = $_
+                $attempt = 0
+                while ($true) {
+                    try {
+                        $response = Invoke-WebRequest -Uri ($using:baseUrl + $path) -Method GET -Headers @{ Authorization = $using:authorization } -TimeoutSec 120 -ErrorAction Stop
+                        $content = [string]$response.Content
+                        $parsed = if ([string]::IsNullOrWhiteSpace($content)) { $null } else { $content | ConvertFrom-Json }
+                        [pscustomobject]@{ Path = $path; Ok = $true; Value = $parsed }
+                        break
+                    }
+                    catch {
+                        $attempt++
+                        $statusCode = 0
+                        try { $statusCode = [int]$_.Exception.Response.StatusCode } catch { $statusCode = 0 }
+                        $transient = $statusCode -in @(408, 429, 500, 502, 503, 504) -or
+                            $_.Exception -is [System.Threading.Tasks.TaskCanceledException] -or
+                            [string]$_.Exception.Message -match '(?i)timed out|Bad Gateway|Service Unavailable|Gateway Timeout'
+                        if (-not $transient -or $attempt -ge 3) {
+                            [pscustomobject]@{ Path = $path; Ok = $false; Value = $null }
+                            break
+                        }
+                        Start-Sleep -Milliseconds (500 * $attempt)
+                    }
+                }
+            } | ForEach-Object { if ($_.Ok) { $results[[string]$_.Path] = $_.Value } }
+        }
+        catch {
+            Write-ScoutOperationalDetail -Level VERBOSE -Message "Operational parallel fetch unavailable: $($_.Exception.Message)"
+        }
+        Write-ScoutOperationalDetail -Level VERBOSE -Message ('Operational parallel fetch: {0} of {1} request(s) answered in {2} ms; the rest go through the sequential path.' -f $results.Count, $unique.Count, $timer.ElapsedMilliseconds)
+        return $results
+    }
+
     function ConvertTo-ScoutPatchAssessmentSummary {
         <#
             Shapes the Azure Update Manager `patchassessmentresources` row for one machine into the
@@ -839,7 +910,16 @@ function Get-ScoutOperationalCollectorEnrichment {
                 $candidateId = [string](Get-ScoutValue $_ @('id', 'ID'))
                 $candidateType -match '(?i)^microsoft\.[^/]+/.+' -and $candidateId -match '(?i)/providers/'
             }))
-        $providerMetadataByKey = @{}
+        # Pass 1 plans every request; pass 2 fetches the per-resource details concurrently; pass 3
+        # records them exactly as before. A 42-subscription tenant spent 6 m 48 s here making 919
+        # requests strictly one after another: 118 provider-metadata reads (the same namespace
+        # re-read for every subscription) and 596 per-resource GETs.
+        #
+        # Provider API versions are a property of the provider, not of the subscription, so the
+        # metadata is cached per namespace. A failed read is not cached: the next subscription
+        # that has the namespace tries again, so one subscription's denial cannot blank the rest.
+        $providerMetadataByNamespace = @{}
+        $plan = [System.Collections.Generic.List[object]]::new()
         foreach ($resource in $armResources) {
             $id = [string](Get-ScoutValue $resource @('id', 'ID'))
             $resourceType = [string](Get-ScoutValue $resource @('type', 'TYPE'))
@@ -849,33 +929,62 @@ function Get-ScoutOperationalCollectorEnrichment {
             if ($typeParts.Count -ne 2) { continue }
             $namespace = $typeParts[0]
             $providerType = $typeParts[1]
-            $providerKey = "$subscriptionId|$namespace".ToLowerInvariant()
-            if (-not $providerMetadataByKey.ContainsKey($providerKey)) {
-                $providerMetadataByKey[$providerKey] = Invoke-ScoutOperationalArm `
-                    -Dataset "ProviderDetails.Metadata.$namespace" `
-                    -ParentId "/subscriptions/$subscriptionId/providers/$namespace" `
-                    -Path "/subscriptions/$subscriptionId/providers/${namespace}?api-version=2021-04-01" `
-                    -DynamicRequest
+            $providerKey = $namespace.ToLowerInvariant()
+            $cachedMetadata = if ($providerMetadataByNamespace.ContainsKey($providerKey)) { $providerMetadataByNamespace[$providerKey] } else { $null }
+            if ($null -eq $cachedMetadata -or -not [string]::IsNullOrWhiteSpace([string](Get-ScoutValue $cachedMetadata @('__AZSCError')))) {
+                if ($null -eq $cachedMetadata -or -not $providerMetadataByNamespace.ContainsKey("$providerKey|$subscriptionId")) {
+                    $fetchedMetadata = Invoke-ScoutOperationalArm `
+                        -Dataset "ProviderDetails.Metadata.$namespace" `
+                        -ParentId "/subscriptions/$subscriptionId/providers/$namespace" `
+                        -Path "/subscriptions/$subscriptionId/providers/${namespace}?api-version=2021-04-01" `
+                        -DynamicRequest
+                    $providerMetadataByNamespace["$providerKey|$subscriptionId"] = $true
+                    if ($null -eq $cachedMetadata -or [string]::IsNullOrWhiteSpace([string](Get-ScoutValue $fetchedMetadata @('__AZSCError')))) {
+                        $providerMetadataByNamespace[$providerKey] = $fetchedMetadata
+                    }
+                }
             }
-            $providerMetadata = $providerMetadataByKey[$providerKey]
-            $metadataError = [string](Get-ScoutValue $providerMetadata @('__AZSCError'))
+            $plan.Add([pscustomobject]@{
+                    Resource = $resource; Id = $id; ResourceType = $resourceType; Namespace = $namespace
+                    ProviderType = $providerType; Metadata = $providerMetadataByNamespace[$providerKey]
+                })
+        }
+
+        foreach ($item in $plan) {
+            # The final per-namespace entry: a later subscription may have succeeded where the
+            # first one this resource saw was denied.
+            $item.Metadata = $providerMetadataByNamespace[$item.Namespace.ToLowerInvariant()]
+            $apiVersion = @()
+            $metadataError = [string](Get-ScoutValue $item.Metadata @('__AZSCError'))
+            if ([string]::IsNullOrWhiteSpace($metadataError)) {
+                $typeMetadata = @(Get-ScoutValue $item.Metadata @('resourceTypes', 'ResourceTypes') | Where-Object {
+                        [string](Get-ScoutValue $_ @('resourceType', 'ResourceTypeName')) -ieq $item.ProviderType
+                    } | Select-Object -First 1)
+                $apiVersions = if ($typeMetadata.Count -gt 0) { @((Get-ScoutValue $typeMetadata[0] @('apiVersions', 'ApiVersions')) | Where-Object { $_ }) } else { @() }
+                $stableVersions = @($apiVersions | Where-Object { [string]$_ -notmatch '(?i)preview|beta|alpha|private' })
+                $candidateVersions = if ($stableVersions.Count -gt 0) { $stableVersions } else { $apiVersions }
+                $apiVersion = @($candidateVersions | Sort-Object -Descending | Select-Object -First 1)
+                $item | Add-Member -NotePropertyName TypeListed -NotePropertyValue ($typeMetadata.Count -gt 0)
+            }
+            else { $item | Add-Member -NotePropertyName TypeListed -NotePropertyValue $false }
+            $item | Add-Member -NotePropertyName MetadataError -NotePropertyValue $metadataError
+            $item | Add-Member -NotePropertyName ApiVersion -NotePropertyValue $(if ($apiVersion.Count -gt 0) { [string]$apiVersion[0] } else { '' })
+            $item | Add-Member -NotePropertyName Path -NotePropertyValue $(if ($apiVersion.Count -gt 0 -and -not [string]::IsNullOrWhiteSpace([string]$apiVersion[0])) { "$($item.Id)?api-version=$($apiVersion[0])" } else { '' })
+        }
+
+        $prefetchedDetails = Get-ScoutOperationalParallelGet -Paths @($plan | Where-Object { $_.Path } | ForEach-Object { $_.Path })
+
+        foreach ($item in $plan) {
+            $resource = $item.Resource; $id = $item.Id; $resourceType = $item.ResourceType
+            $namespace = $item.Namespace; $providerType = $item.ProviderType
+            $metadataError = $item.MetadataError
             if (-not [string]::IsNullOrWhiteSpace($metadataError)) {
                 Add-ScoutOperationalHealth -Dataset 'ProviderDetails.Resource' -Reason "Provider API-version discovery failed: $metadataError" `
                     -ParentId $id -ResourceType $resourceType -Collector 'Discovery/ProviderDetails'
                 continue
             }
-            $typeMetadata = @(Get-ScoutValue $providerMetadata @('resourceTypes', 'ResourceTypes') | Where-Object {
-                    [string](Get-ScoutValue $_ @('resourceType', 'ResourceTypeName')) -ieq $providerType
-                } | Select-Object -First 1)
-            $apiVersions = if ($typeMetadata.Count -gt 0) { @((Get-ScoutValue $typeMetadata[0] @('apiVersions', 'ApiVersions')) | Where-Object { $_ }) } else { @() }
-            $stableVersions = @($apiVersions | Where-Object { [string]$_ -notmatch '(?i)preview|beta|alpha|private' })
-            $candidateVersions = $apiVersions
-            if ($stableVersions.Count -gt 0) {
-                $candidateVersions = $stableVersions
-            }
-            $apiVersion = @($candidateVersions | Sort-Object -Descending | Select-Object -First 1)
-            if ($apiVersion.Count -eq 0 -or [string]::IsNullOrWhiteSpace([string]$apiVersion[0])) {
-                if ($typeMetadata.Count -eq 0) {
+            if ([string]::IsNullOrWhiteSpace($item.ApiVersion)) {
+                if (-not $item.TypeListed) {
                     # The provider answered and does not list this type at all. Such rows exist
                     # only in Resource Graph (patch assessment and installation results are the
                     # common case: 133 of them in one field run), so there is no per-resource GET
@@ -890,18 +999,30 @@ function Get-ScoutOperationalCollectorEnrichment {
                     -ParentId $id -ResourceType $resourceType -Collector 'Discovery/ProviderDetails'
                 continue
             }
-            $detail = Invoke-ScoutOperationalArm `
-                -Dataset "ProviderDetails.Resource.$namespace.$providerType" `
-                -ParentId $id `
-                -Path "${id}?api-version=$($apiVersion[0])" `
-                -DynamicRequest
+            $detailDataset = "ProviderDetails.Resource.$namespace.$providerType"
+            if ($prefetchedDetails.ContainsKey($item.Path)) {
+                # Fetched in the concurrent pass. Record it like any other request so the progress
+                # count and the run log still show one line per resource.
+                $prefetchTimer = Start-ScoutOperationalRequest -Dataset $detailDataset -Dynamic
+                $detail = $prefetchedDetails[$item.Path]
+                Complete-ScoutOperationalRequest -Dataset $detailDataset -Timer $prefetchTimer -Status Success
+            }
+            else {
+                # Not fetched, or the concurrent attempt failed: the ordinary path, with its
+                # retries, warning and health record.
+                $detail = Invoke-ScoutOperationalArm `
+                    -Dataset $detailDataset `
+                    -ParentId $id `
+                    -Path $item.Path `
+                    -DynamicRequest
+            }
             $detailError = [string](Get-ScoutValue $detail @('__AZSCError'))
             if (-not [string]::IsNullOrWhiteSpace($detailError)) {
                 Add-ScoutOperationalHealth -Dataset 'ProviderDetails.Resource' -Reason $detailError `
                     -ParentId $id -ResourceType $resourceType -Collector 'Discovery/ProviderDetails'
             }
             ConvertTo-ScoutOperationalEnvelope -Type 'AZSC/ProviderDetail' -Parent $resource -Properties @{
-                ApiVersion = [string]$apiVersion[0]
+                ApiVersion = [string]$item.ApiVersion
                 Payload    = $detail
             }
         }

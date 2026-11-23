@@ -134,6 +134,25 @@ Describe 'Get-ScoutArmChildResource - supported-dataset contract' {
         $operations[0].Status | Should -Be 'NotApplicable'
     }
 
+    It 'records an unregistered resource provider once per subscription as not assessed, without warnings' {
+        # Live run: one warning per NSG and the whole dataset Unavailable because a subscription
+        # had not registered microsoft.insights. That is a stated gap, not a failure.
+        $parents = @(
+            Get-TestParent -Type 'microsoft.network/networksecuritygroups' -Name 'nsg-a'
+            Get-TestParent -Type 'microsoft.network/networksecuritygroups' -Name 'nsg-b'
+        )
+        Mock Invoke-AzRestMethod { [pscustomobject]@{ StatusCode = 400; Content = '{"error":{"code":"SubscriptionNotRegistered","message":"The subscription ''00000000-0000-0000-0000-000000000001'' is not registered to use microsoft.insights."}}' } }
+        $health = [System.Collections.Generic.List[object]]::new()
+        $operations = [System.Collections.Generic.List[object]]::new()
+        $rows = @(Get-ScoutArmChildResource -Resources $parents -Dataset ResourceDiagnosticSettings -CollectionHealth $health -SourceOperations $operations -WarningVariable warned -WarningAction SilentlyContinue)
+        $rows.Count | Should -Be 0
+        @($warned).Count | Should -Be 0
+        $health.Count | Should -Be 1
+        $health[0].Status | Should -Be 'NotAssessed'
+        $health[0].Reason | Should -Match 'not registered for the microsoft\.insights resource provider'
+        @($operations | Where-Object Status -eq 'NotApplicable').Count | Should -Be 2
+    }
+
     It 'keeps other Sentinel HTTP 400 errors unavailable with their service detail' {
         $parent = Get-TestParent -Type 'microsoft.operationalinsights/workspaces' -Name 'law'
         Mock Invoke-AzRestMethod { [pscustomobject]@{ StatusCode = 400; Content = '{"error":{"code":"BadRequest","message":"Invalid parameter example"}}' } }
