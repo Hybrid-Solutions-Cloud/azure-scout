@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.18.2] - 2026-11-23 - a menu without the pause, a log for every run
+
+### Fixed
+
+- **The guided menu paused for about a minute after "Optional report and enrichment features".**
+  Before showing the assessment list it checks whether the newest `collect.json` holds the data
+  each data-gated assessment needs (Azure VMware Solution, Azure Local, SMART migration,
+  compliance). It called `Resolve-JsonPath` once per gate, and each call converted the whole file
+  back to JSON text and parsed it again: about 5 seconds per gate on a 28 MB file, eight gates.
+  The file is now parsed once and every gate queries it, so the check takes about 4 seconds in
+  total and offers exactly the same assessments.
+- **Assessment-only runs wrote no run log.** `scout-run.log` was started only on the inventory
+  path, so a run with `-Assessment` and without `-InventoryAndAssessment` never had one. Every
+  multi-tenant child of an assessment-only run left its attempt folder empty until it finished,
+  and a slow or stuck tenant left nothing to read. The log now starts in the run folder before
+  any Azure call and closes as `COMPLETED` or, with the error recorded, `FAILED`.
+
 ## [3.18.1] - 2026-11-15 - a full scan without the waits
 
 ### Changed

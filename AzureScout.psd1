@@ -12,7 +12,7 @@
 RootModule = 'AzureScout.psm1'
 
 # Version number of this module.
-ModuleVersion = '3.18.1'
+ModuleVersion = '3.18.2'
 
 # Supported PSEditions
 CompatiblePSEditions = @('Core')
@@ -166,7 +166,7 @@ PrivateData = @{
         IconUri = 'https://raw.githubusercontent.com/Hybrid-Solutions-Cloud/azure-scout/main/docs/public/images/azurescout-icon.svg'
 
         # ReleaseNotes of this module
-        ReleaseNotes = 'v3.18.1 - A full scan without the waits. Assessment rules run in about a millisecond each instead of about half a second, so the rule phase drops from almost 8 minutes to about 12 seconds with identical findings. -CheckResourceProviders reads each subscription with one listing, and a temporary Defender error is retried. Okta, on-premises identity and Azure DevOps report "not assessed" with the reason when they were not read, free-tier Defender gaps carry their reason, denied billing reads name the role that grants them, and a run is Partial only for real gaps. AB#9300. See CHANGELOG.md.'
+        ReleaseNotes = 'v3.18.2 - A menu without the pause, a log for every run. The guided menu no longer pauses for about a minute before the assessment list, and assessment-only runs (including every child of an assessment-only multi-tenant run) write scout-run.log from the start. v3.18.1 - A full scan without the waits. Assessment rules run in about a millisecond each instead of about half a second, so the rule phase drops from almost 8 minutes to about 12 seconds with identical findings. -CheckResourceProviders reads each subscription with one listing, and a temporary Defender error is retried. Okta, on-premises identity and Azure DevOps report "not assessed" with the reason when they were not read, free-tier Defender gaps carry their reason, denied billing reads name the role that grants them, and a run is Partial only for real gaps. AB#9300. See CHANGELOG.md.'
 
         # Prerelease string of this module
         # Prerelease = ''

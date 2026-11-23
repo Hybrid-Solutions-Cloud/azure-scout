@@ -41,7 +41,14 @@ All collector definitions, source retirement, strict runtime contracts, and repo
 complete. The remaining release steps are package validation, broad test-suite completion, tag, and
 publication. Historical v2 entries below are retained as release history rather than current status.
 
-## Current Release — v3.18.1 — a full scan without the waits
+## Current Release — v3.18.2 — a menu without the pause, a log for every run
+
+Version 3.18.2 removes the minute-long pause the guided menu showed before the assessment list
+(the data-gate check now parses the newest collect.json once instead of once per gate) and gives
+assessment-only runs a `scout-run.log`, so every child of an assessment-only multi-tenant run can
+be watched while it collects. See AB#9300.
+
+## Previous Release — v3.18.1 — a full scan without the waits
 
 Version 3.18.1 fixes what a full live scan of 3.18.0 (inventory, every assessment, every extra)
 turned up. Assessment rules take about a millisecond each instead of about half a second: the query
@@ -53,7 +60,7 @@ Sources that were not read (Okta, on-premises identity, Azure DevOps without an 
 "not assessed" with the reason instead of "complete, 0 rows", and denied billing reads name the role
 that grants them. See AB#9300.
 
-## Previous Release — v3.18.0 — minutes, not hours
+## Earlier Release — v3.18.0 — minutes, not hours
 
 Version 3.18.0 cuts a nine-subscription tenant scan from 2 hours 48 minutes to 8 minutes. The
 slowest reads (sign-in logs and Defender assessments) now run concurrently, the permission
