@@ -46,7 +46,7 @@ publication. Historical v2 entries below are retained as release history rather 
 Version 3.18.2 removes the minute-long pause the guided menu showed before the assessment list
 (the data-gate check now parses the newest collect.json once instead of once per gate) and gives
 assessment-only runs a `scout-run.log`, so every child of an assessment-only multi-tenant run can
-be watched while it collects. See AB#9300.
+be watched while it collects. A multi-tenant run stopped with Ctrl+C is marked `Interrupted` at once instead of staying `Running`. See AB#9300.
 
 ## Previous Release — v3.18.1 — a full scan without the waits
 

@@ -81,6 +81,64 @@ Describe 'Guided menu — data-gated assessments' {
     }
 }
 
+Describe 'Multi-tenant run stopped mid-tenant' {
+    It 'records the tenant and the run as Interrupted instead of leaving them Running' {
+        # A live run stopped with Ctrl+C left run-summary.json saying "Running" for good.
+        # PowerShell.Stop() is what Ctrl+C does to a pipeline: no catch block runs, only finally.
+        $out = Join-Path $TestDrive 'interrupted'
+        $modulePath = Join-Path $script:ModuleRoot 'AzureScout.psd1'
+        $ps = [powershell]::Create()
+        $null = $ps.AddScript({
+            param($ModulePath, $Out)
+            $env:CI = 'true'
+            Import-Module $ModulePath -Force
+            & (Get-Module AzureScout) {
+                param($Out)
+                function script:Get-AzContext { [pscustomobject]@{ Account = [pscustomobject]@{ Id = 'operator@example.test' }; Tenant = [pscustomobject]@{ Id = 'tenant-a' } } }
+                function script:Set-AzContext { }
+                function script:Connect-AZSCLoginSession { 'tenant-a' }
+                function script:Get-AZSCAccessibleTenant {
+                    @([pscustomobject]@{ Id = 'tenant-a'; Name = 'Tenant A' }, [pscustomobject]@{ Id = 'tenant-b'; Name = 'Tenant B' })
+                }
+                $runner = { Start-Sleep -Seconds 120 }
+                Invoke-AZSCMultiTenantRun -InvocationParameters @{
+                    ReportDir = $Out; RunName = 'stopped-run'; Scope = 'All'; OutputFormat = @('React')
+                    InventoryAndAssessment = $true; NoWizard = $true
+                } -RequestedTenantId @('tenant-a', 'tenant-b') -TenantRunner $runner -WarningAction SilentlyContinue
+            } $Out
+        }).AddArgument($modulePath).AddArgument($out)
+        $null = $ps.BeginInvoke()
+
+        $summaryFile = $null
+        $deadline = (Get-Date).AddSeconds(90)
+        while ((Get-Date) -lt $deadline) {
+            $summaryFile = Get-ChildItem -LiteralPath $out -Recurse -Filter 'run-summary.json' -File -ErrorAction SilentlyContinue | Select-Object -First 1
+            if ($summaryFile) {
+                try {
+                    $peek = Get-Content -Raw -LiteralPath $summaryFile.FullName | ConvertFrom-Json
+                    if (@($peek.Tenants)[0].Status -eq 'Running') { break }
+                }
+                catch { Write-Verbose "summary mid-write: $_" }
+            }
+            Start-Sleep -Milliseconds 200
+        }
+        $ps.Stop()
+        $ps.Dispose()
+
+        $summaryFile | Should -Not -BeNullOrEmpty
+        $summary = Get-Content -Raw -LiteralPath $summaryFile.FullName | ConvertFrom-Json
+        $summary.Status | Should -Be 'Interrupted'
+        $summary.CompletedAt | Should -Not -BeNullOrEmpty
+        $first = @($summary.Tenants)[0]
+        $first.Status | Should -Be 'Interrupted'
+        $first.Error | Should -Match 'ResumeRun'
+        @($first.Attempts)[-1].Status | Should -Be 'Interrupted'
+        @($summary.Tenants)[1].Status | Should -Be 'Pending'
+        $summary.Counts.Interrupted | Should -Be 1
+        $summary.Counts.Running | Should -Be 0
+    }
+}
+
 Describe 'Assessment-only runs write scout-run.log' {
     It 'writes the log into -ReportDir and closes it as COMPLETED' {
         $work = Join-Path $TestDrive 'assess-ok'

@@ -23,6 +23,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   multi-tenant child of an assessment-only run left its attempt folder empty until it finished,
   and a slow or stuck tenant left nothing to read. The log now starts in the run folder before
   any Azure call and closes as `COMPLETED` or, with the error recorded, `FAILED`.
+- **A stopped multi-tenant run kept saying "Running".** Ctrl+C or a closed window stops the
+  pipeline, so only the tenant's `finally` block ran: it recorded a duration but left the tenant,
+  and the run, as `Running` in `run-summary.json` and the overview page for good. Only a later
+  `-ResumeRun` relabelled it. The tenant and the run are now marked `Interrupted` at once, with a
+  note to continue with `-ResumeRun`.
 
 ## [3.18.1] - 2026-11-15 - a full scan without the waits
 
