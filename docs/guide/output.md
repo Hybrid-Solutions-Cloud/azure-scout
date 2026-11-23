@@ -63,6 +63,7 @@ C:\AzureScout\Enterprise-Portfolio\
 ├── index.html
 ├── report-react.html
 ├── run-summary.json
+├── scout-run.log          ← the one log for the whole run, a section per tenant
 ├── Contoso_11111111\
 │   ├── ReportCache\
 │   ├── DiagramCache\
@@ -78,6 +79,8 @@ C:\AzureScout\Enterprise-Portfolio\
 The tenant ID suffix prevents two tenants with the same display name from sharing a directory.
 The root overview is rewritten atomically as tenants move from Pending to Running and then to
 Completed or Failed. A failed tenant remains visible with its error and does not block later tenants.
+A run stopped with Ctrl+C or a closed window marks the tenant and the run `Interrupted`; continue it
+with `-ResumeRun <run folder>`, which adds to the same `scout-run.log`.
 
 ```powershell
 Invoke-AzureScout -AllAccessibleTenants -RunName 'Enterprise-Portfolio'
@@ -141,8 +144,7 @@ See [Report tiers](../assessment/configuration.md#report-tiers) and
 | `assessment-report/collect.json` | JSON | Internal canonical Collect snapshot used to render the React/evidence outputs without another Azure or Graph query |
 | `assessment-report/findings.json` | JSON | Internal scored-findings envelope; neutral and empty for inventory-only runs |
 | `AzureScout_Diagram_<timestamp>.drawio` | Draw.io | Network topology diagram (skip with `-SkipDiagram`) |
-| `scout-run.log` | Log | Detailed structured log — DEBUG/VERBOSE extraction and processing subphases, collector/rule/renderer status, row/evidence counts, timings, warnings, and full error detail on failure. Written by default without adding console noise. See [Troubleshooting](./troubleshooting.md#run-logs) |
-| `scout-console.log` | Log | Console transcript for the run. Skipped on hosts without transcription support |
+| `scout-run.log` | Log | The run's one log — DEBUG/VERBOSE extraction and processing subphases, collector/rule/renderer status, row/evidence counts, timings, warnings, console output (`[CONSOLE]`), diagram messages (`[DIAGRAM]`), and full error detail on failure. Written by default without adding console noise. See [Troubleshooting](./troubleshooting.md#run-logs) |
 | `raw-inventory.json` | JSON | **Everything collected**, before any manifest decided what to display (see below) |
 | `ReportCache/Discovery.json` | JSON | One record per discovered resource, ARG/provider configuration, exposure evidence, generic ARM relationships, and detail status. Secret-valued fields are retained as present but their values are replaced with `[REDACTED]`. |
 | `collector-rowcounts.json` | JSON | What each collector produced, and why it produced nothing (see below) |

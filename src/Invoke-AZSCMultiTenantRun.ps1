@@ -382,6 +382,17 @@ function Invoke-AZSCMultiTenantRun {
         }
         $selectedEntries = @($tenantEntries)
         }
+        # One run, one log: scout-run.log at the run root. Each tenant writes a section into it
+        # (Start-AZSCRunLog sees the shared log) instead of a file in its tenant folder.
+        $sharedLogContext = Get-AzContext -ErrorAction SilentlyContinue
+        $null = Start-AZSCSharedRunLog -DefaultPath $rootPath -Metadata @{
+            'Mode'       = if ($ResumeRun) { 'Multi-tenant (resumed)' } else { 'Multi-tenant' }
+            'Module'     = $moduleVersion
+            'PowerShell' = ('{0} ({1})' -f $PSVersionTable.PSVersion, $PSVersionTable.PSEdition)
+            'Account'    = if ($sharedLogContext -and $sharedLogContext.Account) { $sharedLogContext.Account.Id } else { '<unknown>' }
+            'Tenants'    = @($targets | ForEach-Object { '{0} ({1})' -f $_.Name, $_.Id })
+            'RunFolder'  = $rootPath
+        }
         $overviewPath = Export-AZSCMultiTenantOverview -Summary $summary -OutputPath $rootPath
 
         if (-not $TenantRunner) {
@@ -422,6 +433,7 @@ function Invoke-AZSCMultiTenantRun {
 
                 Write-Host ''
                 Write-Host ('Tenant {0}/{1}: {2} ({3})' -f ($index + 1), $targets.Count, $target.Name, $target.Id) -ForegroundColor Cyan
+                Write-AZSCLog -Level PHASE -Message ('Tenant {0}/{1} started: {2} ({3}); data folder {4}' -f ($index + 1), $targets.Count, $target.Name, $target.Id, $tenantPath)
                 $childOutput = @(& $TenantRunner $childParameters)
                 $runResult = @($childOutput | Where-Object { $_ -and $_.PSTypeNames -contains 'AzureScout.RunResult' }) |
                     Select-Object -Last 1
@@ -460,6 +472,7 @@ function Invoke-AZSCMultiTenantRun {
                     $summary.CompletedAt = (Get-Date).ToString('o')
                 }
                 $entry.Duration = $tenantStopwatch.Elapsed.ToString('dd\:hh\:mm\:ss\.fff')
+                Write-AZSCLog -Level PHASE -Message ('Tenant {0}/{1} finished: {2} -> {3} after {4}; subscriptions {5}, resources {6}{7}' -f ($index + 1), $targets.Count, $target.Name, $entry.Status, $entry.Duration, $entry.SubscriptionCount, $entry.ResourceCount, $(if ($entry.Error) { "; error: $($entry.Error)" } else { '' }))
                 $entry.CompletedAt = (Get-Date).ToString('o')
                 foreach ($field in @('Status','CompletedAt','Duration','ReactReport','Error')) { $attempt.$field = $entry.$field }
                 $null = Export-AZSCMultiTenantOverview -Summary $summary -OutputPath $rootPath
@@ -488,6 +501,11 @@ function Invoke-AZSCMultiTenantRun {
         }
     }
     finally {
+        $sharedStatus = if ($summary -and [string]$summary.Status -in @('Completed', 'CompletedWithErrors')) { 'COMPLETED' }
+            elseif ($summary -and [string]$summary.Status -in @('Interrupted', 'Running')) { 'INTERRUPTED' }
+            else { 'FAILED' }
+        if ($summary) { Write-AZSCLog -Level PHASE -Message ("Multi-tenant run status: $($summary.Status)") }
+        $null = Stop-AZSCSharedRunLog -Status $sharedStatus
         if ($runLock) { $runLock.Dispose() }
         if ($initialContext) {
             try { $null = Set-AzContext -Context $initialContext -ErrorAction Stop }

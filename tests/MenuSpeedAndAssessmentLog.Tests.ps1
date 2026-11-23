@@ -110,7 +110,9 @@ Describe 'Multi-tenant run stopped mid-tenant' {
         $null = $ps.BeginInvoke()
 
         $summaryFile = $null
-        $deadline = (Get-Date).AddSeconds(90)
+        # A fresh runspace imports the whole module first; under a loaded full-suite run that has
+        # taken longer than 90 seconds, so allow five minutes before giving up.
+        $deadline = (Get-Date).AddSeconds(300)
         while ((Get-Date) -lt $deadline) {
             $summaryFile = Get-ChildItem -LiteralPath $out -Recurse -Filter 'run-summary.json' -File -ErrorAction SilentlyContinue | Select-Object -First 1
             if ($summaryFile) {
@@ -136,6 +138,125 @@ Describe 'Multi-tenant run stopped mid-tenant' {
         @($summary.Tenants)[1].Status | Should -Be 'Pending'
         $summary.Counts.Interrupted | Should -Be 1
         $summary.Counts.Running | Should -Be 0
+    }
+}
+
+Describe 'One run, one log file' {
+    It 'writes every tenant of a multi-tenant run into one scout-run.log at the run root' {
+        $out = Join-Path $TestDrive 'one-log'
+        & $script:Module {
+            param($Out)
+            Mock Get-AzContext { [pscustomobject]@{ Account = [pscustomobject]@{ Id = 'operator@example.test' }; Tenant = [pscustomobject]@{ Id = 'tenant-a' } } }
+            Mock Set-AzContext { }
+            Mock Connect-AZSCLoginSession { 'tenant-a' }
+            Mock Get-AZSCAccessibleTenant { @([pscustomobject]@{ Id = 'tenant-a'; Name = 'Tenant A' }, [pscustomobject]@{ Id = 'tenant-b'; Name = 'Tenant B' }) }
+            # Stands in for Invoke-AzureScout: starts and stops "its" run log in the tenant folder,
+            # writes a line and a console line, and returns a typed result with a report.
+            $runner = {
+                param($Arguments)
+                $tenant = [string]@($Arguments.TenantID)[0]
+                Start-AZSCRunLog -DefaultPath $Arguments.ReportDir -Metadata @{ Tenant = $tenant }
+                Write-AZSCLog -Message "collected data for $tenant"
+                Write-Host "console line for $tenant"
+                $react = Join-Path $Arguments.ReportDir 'assessment-report/report-react.html'
+                $null = New-Item -ItemType Directory -Path (Split-Path $react) -Force
+                '<html></html>' | Set-Content -LiteralPath $react
+                $null = Stop-AZSCRunLog -Status COMPLETED -Quiet
+                New-AZSCRunResult -TenantId $tenant -OutputPath $Arguments.ReportDir -ReactFile $react -SubscriptionCount 1 -ResourceCount 2 -Status 'Completed'
+            }
+            $null = Invoke-AZSCMultiTenantRun -InvocationParameters @{
+                ReportDir = $Out; RunName = 'one-log-run'; Scope = 'All'; OutputFormat = @('React'); InventoryAndAssessment = $true; NoWizard = $true
+            } -RequestedTenantId @('tenant-a', 'tenant-b') -TenantRunner $runner -WarningAction SilentlyContinue 6>$null
+        } $out
+
+        $logs = @(Get-ChildItem -LiteralPath $out -Recurse -File | Where-Object { $_.Name -match '\.log$' })
+        $logs.Count | Should -Be 1
+        $logs[0].Name | Should -Be 'scout-run.log'
+        $logs[0].Directory.Name | Should -Be 'one-log-run'
+        $text = Get-Content -Raw -LiteralPath $logs[0].FullName
+        $text | Should -Match 'Mode\s+: Multi-tenant'
+        $text | Should -Match 'Tenant 1/2 started: Tenant A'
+        $text | Should -Match 'collected data for tenant-a'
+        $text | Should -Match '\[CONSOLE\] console line for tenant-a'
+        $text | Should -Match 'Tenant 2/2 finished: Tenant B -> Completed'
+        $text | Should -Match 'collected data for tenant-b'
+        ([regex]::Matches($text, 'Tenant section COMPLETED')).Count | Should -Be 2
+        $text | Should -Match 'Multi-tenant run status: Completed'
+        $text | Should -Match 'Scan/log execution COMPLETED'
+    }
+
+    It 'copies console output into the run log, joining -NoNewline pieces into one line' {
+        $dir = Join-Path $TestDrive 'console'
+        & $script:Module {
+            param($Dir)
+            Start-AZSCRunLog -DefaultPath $Dir
+            Write-Host '  Run folder   : ' -NoNewline 6>$null
+            Write-Host 'C:\somewhere' 6>$null
+            $null = Stop-AZSCRunLog -Quiet
+        } $dir
+        $text = Get-Content -Raw -LiteralPath (Join-Path $dir 'scout-run.log')
+        $text | Should -Match '\[CONSOLE\]\s+Run folder   : C:\\somewhere'
+        Test-Path -LiteralPath (Join-Path $dir 'scout-console.log') | Should -BeFalse
+    }
+
+    It 'folds the diagram builder log into scout-run.log and removes the file' {
+        $dir = Join-Path $TestDrive 'diagram'
+        $null = New-Item -ItemType Directory -Path $dir -Force
+        $side = Join-Path $dir 'DiagramLogFile.log'
+        "DrawIOCoreFile - starting`nDrawIOCoreFile - Diagram Complete" | Set-Content -LiteralPath $side
+        & $script:Module {
+            param($Dir, $Side)
+            Start-AZSCRunLog -DefaultPath $Dir
+            Add-ScoutFileToRunLog -Path $Side -Label 'DIAGRAM'
+            $null = Stop-AZSCRunLog -Quiet
+        } $dir $side
+        Test-Path -LiteralPath $side | Should -BeFalse
+        (Get-Content -Raw -LiteralPath (Join-Path $dir 'scout-run.log')) | Should -Match '\[DIAGRAM\] DrawIOCoreFile - Diagram Complete'
+    }
+}
+
+Describe 'Assessment collect names the tenant''s subscriptions' {
+    It 'passes the tenant''s enabled subscriptions to the raw inventory pass' {
+        & $script:Module {
+            Mock Get-AzSubscription {
+                @([pscustomobject]@{ Id = 'sub-1'; State = 'Enabled' }, [pscustomobject]@{ Id = 'sub-2'; State = 'Disabled' }, [pscustomobject]@{ Id = 'sub-3'; State = 'Enabled' })
+            }
+            Mock Get-ScoutRawInventory { throw 'stop after capture' }
+            function Search-AzGraph { }
+            try { $null = Invoke-Collect -TenantID 'tenant-x' -WarningAction SilentlyContinue } catch { $null = $_ }
+            Should -Invoke Get-AzSubscription -Times 1 -ParameterFilter { $TenantId -eq 'tenant-x' }
+            Should -Invoke Get-ScoutRawInventory -Times 1 -ParameterFilter { (@($SubscriptionIds) -join ',') -eq 'sub-1,sub-3' }
+        }
+    }
+
+    It 'does not name subscriptions when the collect is scoped to a management group' {
+        & $script:Module {
+            Mock Get-AzSubscription { @([pscustomobject]@{ Id = 'sub-1'; State = 'Enabled' }) }
+            Mock Get-ScoutRawInventory { throw 'stop after capture' }
+            function Search-AzGraph { }
+            try { $null = Invoke-Collect -TenantID 'tenant-x' -ManagementGroupId 'mg-1' -WarningAction SilentlyContinue } catch { $null = $_ }
+            Should -Invoke Get-AzSubscription -Times 0
+            Should -Invoke Get-ScoutRawInventory -Times 1 -ParameterFilter { -not $SubscriptionIds -and $ManagementGroupId -eq 'mg-1' }
+        }
+    }
+}
+
+Describe 'Combined runs collect once' {
+    It 'reads the External Identities policy from the inventory copy without calling Graph' {
+        & $script:Module {
+            Mock Invoke-AZSCGraphRequest { throw 'Graph was called a second time.' }
+            $policy = [pscustomobject]@{
+                isServiceDefault = $true
+                inboundTrust     = [pscustomobject]@{ isMfaAccepted = $false; isCompliantDeviceAccepted = $true; isHybridAzureADJoinedDeviceAccepted = $false }
+                b2bCollaborationInbound = [pscustomobject]@{ applications = [pscustomobject]@{ accessType = 'allowed' } }
+            }
+            $result = Get-ScoutExternalIdentitiesPolicy -TenantID 'tenant-x' -FromInventoryPolicy $policy
+            Should -Invoke Invoke-AZSCGraphRequest -Times 0
+            $result.Collected | Should -BeTrue
+            $result.IsServiceDefault | Should -BeTrue
+            $result.InboundTrustCompliantDevice | Should -BeTrue
+            $result.B2BCollaborationInboundAccessType | Should -Be 'allowed'
+        }
     }
 }
 

@@ -58,13 +58,21 @@ slow run can be compared phase by phase against this table.
 
 ## Run logs
 
-**Every run writes a detailed log into its own run folder — you do not have to ask for it.**
+**Every run writes one log, `scout-run.log`, into its run folder — you do not have to ask for it.**
 When something goes wrong, read the log before re-running anything.
 
-| File | Contents |
-|------|----------|
-| `scout-run.log` | Structured detailed log: run metadata; DEBUG/VERBOSE extraction subphases; collector status, rows, and elapsed time; processing and assessment timing; per-rule evidence counts; renderer completion; warnings; and, on failure, the full error record including script, line, and stack trace. This detail is written by default without enabling console `-Debug` or `-Verbose`. |
-| `scout-console.log` | Transcript of everything printed to the console, warnings included. Skipped on hosts that do not support transcription (including Azure Automation) |
+`scout-run.log` holds the run metadata; DEBUG/VERBOSE extraction subphases; collector status,
+rows, and elapsed time; processing and assessment timing; per-rule evidence counts; renderer
+completion; warnings; everything Scout printed to the console (`[CONSOLE]` lines); the diagram
+builder's messages (`[DIAGRAM]` lines); and, on failure, the full error record including script,
+line, and stack trace. This detail is written by default without enabling console `-Debug` or
+`-Verbose`. Inventory-only, assessment-only and combined runs all write it from the first second.
+
+A multi-tenant run is one scan, so it writes **one** `scout-run.log` at the run root. Each tenant
+gets a labelled section (`Tenant section`, then `Tenant 2/5 started: ...` and `Tenant 2/5
+finished: ... -> Completed`), and the tenant folders hold that tenant's data, not a log. Before
+3.18.2 there were also `scout-console.log` (a console transcript) and `DiagramLogFile.log`; both
+are now folded into `scout-run.log`.
 
 ### Azure SDK request detail
 
@@ -83,12 +91,11 @@ $env:AZURESCOUT_SDK_TRACE = '1'          # log file only; set before the run
 Expect a much larger log and a slower scan with the trace on. Response bodies can contain
 configuration values, so treat a traced log as sensitive.
 
-Both land next to the live outputs:
+The log lands next to the live outputs:
 
 ```
 C:\Users\you\Documents\AzureScout\2026-07-25_152431_d6fc73cf\
 ├── scout-run.log
-├── scout-console.log
 ├── report-react.html
 ├── AzureScout_Report_2026-07-25_15_24.json
 └── evidence.json

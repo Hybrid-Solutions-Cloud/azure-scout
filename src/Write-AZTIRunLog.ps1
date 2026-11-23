@@ -16,14 +16,20 @@ phase it was in, how long each phase took, where it died - meant running the who
 again with -Debug and watching the screen. That is not a diagnostic story, and it is why
 a data-dependent crash (AB#5633) took a full reproduction cycle to locate.
 
-Two files are written into the run folder:
+One file is written into the run folder:
 
-  scout-run.log      structured phase log - metadata header, phase boundaries with
-                     elapsed time, per-phase counts, warnings, and the full error record
-                     (message, script, line, script stack trace) when a run fails.
-  scout-console.log  best-effort PowerShell transcript of everything printed to the
-                     console, including warnings. Skipped silently on hosts that do not
-                     support transcription.
+  scout-run.log      metadata header, phase boundaries with elapsed time, per-phase counts,
+                     warnings, everything Scout printed to the console ([CONSOLE] lines), the
+                     diagram builder's messages, and the full error record (message, script,
+                     line, script stack trace) when a run fails.
+
+A multi-tenant run is one scan, so it writes one scout-run.log at the run root. Each tenant
+gets a labelled section in that file; the tenant folders hold that tenant's data, not a log.
+
+There used to be a second file, scout-console.log, a PowerShell transcript of the console, and
+a third, DiagramLogFile.log. Operators had to read three files to follow one run. The console
+lines now go into scout-run.log through the Write-Host proxy below, and the diagram messages are
+folded in when the diagram build finishes.
 
 Logging must never be the reason a run fails, so every function here swallows its own
 errors. A broken log is a lost diagnostic, not a lost report.
@@ -45,6 +51,13 @@ $script:AZSCTranscriptPath = $null
 $script:AZSCRunLogStart = $null
 $script:AZSCPendingLog = [System.Collections.Generic.List[object]]::new()
 $script:AZSCPendingLogDropped = 0
+# Multi-tenant runs: the root log every tenant section is written into, and whether a tenant
+# section is currently open inside it.
+$script:AZSCSharedRunLogPath = $null
+$script:AZSCSharedRunLogStart = $null
+$script:AZSCRunLogSectionActive = $false
+# Write-Host -NoNewline fragments are joined into one [CONSOLE] line.
+$script:AZSCConsoleLine = [System.Text.StringBuilder]::new()
 
 function Protect-ScoutLogText {
     param([AllowEmptyString()][string]$Text)
@@ -127,6 +140,68 @@ function Write-Warning {
     }
 }
 
+function Write-Host {
+    # Everything Scout prints to the console also lands in scout-run.log as a [CONSOLE] line, so
+    # the run log alone shows what the operator saw. This replaces the separate transcript file.
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Private module proxy; copies console output into the one run log.')]
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingWriteHost', '', Justification = 'Proxy for Write-Host itself.')]
+    [CmdletBinding()]
+    param(
+        [Parameter(Position = 0, ValueFromPipeline, ValueFromRemainingArguments)]
+        [object]$Object,
+        [switch]$NoNewline,
+        [object]$Separator,
+        [System.ConsoleColor]$ForegroundColor,
+        [System.ConsoleColor]$BackgroundColor
+    )
+    process {
+        Microsoft.PowerShell.Utility\Write-Host @PSBoundParameters
+        if (-not $script:AZSCRunLogPath) { return }
+        try {
+            $joiner = if ($PSBoundParameters.ContainsKey('Separator')) { [string]$Separator } else { ' ' }
+            $text = if ($null -eq $Object) { '' }
+                elseif ($Object -is [System.Collections.IEnumerable] -and $Object -isnot [string]) { (@($Object) | ForEach-Object { [string]$_ }) -join $joiner }
+                else { [string]$Object }
+            [void]$script:AZSCConsoleLine.Append($text)
+            if (-not $NoNewline) {
+                $line = $script:AZSCConsoleLine.ToString()
+                [void]$script:AZSCConsoleLine.Clear()
+                if (-not [string]::IsNullOrWhiteSpace($line)) { Write-AZSCLog -Level CONSOLE -Message $line.TrimEnd() -FileOnly }
+            }
+        }
+        catch { Microsoft.PowerShell.Utility\Write-Debug ('Write-Host proxy: could not copy console output to the run log: ' + $_.Exception.Message) }
+    }
+}
+
+function Format-ScoutRunLogHeaderLine {
+    param([hashtable]$Metadata)
+    if (-not $Metadata) { return @() }
+    foreach ($Key in ($Metadata.Keys | Sort-Object)) {
+        $Value = $Metadata[$Key]
+        if ($Value -is [System.Collections.IEnumerable] -and $Value -isnot [string]) {
+            $Value = (@($Value) -join ', ')
+        }
+        ' {0,-12} : {1}' -f $Key, $Value
+    }
+}
+
+function Add-ScoutFileToRunLog {
+    # Folds a side file (the diagram builder's log) into scout-run.log and removes it, so a run
+    # leaves one log. Lines are kept verbatim under a label; nothing is dropped.
+    param([Parameter(Mandatory)][string]$Path, [Parameter(Mandatory)][string]$Label)
+    if (-not $script:AZSCRunLogPath -or -not (Test-Path -LiteralPath $Path -PathType Leaf)) { return }
+    try {
+        $stamp = (Get-Date).ToString('yyyy-MM-dd HH:mm:ss.fff')
+        $lines = @(Get-Content -LiteralPath $Path -ErrorAction Stop | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+        if ($lines.Count -gt 0) {
+            $block = foreach ($line in $lines) { '[{0}] [{1,-5}] {2}' -f $stamp, $Label, $line }
+            Add-ScoutRunLogText -Text (Protect-ScoutLogText -Text ($block -join [Environment]::NewLine))
+        }
+        Remove-Item -LiteralPath $Path -Force -ErrorAction Stop
+    }
+    catch { Microsoft.PowerShell.Utility\Write-Debug ("Add-ScoutFileToRunLog: could not fold '$Path' into the run log: " + $_.Exception.Message) }
+}
+
 function Invoke-ScoutDiagnosticOperation {
     [CmdletBinding()]
     param([Parameter(Mandatory)][scriptblock]$Operation)
@@ -190,6 +265,7 @@ function Invoke-ScoutDiagnosticOperation {
 }
 
 function Start-AZSCRunLog {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'NoTranscript', Justification = 'Compatibility; the transcript file was retired.')]
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory)]
@@ -197,46 +273,66 @@ function Start-AZSCRunLog {
 
         [hashtable]$Metadata,
 
-        [switch]$NoTranscript
+        # Kept so existing callers still bind. There is no transcript any more: console output
+        # is copied into scout-run.log by the Write-Host proxy, so this switch changes nothing.
+        [switch]$NoTranscript,
+
+        # Add to an existing scout-run.log instead of replacing it (a resumed multi-tenant run).
+        [switch]$Append
     )
 
-    try {
-        if (-not (Test-Path -Path $DefaultPath)) {
-            # -ErrorAction Stop: a bad path raises a NON-terminating error by default, which
-            # would sail straight past this try/catch and out to the console as red text.
-            $null = New-Item -Path $DefaultPath -ItemType Directory -Force -ErrorAction Stop
-        }
-
-        Close-ScoutRunLogWriter
-        $script:AZSCRunLogPath = Join-Path $DefaultPath 'scout-run.log'
+    # Inside a multi-tenant run every tenant writes a section into the one root log instead of
+    # starting its own file in the tenant folder.
+    if ($script:AZSCSharedRunLogPath) {
+        $script:AZSCRunLogPath = $script:AZSCSharedRunLogPath
         $script:AZSCRunLogStart = Get-Date
+        $script:AZSCRunLogSectionActive = $true
+        $Section = @('', '----------------------------------------------------------------')
+        $Section += ' Tenant section'
+        $Section += '----------------------------------------------------------------'
+        $Section += (' Started      : ' + $script:AZSCRunLogStart.ToString('yyyy-MM-dd HH:mm:ss.fff zzz'))
+        $Section += @(Format-ScoutRunLogHeaderLine -Metadata $Metadata)
+        $Section += '----------------------------------------------------------------'
+        try { Add-ScoutRunLogText -Text (Protect-ScoutLogText -Text ($Section -join [Environment]::NewLine)) }
+        catch { Microsoft.PowerShell.Utility\Write-Debug ('Start-AZSCRunLog: could not open the tenant section: ' + $_.Exception.Message) }
+    }
+    else {
+        try {
+            if (-not (Test-Path -Path $DefaultPath)) {
+                # -ErrorAction Stop: a bad path raises a NON-terminating error by default, which
+                # would sail straight past this try/catch and out to the console as red text.
+                $null = New-Item -Path $DefaultPath -ItemType Directory -Force -ErrorAction Stop
+            }
 
-        $Header = @()
-        $Header += '================================================================'
-        $Header += ' Azure Scout run log'
-        $Header += '================================================================'
-        $Header += (' Started      : ' + $script:AZSCRunLogStart.ToString('yyyy-MM-dd HH:mm:ss.fff zzz'))
+            Close-ScoutRunLogWriter
+            $script:AZSCRunLogPath = Join-Path $DefaultPath 'scout-run.log'
+            $script:AZSCRunLogStart = Get-Date
+            $script:AZSCRunLogSectionActive = $false
+            [void]$script:AZSCConsoleLine.Clear()
 
-        if ($Metadata) {
-            foreach ($Key in ($Metadata.Keys | Sort-Object)) {
-                $Value = $Metadata[$Key]
-                if ($Value -is [System.Collections.IEnumerable] -and $Value -isnot [string]) {
-                    $Value = (@($Value) -join ', ')
-                }
-                $Header += (' {0,-12} : {1}' -f $Key, $Value)
+            $Header = @()
+            if ($Append.IsPresent -and (Test-Path -LiteralPath $script:AZSCRunLogPath -PathType Leaf)) { $Header += '' }
+            $Header += '================================================================'
+            $Header += ' Azure Scout run log'
+            $Header += '================================================================'
+            $Header += (' Started      : ' + $script:AZSCRunLogStart.ToString('yyyy-MM-dd HH:mm:ss.fff zzz'))
+            $Header += @(Format-ScoutRunLogHeaderLine -Metadata $Metadata)
+            $Header += '================================================================'
+            $Header += ''
+
+            if ($Append.IsPresent -and (Test-Path -LiteralPath $script:AZSCRunLogPath -PathType Leaf)) {
+                Add-ScoutRunLogText -Text (Protect-ScoutLogText -Text ($Header -join "`n"))
+            }
+            else {
+                Set-Content -Path $script:AZSCRunLogPath -Value (Protect-ScoutLogText -Text ($Header -join "`n")) -Encoding UTF8 -ErrorAction Stop
             }
         }
-
-        $Header += '================================================================'
-        $Header += ''
-
-        Set-Content -Path $script:AZSCRunLogPath -Value (Protect-ScoutLogText -Text ($Header -join "`n")) -Encoding UTF8 -ErrorAction Stop
-    }
-    catch {
-        # A run folder we cannot write to is worth one warning, not a failed run.
-        Microsoft.PowerShell.Utility\Write-Warning "[AzureScout] Could not start the run log: $($_.Exception.Message)"
-        $script:AZSCRunLogPath = $null
-        return
+        catch {
+            # A run folder we cannot write to is worth one warning, not a failed run.
+            Microsoft.PowerShell.Utility\Write-Warning "[AzureScout] Could not start the run log: $($_.Exception.Message)"
+            $script:AZSCRunLogPath = $null
+            return
+        }
     }
 
     foreach ($entry in $script:AZSCPendingLog) {
@@ -247,17 +343,37 @@ function Start-AZSCRunLog {
         Write-AZSCLog -Level WARN -Message "$script:AZSCPendingLogDropped pre-run diagnostics exceeded the 10000-entry buffer. Run-time diagnostics are not capped."
         $script:AZSCPendingLogDropped = 0
     }
-    if ($NoTranscript.IsPresent) { return }
+}
 
-    try {
-        $script:AZSCTranscriptPath = Join-Path $DefaultPath 'scout-console.log'
-        Start-Transcript -Path $script:AZSCTranscriptPath -Force -ErrorAction Stop | Out-Null
+function Start-AZSCSharedRunLog {
+    # Opens the one scout-run.log at a multi-tenant run root. Every tenant's Start-AZSCRunLog then
+    # writes a section into it instead of creating a file in its tenant folder.
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][string]$DefaultPath, [hashtable]$Metadata)
+    $script:AZSCSharedRunLogPath = $null
+    $script:AZSCRunLogSectionActive = $false
+    Start-AZSCRunLog -DefaultPath $DefaultPath -Metadata $Metadata -Append
+    if ($script:AZSCRunLogPath) {
+        $script:AZSCSharedRunLogPath = $script:AZSCRunLogPath
+        $script:AZSCSharedRunLogStart = $script:AZSCRunLogStart
     }
-    catch {
-        # Transcription is unavailable in some hosts (and in Azure Automation). The
-        # structured log above is the part that matters; carry on without it.
-        $script:AZSCTranscriptPath = $null
-    }
+    return $script:AZSCSharedRunLogPath
+}
+
+function Stop-AZSCSharedRunLog {
+    [CmdletBinding()]
+    param(
+        [ValidateSet('COMPLETED', 'FAILED', 'INTERRUPTED')]
+        [string]$Status = 'COMPLETED',
+        [switch]$Quiet
+    )
+    if (-not $script:AZSCSharedRunLogPath) { return $null }
+    $script:AZSCRunLogSectionActive = $false
+    $script:AZSCRunLogPath = $script:AZSCSharedRunLogPath
+    $script:AZSCRunLogStart = $script:AZSCSharedRunLogStart
+    $script:AZSCSharedRunLogPath = $null
+    $script:AZSCSharedRunLogStart = $null
+    return (Stop-AZSCRunLog -Status $Status -Quiet:$Quiet)
 }
 
 function Write-AZSCLog {
@@ -285,7 +401,7 @@ function Write-AZSCLog {
         [AllowEmptyString()]
         [string]$Message,
 
-        [ValidateSet('INFO', 'PHASE', 'WARN', 'ERROR', 'DEBUG', 'VERBOSE')]
+        [ValidateSet('INFO', 'PHASE', 'WARN', 'ERROR', 'DEBUG', 'VERBOSE', 'CONSOLE')]
         [string]$Level = 'INFO',
 
         # Report/export catch blocks already pass their caught exception here. Keep the
@@ -319,8 +435,9 @@ function Write-AZSCLog {
     }
 
     if ($PSBoundParameters.ContainsKey('Color')) {
-        try { Write-Host $Message -ForegroundColor $Color }
-        catch { Write-Host $Message }
+        # The real cmdlet, not the module's Write-Host proxy: this message is logged below already.
+        try { Microsoft.PowerShell.Utility\Write-Host $Message -ForegroundColor $Color }
+        catch { Microsoft.PowerShell.Utility\Write-Host $Message }
     }
 
     if (-not $script:AZSCRunLogPath) {
@@ -425,13 +542,32 @@ function Write-AZSCLogError {
 function Stop-AZSCRunLog {
     [CmdletBinding()]
     Param(
-        [ValidateSet('COMPLETED', 'FAILED')]
+        [ValidateSet('COMPLETED', 'FAILED', 'INTERRUPTED')]
         [string]$Status = 'COMPLETED',
 
         [switch]$Quiet
     )
 
     $Path = $script:AZSCRunLogPath
+
+    # Closing a tenant section of a multi-tenant run: mark the section's end, keep the root log
+    # open for the next tenant and for the run summary.
+    if ($script:AZSCRunLogSectionActive -and $script:AZSCSharedRunLogPath) {
+        try {
+            $Elapsed = if ($script:AZSCRunLogStart) { ((Get-Date) - $script:AZSCRunLogStart).ToString('dd\:hh\:mm\:ss\:fff') } else { 'unknown' }
+            Write-AZSCLog -Message ("Tenant section $Status after $Elapsed") -Level 'PHASE'
+        }
+        catch { Microsoft.PowerShell.Utility\Write-Debug ('Stop-AZSCRunLog: failed to close the tenant section: ' + $_.Exception.Message) }
+        $script:AZSCRunLogSectionActive = $false
+        $script:AZSCRunLogPath = $script:AZSCSharedRunLogPath
+        $script:AZSCRunLogStart = $script:AZSCSharedRunLogStart
+        return $script:AZSCSharedRunLogPath
+    }
+
+    if ($script:AZSCConsoleLine.Length -gt 0 -and $Path) {
+        try { Write-AZSCLog -Level CONSOLE -Message $script:AZSCConsoleLine.ToString().TrimEnd() -FileOnly } catch { $null = $_ }
+        [void]$script:AZSCConsoleLine.Clear()
+    }
 
     if ($Path) {
         try {
@@ -469,7 +605,11 @@ function Stop-AZSCRunLog {
 }
 
 function Get-AZSCRunLogPath {
+    # The log the CURRENT run or tenant section is writing to. Between tenant sections of a
+    # multi-tenant run nothing is open at tenant level, so this is $null; Invoke-AzureScout's
+    # finally reads it to decide whether its own log was left unclosed.
     [CmdletBinding()]
     Param()
+    if ($script:AZSCSharedRunLogPath -and -not $script:AZSCRunLogSectionActive) { return $null }
     return $script:AZSCRunLogPath
 }

@@ -835,8 +835,19 @@ Function Invoke-AzureScout {
                     if (Test-Path -LiteralPath $candidate -PathType Leaf) { $candidate } else { $null }
                 }
                 else { $null }
+                # The multi-tenant overview showed every assessment-only tenant with 0 subscriptions
+                # because this was hard-coded. The assessment's own collect.json lists them.
+                $standaloneSubscriptionCount = 0
+                $standaloneCollect = if ($standaloneRunPath) { Join-Path ([string]$standaloneRunPath) 'collect.json' }
+                if ($standaloneCollect -and (Test-Path -LiteralPath $standaloneCollect -PathType Leaf)) {
+                    try {
+                        $collectToken = [Newtonsoft.Json.Linq.JToken]::Parse([System.IO.File]::ReadAllText($standaloneCollect))
+                        if ($collectToken['subscriptions']) { $standaloneSubscriptionCount = [int]$collectToken['subscriptions'].Count }
+                    }
+                    catch { Write-Debug ('Invoke-AzureScout: could not count subscriptions in collect.json: ' + $_.Exception.Message) }
+                }
                 return New-AZSCRunResult -TenantId $TenantID -OutputPath $standaloneRunPath `
-                    -ReactFile $standaloneReact -SubscriptionCount 0 -ResourceCount 0 `
+                    -ReactFile $standaloneReact -SubscriptionCount $standaloneSubscriptionCount -ResourceCount 0 `
                     -EvidenceFile $(if (Test-Path (Join-Path $standaloneRunPath 'evidence.json')) { Join-Path $standaloneRunPath 'evidence.json' }) `
                     -JsonFile $(if (Test-Path (Join-Path $standaloneRunPath 'findings.json')) { Join-Path $standaloneRunPath 'findings.json' })
             }
@@ -1709,8 +1720,9 @@ Function Invoke-AzureScout {
             # uploaded from a runbook. $DebugPreference is what -Debug actually sets.
             if ($DebugPreference -ne 'SilentlyContinue')
                 {
-                    $LogFilePath = Join-Path $DefaultPath 'DiagramLogFile.log'
-                    if (Test-Path -Path $LogFilePath)
+                    # The diagram messages are folded into scout-run.log, the run's one log.
+                    $LogFilePath = Get-AZSCRunLogPath
+                    if ($LogFilePath -and (Test-Path -Path $LogFilePath))
                         {
                             Write-Output "Sending diagnostic log to Storage Account:"
                             Write-Output $LogFilePath

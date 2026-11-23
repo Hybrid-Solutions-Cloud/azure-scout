@@ -180,6 +180,10 @@ function Get-ScoutArmChildResource {
     $FailedHealthDatasets = [System.Collections.Generic.HashSet[string]]::new(
         [System.StringComparer]::OrdinalIgnoreCase
     )
+    # One "not registered" note per dataset, subscription and provider, not one per resource.
+    $NotRegisteredSeen = [System.Collections.Generic.HashSet[string]]::new(
+        [System.StringComparer]::OrdinalIgnoreCase
+    )
 
     function Get-ArmParentValue {
         param(
@@ -376,6 +380,31 @@ function Get-ScoutArmChildResource {
                         ResourceTypes = @("AZSC/ARMChild/$DatasetName")
                         ResourceIds = @(($Path -split '/providers/Microsoft.SecurityInsights/', 2)[0])
                     })
+                }
+                return $null
+            }
+            # A subscription that has not registered the provider (for example microsoft.insights
+            # for diagnostic settings) cannot answer for ANY of its resources. That is a stated,
+            # expected gap, not a failure: it used to log one warning per resource and mark the
+            # whole dataset Unavailable, which made a run Partial for a provider nobody uses.
+            if ($StatusCode -eq 400 -and $_.Exception.Message -match "(?i)SubscriptionNotRegistered|is not registered to use '?([A-Za-z0-9.]+)") {
+                $provider = if ($_.Exception.Message -match "(?i)is not registered to use '?([A-Za-z0-9.]+)") { $Matches[1].TrimEnd('.') } else { 'the resource provider' }
+                $subscriptionId = if ($Path -match '(?i)/subscriptions/([^/]+)') { $Matches[1] } else { '' }
+                $reason = "Not assessed: subscription '$subscriptionId' is not registered for the $provider resource provider, so its $DatasetName cannot be read. Register the provider to collect it."
+                Add-SourceOperation -Uri $CurrentPath -Status 'NotApplicable' -Reason $reason -StartedAt $requestStartedAt
+                $HealthDatasetName = ([string]$DatasetName -split '\.', 2)[0]
+                if ($NotRegisteredSeen.Add("$HealthDatasetName|$subscriptionId|$provider")) {
+                    if ($null -ne $CollectionHealth) {
+                        [void]$CollectionHealth.Add([pscustomobject]@{
+                                Dataset       = $HealthDatasetName
+                                Operation     = $DatasetName
+                                Status        = 'NotAssessed'
+                                Reason        = $reason
+                                ResourceTypes = @("AZSC/ARMChild/$HealthDatasetName")
+                                ResourceIds   = @(if ($subscriptionId) { "/subscriptions/$subscriptionId" })
+                            })
+                    }
+                    Write-Verbose "Get-ScoutArmChildResource: $reason"
                 }
                 return $null
             }

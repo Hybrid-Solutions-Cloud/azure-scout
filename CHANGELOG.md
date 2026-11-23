@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [3.18.2] - 2026-11-23 - a menu without the pause, a log for every run
+## [3.18.2] - 2026-11-23 - a menu without the pause, one log for every run
 
 ### Fixed
 
@@ -28,6 +28,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and the run, as `Running` in `run-summary.json` and the overview page for good. Only a later
   `-ResumeRun` relabelled it. The tenant and the run are now marked `Interrupted` at once, with a
   note to continue with `-ResumeRun`.
+- **A multi-tenant assessment-only run failed every tenant after the first.** The assessment
+  collect let Resource Graph pick subscriptions from the current Az context, and after the
+  orchestrator switched to the second tenant that list was empty: every query failed with
+  `NoValidSubscriptionsInQueryRequest` ("Given: ''") and the tenant stopped after eight seconds.
+  The collect now lists the tenant's enabled subscriptions and names them, as the inventory path
+  always has. Assessment-only tenants also report their real subscription count in the
+  multi-tenant overview instead of 0.
+- **An unregistered resource provider read as a failure, once per resource.** A subscription
+  that has not registered, for example, `microsoft.insights` cannot return diagnostic settings
+  for any of its resources. Scout logged a warning for every resource and marked the dataset
+  Unavailable, which made the run Partial. It is now one "Not assessed" entry per dataset,
+  subscription and provider, saying which provider to register, and no warning.
+
+### Changed
+
+- **Resource detail reads run concurrently.** The provider-detail step (one ARM GET per resource,
+  to capture what Resource Graph's `properties` bag can miss) made every request one after
+  another, and re-read each provider's API versions once per subscription: on a 42-subscription
+  tenant that was 714 requests and 6 m 48 s of a run. API versions are now cached per provider
+  (they do not differ by subscription), and the per-resource GETs are fetched 8 at a time with
+  the same retry rules as the Defender prefetch. Any request that fails in that pass goes through
+  the ordinary path with its retries, warnings and health records. Measured on a live tenant:
+  72 s to 28 s for 127 resources, with byte-for-byte identical details and health.
+- **Policy compliance states are read for 8 subscriptions at once.** `Get-AzPolicyState` was
+  the slowest call in the security and policy sweep (about 4.4 s per subscription, 3 minutes on
+  a 42-subscription tenant, one after another). The same cmdlet now runs for up to 8
+  subscriptions concurrently before the per-subscription pass; its objects are the cmdlet's own,
+  and on nine live subscriptions the results were byte-for-byte identical to the serial run. A
+  subscription that fails there is read by the ordinary per-subscription call.
+- **A combined run no longer reads the External Identities policy twice.** The assessment reused
+  every inventory row except this one Graph call; it now takes the inventory's copy too, so the
+  assessment half of `-InventoryAndAssessment` makes no Azure or Graph calls of its own.
+- **One run, one log file.** A run used to leave up to three: `scout-run.log`, a console
+  transcript `scout-console.log`, and the diagram builder's `DiagramLogFile.log`; a multi-tenant
+  run left one set per tenant folder as well. Everything now goes into a single `scout-run.log`:
+  console output as `[CONSOLE]` lines, diagram messages as `[DIAGRAM]` lines. A multi-tenant run
+  writes one `scout-run.log` at the run root with a labelled section for each tenant, and
+  `-ResumeRun` adds to it. The `-NoTranscript` switch on `Start-AZSCRunLog` still binds and does
+  nothing.
 
 ## [3.18.1] - 2026-11-15 - a full scan without the waits
 
