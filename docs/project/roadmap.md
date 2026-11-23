@@ -41,14 +41,18 @@ All collector definitions, source retirement, strict runtime contracts, and repo
 complete. The remaining release steps are package validation, broad test-suite completion, tag, and
 publication. Historical v2 entries below are retained as release history rather than current status.
 
-## Current Release — v3.18.2 — a menu without the pause, one log for every run
+## Current Release — v3.18.3 — faster security reads and provider check
+
+Version 3.18.3 follows the live five-tenant test of 3.18.2. The policy-state speed-up from 3.18.2 now actually runs (it skipped itself on Az.PolicyInsights 2.x), the rest of the security sweep and the `-CheckResourceProviders` check read concurrently (live: provider check 367 s to 75 s on 42 subscriptions; security sweep 158 s to 108 s on nine, identical data), provider details with case-colliding JSON keys are kept instead of lost, and a NIC on a stopped VM is not applicable instead of a warning. See AB#9300.
+
+## Previous Release — v3.18.2 — a menu without the pause, one log for every run
 
 Version 3.18.2 removes the minute-long pause the guided menu showed before the assessment list
 (the data-gate check now parses the newest collect.json once instead of once per gate) and gives
 assessment-only runs a `scout-run.log`, so every child of an assessment-only multi-tenant run can
 be watched while it collects. A multi-tenant run stopped with Ctrl+C is marked `Interrupted` at once instead of staying `Running`. Every run writes one log file, `scout-run.log` (a multi-tenant run writes one at its root with a section per tenant), and a multi-tenant assessment-only run no longer fails every tenant after the first with an empty subscription list. Resource detail reads and policy-state reads run concurrently (a 42-subscription tenant spent about 10 minutes waiting on them one at a time), and a combined run makes no Azure or Graph calls of its own for the assessment. See AB#9300.
 
-## Previous Release — v3.18.1 — a full scan without the waits
+## Earlier Release — v3.18.1 — a full scan without the waits
 
 Version 3.18.1 fixes what a full live scan of 3.18.0 (inventory, every assessment, every extra)
 turned up. Assessment rules take about a millisecond each instead of about half a second: the query
