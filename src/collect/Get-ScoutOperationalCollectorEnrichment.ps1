@@ -337,7 +337,7 @@ function Get-ScoutOperationalCollectorEnrichment {
                         Complete-ScoutOperationalRequest -Dataset $Dataset -Timer $requestTimer -Status Success -Attempts $Attempt
                         return $null
                     }
-                    $result = $Content | ConvertFrom-Json
+                    $result = ConvertFrom-ScoutTolerantJson -Json $Content
                     Complete-ScoutOperationalRequest -Dataset $Dataset -Timer $requestTimer -Status Success -Attempts $Attempt
                     return $result
                 }
@@ -385,6 +385,16 @@ function Get-ScoutOperationalCollectorEnrichment {
                     return [PSCustomObject]@{ __AZSCStatus = 'OperationInProgress' }
                 }
 
+                if ($Message -match 'NicMustBeAttachedToRunningVm') {
+                    # The NIC is attached to a VM that is stopped or deallocated. Effective rules
+                    # and routes exist only while the VM runs; that is the VM's state, not a failed
+                    # read, so it is not a warning and does not make the run Partial.
+                    $reason = 'Not applicable: effective NIC rules and routes exist only while the attached virtual machine is running; this VM is stopped or deallocated.'
+                    Complete-ScoutOperationalRequest -Dataset $Dataset -Timer $requestTimer -Status NotSupported -Attempts $Attempt
+                    Add-ScoutOperationalHealth -Dataset $Dataset -Status NotAssessed -ParentId $ParentId -Reason $reason
+                    return [PSCustomObject]@{ __AZSCStatus = 'NotApplicable'; Reason = $reason }
+                }
+
                 if ($Message -match 'SubscriptionCostDisabled') {
                     # The billing account has cost visibility turned off for this subscription.
                     # That is a billing setting, not a fault and not something a role assignment
@@ -402,6 +412,38 @@ function Get-ScoutOperationalCollectorEnrichment {
                 return [PSCustomObject]@{ __AZSCError = $Message }
             }
         }
+    }
+
+    function ConvertFrom-ScoutTolerantJson {
+        <#
+            Some Azure responses (network interfaces, NSGs, public IPs, NAT gateways seen live) carry
+            two keys that differ only in case. ConvertFrom-Json refuses the whole document ("keys
+            with different casing"), so the resource's detail was lost and logged as a failure.
+            Fall back to -AsHashtable, which accepts it, and rebuild objects keeping every key: a
+            key that collides case-insensitively with an earlier one is kept as '<name>#2'.
+        #>
+        param([Parameter(Mandatory)][string]$Json)
+        try { return ($Json | ConvertFrom-Json -ErrorAction Stop) }
+        catch {
+            if ([string]$_.Exception.Message -notmatch '(?i)different casing') { throw }
+        }
+        function ConvertTo-ScoutKeyPreservingObject {
+            param($Value)
+            if ($Value -is [System.Collections.IDictionary]) {
+                $object = [pscustomobject]@{}
+                foreach ($key in $Value.Keys) {
+                    $name = [string]$key; $n = 1
+                    while ($null -ne $object.PSObject.Properties[$name]) { $n++; $name = '{0}#{1}' -f $key, $n }
+                    $object | Add-Member -NotePropertyName $name -NotePropertyValue (ConvertTo-ScoutKeyPreservingObject $Value[$key])
+                }
+                return $object
+            }
+            if ($Value -is [System.Collections.IList]) {
+                return , @(foreach ($item in $Value) { ConvertTo-ScoutKeyPreservingObject $item })
+            }
+            return $Value
+        }
+        return (ConvertTo-ScoutKeyPreservingObject ($Json | ConvertFrom-Json -AsHashtable -ErrorAction Stop))
     }
 
     function Get-ScoutOperationalParallelGet {

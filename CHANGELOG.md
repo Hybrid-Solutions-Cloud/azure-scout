@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.18.3] - 2026-11-23 - faster security reads and provider check
+
+### Fixed
+
+- **The policy-state speed-up in 3.18.2 never ran.** It checked that `Get-AzPolicyState` was a
+  compiled cmdlet, so it could skip test stand-ins, but Az.PolicyInsights 2.x ships it as a
+  generated function, so on a real install it always skipped itself. It now accepts the
+  Az.PolicyInsights function as well. Verified live: 9 of 9 subscriptions read in 8.5 s.
+- **Four resources lost their provider detail to "keys with different casing".** Azure returns
+  some network resources (NICs, NSGs, public IPs, NAT gateways) with two keys that differ only in
+  case, and `ConvertFrom-Json` rejects the whole document. It is now parsed with every key kept;
+  a key that collides case-insensitively is kept as `<name>#2`.
+- **A NIC on a stopped VM raised two warnings.** Azure answers
+  `NicMustBeAttachedToRunningVm...` for effective routes and rules while the VM is deallocated.
+  That is the VM's state: it is now recorded as not applicable, without a warning.
+
+### Changed
+
+- **`-CheckResourceProviders` reads only what it needs, concurrently.** One full provider listing
+  per subscription, one subscription after another, held a 42-subscription tenant for 4 m 45 s
+  before collection started: the listing is 6.4 MB and takes about 10 s to answer. The check
+  needs ten namespaces, and one namespace answers in about half a second, so it now reads exactly
+  those, 16 at a time, with the subscription named in the path (no context switch). Live: 367 s
+  to 75 s on 42 subscriptions, the same 226 "not registered" notes.
+- **The rest of the security and policy sweep runs concurrently.** Alerts, pricing, secure score
+  and controls, regulatory standards and subscription diagnostic settings were read one
+  subscription after another after a context switch (about 11 s per subscription, 4.3 s of it
+  diagnostic settings). Each now runs 8 at a time against the subscription's own cached Az context
+  (`-DefaultProfile`), without touching the session's context; a subscription whose datasets all
+  came back skips its context switch too. Anything that fails is read by the ordinary pass. Live
+  A/B on nine subscriptions: 158 s to 108 s, all 99 subscription datasets identical.
+
 ## [3.18.2] - 2026-11-23 - a menu without the pause, one log for every run
 
 ### Fixed

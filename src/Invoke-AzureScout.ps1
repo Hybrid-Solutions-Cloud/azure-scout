@@ -991,6 +991,62 @@ Function Invoke-AzureScout {
         # One listing per subscription instead of one call per provider. Asking for each of the ten
         # namespaces separately took about six seconds apiece on a live tenant: a minute per
         # subscription, nine minutes for nine, before collection even started.
+        #
+        # Even one listing per subscription, one subscription after another, took 4 m 45 s on a
+        # 42-subscription tenant: the full provider list is 6.4 MB and takes about 10 s to answer.
+        # Only these ten namespaces are needed, and one namespace answers in about half a second,
+        # so read exactly those (GET /subscriptions/{id}/providers/{namespace}) 16 at a time, then
+        # print the notes in subscription order exactly as before. A namespace the subscription
+        # does not know (404) counts as not registered, as an absent entry in the full list did.
+        # The subscription is named in the path, so no context switch is needed. Falls back to
+        # the sequential loop when the Az REST cmdlet is a stand-in (tests) or this cannot run.
+        $providerStatesBySubscription = @{}
+        $restCommand = Get-Command Invoke-AzRestMethod -ErrorAction SilentlyContinue
+        if ($null -ne $restCommand -and $restCommand.CommandType -eq 'Cmdlet' -and @($Subscriptions).Count -gt 1) {
+            try {
+                $providerTimer = [System.Diagnostics.Stopwatch]::StartNew()
+                $providerWork = foreach ($sub in @($Subscriptions)) { foreach ($provider in $criticalProviders) { [pscustomobject]@{ Id = [string]$sub.Id; Provider = $provider } } }
+                $providerWork | ForEach-Object -ThrottleLimit 16 -Parallel {
+                    $item = $_
+                    try {
+                        $response = Invoke-AzRestMethod -Path "/subscriptions/$($item.Id)/providers/$($item.Provider)?api-version=2021-04-01" -Method GET -ErrorAction Stop
+                        $status = [int]$response.StatusCode
+                        if ($status -eq 404) { [pscustomobject]@{ Id = $item.Id; Provider = $item.Provider; State = 'NotRegistered'; Error = '' } }
+                        elseif ($status -lt 200 -or $status -ge 300) { [pscustomobject]@{ Id = $item.Id; Provider = $item.Provider; State = $null; Error = "HTTP $status" } }
+                        else { [pscustomobject]@{ Id = $item.Id; Provider = $item.Provider; State = [string](($response.Content | ConvertFrom-Json).registrationState); Error = '' } }
+                    }
+                    catch { [pscustomobject]@{ Id = $item.Id; Provider = $item.Provider; State = $null; Error = [string]$_.Exception.Message } }
+                } | ForEach-Object {
+                    if (-not $providerStatesBySubscription.ContainsKey($_.Id)) { $providerStatesBySubscription[$_.Id] = [pscustomobject]@{ States = @{}; Error = '' } }
+                    if ($_.Error) { $providerStatesBySubscription[$_.Id].Error = $_.Error }
+                    else { $providerStatesBySubscription[$_.Id].States[$_.Provider] = $_.State }
+                }
+                Write-Debug ('Resource provider check read {0} subscription(s) concurrently in {1} ms.' -f $providerStatesBySubscription.Count, $providerTimer.ElapsedMilliseconds)
+            }
+            catch {
+                Write-Debug ('Concurrent resource provider check unavailable, using the sequential check: ' + $_.Exception.Message)
+                $providerStatesBySubscription = @{}
+            }
+        }
+        if ($providerStatesBySubscription.Count -gt 0) {
+            foreach ($sub in @($Subscriptions)) {
+                $result = $providerStatesBySubscription[[string]$sub.Id]
+                if ($null -eq $result -or $result.Error) {
+                    $reason = if ($null -eq $result) { 'no answer' } else { $result.Error }
+                    Write-Host "  [INFO] [$($sub.Name)] resource provider registration could not be read: $reason" -ForegroundColor DarkGray
+                    continue
+                }
+                foreach ($provider in $criticalProviders) {
+                    # Azure returns provider namespaces in their canonical casing; compare without it.
+                    $match = @($result.States.Keys | Where-Object { $_ -ieq $provider } | Select-Object -First 1)
+                    $state = if ($match.Count -gt 0) { $result.States[$match[0]] } else { 'NotRegistered' }
+                    if ($state -ne 'Registered') {
+                        Write-Host "  [INFO] [$($sub.Name)] $provider is not registered — modules for this service will be skipped (this is expected if you don't use this service)." -ForegroundColor DarkGray
+                    }
+                }
+            }
+        }
+        else {
         Invoke-AZSCInSubscriptionContext -Subscription $Subscriptions -Process {
             param($sub)
             $providerStates = @{}
@@ -1014,6 +1070,7 @@ Function Invoke-AzureScout {
                     Write-Host "  [INFO] [$($sub.Name)] $provider is not registered — modules for this service will be skipped (this is expected if you don't use this service)." -ForegroundColor DarkGray
                 }
             }
+        }
         }
         Write-Host ''
     }

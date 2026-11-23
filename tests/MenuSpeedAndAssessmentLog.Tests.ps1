@@ -241,6 +241,15 @@ Describe 'Assessment collect names the tenant''s subscriptions' {
     }
 }
 
+Describe 'Policy-state prefetch recognises the real Az command' {
+    It 'accepts Get-AzPolicyState as an Az.PolicyInsights function, not only as a compiled cmdlet' {
+        # 3.18.2 accepted a cmdlet only. Az.PolicyInsights 2.x ships Get-AzPolicyState as a
+        # generated function, so on a real install the prefetch skipped itself every run.
+        $source = Get-Content -Raw (Join-Path $script:ModuleRoot 'src/collect/Get-ScoutSubscriptionSecurityPolicySweep.ps1')
+        $source | Should -Match "CommandType -eq 'Function' -and \[string\]\`$policyCommand\.ModuleName -eq 'Az\.PolicyInsights'"
+    }
+}
+
 Describe 'Combined runs collect once' {
     It 'reads the External Identities policy from the inventory copy without calling Graph' {
         & $script:Module {

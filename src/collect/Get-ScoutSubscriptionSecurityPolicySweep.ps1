@@ -140,7 +140,15 @@ function Get-ScoutSubscriptionSecurityPolicySweep {
     }
 
     function Invoke-ScoutDefenderPricingDataset {
-        param([Parameter(Mandatory)][string] $SubscriptionName)
+        param(
+            [Parameter(Mandatory)][string] $SubscriptionName,
+            # Rows the concurrent prefetch already read without any error.
+            [AllowNull()] $Prefetched
+        )
+
+        if ($null -ne $Prefetched) {
+            return [pscustomobject]@{ Data = @($Prefetched); Status = 'Success'; Error = $null }
+        }
 
         # Az.Security emits an error when Microsoft.Security is unregistered. Run this known
         # optional read with a quiet error variable so the expected provider state does not leak
@@ -470,8 +478,17 @@ function Get-ScoutSubscriptionSecurityPolicySweep {
         $prefetched = @{}
         if (@($SubscriptionIds).Count -lt 2) { return $prefetched }
         $policyCommand = Get-Command Get-AzPolicyState -ErrorAction SilentlyContinue
-        # A stub or mock stands in for the cmdlet in tests: every call must go through it.
-        if ($null -eq $policyCommand -or $policyCommand.CommandType -ne 'Cmdlet') { return $prefetched }
+        # A stub or mock stands in for the cmdlet in tests: every call must go through it. The real
+        # command is a compiled cmdlet in older Az.PolicyInsights and a generated FUNCTION in 2.x,
+        # so accept either as long as it comes from Az.PolicyInsights. (3.18.2 checked for a
+        # cmdlet only, so on Az.PolicyInsights 2.0 the prefetch silently never ran.)
+        $isRealPolicyCommand = $null -ne $policyCommand -and (
+            $policyCommand.CommandType -eq 'Cmdlet' -or
+            ($policyCommand.CommandType -eq 'Function' -and [string]$policyCommand.ModuleName -eq 'Az.PolicyInsights'))
+        if (-not $isRealPolicyCommand) {
+            Write-Verbose 'Get-ScoutSubscriptionSecurityPolicySweep: policy-state prefetch skipped, Get-AzPolicyState is not the Az.PolicyInsights command (a test stand-in); every subscription is read in the per-subscription pass.'
+            return $prefetched
+        }
         $timer = [System.Diagnostics.Stopwatch]::StartNew()
         try {
             $SubscriptionIds | ForEach-Object -ThrottleLimit 8 -Parallel {
@@ -489,6 +506,80 @@ function Get-ScoutSubscriptionSecurityPolicySweep {
         Write-Verbose ('Get-ScoutSubscriptionSecurityPolicySweep: policy-state prefetch read {0} of {1} subscription(s) in {2} ms' -f $prefetched.Count, @($SubscriptionIds).Count, $timer.ElapsedMilliseconds)
         return $prefetched
     }
+
+    function Get-ScoutSweepCallPrefetch {
+        <#
+            The rest of the per-subscription reads (alerts, pricing, secure score and controls,
+            regulatory standards, subscription diagnostic settings) used to run strictly one
+            subscription after another, each after a Set-AzContext switch: about 11 s per
+            subscription on a live tenant, most of it Get-AzDiagnosticSetting (4.3 s each).
+            Each read here runs concurrently (8 at a time) against that subscription's own cached
+            Az context passed as -DefaultProfile, so the session's context never changes. On nine
+            live subscriptions all 54 results serialised identical to the serial loop, 104 s ->
+            47 s. Only clean successes are kept; anything else is read by the ordinary
+            per-subscription pass, which owns retries, provider/tier classification, the alerts
+            REST fallback and health.
+        #>
+        param([object[]]$Entries)
+        $prefetched = @{}
+        if (@($Entries).Count -lt 2) { return $prefetched }
+        $securityCommand = Get-Command Get-AzSecurityPricing -ErrorAction SilentlyContinue
+        if ($null -eq $securityCommand -or $securityCommand.CommandType -ne 'Cmdlet') {
+            Write-Verbose 'Get-ScoutSubscriptionSecurityPolicySweep: per-subscription prefetch skipped, Az.Security is not loaded as its real cmdlets (a test stand-in).'
+            return $prefetched
+        }
+        $cached = @(Get-AzContext -ListAvailable -ErrorAction SilentlyContinue)
+        $work = [System.Collections.Generic.List[object]]::new()
+        foreach ($entry in $Entries) {
+            $context = $cached | Where-Object {
+                $null -ne $_.Subscription -and [string]$_.Subscription.Id -eq $entry.Id -and
+                (-not $entry.TenantId -or [string]$_.Tenant.Id -eq $entry.TenantId) -and
+                ($null -eq $originalContext -or $null -eq $originalContext.Account -or [string]$_.Account.Id -eq [string]$originalContext.Account.Id)
+            } | Select-Object -First 1
+            if ($null -eq $context) { continue }
+            foreach ($dataset in @('DefenderAlerts', 'DefenderPricing', 'DefenderSecureScores', 'DefenderSecureScoreControls', 'DefenderRegulatoryStandards', 'SubscriptionDiagnosticSettings')) {
+                $work.Add([pscustomobject]@{ SubscriptionId = $entry.Id; Dataset = $dataset; Context = $context })
+            }
+        }
+        if ($work.Count -eq 0) { return $prefetched }
+        $timer = [System.Diagnostics.Stopwatch]::StartNew()
+        try {
+            $work | ForEach-Object -ThrottleLimit 8 -Parallel {
+                $item = $_
+                $azProfile = $item.Context
+                $readErrors = @()
+                try {
+                    $rows = switch ($item.Dataset) {
+                        'DefenderAlerts'                 { @(Get-AzSecurityAlert -DefaultProfile $azProfile -ErrorAction Stop -WarningAction SilentlyContinue) }
+                        'DefenderPricing'                { @(Get-AzSecurityPricing -DefaultProfile $azProfile -ErrorAction SilentlyContinue -ErrorVariable +readErrors -WarningAction SilentlyContinue) }
+                        'DefenderSecureScores'           { @(Get-AzSecuritySecureScore -DefaultProfile $azProfile -ErrorAction Stop -WarningAction SilentlyContinue) }
+                        'DefenderSecureScoreControls'    { @(Get-AzSecuritySecureScoreControl -DefaultProfile $azProfile -ErrorAction Stop -WarningAction SilentlyContinue) }
+                        'DefenderRegulatoryStandards'    { @(Get-AzRegulatoryComplianceStandard -DefaultProfile $azProfile -ErrorAction Stop -WarningAction SilentlyContinue) }
+                        # Scoped by -ResourceId; Az.Monitor ignores -DefaultProfile and says so.
+                        'SubscriptionDiagnosticSettings' { @(Get-AzDiagnosticSetting -ResourceId "/subscriptions/$($item.SubscriptionId)" -ErrorAction Stop -WarningAction SilentlyContinue) }
+                    }
+                    if (@($readErrors).Count -gt 0) { [pscustomobject]@{ Key = "$($item.SubscriptionId)|$($item.Dataset)"; Ok = $false; Rows = @() } }
+                    else { [pscustomobject]@{ Key = "$($item.SubscriptionId)|$($item.Dataset)"; Ok = $true; Rows = @($rows) } }
+                }
+                catch { [pscustomobject]@{ Key = "$($item.SubscriptionId)|$($item.Dataset)"; Ok = $false; Rows = @() } }
+            } | ForEach-Object { if ($_.Ok) { $prefetched[[string]$_.Key] = @($_.Rows) } }
+        }
+        catch { Write-Verbose "Get-ScoutSubscriptionSecurityPolicySweep: per-subscription prefetch unavailable: $($_.Exception.Message)" }
+        Write-Verbose ('Get-ScoutSubscriptionSecurityPolicySweep: per-subscription prefetch read {0} of {1} dataset(s) in {2} ms' -f $prefetched.Count, $work.Count, $timer.ElapsedMilliseconds)
+        return $prefetched
+    }
+
+    $prefetchedCalls = Get-ScoutSweepCallPrefetch -Entries @(foreach ($candidate in $Subscriptions) {
+            $candidateId = if ($null -ne $candidate) { $candidate.PSObject.Properties['id'] } else { $null }
+            if ($null -eq $candidateId -or [string]::IsNullOrWhiteSpace([string]$candidateId.Value)) { continue }
+            $candidateTenant = $candidate.PSObject.Properties['tenantId']
+            [pscustomobject]@{
+                Id       = [string]$candidateId.Value
+                TenantId = if ($null -ne $candidateTenant -and -not [string]::IsNullOrWhiteSpace([string]$candidateTenant.Value)) { [string]$candidateTenant.Value }
+                           elseif ($null -ne $originalContext -and $null -ne $originalContext.PSObject.Properties['Tenant'] -and $null -ne $originalContext.Tenant) { [string]$originalContext.Tenant.Id }
+                           else { '' }
+            }
+        })
 
     $prefetchedPolicyStates = Get-ScoutPolicyStatePrefetch -SubscriptionIds @(foreach ($candidate in $Subscriptions) {
             $candidateId = if ($null -ne $candidate) { $candidate.PSObject.Properties['id'] } else { $null }
@@ -551,10 +642,18 @@ function Get-ScoutSubscriptionSecurityPolicySweep {
             $statuses = [ordered]@{}
             $collectionErrors = [System.Collections.Generic.List[object]]::new()
 
+            # Every dataset for this subscription already read by the concurrent prefetches: no
+            # live call follows, so the one-second context switch is skipped as well.
+            $hasScores = $prefetchedCalls.ContainsKey("$subscriptionId|DefenderSecureScores") -and @($prefetchedCalls["$subscriptionId|DefenderSecureScores"]).Count -gt 0
+            $allPrefetched = $prefetchedAssessments.ContainsKey($subscriptionId) -and $prefetchedPolicyStates.ContainsKey($subscriptionId) -and
+                @('DefenderAlerts', 'DefenderPricing', 'DefenderSecureScores', 'DefenderRegulatoryStandards', 'SubscriptionDiagnosticSettings' | Where-Object { -not $prefetchedCalls.ContainsKey("$subscriptionId|$_") }).Count -eq 0 -and
+                (-not $hasScores -or $prefetchedCalls.ContainsKey("$subscriptionId|DefenderSecureScoreControls"))
             try {
-                $contextParams = @{ Subscription = $subscriptionId; ErrorAction = 'Stop' }
-                if ($subscriptionTenantId) { $contextParams['Tenant'] = $subscriptionTenantId }
-                Set-AzContext @contextParams | Out-Null
+                if (-not $allPrefetched) {
+                    $contextParams = @{ Subscription = $subscriptionId; ErrorAction = 'Stop' }
+                    if ($subscriptionTenantId) { $contextParams['Tenant'] = $subscriptionTenantId }
+                    Set-AzContext @contextParams | Out-Null
+                }
             }
             catch {
                 $message = $_.Exception.Message
@@ -595,7 +694,10 @@ function Get-ScoutSubscriptionSecurityPolicySweep {
                 -SubscriptionName $subscriptionName `
                 -MaxAttempts 3 `
                 -ProviderRegistrationIsUnavailable `
-                -Operation { Get-ScoutDefenderAlerts -SubscriptionId $subscriptionId }
+                -Operation {
+                    if ($prefetchedCalls.ContainsKey("$subscriptionId|DefenderAlerts")) { @($prefetchedCalls["$subscriptionId|DefenderAlerts"]) }
+                    else { Get-ScoutDefenderAlerts -SubscriptionId $subscriptionId }
+                }
 
             $queries.DefenderAssessments = Invoke-ScoutSweepDataset `
                 -Dataset 'DefenderAssessments' `
@@ -611,18 +713,25 @@ function Get-ScoutSubscriptionSecurityPolicySweep {
                     else { Get-ScoutDefenderAssessments -SubscriptionId $subscriptionId }
                 }
 
-            $queries.DefenderPricing = Invoke-ScoutDefenderPricingDataset -SubscriptionName $subscriptionName
+            $queries.DefenderPricing = Invoke-ScoutDefenderPricingDataset -SubscriptionName $subscriptionName `
+                -Prefetched $(if ($prefetchedCalls.ContainsKey("$subscriptionId|DefenderPricing")) { , @($prefetchedCalls["$subscriptionId|DefenderPricing"]) } else { $null })
 
             $queries.DefenderSecureScores = Invoke-ScoutSweepDataset `
                 -Dataset 'DefenderSecureScores' `
                 -SubscriptionName $subscriptionName `
-                -Operation { Get-AzSecuritySecureScore -ErrorAction Stop }
+                -Operation {
+                    if ($prefetchedCalls.ContainsKey("$subscriptionId|DefenderSecureScores")) { @($prefetchedCalls["$subscriptionId|DefenderSecureScores"]) }
+                    else { Get-AzSecuritySecureScore -ErrorAction Stop }
+                }
 
             if (@($queries.DefenderSecureScores.Data).Count -gt 0) {
                 $queries.DefenderSecureScoreControls = Invoke-ScoutSweepDataset `
                     -Dataset 'DefenderSecureScoreControls' `
                     -SubscriptionName $subscriptionName `
-                    -Operation { Get-AzSecuritySecureScoreControl -ErrorAction Stop }
+                    -Operation {
+                        if ($prefetchedCalls.ContainsKey("$subscriptionId|DefenderSecureScoreControls")) { @($prefetchedCalls["$subscriptionId|DefenderSecureScoreControls"]) }
+                        else { Get-AzSecuritySecureScoreControl -ErrorAction Stop }
+                    }
             }
             else {
                 $queries.DefenderSecureScoreControls = [pscustomobject]@{
@@ -633,14 +742,18 @@ function Get-ScoutSubscriptionSecurityPolicySweep {
             }
 
             $queries.DefenderRegulatoryStandards = Invoke-ScoutSweepDataset -Dataset 'DefenderRegulatoryStandards' -SubscriptionName $subscriptionName -ProviderRegistrationIsUnavailable -Operation {
-                Get-AzRegulatoryComplianceStandard -ErrorAction Stop
+                if ($prefetchedCalls.ContainsKey("$subscriptionId|DefenderRegulatoryStandards")) { @($prefetchedCalls["$subscriptionId|DefenderRegulatoryStandards"]) }
+                else { Get-AzRegulatoryComplianceStandard -ErrorAction Stop }
             }
 
             $resourceId = "/subscriptions/$subscriptionId"
             $queries.SubscriptionDiagnosticSettings = Invoke-ScoutSweepDataset `
                 -Dataset 'SubscriptionDiagnosticSettings' `
                 -SubscriptionName $subscriptionName `
-                -Operation { Get-AzDiagnosticSetting -ResourceId $resourceId -ErrorAction Stop }
+                -Operation {
+                    if ($prefetchedCalls.ContainsKey("$subscriptionId|SubscriptionDiagnosticSettings")) { @($prefetchedCalls["$subscriptionId|SubscriptionDiagnosticSettings"]) }
+                    else { Get-AzDiagnosticSetting -ResourceId $resourceId -ErrorAction Stop }
+                }
 
             $queries.PolicyComplianceStates = Invoke-ScoutSweepDataset `
                 -Dataset 'PolicyComplianceStates' `

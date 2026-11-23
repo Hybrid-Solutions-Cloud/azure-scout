@@ -359,6 +359,58 @@ Describe 'Get-ScoutOperationalCollectorEnrichment' {
         $costHealth[0].Reason | Should -Match '^Not applicable: the billing account'
     }
 
+    It 'records a NIC on a stopped VM as not applicable without a warning' {
+        # Live run 2026-11-23: Azure answers 400 NicMustBeAttachedToRunningVm... for a NIC whose VM
+        # is deallocated; that is the VM's state, not a failed read.
+        $nic = [pscustomobject]@{
+            id = '/subscriptions/sub-1/resourceGroups/rg/providers/Microsoft.Network/networkInterfaces/nic-stopped'
+            type = 'microsoft.network/networkinterfaces'; name = 'nic-stopped'; subscriptionId = 'sub-1'; resourceGroup = 'rg'
+            properties = @{ virtualMachine = @{ id = '/subscriptions/sub-1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm-off' } }
+        }
+        $health = [System.Collections.Generic.List[object]]::new()
+        function global:Invoke-AzRestMethod {
+            param($Path,$Uri,$Method,$Payload,$ErrorAction) $null=$Uri,$Method,$Payload,$ErrorAction
+            if ($Path -match '/effective') {
+                return [pscustomobject]@{ StatusCode=400; Content='{"error":{"code":"NicMustBeAttachedToRunningVmToGetEffectiveRoutes","message":"A network interface must be attached to a running virtual machine."}}' }
+            }
+            [pscustomobject]@{StatusCode=200;Content='{"value":[]}' }
+        }
+        $rows = @(Get-ScoutOperationalCollectorEnrichment -Resources @($nic) -Subscriptions @() -CollectionHealth $health -WarningVariable Warnings)
+        @($Warnings).Count | Should -Be 0
+        $envelope = @($rows | Where-Object type -eq 'AZSC/Operational/NetworkInterface')[0]
+        $envelope.properties.EffectiveRouteTable.__AZSCStatus | Should -Be 'NotApplicable'
+        $envelope.properties.EffectiveNetworkSecurityGroups.__AZSCStatus | Should -Be 'NotApplicable'
+        @($health | Where-Object Status -eq 'NotAssessed').Count | Should -Be 2
+        @($health | Where-Object Status -ne 'NotAssessed').Count | Should -Be 0
+    }
+
+    It 'keeps a provider detail whose JSON has keys that differ only in case' {
+        # Live run 2026-11-23: four network resources were lost with "keys with different casing".
+        $widget = [pscustomobject]@{
+            id = '/subscriptions/sub-1/resourceGroups/rg/providers/Microsoft.Contoso/widgets/widget-1'
+            type = 'microsoft.contoso/widgets'; name = 'widget-1'; subscriptionId = 'sub-1'; resourceGroup = 'rg'
+        }
+        $health = [System.Collections.Generic.List[object]]::new()
+        function global:Invoke-AzRestMethod {
+            param($Path,$Uri,$Method,$Payload,$ErrorAction) $null=$Uri,$Method,$Payload,$ErrorAction
+            if ($Path -match '/providers/Microsoft\.Contoso\?') {
+                return [pscustomobject]@{ StatusCode=200; Content='{"resourceTypes":[{"resourceType":"widgets","apiVersions":["2025-06-01"]}]}' }
+            }
+            if ($Path -match '/widgets/widget-1\?') {
+                return [pscustomobject]@{ StatusCode=200; Content='{"id":"widget-1","properties":{"provisioningState":"Succeeded","ProvisioningState":"Succeeded","tags":{"Env":"a","env":"b"}}}' }
+            }
+            [pscustomobject]@{ StatusCode=200; Content='{"value":[]}' }
+        }
+        $rows = @(Get-ScoutOperationalCollectorEnrichment -Resources @($widget) -Subscriptions @() -IncludeProviderResourceDetails -CollectionHealth $health -WarningVariable Warnings)
+        @($Warnings).Count | Should -Be 0
+        $payload = ($rows | Where-Object type -eq 'AZSC/ProviderDetail').properties.Payload
+        $payload.PSObject.Properties['__AZSCError'] | Should -BeNullOrEmpty
+        $payload.properties.provisioningState | Should -Be 'Succeeded'
+        $payload.properties.'ProvisioningState#2' | Should -Be 'Succeeded'
+        @($payload.properties.tags.PSObject.Properties.Name) | Should -Be @('Env', 'env#2')
+        @($health | Where-Object SourceDataset -eq 'ProviderDetails.Resource').Count | Should -Be 0
+    }
+
     It 'retries a 429 with backoff and eventually succeeds instead of failing immediately' {
         $script:AttemptCount = 0
         function global:Invoke-AzRestMethod {
