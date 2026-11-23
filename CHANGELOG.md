@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **The management-group probe took over a minute and miscounted.** The permission pre-check read
+  the tenant-root hierarchy with `-Expand -Recurse` (65 s on a live tenant) and got one object back,
+  the root with its tree nested inside, so "Management groups : N visible" always said 1. It now
+  reads the root alone (the same access test, about a second) and counts the flat descendants list
+  (about a second): live, 65 s to 1.4 s, and 10 groups reported instead of 1.
+- **Sub-resource reads never retried.** One dropped connection ("An error occurred while sending
+  the request") lost a storage account's blob containers and marked the run Partial. A transport
+  error, a throttle (429) or a 5xx answer is now retried twice before it counts as a failure.
+
+### Changed
+
+- **The cost step says what it is doing.** It was 2 m 34 s of silence in a 42-subscription run
+  log. Each subscription's query now logs its row count and time. It stays one subscription at a
+  time: Cost Management is rate-limited per tenant, and querying four at once was tried live and was
+  slower and returned empty rows for 13 of 42 subscriptions.
+
 ## [3.18.3] - 2026-11-23 - faster security reads and provider check
 
 ### Fixed

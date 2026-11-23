@@ -342,8 +342,32 @@ Describe 'Test-AZSCManagementGroupAccess — post-login probe (AB#351)' {
         $result.Count | Should -Be 0
         $result.FailureKind | Should -Be 'Unavailable'
         $result.ErrorMessage | Should -Match 'tenant-1.*no data'
+        # The root alone is the access probe now; -Expand -Recurse took 65 s live and counted 1.
         Should -Invoke Get-AzManagementGroup -Times 1 -Exactly -ParameterFilter {
-            $GroupId -eq 'tenant-1' -and $Expand -and $Recurse
+            $GroupId -eq 'tenant-1' -and -not $Expand -and -not $Recurse
         }
+    }
+
+    It 'counts the root plus every descendant management group' {
+        Mock Get-AzManagementGroup { [pscustomobject]@{ Name = 'tenant-1' } }
+        function Invoke-AzRestMethod {
+            param($Path, $Method, $ErrorAction)
+            $null = $Method, $ErrorAction
+            if ($Path -match '/descendants\?') {
+                return [pscustomobject]@{ StatusCode = 200; Content = (@{ value = @(
+                                @{ type = 'Microsoft.Management/managementGroups'; name = 'platform' }
+                                @{ type = 'Microsoft.Management/managementGroups'; name = 'landing-zones' }
+                                @{ type = '/subscriptions'; name = 'sub-1' }
+                            ) } | ConvertTo-Json -Depth 4) }
+            }
+            throw "unexpected path $Path"
+        }
+        try {
+            $result = Test-AZSCManagementGroupAccess -TenantID 'tenant-1'
+            $result.HasAccess | Should -BeTrue
+            $result.Count | Should -Be 3
+            $result.Message | Should -Be 'Management groups : 3 visible'
+        }
+        finally { Remove-Item Function:\Invoke-AzRestMethod -ErrorAction SilentlyContinue }
     }
 }

@@ -40,12 +40,17 @@ function Test-AZSCManagementGroupAccess {
         {
             Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Probing management group access.')
 
+            # The tenant-root probe used `-Expand -Recurse`, which builds the whole hierarchy: 65 s
+            # on a live tenant before collection could start. It also returned ONE object (the root,
+            # with the tree nested inside it), so the "N visible" count always said 1. Reading the
+            # root alone proves the same access in about a second; the flat descendants list
+            # (same permission, about a second) gives the real number of management groups.
             $ManagementGroups = @(
                 if ([string]::IsNullOrWhiteSpace($TenantID)) {
                     Get-AzManagementGroup -ErrorAction Stop
                 }
                 else {
-                    Get-AzManagementGroup -GroupId $TenantID -Expand -Recurse -ErrorAction Stop
+                    Get-AzManagementGroup -GroupId $TenantID -ErrorAction Stop
                 }
             )
 
@@ -59,10 +64,30 @@ function Test-AZSCManagementGroupAccess {
                 }
             }
 
+            $visibleCount = $ManagementGroups.Count
+            if (-not [string]::IsNullOrWhiteSpace($TenantID) -and (Get-Command Invoke-AzRestMethod -ErrorAction SilentlyContinue)) {
+                try {
+                    $descendantGroups = 0
+                    $path = "/providers/Microsoft.Management/managementGroups/$TenantID/descendants?api-version=2020-05-01"
+                    while (-not [string]::IsNullOrWhiteSpace($path)) {
+                        $response = Invoke-AzRestMethod -Path $path -Method GET -ErrorAction Stop
+                        if ($null -eq $response -or [int]$response.StatusCode -ne 200) { throw "HTTP $($response.StatusCode)" }
+                        $page = $response.Content | ConvertFrom-Json
+                        $descendantGroups += @($page.value | Where-Object { [string]$_.type -match '(?i)/managementGroups$' }).Count
+                        $path = if ($page.PSObject.Properties['nextLink'] -and $page.nextLink) { [string]$page.nextLink -replace '^https://[^/]+', '' } else { $null }
+                    }
+                    $visibleCount = 1 + $descendantGroups
+                }
+                catch {
+                    # The count is informational; the root read above already proved access.
+                    Write-Debug ((get-date -Format 'yyyy-MM-dd_HH_mm_ss')+' - '+'Management group descendant count unavailable: '+$_.Exception.Message)
+                }
+            }
+
             return [PSCustomObject]@{
                 HasAccess = $true
-                Count     = $ManagementGroups.Count
-                Message   = 'Management groups : ' + $ManagementGroups.Count + ' visible'
+                Count     = $visibleCount
+                Message   = 'Management groups : ' + $visibleCount + ' visible'
                 FailureKind = $null
                 ErrorMessage = $null
             }

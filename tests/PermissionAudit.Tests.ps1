@@ -381,8 +381,10 @@ Describe 'Invoke-AZSCPermissionAudit — Entra audit survives null/scalar Graph 
         $detail = @($result.ArmDetails | Where-Object Check -eq 'ARM: Root Management Group Access')[0]
 
         $detail.Status | Should -Be 'Pass'
+        # The root alone proves the access; -Expand -Recurse built the whole tree (65 s live) and
+        # returned a single object, so it neither proved more nor counted correctly.
         Should -Invoke Get-AzManagementGroup -Times 1 -Scope It -ParameterFilter {
-            $GroupId -eq '22222222-2222-2222-2222-222222222222' -and $Expand -and $Recurse
+            $GroupId -eq '22222222-2222-2222-2222-222222222222' -and -not $Expand -and -not $Recurse
         }
     }
 

@@ -305,7 +305,28 @@ function Get-ScoutArmChildResource {
                 else {
                     $RestParameters['Path'] = $CurrentPath
                 }
-                $Response = Invoke-ScoutDiagnosticOperation -Operation { Invoke-AzRestMethod @RestParameters }
+                # Retry a transient answer twice. There was no retry here at all: one dropped
+                # connection ("An error occurred while sending the request", live 2026-11-23) lost
+                # a storage account's containers and marked the run Partial.
+                $Response = $null
+                for ($transportAttempt = 1; $transportAttempt -le 3; $transportAttempt++) {
+                    try {
+                        $Response = Invoke-ScoutDiagnosticOperation -Operation { Invoke-AzRestMethod @RestParameters }
+                        $transientStatus = if ($null -ne $Response -and $Response.PSObject.Properties['StatusCode']) { [int]$Response.StatusCode } else { 0 }
+                        if ($transportAttempt -lt 3 -and $transientStatus -in @(429, 500, 502, 503, 504)) {
+                            Start-Sleep -Milliseconds (500 * $transportAttempt)
+                            continue
+                        }
+                        break
+                    }
+                    catch {
+                        if ($transportAttempt -lt 3 -and [string]$_.Exception.Message -match '(?i)error occurred while sending the request|timed out|TaskCanceled|operation was canceled|connection (was )?(closed|reset|aborted)|No such host is known') {
+                            Start-Sleep -Milliseconds (500 * $transportAttempt)
+                            continue
+                        }
+                        throw
+                    }
+                }
                 if ($null -eq $Response) { throw 'ARM returned no response.' }
 
                 $Status = $Response.PSObject.Properties['StatusCode']
