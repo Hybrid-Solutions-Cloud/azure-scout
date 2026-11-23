@@ -338,24 +338,7 @@ function Start-AZSCWizard {
             }
             catch { $latestCollect = $null }
 
-            $collectObject = $null
-            if ($latestCollect) {
-                try { $collectObject = Get-Content -LiteralPath $latestCollect.FullName -Raw | ConvertFrom-Json }
-                catch { $collectObject = $null }
-            }
-
-            $assessmentNames = @($assessmentNames | Where-Object {
-                $entry = $assessmentManifest[$_]
-                if ($null -eq $entry -or -not $entry.ContainsKey('RequiresData')) { return $true }
-                if ($null -eq $collectObject) { return $false }
-                foreach ($path in @($entry.RequiresData)) {
-                    # Not wrapped in @() — Resolve-JsonPath returns via Write-Output -NoEnumerate,
-                    # so @() would count the wrapper and every gate would read as satisfied.
-                    try { $rows = Resolve-JsonPath -InputObject $collectObject -Path $path; if ($null -ne $rows -and $rows.Count -gt 0) { return $true } }
-                    catch { Write-Debug ((Get-Date -Format 'yyyy-MM-dd_HH_mm_ss') + " - RequiresData path '$path' could not be resolved: " + $_.Exception.Message) }
-                }
-                return $false
-            })
+            $assessmentNames = @(Select-AZSCWizardDataGatedAssessment -Names $assessmentNames -Manifest $assessmentManifest -CollectPath $(if ($latestCollect) { $latestCollect.FullName }))
         }
         # AB#7188 — presentation only. The 40+ entry flat menu mixed three naming
         # generations with no visible structure; group by source framework instead.
@@ -524,6 +507,48 @@ function Read-AZSCWizardChoice {
             return $Items[$n - 1].Value
         }
         Write-Host "   Enter a number between 1 and $($Items.Count)." -ForegroundColor Yellow
+    }
+}
+
+<#
+.SYNOPSIS
+    Keep the assessments whose RequiresData gate is met by the newest collect.json.
+
+.DESCRIPTION
+    An assessment that declares RequiresData is offered only when one of its JSONPath gates finds
+    rows in the newest collect.json on this machine (AB#6832). With no file, gated entries stay
+    hidden. Ungated entries are always kept.
+
+    The file is parsed ONCE, straight into a Newtonsoft token, and every gate queries that token.
+    This used to ConvertFrom-Json the file and then call Resolve-JsonPath once per gate, and
+    Resolve-JsonPath converts its input back to JSON text and re-parses it on every call without a
+    shared query context. On a 28 MB collect.json each gate cost about 5 seconds and the eight gates
+    in the registry cost about 40 seconds: the pause operators saw after the "Optional report and
+    enrichment features" checklist, before the assessment list appeared.
+#>
+function Select-AZSCWizardDataGatedAssessment {
+    param(
+        [string[]] $Names,
+        [hashtable] $Manifest,
+        [AllowNull()] [AllowEmptyString()] [string] $CollectPath
+    )
+
+    $token = $null
+    if (-not [string]::IsNullOrWhiteSpace($CollectPath) -and (Test-Path -LiteralPath $CollectPath -PathType Leaf)) {
+        try { $token = [Newtonsoft.Json.Linq.JToken]::Parse([System.IO.File]::ReadAllText($CollectPath)) }
+        catch { Write-Verbose "Select-AZSCWizardDataGatedAssessment: could not parse '$CollectPath'; data-gated assessments stay hidden: $($_.Exception.Message)" }
+    }
+
+    foreach ($name in @($Names)) {
+        $entry = $Manifest[$name]
+        if ($null -eq $entry -or $entry -isnot [hashtable] -or -not $entry.ContainsKey('RequiresData')) { $name; continue }
+        if ($null -eq $token) { continue }
+        foreach ($path in @($entry.RequiresData)) {
+            try {
+                if (@($token.SelectTokens($path, $false)).Count -gt 0) { $name; break }
+            }
+            catch { Write-Debug "RequiresData path '$path' could not be resolved: $($_.Exception.Message)" }
+        }
     }
 }
 

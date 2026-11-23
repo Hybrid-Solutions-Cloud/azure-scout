@@ -760,14 +760,43 @@ Function Invoke-AzureScout {
             $standaloneAssessmentOperation = {
                 Invoke-ScoutAssessmentCore @assessArgs
             }
-            if (Get-Command Invoke-ScoutProgressOperation -ErrorAction SilentlyContinue) {
-                $standaloneRunPath = Invoke-ScoutProgressOperation -Activity 'Azure assessment' `
-                    -Status 'Collecting, scoring, and rendering' -PercentComplete 1 -Id 1 `
-                    -Operation $standaloneAssessmentOperation
+            # An assessment-only run used to write no run log at all: the only Start-AZSCRunLog
+            # call is on the inventory path further down, which this branch returns before
+            # reaching. A multi-tenant child (always given -ReportDir = its attempt folder) left
+            # that folder empty for the whole collection, so an operator watching a slow or stuck
+            # tenant had nothing to read. Start the same log here, in the folder the assessment
+            # writes under, before any Azure call.
+            # Without -ReportDir the assessment core writes under its own default, './output'.
+            $standaloneLogDir = if ($ReportDir) { $ReportDir } else { './output' }
+            $standaloneLogContext = Get-AzContext -ErrorAction SilentlyContinue
+            Start-AZSCRunLog -DefaultPath $standaloneLogDir -NoTranscript:$Automation -Metadata @{
+                'Module'      = (Get-Module -Name 'AzureScout' | Select-Object -First 1).Version
+                'PowerShell'  = ('{0} ({1})' -f $PSVersionTable.PSVersion, $PSVersionTable.PSEdition)
+                'OS'          = [System.Runtime.InteropServices.RuntimeInformation]::OSDescription
+                'Account'     = if ($standaloneLogContext -and $standaloneLogContext.Account) { $standaloneLogContext.Account.Id } else { '<unknown>' }
+                'Tenant'      = $TenantID
+                'Mode'        = 'Assessment only'
+                'Assessments' = @($assessArgs.Assessment)
+                'Scope'       = $Scope
+                'RunFolder'   = $standaloneLogDir
             }
-            else {
-                $standaloneRunPath = & $standaloneAssessmentOperation
+            Write-AZSCLogPhase 'Assessment-only run: collecting, scoring and rendering'
+            try {
+                if (Get-Command Invoke-ScoutProgressOperation -ErrorAction SilentlyContinue) {
+                    $standaloneRunPath = Invoke-ScoutProgressOperation -Activity 'Azure assessment' `
+                        -Status 'Collecting, scoring, and rendering' -PercentComplete 1 -Id 1 `
+                        -Operation $standaloneAssessmentOperation
+                }
+                else {
+                    $standaloneRunPath = & $standaloneAssessmentOperation
+                }
             }
+            catch {
+                Write-AZSCLogError -ErrorRecord $_
+                $null = Stop-AZSCRunLog -Status 'FAILED' -Quiet
+                throw
+            }
+            $null = Stop-AZSCRunLog -Status 'COMPLETED'
             # AB#7224 -- same discoverability pointer as the combined path below.
             if ($standaloneRunPath) {
                 $reactFile = Join-Path ([string]$standaloneRunPath) 'report-react.html'

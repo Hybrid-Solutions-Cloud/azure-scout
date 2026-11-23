@@ -449,6 +449,16 @@ function Invoke-AZSCMultiTenantRun {
             }
             finally {
                 $tenantStopwatch.Stop()
+                # Ctrl+C or a closed window stops the pipeline: neither the try nor the catch above
+                # finishes, only this block runs. The tenant used to stay 'Running' in
+                # run-summary.json and the overview for good (only a later -ResumeRun relabelled
+                # it), so a stopped run read as one still collecting. Say what happened instead.
+                if ($entry.Status -eq 'Running') {
+                    $entry.Status = 'Interrupted'
+                    $entry.Error = 'The run was stopped before this tenant finished (for example Ctrl+C or a closed window). Continue it with -ResumeRun.'
+                    $summary.Status = 'Interrupted'
+                    $summary.CompletedAt = (Get-Date).ToString('o')
+                }
                 $entry.Duration = $tenantStopwatch.Elapsed.ToString('dd\:hh\:mm\:ss\.fff')
                 $entry.CompletedAt = (Get-Date).ToString('o')
                 foreach ($field in @('Status','CompletedAt','Duration','ReactReport','Error')) { $attempt.$field = $entry.$field }
