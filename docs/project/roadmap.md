@@ -41,11 +41,15 @@ All collector definitions, source retirement, strict runtime contracts, and repo
 complete. The remaining release steps are package validation, broad test-suite completion, tag, and
 publication. Historical v2 entries below are retained as release history rather than current status.
 
-## Current Release — v3.18.8 — a throttle that outlasts Azure's own wait
+## Current Release — v3.18.9 — assessment-only counts what it assessed
+
+Version 3.18.9 follows the live five-tenant assessment-only test of 3.18.7 (33 minutes, all five tenants Completed). A multi-tenant assessment-only run reported "resources 0" for every tenant because the count was hard-coded. It is now the number of distinct resources the assessment collected (live: 879 in a 42-subscription tenant). The output guide now says what each format writes in each run mode: in an assessment-only run, Json is findings.json, because there is no inventory to write. See AB#9300.
+
+## Previous Release — v3.18.8 — a throttle that outlasts Azure's own wait
 
 Version 3.18.8 follows the live five-tenant test of 3.18.7 (81 minutes, four of five tenants Completed, one throttled cost read in the fifth). Cost Management can keep answering HTTP 429 while asking for only a few seconds' wait each time (live: 7, 9, 6 and 10 s, all honoured, and an Arc server cost was still lost after 2.4 minutes, the only gap in a five-tenant run). Azure's wait is now honoured on the first retry; after that a throttled request waits the longer of Azure's wait and a doubling back-off of 10, 20, 40 and 60 s, and a cost query gets six attempts. See AB#9300.
 
-## Previous Release — v3.18.7 — discovery without false failures
+## Earlier Release — v3.18.7 — discovery without false failures
 
 Version 3.18.7 follows the live five-tenant test of 3.18.6. The resources 3.18.6 discovers from the other Resource Graph tables (role assignments, Lighthouse delegations, maintenance assignments, connector resources and others) were also sent to the per-resource provider-detail read. Their Resource Graph row is already complete, and many have no per-resource read at the subscription scope. Live, 111 of these reads failed in a 42-subscription tenant and marked it Partial. Those rows now skip that read and are tagged with the table they came from. A provider that lists an API version before it is live in every region no longer loses the resource's detail: when Azure refuses the version and names the versions it supports there (live: storage accounts in East US), the read retries with the newest supported stable version. See AB#9300.
 

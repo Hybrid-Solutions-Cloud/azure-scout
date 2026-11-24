@@ -296,6 +296,34 @@ Describe 'Assessment-only runs write scout-run.log' {
         $text | Should -Match 'Scan/log execution COMPLETED'
     }
 
+    It 'reports the subscriptions and resources the assessment collected, not 0' {
+        $work = Join-Path $TestDrive 'assess-counts'
+        New-Item -ItemType Directory -Path $work -Force | Out-Null
+        $result = & $script:Module {
+            param($Work)
+            Mock Test-AZSCPS { 'Linux' }
+            Mock Test-AZSCInteractiveHost { $false }
+            Mock Connect-AZSCLoginSession { 'tenant-1' }
+            Mock Invoke-ScoutAssessmentCore {
+                $runPath = Join-Path $Work 'assessment-report'
+                New-Item -ItemType Directory -Path $runPath -Force | Out-Null
+                '<html></html>' | Set-Content (Join-Path $runPath 'report-react.html')
+                @'
+{ "subscriptions": [ { "id": "/subscriptions/s1" }, { "id": "/subscriptions/s2" } ],
+  "compute": { "vms": [ { "id": "/subscriptions/s1/resourceGroups/rg/providers/Microsoft.Compute/virtualMachines/vm1" },
+                        { "id": "/subscriptions/s1/resourceGroups/RG/providers/Microsoft.Compute/virtualMachines/VM1" } ] },
+  "networking": { "vnets": [ { "id": "/subscriptions/s2/resourceGroups/net/providers/Microsoft.Network/virtualNetworks/v1" } ] } }
+'@ | Set-Content (Join-Path $runPath 'collect.json')
+                return $runPath
+            }
+            Invoke-AzureScout -NoWizard -NoProgress -Assessment 'CAF: Azure Landing Zone' -ReportDir $Work -OutputFormat React -TenantID 'tenant-1' -NonInteractiveAuth -PassThru 6>$null
+        } $work
+
+        $result = @($result | Where-Object { $_ -and $_.PSObject.Properties['ResourceCount'] })[-1]
+        $result.SubscriptionCount | Should -Be 2
+        $result.ResourceCount | Should -Be 2
+    }
+
     It 'records the error and closes the log as FAILED when the assessment throws' {
         $work = Join-Path $TestDrive 'assess-fail'
         New-Item -ItemType Directory -Path $work -Force | Out-Null

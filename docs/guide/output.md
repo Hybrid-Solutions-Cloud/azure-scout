@@ -126,6 +126,12 @@ isolation has no lasting effect there — blob storage is the durable copy. See
 Inventory-only, assessment-only, and combined runs use the same live formats: `React`, `Json`,
 and `JsonEvidence`. `All` selects all three.
 
+| Format | Inventory-only and combined runs | Assessment-only runs |
+|--------|----------------------------------|----------------------|
+| `React` | `assessment-report/report-react.html` | `assessment-report/report-react.html` |
+| `Json` | `AzureScout_Report_<timestamp>.json` (the inventory) | `assessment-report/findings.json` (the scored findings; there is no inventory to write) |
+| `JsonEvidence` | `assessment-report/evidence.json` | `assessment-report/evidence.json` |
+
 The self-contained **React report** (`report-react.html`) carries inventory, evidence, and—when
 selected—assessment findings and the remediation plan. It exports to Markdown, JSON, CSV,
 PDF/Print, and standalone HTML from the page itself. Word, PDF, Excel, PowerPoint, Power BI,

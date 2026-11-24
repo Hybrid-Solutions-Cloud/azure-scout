@@ -25,7 +25,7 @@ collectors for retired services (MariaDB, MySQL single server, ISE, Maps Creator
 Health Insights, Playwright Testing). These resources are now discovered generically; dedicated
 collectors are the next piece of work. `docs/reference/service-coverage-gap.md` is out of date.
 
-**Live on the installed 3.18.7** (five tenants, 81.3 min, one `scout-run.log`, React, Json and JsonEvidence for every tenant): four tenants Completed with no gaps; the 42-subscription tenant Partial only for one Arc server cost query throttled past five honoured Azure waits, fixed in 3.18.8. 3.18.6 had marked every tenant Partial (114 provider-detail reads on discovery-table rows), fixed in 3.18.7.
+**Live on the installed 3.18.7** (five tenants, 81.3 min, one `scout-run.log`, React, Json and JsonEvidence for every tenant): four tenants Completed with no gaps; the 42-subscription tenant Partial only for one Arc server cost query throttled past five honoured Azure waits, fixed in 3.18.8. Assessment-only on the installed 3.18.7: five tenants Completed in 32.9 min, React + findings.json + evidence.json each, one log, 0 rule exceptions (every 'Unknown' rule is a rule set with no data or a 0-of-0 measure); the summary said 'resources 0', fixed in 3.18.9. 3.18.6 had marked every tenant Partial (114 provider-detail reads on discovery-table rows), fixed in 3.18.7.
 ## Session 2026-11-23 — fix, publish, retest loop (3.18.2 to 3.18.5)
 
 Operator rule for this work: fix, merge, publish, install, then test the **installed published**
