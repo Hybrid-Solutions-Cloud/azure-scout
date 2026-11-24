@@ -33,6 +33,22 @@ This page maps the `-Category` parameter values to Microsoft's official Azure po
 own manifest folder, `[ValidateSet]` entry and report heading. They are **not** aliases for
 anything — see the warning below.
 
+## Every discovered resource has a category
+
+A collector's category is its folder above. A resource that no collector reads is still discovered
+(see [Output](../guide/output.md#how-discovery-finds-everything-deployed)), and it is filed under the
+category of its resource provider namespace from `manifests/resource-categories.psd1`, which covers
+every namespace in Azure's provider catalogue. Where one namespace spans categories, a type-level
+entry decides (role assignments are Identity, managed disks are Storage, Update Manager patch results
+are Management, Logic Apps Standard workflows are Integration, firewall and WAF policies are Security).
+
+Each record in `ReportCache/Discovery.json` carries `Category` and `CategorySource` (`Collector`,
+`Type`, `Namespace`, or `Fallback` for a namespace Azure added after the map was last updated, filed
+under General and counted as uncategorized). The React report shows resources by category on the
+Discovery completeness page, and lists each category's resources without a collector on that
+category's page as **Other discovered resources**. The full namespace list is in
+[Resource Categories](resource-categories.md).
+
 ## Accepted Aliases
 
 The following long-form names (as shown in the Azure portal) are automatically normalized to their short equivalents. Matching is case-insensitive.

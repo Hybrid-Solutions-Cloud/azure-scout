@@ -152,7 +152,7 @@ See [Report tiers](../assessment/configuration.md#report-tiers) and
 | `AzureScout_Diagram_<timestamp>.drawio` | Draw.io | Network topology diagram (skip with `-SkipDiagram`) |
 | `scout-run.log` | Log | The run's one log — DEBUG/VERBOSE extraction and processing subphases, collector/rule/renderer status, row/evidence counts, timings, warnings, console output (`[CONSOLE]`), diagram messages (`[DIAGRAM]`), and full error detail on failure. Written by default without adding console noise. See [Troubleshooting](./troubleshooting.md#run-logs) |
 | `raw-inventory.json` | JSON | **Everything collected**, before any manifest decided what to display (see below) |
-| `ReportCache/Discovery.json` | JSON | One record per discovered resource, ARG/provider configuration, exposure evidence, generic ARM relationships, and detail status. Secret-valued fields are retained as present but their values are replaced with `[REDACTED]`. |
+| `ReportCache/Discovery.json` | JSON | One record per discovered resource, with its category, ARG/provider configuration, exposure evidence, generic ARM relationships, and detail status. Secret-valued fields are retained as present but their values are replaced with `[REDACTED]`. |
 | `collector-rowcounts.json` | JSON | What each collector produced, and why it produced nothing (see below) |
 | `collection-health.json` | JSON | Upstream dataset availability: Complete, Partial, Not assessed, or Unavailable |
 
@@ -200,6 +200,13 @@ when no collector knows its type:
    property Resource Graph returned, marked `GenericOnly`.
 
 A category-filtered run (`-Category`) reads only its own types and skips passes 1 and 2.
+
+Every discovered resource is also given one of the 18 categories: the category of the collector that
+reads it, otherwise the category of its resource provider namespace (see
+[Resource Categories](../reference/resource-categories.md)). `Discovery.json` records it on each
+resource as `Category` and `CategorySource`, and its `Summary` counts resources per category
+(`Categories`) and those with no mapped category (`Uncategorized`). In the React report each
+category's page lists its resources without a collector as **Other discovered resources**.
 
 The discovery ledger and supported report payloads recursively redact password, token, shared-key,
 private-key, connection-string, access-key, and secure parameter values. Their field names remain

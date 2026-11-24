@@ -18,10 +18,42 @@ function Import-ScoutReportInventory {
     )
 
     $datasets = [ordered]@{}
+    # Added after the collector datasets so each category lists its collectors first.
+    $otherDiscovered = [ordered]@{}
     foreach ($file in @(Get-ChildItem -LiteralPath $ReportCachePath -Filter '*.json' -File -ErrorAction Stop | Sort-Object Name)) {
         $cache = Get-Content -LiteralPath $file.FullName -Raw -ErrorAction Stop | ConvertFrom-Json -Depth 100 -ErrorAction Stop
         if ($file.BaseName -eq 'Discovery') {
             $Collect | Add-Member -NotePropertyName discovery -NotePropertyValue $cache -Force
+            # AB#9300: every discovered resource belongs to a category. Resources no collector reads
+            # are listed under their category too, so a category's inventory shows everything in it.
+            $uncollected = @($cache.PSObject.Properties['Resources'] | ForEach-Object { $_.Value } | ForEach-Object { $_ } | Where-Object {
+                    $null -ne $_ -and $_.PSObject.Properties['Category'] -and $_.PSObject.Properties['CategorySource'] -and [string]$_.CategorySource -ne 'Collector'
+                })
+            foreach ($group in @($uncollected | Group-Object { [string]$_.Category } | Sort-Object Name)) {
+                $read = { param($Row, [string] $Name) $p = $Row.PSObject.Properties[$Name]; if ($p) { $p.Value } else { $null } }
+                $rows = @($group.Group | Sort-Object { [string](& $read $_ 'Type') }, { [string](& $read $_ 'Name') } | ForEach-Object {
+                        [pscustomobject][ordered]@{
+                            Name             = & $read $_ 'Name'
+                            Type             = & $read $_ 'Type'
+                            'Subscription ID' = & $read $_ 'SubscriptionId'
+                            'Resource Group' = & $read $_ 'ResourceGroup'
+                            Location         = & $read $_ 'Location'
+                            Kind             = & $read $_ 'Kind'
+                            Properties       = & $read $_ 'PropertyCount'
+                            'Category From'  = & $read $_ 'CategorySource'
+                            id               = & $read $_ 'Id'
+                        }
+                    })
+                $otherDiscovered[('collected.{0}.OtherDiscoveredResources' -f $group.Name.ToLowerInvariant())] = [ordered]@{
+                    label = '{0} → Other discovered resources (no dedicated collector)' -f $group.Name
+                    count = $rows.Count
+                    countUnit = 'discovered resources'
+                    resourceCount = $rows.Count
+                    rows = $rows
+                    truncated = $null
+                    source = 'Discovery.json/Resources'
+                }
+            }
             continue
         }
         foreach ($property in $cache.PSObject.Properties) {
@@ -54,6 +86,7 @@ function Import-ScoutReportInventory {
             }
         }
     }
+    foreach ($key in $otherDiscovered.Keys) { $datasets[$key] = $otherDiscovered[$key] }
     if ((Test-Path -LiteralPath (Join-Path $ReportCachePath 'Identity.json')) -and
         (Get-Command Get-ScoutEntraQueryCatalog -ErrorAction SilentlyContinue)) {
         $requirements = @(Get-ScoutEntraQueryCatalog | ForEach-Object {
