@@ -41,11 +41,15 @@ All collector definitions, source retirement, strict runtime contracts, and repo
 complete. The remaining release steps are package validation, broad test-suite completion, tag, and
 publication. Historical v2 entries below are retained as release history rather than current status.
 
-## Current Release — v3.18.9 — assessment-only counts what it assessed
+## Current Release — v3.18.10 — collectors for what discovery found
+
+Version 3.18.10 follows the coverage review of 2026-11-24. Thirty new collectors read the settings of resources that discovery found but nothing read: Azure Local machines and Arc VM network interfaces, disks and security groups, custom locations, Arc VMware vCenters and inventory, Arc SCVMM servers and inventory, Arc SQL databases and availability groups, Kubernetes extensions, Arc run commands (never the script or its output), machine configuration compliance, Update Manager assignments, backup vaults and resource guards, Defender automations, standard assignments and multicloud connectors, network security perimeters, DNS private resolvers, forwarding rulesets and security policies, alert processing rules, partner monitors, managed images, compute galleries, restore point collections and Playwright Workspaces (342 collectors, up from 312). Live, they read 156 machine configuration assignments, 57 Defender standard assignments, 28 Arc SQL databases, 28 Update Manager assignments and 6 Azure Local machines from the test tenants. Seven retired services (MariaDB, MySQL single server, Integration Service Environment, Maps Creator, Azure API for FHIR, AI Health Insights, Playwright Testing) are now flagged as retired with their successor. See AB#9300.
+
+## Previous Release — v3.18.9 — assessment-only counts what it assessed
 
 Version 3.18.9 follows the live five-tenant assessment-only test of 3.18.7 (33 minutes, all five tenants Completed). A multi-tenant assessment-only run reported "resources 0" for every tenant because the count was hard-coded. It is now the number of distinct resources the assessment collected (live: 879 in a 42-subscription tenant). The output guide now says what each format writes in each run mode: in an assessment-only run, Json is findings.json, because there is no inventory to write. See AB#9300.
 
-## Previous Release — v3.18.8 — a throttle that outlasts Azure's own wait
+## Earlier Release — v3.18.8 — a throttle that outlasts Azure's own wait
 
 Version 3.18.8 follows the live five-tenant test of 3.18.7 (81 minutes, four of five tenants Completed, one throttled cost read in the fifth). Cost Management can keep answering HTTP 429 while asking for only a few seconds' wait each time (live: 7, 9, 6 and 10 s, all honoured, and an Arc server cost was still lost after 2.4 minutes, the only gap in a five-tenant run). Azure's wait is now honoured on the first retry; after that a throttled request waits the longer of Azure's wait and a doubling back-off of 10, 20, 40 and 60 s, and a cost query gets six attempts. See AB#9300.
 

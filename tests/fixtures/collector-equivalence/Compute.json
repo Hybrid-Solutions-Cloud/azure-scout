@@ -234,6 +234,42 @@
     {
       "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/Microsoft.AVS/privateClouds/vmware-t1f-1",
       "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/galleries/computegalleries-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/galleries/computegalleries-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/galleries/computegalleries-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/images/managedimages-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/images/managedimages-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/images/managedimages-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/restorepointcollections/restorepointcollections-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/restorepointcollections/restorepointcollections-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/restorepointcollections/restorepointcollections-t1f-1",
+      "ServiceID": "svc-2"
     }
   ],
   "unsupported": [
@@ -887,7 +923,7 @@
       "resources": [
         {
           "PROPERTIES": {
-            "lastStatusChange": "2026-01-15T10:30:00.0000000Z",
+            "lastStatusChange": "2026-01-15T10:30:00Z",
             "hostPoolId": "res-value",
             "agentVersion": "res-value",
             "osVersion": "res-value",
@@ -911,7 +947,7 @@
         },
         {
           "PROPERTIES": {
-            "lastStatusChange": "2026-01-15T10:30:00.0000000Z",
+            "lastStatusChange": "2026-01-15T10:30:00Z",
             "hostPoolId": "res-value",
             "agentVersion": "res-value",
             "osVersion": "res-value",
@@ -936,7 +972,7 @@
         },
         {
           "PROPERTIES": {
-            "lastStatusChange": "2026-01-15T10:30:00.0000000Z",
+            "lastStatusChange": "2026-01-15T10:30:00Z",
             "hostPoolId": "res-value",
             "agentVersion": "res-value",
             "osVersion": "res-value",
@@ -958,7 +994,7 @@
         },
         {
           "PROPERTIES": {
-            "lastStatusChange": "2026-01-15T10:30:00.0000000Z",
+            "lastStatusChange": "2026-01-15T10:30:00Z",
             "hostPoolId": "res-value",
             "agentVersion": "res-value",
             "osVersion": "res-value",
@@ -982,7 +1018,7 @@
         },
         {
           "PROPERTIES": {
-            "lastStatusChange": "2026-01-15T10:30:00.0000000Z",
+            "lastStatusChange": "2026-01-15T10:30:00Z",
             "hostPoolId": "res-value",
             "agentVersion": "res-value",
             "osVersion": "res-value",
@@ -1006,7 +1042,7 @@
         },
         {
           "PROPERTIES": {
-            "lastStatusChange": "2026-01-15T10:30:00.0000000Z",
+            "lastStatusChange": "2026-01-15T10:30:00Z",
             "hostPoolId": "res-value",
             "agentVersion": "res-value",
             "osVersion": "res-value",
@@ -1248,7 +1284,7 @@
         {
           "PROPERTIES": {
             "resourceId": "res-value",
-            "lastHeartBeat": "2026-01-15T10:30:00.0000000Z",
+            "lastHeartBeat": "2026-01-15T10:30:00Z",
             "status": "res-value",
             "agentVersion": "res-value",
             "osVersion": "res-value",
@@ -1270,7 +1306,7 @@
         {
           "PROPERTIES": {
             "resourceId": "res-value",
-            "lastHeartBeat": "2026-01-15T10:30:00.0000000Z",
+            "lastHeartBeat": "2026-01-15T10:30:00Z",
             "status": "res-value",
             "agentVersion": "res-value",
             "osVersion": "res-value",
@@ -1293,7 +1329,7 @@
         {
           "PROPERTIES": {
             "resourceId": "res-value",
-            "lastHeartBeat": "2026-01-15T10:30:00.0000000Z",
+            "lastHeartBeat": "2026-01-15T10:30:00Z",
             "status": "res-value",
             "agentVersion": "res-value",
             "osVersion": "res-value",
@@ -1313,7 +1349,7 @@
         {
           "PROPERTIES": {
             "resourceId": "res-value",
-            "lastHeartBeat": "2026-01-15T10:30:00.0000000Z",
+            "lastHeartBeat": "2026-01-15T10:30:00Z",
             "status": "res-value",
             "agentVersion": "res-value",
             "osVersion": "res-value",
@@ -1335,7 +1371,7 @@
         {
           "PROPERTIES": {
             "resourceId": "res-value",
-            "lastHeartBeat": "2026-01-15T10:30:00.0000000Z",
+            "lastHeartBeat": "2026-01-15T10:30:00Z",
             "status": "res-value",
             "agentVersion": "res-value",
             "osVersion": "res-value",
@@ -1357,7 +1393,7 @@
         {
           "PROPERTIES": {
             "resourceId": "res-value",
-            "lastHeartBeat": "2026-01-15T10:30:00.0000000Z",
+            "lastHeartBeat": "2026-01-15T10:30:00Z",
             "status": "res-value",
             "agentVersion": "res-value",
             "osVersion": "res-value",
@@ -1837,6 +1873,153 @@
         }
       ]
     },
+    "ComputeGalleries": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "description": "res-value",
+            "sharingProfile": {
+              "permissions": "res-value"
+            },
+            "softDeletePolicy": {
+              "isSoftDeleteEnabled": "res-value"
+            },
+            "identifier": {
+              "uniqueName": "res-value"
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/galleries/computegalleries-t1a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "computegalleries-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.compute/galleries"
+        },
+        {
+          "PROPERTIES": {
+            "description": "res-value",
+            "sharingProfile": {
+              "permissions": "res-value"
+            },
+            "softDeletePolicy": {
+              "isSoftDeleteEnabled": "res-value"
+            },
+            "identifier": {
+              "uniqueName": "res-value"
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/galleries/computegalleries-t1b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "computegalleries-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.compute/galleries"
+        },
+        {
+          "PROPERTIES": {
+            "description": "res-value",
+            "sharingProfile": {
+              "permissions": "res-value"
+            },
+            "softDeletePolicy": {
+              "isSoftDeleteEnabled": "res-value"
+            },
+            "identifier": {
+              "uniqueName": "res-value"
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/galleries/computegalleries-t1c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "computegalleries-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.compute/galleries"
+        },
+        {
+          "PROPERTIES": {
+            "description": "res-value",
+            "sharingProfile": {
+              "permissions": "res-value"
+            },
+            "softDeletePolicy": {
+              "isSoftDeleteEnabled": "res-value"
+            },
+            "identifier": {
+              "uniqueName": "res-value"
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.compute/galleries/computegalleries-t1d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "computegalleries-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.compute/galleries"
+        },
+        {
+          "PROPERTIES": {
+            "description": "res-value",
+            "sharingProfile": {
+              "permissions": "res-value"
+            },
+            "softDeletePolicy": {
+              "isSoftDeleteEnabled": "res-value"
+            },
+            "identifier": {
+              "uniqueName": "res-value"
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/galleries/computegalleries-t1e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "computegalleries-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.compute/galleries"
+        },
+        {
+          "PROPERTIES": {
+            "description": "res-value",
+            "sharingProfile": {
+              "permissions": "res-value"
+            },
+            "softDeletePolicy": {
+              "isSoftDeleteEnabled": "res-value"
+            },
+            "identifier": {
+              "uniqueName": "res-value"
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/galleries/computegalleries-t1f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "computegalleries-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.compute/galleries"
+        }
+      ]
+    },
     "DedicatedHostGroups": {
       "resources": [
         {
@@ -1969,6 +2152,189 @@
           "NAME": "dedicatedhostgroups-t1f",
           "LOCATION": "res-value",
           "TYPE": "microsoft.compute/hostgroups"
+        }
+      ]
+    },
+    "ManagedImages": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "sourceVirtualMachine": {
+              "id": "res-value"
+            },
+            "storageProfile": {
+              "osDisk": {
+                "osType": "res-value",
+                "osState": "res-value",
+                "diskSizeGB": "res-value",
+                "storageAccountType": "res-value"
+              },
+              "dataDisks": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "hyperVGeneration": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/images/managedimages-t1a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "managedimages-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.compute/images"
+        },
+        {
+          "PROPERTIES": {
+            "sourceVirtualMachine": {
+              "id": "res-value"
+            },
+            "storageProfile": {
+              "osDisk": {
+                "osType": "res-value",
+                "osState": "res-value",
+                "diskSizeGB": "res-value",
+                "storageAccountType": "res-value"
+              },
+              "dataDisks": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "hyperVGeneration": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/images/managedimages-t1b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "managedimages-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.compute/images"
+        },
+        {
+          "PROPERTIES": {
+            "sourceVirtualMachine": {
+              "id": "res-value"
+            },
+            "storageProfile": {
+              "osDisk": {
+                "osType": "res-value",
+                "osState": "res-value",
+                "diskSizeGB": "res-value",
+                "storageAccountType": "res-value"
+              },
+              "dataDisks": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "hyperVGeneration": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/images/managedimages-t1c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "managedimages-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.compute/images"
+        },
+        {
+          "PROPERTIES": {
+            "sourceVirtualMachine": {
+              "id": "res-value"
+            },
+            "storageProfile": {
+              "osDisk": {
+                "osType": "res-value",
+                "osState": "res-value",
+                "diskSizeGB": "res-value",
+                "storageAccountType": "res-value"
+              },
+              "dataDisks": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "hyperVGeneration": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.compute/images/managedimages-t1d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "managedimages-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.compute/images"
+        },
+        {
+          "PROPERTIES": {
+            "sourceVirtualMachine": {
+              "id": "res-value"
+            },
+            "storageProfile": {
+              "osDisk": {
+                "osType": "res-value",
+                "osState": "res-value",
+                "diskSizeGB": "res-value",
+                "storageAccountType": "res-value"
+              },
+              "dataDisks": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "hyperVGeneration": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/images/managedimages-t1e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "managedimages-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.compute/images"
+        },
+        {
+          "PROPERTIES": {
+            "sourceVirtualMachine": {
+              "id": "res-value"
+            },
+            "storageProfile": {
+              "osDisk": {
+                "osType": "res-value",
+                "osState": "res-value",
+                "diskSizeGB": "res-value",
+                "storageAccountType": "res-value"
+              },
+              "dataDisks": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "hyperVGeneration": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/images/managedimages-t1f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "managedimages-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.compute/images"
         }
       ]
     },
@@ -2242,6 +2608,117 @@
         }
       ]
     },
+    "RestorePointCollections": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "source": {
+              "id": "res-value",
+              "location": "res-value"
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/restorepointcollections/restorepointcollections-t1a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "restorepointcollections-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.compute/restorepointcollections"
+        },
+        {
+          "PROPERTIES": {
+            "source": {
+              "id": "res-value",
+              "location": "res-value"
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/restorepointcollections/restorepointcollections-t1b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "restorepointcollections-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.compute/restorepointcollections"
+        },
+        {
+          "PROPERTIES": {
+            "source": {
+              "id": "res-value",
+              "location": "res-value"
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/restorepointcollections/restorepointcollections-t1c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "restorepointcollections-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.compute/restorepointcollections"
+        },
+        {
+          "PROPERTIES": {
+            "source": {
+              "id": "res-value",
+              "location": "res-value"
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.compute/restorepointcollections/restorepointcollections-t1d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "restorepointcollections-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.compute/restorepointcollections"
+        },
+        {
+          "PROPERTIES": {
+            "source": {
+              "id": "res-value",
+              "location": "res-value"
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/restorepointcollections/restorepointcollections-t1e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "restorepointcollections-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.compute/restorepointcollections"
+        },
+        {
+          "PROPERTIES": {
+            "source": {
+              "id": "res-value",
+              "location": "res-value"
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/restorepointcollections/restorepointcollections-t1f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "restorepointcollections-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.compute/restorepointcollections"
+        }
+      ]
+    },
     "VirtualMachine": {
       "resources": [
         {
@@ -2307,7 +2784,7 @@
                 "id": "res-value"
               }
             },
-            "timeCreated": "2026-01-15T10:30:00.0000000Z",
+            "timeCreated": "2026-01-15T10:30:00Z",
             "licenseType": "res-value"
           },
           "tags": {
@@ -2465,7 +2942,7 @@
                 "id": "res-value"
               }
             },
-            "timeCreated": "2026-01-15T10:30:00.0000000Z",
+            "timeCreated": "2026-01-15T10:30:00Z",
             "licenseType": "res-value"
           },
           "tags": {
@@ -2624,7 +3101,7 @@
                 "id": "res-value"
               }
             },
-            "timeCreated": "2026-01-15T10:30:00.0000000Z",
+            "timeCreated": "2026-01-15T10:30:00Z",
             "licenseType": "res-value"
           },
           "tags": {},
@@ -2699,7 +3176,7 @@
                 "id": "res-value"
               }
             },
-            "timeCreated": "2026-01-15T10:30:00.0000000Z",
+            "timeCreated": "2026-01-15T10:30:00Z",
             "licenseType": "res-value"
           },
           "tags": {
@@ -2857,7 +3334,7 @@
                 "id": "res-value"
               }
             },
-            "timeCreated": "2026-01-15T10:30:00.0000000Z",
+            "timeCreated": "2026-01-15T10:30:00Z",
             "licenseType": "res-value"
           },
           "tags": {
@@ -3015,7 +3492,7 @@
                 "id": "res-value"
               }
             },
-            "timeCreated": "2026-01-15T10:30:00.0000000Z",
+            "timeCreated": "2026-01-15T10:30:00Z",
             "licenseType": "res-value"
           },
           "tags": {
@@ -3178,7 +3655,7 @@
               },
               "diagnosticsProfile": "res-value"
             },
-            "timeCreated": "2026-01-15T10:30:00.0000000Z",
+            "timeCreated": "2026-01-15T10:30:00Z",
             "platformFaultDomainCount": "res-value",
             "upgradePolicy": {
               "mode": "res-value"
@@ -3319,7 +3796,7 @@
               },
               "diagnosticsProfile": "res-value"
             },
-            "timeCreated": "2026-01-15T10:30:00.0000000Z",
+            "timeCreated": "2026-01-15T10:30:00Z",
             "platformFaultDomainCount": "res-value",
             "upgradePolicy": {
               "mode": "res-value"
@@ -3461,7 +3938,7 @@
               },
               "diagnosticsProfile": "res-value"
             },
-            "timeCreated": "2026-01-15T10:30:00.0000000Z",
+            "timeCreated": "2026-01-15T10:30:00Z",
             "platformFaultDomainCount": "res-value",
             "upgradePolicy": {
               "mode": "res-value"
@@ -3544,7 +4021,7 @@
               },
               "diagnosticsProfile": "res-value"
             },
-            "timeCreated": "2026-01-15T10:30:00.0000000Z",
+            "timeCreated": "2026-01-15T10:30:00Z",
             "platformFaultDomainCount": "res-value",
             "upgradePolicy": {
               "mode": "res-value"
@@ -3685,7 +4162,7 @@
               },
               "diagnosticsProfile": "res-value"
             },
-            "timeCreated": "2026-01-15T10:30:00.0000000Z",
+            "timeCreated": "2026-01-15T10:30:00Z",
             "platformFaultDomainCount": "res-value",
             "upgradePolicy": {
               "mode": "res-value"
@@ -3826,7 +4303,7 @@
               },
               "diagnosticsProfile": "res-value"
             },
-            "timeCreated": "2026-01-15T10:30:00.0000000Z",
+            "timeCreated": "2026-01-15T10:30:00Z",
             "platformFaultDomainCount": "res-value",
             "upgradePolicy": {
               "mode": "res-value"
@@ -3909,7 +4386,7 @@
       "resources": [
         {
           "PROPERTIES": {
-            "timeCreated": "2026-01-15T10:30:00.0000000Z",
+            "timeCreated": "2026-01-15T10:30:00Z",
             "supportsHibernation": "res-value",
             "diskState": "res-value",
             "diskSizeGB": "res-value",
@@ -3943,7 +4420,7 @@
         },
         {
           "PROPERTIES": {
-            "timeCreated": "2026-01-15T10:30:00.0000000Z",
+            "timeCreated": "2026-01-15T10:30:00Z",
             "supportsHibernation": "res-value",
             "diskState": "res-value",
             "diskSizeGB": "res-value",
@@ -3978,7 +4455,7 @@
         },
         {
           "PROPERTIES": {
-            "timeCreated": "2026-01-15T10:30:00.0000000Z",
+            "timeCreated": "2026-01-15T10:30:00Z",
             "supportsHibernation": "res-value",
             "diskState": "res-value",
             "diskSizeGB": "res-value",
@@ -4010,7 +4487,7 @@
         },
         {
           "PROPERTIES": {
-            "timeCreated": "2026-01-15T10:30:00.0000000Z",
+            "timeCreated": "2026-01-15T10:30:00Z",
             "supportsHibernation": "res-value",
             "diskState": "res-value",
             "diskSizeGB": "res-value",
@@ -4044,7 +4521,7 @@
         },
         {
           "PROPERTIES": {
-            "timeCreated": "2026-01-15T10:30:00.0000000Z",
+            "timeCreated": "2026-01-15T10:30:00Z",
             "supportsHibernation": "res-value",
             "diskState": "res-value",
             "diskSizeGB": "res-value",
@@ -4078,7 +4555,7 @@
         },
         {
           "PROPERTIES": {
-            "timeCreated": "2026-01-15T10:30:00.0000000Z",
+            "timeCreated": "2026-01-15T10:30:00Z",
             "supportsHibernation": "res-value",
             "diskState": "res-value",
             "diskSizeGB": "res-value",

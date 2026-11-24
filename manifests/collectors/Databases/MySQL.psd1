@@ -49,6 +49,8 @@ $ResUCount = 1
                 if(!$data.privateEndpointConnections){$PVTENDP = $false}else{$PVTENDP = (Get-AZSCIdSegment -Id $data.privateEndpointConnections.Id -Index 8)}
                 $sku = $1.SKU
                 $Tags = if(![string]::IsNullOrEmpty($1.tags.psobject.properties)){$1.tags.psobject.properties}else{'0'}
+                # AB#9300: a service Microsoft has retired drops out of the Advisor retirement feed, so say so here.
+                if (-not $RetiringFeature -and [string]$1.type -ieq 'microsoft.dbformysql/servers') { $RetiringFeature = 'Azure Database for MySQL single server (retired; move to flexible server)'; $RetiringDate = '2024-09-16' }
 '@
 
     AdditionalRowLoops = @()
@@ -227,4 +229,3 @@ $ResUCount = 1
 
     SourceCollector = 'Modules/Public/InventoryModules/Databases/MySQL.ps1'
 }
-

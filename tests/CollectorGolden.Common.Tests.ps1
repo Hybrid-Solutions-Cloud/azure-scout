@@ -72,7 +72,7 @@ Describe 'Collector golden fixture hashing' {
     It 'keeps the committed DevOps fixture identity after a CRLF checkout' {
         $FixturePath = Join-Path -Path $script:RepoRoot -ChildPath 'tests/fixtures/collector-equivalence/DevOps.json'
         $CrLfPath = Join-Path -Path $script:TempDir -ChildPath 'DevOps-crlf.json'
-        $ExpectedHash = '15ea3b37dc164eb395d5225a5a35231619190a77026731a196cde8b70c6301d7'
+        $ExpectedHash = 'fd16c4d4a575bfe288a0bd8eded7fc885220b2383b38f8fe9c3c768ed01a141a'   # DevOps fixture gained Playwright Workspaces (AB#9300, 3.18.10)
         $Content = [System.IO.File]::ReadAllText($FixturePath).Replace("`r`n", "`n").Replace("`r", "`n")
         [System.IO.File]::WriteAllText(
             $CrLfPath,

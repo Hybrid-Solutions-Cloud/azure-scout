@@ -378,6 +378,54 @@
     {
       "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/Billing/billingroles-t3f-1/SubscriptionCreationPermissions/billingroles-t3f-2",
       "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.dataprotection/resourceguards/backupresourceguards-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.dataprotection/resourceguards/backupresourceguards-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.dataprotection/resourceguards/backupresourceguards-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.dataprotection/backupvaults/backupvaults-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.dataprotection/backupvaults/backupvaults-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.dataprotection/backupvaults/backupvaults-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.guestconfiguration/guestconfigurationassignments/guestconfigurationassignments-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.guestconfiguration/guestconfigurationassignments/guestconfigurationassignments-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.guestconfiguration/guestconfigurationassignments/guestconfigurationassignments-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.maintenance/configurationassignments/updatemanagerassignments-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.maintenance/configurationassignments/updatemanagerassignments-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.maintenance/configurationassignments/updatemanagerassignments-t1f-1",
+      "ServiceID": "svc-2"
     }
   ],
   "unsupported": [
@@ -1682,6 +1730,426 @@
         }
       ]
     },
+    "BackupResourceGuards": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "resourceGuardOperations": {
+              "vaultCriticalOperation": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "vaultCriticalOperationExclusionList": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "allowAutoApprovals": "res-value",
+            "description": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.dataprotection/resourceguards/backupresourceguards-t1a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "backupresourceguards-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.dataprotection/resourceguards"
+        },
+        {
+          "PROPERTIES": {
+            "resourceGuardOperations": {
+              "vaultCriticalOperation": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "vaultCriticalOperationExclusionList": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "allowAutoApprovals": "res-value",
+            "description": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.dataprotection/resourceguards/backupresourceguards-t1b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "backupresourceguards-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.dataprotection/resourceguards"
+        },
+        {
+          "PROPERTIES": {
+            "resourceGuardOperations": {
+              "vaultCriticalOperation": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "vaultCriticalOperationExclusionList": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "allowAutoApprovals": "res-value",
+            "description": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.dataprotection/resourceguards/backupresourceguards-t1c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "backupresourceguards-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.dataprotection/resourceguards"
+        },
+        {
+          "PROPERTIES": {
+            "resourceGuardOperations": {
+              "vaultCriticalOperation": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "vaultCriticalOperationExclusionList": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "allowAutoApprovals": "res-value",
+            "description": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.dataprotection/resourceguards/backupresourceguards-t1d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "backupresourceguards-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.dataprotection/resourceguards"
+        },
+        {
+          "PROPERTIES": {
+            "resourceGuardOperations": {
+              "vaultCriticalOperation": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "vaultCriticalOperationExclusionList": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "allowAutoApprovals": "res-value",
+            "description": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.dataprotection/resourceguards/backupresourceguards-t1e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "backupresourceguards-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.dataprotection/resourceguards"
+        },
+        {
+          "PROPERTIES": {
+            "resourceGuardOperations": {
+              "vaultCriticalOperation": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "vaultCriticalOperationExclusionList": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "allowAutoApprovals": "res-value",
+            "description": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.dataprotection/resourceguards/backupresourceguards-t1f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "backupresourceguards-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.dataprotection/resourceguards"
+        }
+      ]
+    },
+    "BackupVaults": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "storageSettings": {
+              "type": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "securitySettings": {
+              "immutabilitySettings": {
+                "state": "res-value"
+              },
+              "softDeleteSettings": {
+                "state": "res-value",
+                "retentionDurationInDays": "res-value"
+              }
+            },
+            "featureSettings": {
+              "crossRegionRestoreSettings": {
+                "state": "res-value"
+              },
+              "crossSubscriptionRestoreSettings": {
+                "state": "res-value"
+              }
+            },
+            "monitoringSettings": {
+              "azureMonitorAlertSettings": {
+                "alertsForAllJobFailures": "res-value"
+              }
+            },
+            "isVaultProtectedByResourceGuard": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.dataprotection/backupvaults/backupvaults-t1a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "backupvaults-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.dataprotection/backupvaults"
+        },
+        {
+          "PROPERTIES": {
+            "storageSettings": {
+              "type": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "securitySettings": {
+              "immutabilitySettings": {
+                "state": "res-value"
+              },
+              "softDeleteSettings": {
+                "state": "res-value",
+                "retentionDurationInDays": "res-value"
+              }
+            },
+            "featureSettings": {
+              "crossRegionRestoreSettings": {
+                "state": "res-value"
+              },
+              "crossSubscriptionRestoreSettings": {
+                "state": "res-value"
+              }
+            },
+            "monitoringSettings": {
+              "azureMonitorAlertSettings": {
+                "alertsForAllJobFailures": "res-value"
+              }
+            },
+            "isVaultProtectedByResourceGuard": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.dataprotection/backupvaults/backupvaults-t1b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "backupvaults-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.dataprotection/backupvaults"
+        },
+        {
+          "PROPERTIES": {
+            "storageSettings": {
+              "type": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "securitySettings": {
+              "immutabilitySettings": {
+                "state": "res-value"
+              },
+              "softDeleteSettings": {
+                "state": "res-value",
+                "retentionDurationInDays": "res-value"
+              }
+            },
+            "featureSettings": {
+              "crossRegionRestoreSettings": {
+                "state": "res-value"
+              },
+              "crossSubscriptionRestoreSettings": {
+                "state": "res-value"
+              }
+            },
+            "monitoringSettings": {
+              "azureMonitorAlertSettings": {
+                "alertsForAllJobFailures": "res-value"
+              }
+            },
+            "isVaultProtectedByResourceGuard": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.dataprotection/backupvaults/backupvaults-t1c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "backupvaults-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.dataprotection/backupvaults"
+        },
+        {
+          "PROPERTIES": {
+            "storageSettings": {
+              "type": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "securitySettings": {
+              "immutabilitySettings": {
+                "state": "res-value"
+              },
+              "softDeleteSettings": {
+                "state": "res-value",
+                "retentionDurationInDays": "res-value"
+              }
+            },
+            "featureSettings": {
+              "crossRegionRestoreSettings": {
+                "state": "res-value"
+              },
+              "crossSubscriptionRestoreSettings": {
+                "state": "res-value"
+              }
+            },
+            "monitoringSettings": {
+              "azureMonitorAlertSettings": {
+                "alertsForAllJobFailures": "res-value"
+              }
+            },
+            "isVaultProtectedByResourceGuard": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.dataprotection/backupvaults/backupvaults-t1d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "backupvaults-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.dataprotection/backupvaults"
+        },
+        {
+          "PROPERTIES": {
+            "storageSettings": {
+              "type": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "securitySettings": {
+              "immutabilitySettings": {
+                "state": "res-value"
+              },
+              "softDeleteSettings": {
+                "state": "res-value",
+                "retentionDurationInDays": "res-value"
+              }
+            },
+            "featureSettings": {
+              "crossRegionRestoreSettings": {
+                "state": "res-value"
+              },
+              "crossSubscriptionRestoreSettings": {
+                "state": "res-value"
+              }
+            },
+            "monitoringSettings": {
+              "azureMonitorAlertSettings": {
+                "alertsForAllJobFailures": "res-value"
+              }
+            },
+            "isVaultProtectedByResourceGuard": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.dataprotection/backupvaults/backupvaults-t1e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "backupvaults-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.dataprotection/backupvaults"
+        },
+        {
+          "PROPERTIES": {
+            "storageSettings": {
+              "type": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "securitySettings": {
+              "immutabilitySettings": {
+                "state": "res-value"
+              },
+              "softDeleteSettings": {
+                "state": "res-value",
+                "retentionDurationInDays": "res-value"
+              }
+            },
+            "featureSettings": {
+              "crossRegionRestoreSettings": {
+                "state": "res-value"
+              },
+              "crossSubscriptionRestoreSettings": {
+                "state": "res-value"
+              }
+            },
+            "monitoringSettings": {
+              "azureMonitorAlertSettings": {
+                "alertsForAllJobFailures": "res-value"
+              }
+            },
+            "isVaultProtectedByResourceGuard": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.dataprotection/backupvaults/backupvaults-t1f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "backupvaults-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.dataprotection/backupvaults"
+        }
+      ]
+    },
     "BillingAccounts": {
       "resources": [
         {
@@ -1845,7 +2313,7 @@
                 "provisioningState": "res-value",
                 "status": "res-value",
                 "term": "res-value",
-                "expiryDateTime": "2026-01-15T10:30:00.0000000Z",
+                "expiryDateTime": "2026-01-15T10:30:00Z",
                 "billingScopeId": "res-value"
               },
               "id": "res-value",
@@ -1871,7 +2339,7 @@
                 "provisioningState": "res-value",
                 "status": "res-value",
                 "term": "res-value",
-                "expiryDateTime": "2026-01-15T10:30:00.0000000Z",
+                "expiryDateTime": "2026-01-15T10:30:00Z",
                 "billingScopeId": "res-value"
               },
               "id": "res-value",
@@ -1897,7 +2365,7 @@
                 "provisioningState": "res-value",
                 "status": "res-value",
                 "term": "res-value",
-                "expiryDateTime": "2026-01-15T10:30:00.0000000Z",
+                "expiryDateTime": "2026-01-15T10:30:00Z",
                 "billingScopeId": "res-value"
               },
               "id": "res-value",
@@ -1924,7 +2392,7 @@
                 "provisioningState": "res-value",
                 "status": "res-value",
                 "term": "res-value",
-                "expiryDateTime": "2026-01-15T10:30:00.0000000Z",
+                "expiryDateTime": "2026-01-15T10:30:00Z",
                 "billingScopeId": "res-value"
               },
               "id": "res-value",
@@ -1951,7 +2419,7 @@
                 "provisioningState": "res-value",
                 "status": "res-value",
                 "term": "res-value",
-                "expiryDateTime": "2026-01-15T10:30:00.0000000Z",
+                "expiryDateTime": "2026-01-15T10:30:00Z",
                 "billingScopeId": "res-value"
               },
               "id": "res-value",
@@ -1975,7 +2443,7 @@
                 "provisioningState": "res-value",
                 "status": "res-value",
                 "term": "res-value",
-                "expiryDateTime": "2026-01-15T10:30:00.0000000Z",
+                "expiryDateTime": "2026-01-15T10:30:00Z",
                 "billingScopeId": "res-value"
               },
               "id": "res-value",
@@ -1999,7 +2467,7 @@
                 "provisioningState": "res-value",
                 "status": "res-value",
                 "term": "res-value",
-                "expiryDateTime": "2026-01-15T10:30:00.0000000Z",
+                "expiryDateTime": "2026-01-15T10:30:00Z",
                 "billingScopeId": "res-value"
               },
               "id": "res-value",
@@ -2025,7 +2493,7 @@
                 "provisioningState": "res-value",
                 "status": "res-value",
                 "term": "res-value",
-                "expiryDateTime": "2026-01-15T10:30:00.0000000Z",
+                "expiryDateTime": "2026-01-15T10:30:00Z",
                 "billingScopeId": "res-value"
               },
               "id": "res-value",
@@ -2051,7 +2519,7 @@
                 "provisioningState": "res-value",
                 "status": "res-value",
                 "term": "res-value",
-                "expiryDateTime": "2026-01-15T10:30:00.0000000Z",
+                "expiryDateTime": "2026-01-15T10:30:00Z",
                 "billingScopeId": "res-value"
               },
               "id": "res-value",
@@ -2077,7 +2545,7 @@
                 "provisioningState": "res-value",
                 "status": "res-value",
                 "term": "res-value",
-                "expiryDateTime": "2026-01-15T10:30:00.0000000Z",
+                "expiryDateTime": "2026-01-15T10:30:00Z",
                 "billingScopeId": "res-value"
               },
               "id": "res-value",
@@ -2103,7 +2571,7 @@
                 "provisioningState": "res-value",
                 "status": "res-value",
                 "term": "res-value",
-                "expiryDateTime": "2026-01-15T10:30:00.0000000Z",
+                "expiryDateTime": "2026-01-15T10:30:00Z",
                 "billingScopeId": "res-value"
               },
               "id": "res-value",
@@ -2129,7 +2597,7 @@
                 "provisioningState": "res-value",
                 "status": "res-value",
                 "term": "res-value",
-                "expiryDateTime": "2026-01-15T10:30:00.0000000Z",
+                "expiryDateTime": "2026-01-15T10:30:00Z",
                 "billingScopeId": "res-value"
               },
               "id": "res-value",
@@ -3938,6 +4406,147 @@
           "NAME": "defendereasmworkspaces-t1f",
           "LOCATION": "res-value",
           "TYPE": "microsoft.easm/workspaces"
+        }
+      ]
+    },
+    "GuestConfigurationAssignments": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "targetResourceId": "res-value",
+            "policyAssignmentId": "res-value",
+            "guestConfiguration": {
+              "name": "res-value",
+              "assignmentType": "res-value",
+              "assignmentSource": "res-value",
+              "contentType": "res-value"
+            },
+            "complianceStatus": "res-value",
+            "lastComplianceStatusChecked": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.guestconfiguration/guestconfigurationassignments/guestconfigurationassignments-t1a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "guestconfigurationassignments-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.guestconfiguration/guestconfigurationassignments"
+        },
+        {
+          "PROPERTIES": {
+            "targetResourceId": "res-value",
+            "policyAssignmentId": "res-value",
+            "guestConfiguration": {
+              "name": "res-value",
+              "assignmentType": "res-value",
+              "assignmentSource": "res-value",
+              "contentType": "res-value"
+            },
+            "complianceStatus": "res-value",
+            "lastComplianceStatusChecked": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.guestconfiguration/guestconfigurationassignments/guestconfigurationassignments-t1b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "guestconfigurationassignments-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.guestconfiguration/guestconfigurationassignments"
+        },
+        {
+          "PROPERTIES": {
+            "targetResourceId": "res-value",
+            "policyAssignmentId": "res-value",
+            "guestConfiguration": {
+              "name": "res-value",
+              "assignmentType": "res-value",
+              "assignmentSource": "res-value",
+              "contentType": "res-value"
+            },
+            "complianceStatus": "res-value",
+            "lastComplianceStatusChecked": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.guestconfiguration/guestconfigurationassignments/guestconfigurationassignments-t1c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "guestconfigurationassignments-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.guestconfiguration/guestconfigurationassignments"
+        },
+        {
+          "PROPERTIES": {
+            "targetResourceId": "res-value",
+            "policyAssignmentId": "res-value",
+            "guestConfiguration": {
+              "name": "res-value",
+              "assignmentType": "res-value",
+              "assignmentSource": "res-value",
+              "contentType": "res-value"
+            },
+            "complianceStatus": "res-value",
+            "lastComplianceStatusChecked": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.guestconfiguration/guestconfigurationassignments/guestconfigurationassignments-t1d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "guestconfigurationassignments-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.guestconfiguration/guestconfigurationassignments"
+        },
+        {
+          "PROPERTIES": {
+            "targetResourceId": "res-value",
+            "policyAssignmentId": "res-value",
+            "guestConfiguration": {
+              "name": "res-value",
+              "assignmentType": "res-value",
+              "assignmentSource": "res-value",
+              "contentType": "res-value"
+            },
+            "complianceStatus": "res-value",
+            "lastComplianceStatusChecked": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.guestconfiguration/guestconfigurationassignments/guestconfigurationassignments-t1e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "guestconfigurationassignments-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.guestconfiguration/guestconfigurationassignments"
+        },
+        {
+          "PROPERTIES": {
+            "targetResourceId": "res-value",
+            "policyAssignmentId": "res-value",
+            "guestConfiguration": {
+              "name": "res-value",
+              "assignmentType": "res-value",
+              "assignmentSource": "res-value",
+              "contentType": "res-value"
+            },
+            "complianceStatus": "res-value",
+            "lastComplianceStatusChecked": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.guestconfiguration/guestconfigurationassignments/guestconfigurationassignments-t1f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "guestconfigurationassignments-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.guestconfiguration/guestconfigurationassignments"
         }
       ]
     },
@@ -6056,6 +6665,207 @@
           "NAME": "resourcemovercollections-t1f",
           "LOCATION": "res-value",
           "TYPE": "microsoft.migrate/movecollections"
+        }
+      ]
+    },
+    "UpdateManagerAssignments": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "filter": {
+              "resourceGroups": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "locations": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "osTypes": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "resourceTypes": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "resourceId": "res-value",
+            "maintenanceConfigurationId": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.maintenance/configurationassignments/updatemanagerassignments-t1a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "updatemanagerassignments-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.maintenance/configurationassignments"
+        },
+        {
+          "PROPERTIES": {
+            "filter": {
+              "resourceGroups": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "locations": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "osTypes": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "resourceTypes": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "resourceId": "res-value",
+            "maintenanceConfigurationId": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.maintenance/configurationassignments/updatemanagerassignments-t1b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "updatemanagerassignments-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.maintenance/configurationassignments"
+        },
+        {
+          "PROPERTIES": {
+            "filter": {
+              "resourceGroups": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "locations": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "osTypes": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "resourceTypes": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "resourceId": "res-value",
+            "maintenanceConfigurationId": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.maintenance/configurationassignments/updatemanagerassignments-t1c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "updatemanagerassignments-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.maintenance/configurationassignments"
+        },
+        {
+          "PROPERTIES": {
+            "filter": {
+              "resourceGroups": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "locations": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "osTypes": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "resourceTypes": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "resourceId": "res-value",
+            "maintenanceConfigurationId": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.maintenance/configurationassignments/updatemanagerassignments-t1d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "updatemanagerassignments-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.maintenance/configurationassignments"
+        },
+        {
+          "PROPERTIES": {
+            "filter": {
+              "resourceGroups": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "locations": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "osTypes": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "resourceTypes": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "resourceId": "res-value",
+            "maintenanceConfigurationId": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.maintenance/configurationassignments/updatemanagerassignments-t1e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "updatemanagerassignments-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.maintenance/configurationassignments"
+        },
+        {
+          "PROPERTIES": {
+            "filter": {
+              "resourceGroups": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "locations": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "osTypes": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "resourceTypes": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "resourceId": "res-value",
+            "maintenanceConfigurationId": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.maintenance/configurationassignments/updatemanagerassignments-t1f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "updatemanagerassignments-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.maintenance/configurationassignments"
         }
       ]
     }

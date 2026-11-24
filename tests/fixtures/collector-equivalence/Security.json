@@ -354,6 +354,42 @@
     {
       "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/sentinelingestion-t1f-1/SentinelIngestion/sentinelingestion-t1f-2",
       "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.security/automations/defenderautomations-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.security/automations/defenderautomations-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.security/automations/defenderautomations-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.security/securityconnectors/defendersecurityconnectors-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.security/securityconnectors/defendersecurityconnectors-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.security/securityconnectors/defendersecurityconnectors-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.security/standardassignments/defenderstandardassignments-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.security/standardassignments/defenderstandardassignments-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.security/standardassignments/defenderstandardassignments-t1f-1",
+      "ServiceID": "svc-2"
     }
   ],
   "unsupported": [
@@ -2310,6 +2346,195 @@
         }
       ]
     },
+    "DefenderAutomations": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "isEnabled": "res-value",
+            "sources": {
+              "eventSource": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "actions": {
+              "actionType": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "scopes": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "description": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.security/automations/defenderautomations-t1a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "defenderautomations-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.security/automations"
+        },
+        {
+          "PROPERTIES": {
+            "isEnabled": "res-value",
+            "sources": {
+              "eventSource": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "actions": {
+              "actionType": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "scopes": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "description": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.security/automations/defenderautomations-t1b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "defenderautomations-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.security/automations"
+        },
+        {
+          "PROPERTIES": {
+            "isEnabled": "res-value",
+            "sources": {
+              "eventSource": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "actions": {
+              "actionType": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "scopes": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "description": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.security/automations/defenderautomations-t1c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "defenderautomations-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.security/automations"
+        },
+        {
+          "PROPERTIES": {
+            "isEnabled": "res-value",
+            "sources": {
+              "eventSource": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "actions": {
+              "actionType": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "scopes": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "description": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.security/automations/defenderautomations-t1d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "defenderautomations-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.security/automations"
+        },
+        {
+          "PROPERTIES": {
+            "isEnabled": "res-value",
+            "sources": {
+              "eventSource": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "actions": {
+              "actionType": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "scopes": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "description": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.security/automations/defenderautomations-t1e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "defenderautomations-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.security/automations"
+        },
+        {
+          "PROPERTIES": {
+            "isEnabled": "res-value",
+            "sources": {
+              "eventSource": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "actions": {
+              "actionType": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "scopes": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "description": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.security/automations/defenderautomations-t1f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "defenderautomations-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.security/automations"
+        }
+      ]
+    },
     "DefenderPricing": {
       "resources": [
         {
@@ -3033,6 +3258,270 @@
           "tags": {
             "env": "prod"
           }
+        }
+      ]
+    },
+    "DefenderSecurityConnectors": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "environmentName": "res-value",
+            "environmentData": {
+              "environmentType": "res-value"
+            },
+            "hierarchyIdentifier": "res-value",
+            "offerings": {
+              "offeringType": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.security/securityconnectors/defendersecurityconnectors-t1a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "defendersecurityconnectors-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.security/securityconnectors"
+        },
+        {
+          "PROPERTIES": {
+            "environmentName": "res-value",
+            "environmentData": {
+              "environmentType": "res-value"
+            },
+            "hierarchyIdentifier": "res-value",
+            "offerings": {
+              "offeringType": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.security/securityconnectors/defendersecurityconnectors-t1b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "defendersecurityconnectors-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.security/securityconnectors"
+        },
+        {
+          "PROPERTIES": {
+            "environmentName": "res-value",
+            "environmentData": {
+              "environmentType": "res-value"
+            },
+            "hierarchyIdentifier": "res-value",
+            "offerings": {
+              "offeringType": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.security/securityconnectors/defendersecurityconnectors-t1c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "defendersecurityconnectors-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.security/securityconnectors"
+        },
+        {
+          "PROPERTIES": {
+            "environmentName": "res-value",
+            "environmentData": {
+              "environmentType": "res-value"
+            },
+            "hierarchyIdentifier": "res-value",
+            "offerings": {
+              "offeringType": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.security/securityconnectors/defendersecurityconnectors-t1d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "defendersecurityconnectors-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.security/securityconnectors"
+        },
+        {
+          "PROPERTIES": {
+            "environmentName": "res-value",
+            "environmentData": {
+              "environmentType": "res-value"
+            },
+            "hierarchyIdentifier": "res-value",
+            "offerings": {
+              "offeringType": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.security/securityconnectors/defendersecurityconnectors-t1e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "defendersecurityconnectors-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.security/securityconnectors"
+        },
+        {
+          "PROPERTIES": {
+            "environmentName": "res-value",
+            "environmentData": {
+              "environmentType": "res-value"
+            },
+            "hierarchyIdentifier": "res-value",
+            "offerings": {
+              "offeringType": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.security/securityconnectors/defendersecurityconnectors-t1f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "defendersecurityconnectors-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.security/securityconnectors"
+        }
+      ]
+    },
+    "DefenderStandardAssignments": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "assignedStandard": {
+              "id": "res-value"
+            },
+            "displayName": "res-value",
+            "effect": "res-value",
+            "description": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.security/standardassignments/defenderstandardassignments-t1a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "defenderstandardassignments-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.security/standardassignments"
+        },
+        {
+          "PROPERTIES": {
+            "assignedStandard": {
+              "id": "res-value"
+            },
+            "displayName": "res-value",
+            "effect": "res-value",
+            "description": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.security/standardassignments/defenderstandardassignments-t1b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "defenderstandardassignments-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.security/standardassignments"
+        },
+        {
+          "PROPERTIES": {
+            "assignedStandard": {
+              "id": "res-value"
+            },
+            "displayName": "res-value",
+            "effect": "res-value",
+            "description": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.security/standardassignments/defenderstandardassignments-t1c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "defenderstandardassignments-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.security/standardassignments"
+        },
+        {
+          "PROPERTIES": {
+            "assignedStandard": {
+              "id": "res-value"
+            },
+            "displayName": "res-value",
+            "effect": "res-value",
+            "description": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.security/standardassignments/defenderstandardassignments-t1d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "defenderstandardassignments-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.security/standardassignments"
+        },
+        {
+          "PROPERTIES": {
+            "assignedStandard": {
+              "id": "res-value"
+            },
+            "displayName": "res-value",
+            "effect": "res-value",
+            "description": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.security/standardassignments/defenderstandardassignments-t1e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "defenderstandardassignments-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.security/standardassignments"
+        },
+        {
+          "PROPERTIES": {
+            "assignedStandard": {
+              "id": "res-value"
+            },
+            "displayName": "res-value",
+            "effect": "res-value",
+            "description": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.security/standardassignments/defenderstandardassignments-t1f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "defenderstandardassignments-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.security/standardassignments"
         }
       ]
     },

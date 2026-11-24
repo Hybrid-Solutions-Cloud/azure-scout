@@ -342,6 +342,66 @@
     {
       "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/workspacetableretention-t1f-1/LAWorkspaceTables/workspacetableretention-t1f-2",
       "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.alertsmanagement/actionrules/alertprocessingrules-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.alertsmanagement/actionrules/alertprocessingrules-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.alertsmanagement/actionrules/alertprocessingrules-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.datadog/monitors/partnermonitors-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.elastic/monitors/partnermonitors-t2e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/dynatrace.observability/monitors/partnermonitors-t3e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/newrelic.observability/monitors/partnermonitors-t4e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.datadog/monitors/partnermonitors-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.datadog/monitors/partnermonitors-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.elastic/monitors/partnermonitors-t2f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.elastic/monitors/partnermonitors-t2f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/dynatrace.observability/monitors/partnermonitors-t3f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/dynatrace.observability/monitors/partnermonitors-t3f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/newrelic.observability/monitors/partnermonitors-t4f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/newrelic.observability/monitors/partnermonitors-t4f-1",
+      "ServiceID": "svc-2"
     }
   ],
   "unsupported": [
@@ -1128,6 +1188,243 @@
           "NAME": "activitylogalertrules-t1f",
           "LOCATION": "res-value",
           "TYPE": "microsoft.insights/activitylogalerts"
+        }
+      ]
+    },
+    "AlertProcessingRules": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "conditions": [
+              {
+                "field": "res-value",
+                "operator": "res-value"
+              },
+              {
+                "field": "res-value",
+                "operator": "res-value"
+              }
+            ],
+            "enabled": "res-value",
+            "actions": {
+              "actionType": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "actionGroupIds": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "scopes": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "description": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.alertsmanagement/actionrules/alertprocessingrules-t1a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "alertprocessingrules-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.alertsmanagement/actionrules"
+        },
+        {
+          "PROPERTIES": {
+            "conditions": [
+              {
+                "field": "res-value",
+                "operator": "res-value"
+              },
+              {
+                "field": "res-value",
+                "operator": "res-value"
+              }
+            ],
+            "enabled": "res-value",
+            "actions": {
+              "actionType": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "actionGroupIds": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "scopes": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "description": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.alertsmanagement/actionrules/alertprocessingrules-t1b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "alertprocessingrules-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.alertsmanagement/actionrules"
+        },
+        {
+          "PROPERTIES": {
+            "conditions": [
+              {
+                "field": "res-value",
+                "operator": "res-value"
+              },
+              {
+                "field": "res-value",
+                "operator": "res-value"
+              }
+            ],
+            "enabled": "res-value",
+            "actions": {
+              "actionType": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "actionGroupIds": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "scopes": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "description": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.alertsmanagement/actionrules/alertprocessingrules-t1c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "alertprocessingrules-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.alertsmanagement/actionrules"
+        },
+        {
+          "PROPERTIES": {
+            "conditions": [
+              {
+                "field": "res-value",
+                "operator": "res-value"
+              },
+              {
+                "field": "res-value",
+                "operator": "res-value"
+              }
+            ],
+            "enabled": "res-value",
+            "actions": {
+              "actionType": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "actionGroupIds": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "scopes": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "description": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.alertsmanagement/actionrules/alertprocessingrules-t1d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "alertprocessingrules-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.alertsmanagement/actionrules"
+        },
+        {
+          "PROPERTIES": {
+            "conditions": [
+              {
+                "field": "res-value",
+                "operator": "res-value"
+              },
+              {
+                "field": "res-value",
+                "operator": "res-value"
+              }
+            ],
+            "enabled": "res-value",
+            "actions": {
+              "actionType": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "actionGroupIds": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "scopes": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "description": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.alertsmanagement/actionrules/alertprocessingrules-t1e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "alertprocessingrules-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.alertsmanagement/actionrules"
+        },
+        {
+          "PROPERTIES": {
+            "conditions": [
+              {
+                "field": "res-value",
+                "operator": "res-value"
+              },
+              {
+                "field": "res-value",
+                "operator": "res-value"
+              }
+            ],
+            "enabled": "res-value",
+            "actions": {
+              "actionType": [
+                "res-item-0",
+                "res-item-1"
+              ],
+              "actionGroupIds": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "scopes": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "description": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.alertsmanagement/actionrules/alertprocessingrules-t1f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "alertprocessingrules-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.alertsmanagement/actionrules"
         }
       ]
     },
@@ -4713,6 +5010,414 @@
           "tags": {
             "env": "prod"
           }
+        }
+      ]
+    },
+    "PartnerMonitors": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "marketplaceSubscriptionStatus": "res-value",
+            "saaSAzureSubscriptionStatus": "res-value",
+            "monitoringStatus": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "TYPE": "microsoft.datadog/monitors",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.datadog/monitors/partnermonitors-t1a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "partnermonitors-t1a",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "marketplaceSubscriptionStatus": "res-value",
+            "saaSAzureSubscriptionStatus": "res-value",
+            "monitoringStatus": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "TYPE": "microsoft.elastic/monitors",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.elastic/monitors/partnermonitors-t2a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "partnermonitors-t2a",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "marketplaceSubscriptionStatus": "res-value",
+            "saaSAzureSubscriptionStatus": "res-value",
+            "monitoringStatus": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "TYPE": "dynatrace.observability/monitors",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/dynatrace.observability/monitors/partnermonitors-t3a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "partnermonitors-t3a",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "marketplaceSubscriptionStatus": "res-value",
+            "saaSAzureSubscriptionStatus": "res-value",
+            "monitoringStatus": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "TYPE": "newrelic.observability/monitors",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/newrelic.observability/monitors/partnermonitors-t4a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "partnermonitors-t4a",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "marketplaceSubscriptionStatus": "res-value",
+            "saaSAzureSubscriptionStatus": "res-value",
+            "monitoringStatus": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "TYPE": "microsoft.datadog/monitors",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.datadog/monitors/partnermonitors-t1b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "partnermonitors-t1b",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "marketplaceSubscriptionStatus": "res-value",
+            "saaSAzureSubscriptionStatus": "res-value",
+            "monitoringStatus": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "TYPE": "microsoft.elastic/monitors",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.elastic/monitors/partnermonitors-t2b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "partnermonitors-t2b",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "marketplaceSubscriptionStatus": "res-value",
+            "saaSAzureSubscriptionStatus": "res-value",
+            "monitoringStatus": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "TYPE": "dynatrace.observability/monitors",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/dynatrace.observability/monitors/partnermonitors-t3b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "partnermonitors-t3b",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "marketplaceSubscriptionStatus": "res-value",
+            "saaSAzureSubscriptionStatus": "res-value",
+            "monitoringStatus": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "TYPE": "newrelic.observability/monitors",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/newrelic.observability/monitors/partnermonitors-t4b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "partnermonitors-t4b",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "marketplaceSubscriptionStatus": "res-value",
+            "saaSAzureSubscriptionStatus": "res-value",
+            "monitoringStatus": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "TYPE": "microsoft.datadog/monitors",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.datadog/monitors/partnermonitors-t1c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "partnermonitors-t1c",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "marketplaceSubscriptionStatus": "res-value",
+            "saaSAzureSubscriptionStatus": "res-value",
+            "monitoringStatus": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "TYPE": "microsoft.elastic/monitors",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.elastic/monitors/partnermonitors-t2c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "partnermonitors-t2c",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "marketplaceSubscriptionStatus": "res-value",
+            "saaSAzureSubscriptionStatus": "res-value",
+            "monitoringStatus": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "TYPE": "dynatrace.observability/monitors",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/dynatrace.observability/monitors/partnermonitors-t3c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "partnermonitors-t3c",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "marketplaceSubscriptionStatus": "res-value",
+            "saaSAzureSubscriptionStatus": "res-value",
+            "monitoringStatus": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "TYPE": "newrelic.observability/monitors",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/newrelic.observability/monitors/partnermonitors-t4c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "partnermonitors-t4c",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "marketplaceSubscriptionStatus": "res-value",
+            "saaSAzureSubscriptionStatus": "res-value",
+            "monitoringStatus": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "TYPE": "microsoft.datadog/monitors",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.datadog/monitors/partnermonitors-t1d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "partnermonitors-t1d",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "marketplaceSubscriptionStatus": "res-value",
+            "saaSAzureSubscriptionStatus": "res-value",
+            "monitoringStatus": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "TYPE": "microsoft.elastic/monitors",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.elastic/monitors/partnermonitors-t2d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "partnermonitors-t2d",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "marketplaceSubscriptionStatus": "res-value",
+            "saaSAzureSubscriptionStatus": "res-value",
+            "monitoringStatus": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "TYPE": "dynatrace.observability/monitors",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/dynatrace.observability/monitors/partnermonitors-t3d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "partnermonitors-t3d",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "marketplaceSubscriptionStatus": "res-value",
+            "saaSAzureSubscriptionStatus": "res-value",
+            "monitoringStatus": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "TYPE": "newrelic.observability/monitors",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/newrelic.observability/monitors/partnermonitors-t4d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "partnermonitors-t4d",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "marketplaceSubscriptionStatus": "res-value",
+            "saaSAzureSubscriptionStatus": "res-value",
+            "monitoringStatus": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "TYPE": "microsoft.datadog/monitors",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.datadog/monitors/partnermonitors-t1e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "partnermonitors-t1e",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "marketplaceSubscriptionStatus": "res-value",
+            "saaSAzureSubscriptionStatus": "res-value",
+            "monitoringStatus": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "TYPE": "microsoft.elastic/monitors",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.elastic/monitors/partnermonitors-t2e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "partnermonitors-t2e",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "marketplaceSubscriptionStatus": "res-value",
+            "saaSAzureSubscriptionStatus": "res-value",
+            "monitoringStatus": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "TYPE": "dynatrace.observability/monitors",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/dynatrace.observability/monitors/partnermonitors-t3e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "partnermonitors-t3e",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "marketplaceSubscriptionStatus": "res-value",
+            "saaSAzureSubscriptionStatus": "res-value",
+            "monitoringStatus": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "TYPE": "newrelic.observability/monitors",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/newrelic.observability/monitors/partnermonitors-t4e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "partnermonitors-t4e",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "marketplaceSubscriptionStatus": "res-value",
+            "saaSAzureSubscriptionStatus": "res-value",
+            "monitoringStatus": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "TYPE": "microsoft.datadog/monitors",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.datadog/monitors/partnermonitors-t1f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "partnermonitors-t1f",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "marketplaceSubscriptionStatus": "res-value",
+            "saaSAzureSubscriptionStatus": "res-value",
+            "monitoringStatus": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "TYPE": "microsoft.elastic/monitors",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.elastic/monitors/partnermonitors-t2f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "partnermonitors-t2f",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "marketplaceSubscriptionStatus": "res-value",
+            "saaSAzureSubscriptionStatus": "res-value",
+            "monitoringStatus": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "TYPE": "dynatrace.observability/monitors",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/dynatrace.observability/monitors/partnermonitors-t3f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "partnermonitors-t3f",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "marketplaceSubscriptionStatus": "res-value",
+            "saaSAzureSubscriptionStatus": "res-value",
+            "monitoringStatus": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "TYPE": "newrelic.observability/monitors",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/newrelic.observability/monitors/partnermonitors-t4f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "partnermonitors-t4f",
+          "LOCATION": "res-value"
         }
       ]
     },
