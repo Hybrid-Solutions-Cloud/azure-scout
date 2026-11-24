@@ -936,7 +936,22 @@ function pageInventory(){
   var discoveryRelationships = safeArr(discovery.Relationships || discovery.relationships);
   var discoveryRows = discoveryResources.slice(0,500).map(function(r){
     var reasons = safeArr(r.DetailReasons || r.detailReasons).join('; ');
-    return '<tr><td>'+esc(r.Name||r.name)+'</td><td class="mono small">'+esc(r.Type||r.type)+'</td><td>'+esc(r.ResourceGroup||r.resourceGroup)+'</td><td>'+esc(r.DetailStatus||r.detailStatus)+'</td><td>'+esc(r.Exposure||r.exposure)+'</td><td>'+n(r.RelationshipCount||r.relationshipCount||0)+'</td><td class="small">'+esc(reasons)+'</td></tr>';
+    return '<tr><td>'+esc(r.Name||r.name)+'</td><td>'+esc(r.Category||r.category||'')+'</td><td class="mono small">'+esc(r.Type||r.type)+'</td><td>'+esc(r.ResourceGroup||r.resourceGroup)+'</td><td>'+esc(r.DetailStatus||r.detailStatus)+'</td><td>'+esc(r.Exposure||r.exposure)+'</td><td>'+n(r.RelationshipCount||r.relationshipCount||0)+'</td><td class="small">'+esc(reasons)+'</td></tr>';
+  }).join('');
+  /* AB#9300: every discovered resource has a category; show how they divide across the 18. */
+  var discoveryByCategory = {};
+  discoveryResources.forEach(function(r){
+    var c = r.Category || r.category || 'General';
+    var e = discoveryByCategory[c] = discoveryByCategory[c] || { total:0, collected:0, types:{} };
+    e.total++;
+    if((r.CategorySource||r.categorySource)==='Collector') e.collected++;
+    var t = r.Type || r.type || ''; e.types[t] = (e.types[t]||0)+1;
+  });
+  var discoveryUncategorized = discoveryResources.filter(function(r){ return (r.CategorySource||r.categorySource)==='Fallback'; }).length;
+  var discoveryCategoryRows = CAT_ORDER.map(function(c){
+    var e = discoveryByCategory[c]; if(!e) return '<tr><td>'+esc(CAT_LABEL[c]||c)+'</td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="small faintt">none discovered</td></tr>';
+    var top = Object.keys(e.types).sort(function(a,b){ return e.types[b]-e.types[a]; }).slice(0,5).map(function(t){ return esc(t)+' ('+n(e.types[t])+')'; }).join(', ');
+    return '<tr><td><a class="invgo" data-pane="'+grpId(c)+'" href="#">'+esc(CAT_LABEL[c]||c)+'</a></td><td class="num"><b>'+n(e.total)+'</b></td><td class="num">'+n(e.collected)+'</td><td class="num">'+n(e.total-e.collected)+'</td><td class="small mono">'+top+'</td></tr>';
   }).join('');
   var relationshipRows = discoveryRelationships.slice(0,500).map(function(r){
     return '<tr><td class="mono small">'+esc(r.SourceId||r.sourceId)+'</td><td>'+esc(r.RelationshipType||r.relationshipType)+'</td><td class="mono small">'+esc(r.TargetId||r.targetId)+'</td><td class="mono small">'+esc(r.PropertyPath||r.propertyPath)+'</td></tr>';
@@ -947,9 +962,13 @@ function pageInventory(){
     '<div class="kpis"><div class="kpi"><div class="l">Resources</div><div class="v">'+n(discoverySummary.Resources||discoverySummary.resources||discoveryResources.length)+'</div><div class="f">unique discovered identities</div></div>'+
     '<div class="kpi"><div class="l">Detailed</div><div class="v">'+n(discoverySummary.Detailed||discoverySummary.detailed||0)+'</div><div class="f">specialized collector available</div></div>'+
     '<div class="kpi"><div class="l">Partial / unavailable</div><div class="v">'+n((discoverySummary.Partial||discoverySummary.partial||0)+(discoverySummary.Unavailable||discoverySummary.unavailable||0))+'</div><div class="f">review reasons below</div></div>'+
-    '<div class="kpi"><div class="l">Relationships</div><div class="v">'+n(discoverySummary.Relationships||discoverySummary.relationships||discoveryRelationships.length)+'</div><div class="f">generic ARM references</div></div></div>'+
+    '<div class="kpi"><div class="l">Relationships</div><div class="v">'+n(discoverySummary.Relationships||discoverySummary.relationships||discoveryRelationships.length)+'</div><div class="f">generic ARM references</div></div>'+
+    '<div class="kpi"><div class="l">Categorized</div><div class="v">'+n(discoveryResources.length-discoveryUncategorized)+'</div><div class="f">of '+n(discoveryResources.length)+' in the 18 categories</div></div></div>'+
+    '<div class="eyebrow">Discovered resources by category</div>'+
+    '<p class="lede small">Every discovered resource belongs to one of the 18 categories: the category of the collector that reads it, otherwise the category of its resource provider. Resources without a collector are also listed under their category as <b>Other discovered resources</b>.</p>'+
+    '<div class="twrap"><table><tr><th>Category</th><th class="num">Resources</th><th class="num">Read by a collector</th><th class="num">Discovered only</th><th>Most common types</th></tr>'+discoveryCategoryRows+'</table></div>'+
     '<div class="eyebrow">Resource completeness records'+(discoveryResources.length>500?' — showing 500 of '+n(discoveryResources.length):'')+'</div>'+
-    '<div class="twrap"><table><tr><th>Name</th><th>Type</th><th>Resource group</th><th>Detail</th><th>Exposure</th><th class="num">Links</th><th>Reason</th></tr>'+discoveryRows+'</table></div>'+
+    '<div class="twrap"><table><tr><th>Name</th><th>Category</th><th>Type</th><th>Resource group</th><th>Detail</th><th>Exposure</th><th class="num">Links</th><th>Reason</th></tr>'+discoveryRows+'</table></div>'+
     '<div class="eyebrow">Universal ARM relationship evidence'+(discoveryRelationships.length>500?' — showing 500 of '+n(discoveryRelationships.length):'')+'</div>'+
     '<div class="twrap"><table><tr><th>Source</th><th>Relationship</th><th>Target</th><th>Property path</th></tr>'+relationshipRows+'</table></div>'+
     '<p class="lede small">The interactive page caps each table at 500 rows for usability. The embedded report data and JSON export retain the complete arrays.</p>';

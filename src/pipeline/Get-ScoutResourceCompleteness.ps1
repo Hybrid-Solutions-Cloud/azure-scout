@@ -6,6 +6,8 @@ $ErrorActionPreference = 'Stop'
 # later invoked from an interactive/module scope. Capture it while this file is loading so the
 # optional standalone path can always find its sibling collector catalog loader.
 $script:ScoutResourceCompletenessScriptRoot = $PSScriptRoot
+# Every discovery record carries a category (AB#9300); a standalone dot-source needs the resolver.
+if (-not (Get-Command Get-ScoutResourceCategory -ErrorAction SilentlyContinue)) { . (Join-Path $PSScriptRoot 'Get-ScoutResourceCategory.ps1') }
 
 <#
 .SYNOPSIS
@@ -427,6 +429,12 @@ function Get-ScoutResourceCompleteness {
         }
         if ($row.PropertyCount -eq 0) { $reasons.Add('Resource Graph returned no properties for this row.') }
         $row.SpecializedCollectors = @($matches | Sort-Object)
+        if ($matches.Count -gt 0) {
+            # A collector that reads the type decides its category (its manifests/collectors folder).
+            $collected = Get-ScoutResourceCategory -Type $row.Type -CollectorCategories @($matches | ForEach-Object { ($_ -split '/', 2)[0] })
+            $row.Category = $collected.Category
+            $row.CategorySource = $collected.Source
+        }
         $row.CollectionHealth = $rowHealth.ToArray()
         $row.DetailReasons = $reasons.ToArray()
         $row.DetailStatus = if ($rowHealth.Count -gt 0 -and $row.PropertyCount -eq 0) { 'Unavailable' }
@@ -449,7 +457,24 @@ function Get-ScoutResourceCompleteness {
         $property = if ($exposure -in @('None', 'Unknown')) { 'Exposure' + $exposure } else { $exposure }
         $result.Summary.$property = @($rows | Where-Object Exposure -eq $exposure).Count
     }
+    $result.Summary.Categories = Get-ScoutDiscoveryCategoryCount -Resources $rows
+    $result.Summary.Uncategorized = @($rows | Where-Object CategorySource -eq 'Fallback').Count
     return $result
+}
+
+function Get-ScoutDiscoveryCategoryCount {
+    # Resources per category, every one of the 18 categories present (0 when empty) and in a
+    # fixed order, so Discovery.json is stable and the report can list all categories.
+    param([AllowNull()][object[]] $Resources)
+    $counts = [ordered]@{}
+    foreach ($category in @((Get-ScoutResourceCategoryMap).Categories)) { $counts[$category] = 0 }
+    foreach ($resource in @($Resources)) {
+        if ($null -eq $resource) { continue }
+        $category = [string]$resource.Category
+        if (-not $counts.Contains($category)) { $counts[$category] = 0 }
+        $counts[$category]++
+    }
+    [pscustomobject]$counts
 }
 
 function New-ScoutResourceDiscovery {
@@ -553,6 +578,7 @@ function New-ScoutResourceDiscovery {
             elseif ($type -like 'AZSC/*') { 'Enrichment' }
             elseif ($id -match '(?i)^/(subscriptions|providers)/') { 'ARM' }
             else { 'Other' }
+        $typeCategory = Get-ScoutResourceCategory -Type $type
 
         $resourceRows.Add([pscustomobject]@{
             Id                 = $id
@@ -575,6 +601,10 @@ function New-ScoutResourceDiscovery {
             Properties         = $protectedProperties
             Enrichment         = $protectedEnrichment
             PropertyCount      = $propertyCount
+            # AB#9300: every discovered resource has a category, not only the ones a collector reads.
+            # The map decides here; Get-ScoutResourceCompleteness lets a collector's category win.
+            Category           = $typeCategory.Category
+            CategorySource     = $typeCategory.Source
             DetailStatus       = 'GenericOnly'
             DetailReasons      = @()
             SpecializedCollectors = @()
@@ -605,6 +635,8 @@ function New-ScoutResourceDiscovery {
             ExposureNone  = @($orderedResources | Where-Object Exposure -eq 'None').Count
             ExposureUnknown = @($orderedResources | Where-Object Exposure -eq 'Unknown').Count
             Relationships = $orderedRelationships.Count
+            Categories    = Get-ScoutDiscoveryCategoryCount -Resources $orderedResources
+            Uncategorized = @($orderedResources | Where-Object CategorySource -eq 'Fallback').Count
         }
         Resources     = $orderedResources
         Relationships = $orderedRelationships

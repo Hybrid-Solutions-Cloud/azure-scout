@@ -41,11 +41,15 @@ All collector definitions, source retirement, strict runtime contracts, and repo
 complete. The remaining release steps are package validation, broad test-suite completion, tag, and
 publication. Historical v2 entries below are retained as release history rather than current status.
 
-## Current Release — v3.18.10 — collectors for what discovery found
+## Current Release — v3.18.11 — every discovered resource has a category
+
+Version 3.18.11 follows the operator requirement that everything deployed in Azure is discovered and filed in the right category. Discovery found everything deployed, but only resources a collector reads were filed under one of the 18 categories (live: 47 of 129 discovered types, 13,268 resources, had none). Every Azure resource provider namespace (419: Azure's provider catalogue plus Resource Graph's reference) now maps to a category in manifests/resource-categories.psd1, with type-level entries where one namespace spans categories (role assignments are Identity, managed disks Storage, Update Manager patch results Management, firewall and WAF policies Security). A collector's category still wins. Each Discovery.json record carries Category and CategorySource, its summary counts resources per category, the React report shows resources by category and lists each category's resources without a collector on that category's page, and docs/reference/resource-categories.md is generated from the map (live: 4,183 of 4,183 resources categorized). See AB#9300.
+
+## Previous Release — v3.18.10 — collectors for what discovery found
 
 Version 3.18.10 follows the coverage review of 2026-11-24. Thirty new collectors read the settings of resources that discovery found but nothing read: Azure Local machines and Arc VM network interfaces, disks and security groups, custom locations, Arc VMware vCenters and inventory, Arc SCVMM servers and inventory, Arc SQL databases and availability groups, Kubernetes extensions, Arc run commands (never the script or its output), machine configuration compliance, Update Manager assignments, backup vaults and resource guards, Defender automations, standard assignments and multicloud connectors, network security perimeters, DNS private resolvers, forwarding rulesets and security policies, alert processing rules, partner monitors, managed images, compute galleries, restore point collections and Playwright Workspaces (342 collectors, up from 312). Live, they read 156 machine configuration assignments, 57 Defender standard assignments, 28 Arc SQL databases, 28 Update Manager assignments and 6 Azure Local machines from the test tenants. Seven retired services (MariaDB, MySQL single server, Integration Service Environment, Maps Creator, Azure API for FHIR, AI Health Insights, Playwright Testing) are now flagged as retired with their successor. See AB#9300.
 
-## Previous Release — v3.18.9 — assessment-only counts what it assessed
+## Earlier Release — v3.18.9 — assessment-only counts what it assessed
 
 Version 3.18.9 follows the live five-tenant assessment-only test of 3.18.7 (33 minutes, all five tenants Completed). A multi-tenant assessment-only run reported "resources 0" for every tenant because the count was hard-coded. It is now the number of distinct resources the assessment collected (live: 879 in a 42-subscription tenant). The output guide now says what each format writes in each run mode: in an assessment-only run, Json is findings.json, because there is no inventory to write. See AB#9300.
 
