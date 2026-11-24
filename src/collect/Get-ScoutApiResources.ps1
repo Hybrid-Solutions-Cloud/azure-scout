@@ -122,6 +122,10 @@ function Get-ScoutApiResources {
         return @()
     }
 
+    # Long enough for the built-in policy catalog pages; short enough that a stalled connection
+    # is retried instead of waiting for the remote host to drop it.
+    $requestTimeoutSeconds = 120
+
     function Get-ScoutApiStatusCode {
         param([Parameter(Mandatory)] [System.Management.Automation.ErrorRecord] $ErrorRecord)
 
@@ -137,6 +141,21 @@ function Get-ScoutApiResources {
             try { return [int] $ErrorRecord.Exception.Data['StatusCode'] } catch { return $null }
         }
         return $null
+    }
+
+    function Test-ScoutApiTransportError {
+        param([Parameter(Mandatory)] [System.Management.Automation.ErrorRecord] $ErrorRecord)
+
+        for ($exception = $ErrorRecord.Exception; $null -ne $exception; $exception = $exception.InnerException) {
+            if ($exception -is [System.Net.Http.HttpRequestException] -or
+                $exception -is [System.IO.IOException] -or
+                $exception -is [System.Net.Sockets.SocketException] -or
+                $exception -is [System.TimeoutException] -or
+                $exception -is [System.Threading.Tasks.TaskCanceledException]) {
+                return $true
+            }
+        }
+        return [string]$ErrorRecord.Exception.Message -match '(?i)transport connection|forcibly closed|error occurred while sending the request|timed out|HttpClient\.Timeout|operation was canceled|connection (was )?(closed|reset|aborted)'
     }
 
     function Get-ScoutApiRetryDelayMilliseconds {
@@ -206,6 +225,12 @@ function Get-ScoutApiResources {
                         }
                         $statusCode = $null
                         $invokeRestCommand = Get-Command Invoke-RestMethod
+                        # Invoke-RestMethod waits forever by default. Live 2026-11-23: stalled
+                        # connections held one read for about five minutes each before the remote
+                        # host closed them, so 20 subscriptions took 49 minutes instead of 3.
+                        if ($invokeRestCommand.Parameters.ContainsKey('TimeoutSec')) {
+                            $request.TimeoutSec = $requestTimeoutSeconds
+                        }
                         if ($NotFoundIsEmpty -and $invokeRestCommand.Parameters.ContainsKey('SkipHttpErrorCheck') -and $invokeRestCommand.Parameters.ContainsKey('StatusCodeVariable')) {
                             $request.SkipHttpErrorCheck = $true
                             $request.StatusCodeVariable = 'statusCode'
@@ -220,10 +245,14 @@ function Get-ScoutApiResources {
                     catch {
                         $statusCode = Get-ScoutApiStatusCode -ErrorRecord $_
                         $isTransient = $statusCode -in @(408, 429) -or ($null -ne $statusCode -and $statusCode -ge 500 -and $statusCode -le 599)
-                        if (-not $isTransient -or $attempt -ge 3) { throw }
+                        # A dropped or timed-out connection has no status code. It was not retried,
+                        # so the field was left empty for that subscription.
+                        $isTransport = $null -eq $statusCode -and (Test-ScoutApiTransportError -ErrorRecord $_)
+                        if (-not ($isTransient -or $isTransport) -or $attempt -ge 3) { throw }
 
                         $delayMilliseconds = Get-ScoutApiRetryDelayMilliseconds -ErrorRecord $_ -Attempt $attempt
-                        Write-Verbose "Get-ScoutApiResources: '$FieldName' received HTTP $statusCode for subscription '$SubscriptionName'; retrying in $delayMilliseconds ms (attempt $($attempt + 2) of 4)."
+                        $reason = if ($isTransport) { "a connection error ($($_.Exception.Message))" } else { "HTTP $statusCode" }
+                        Write-Verbose "Get-ScoutApiResources: '$FieldName' received $reason for subscription '$SubscriptionName'; retrying in $delayMilliseconds ms (attempt $($attempt + 2) of 4)."
                         Start-Sleep -Milliseconds $delayMilliseconds
                     }
                 }

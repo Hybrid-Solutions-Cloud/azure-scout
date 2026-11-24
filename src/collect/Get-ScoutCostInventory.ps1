@@ -84,6 +84,7 @@ function Get-ScoutCostInventory {
         $costs   = @()
 
         if ($costManagementAvailable) {
+            $costTimer = [System.Diagnostics.Stopwatch]::StartNew()
             try {
                 # NOT wrapped in @(): Invoke-AzCostManagementQuery returns ONE query-result
                 # object carrying a .Row collection, and the legacy function assigned it
@@ -95,6 +96,14 @@ function Get-ScoutCostInventory {
                     -DatasetGranularity $Granularity -DatasetGrouping $grouping -DatasetAggregation $aggregation `
                     -TimePeriodFrom $startDate -TimePeriodTo $endDate -ErrorAction Stop
                 if ($null -eq $costs) { $costs = @() }
+                # This step was 2 m 34 s of silence in a 42-subscription run log. Cost Management
+                # is rate-limited per tenant: querying subscriptions concurrently was tried live and
+                # was slower and returned empty rows for 13 of 42 subscriptions, so it stays
+                # sequential and says what it is doing instead.
+                if (Get-Command Write-AZSCLog -ErrorAction SilentlyContinue) {
+                    $rowCount = if ($null -ne $costs -and $costs.PSObject.Properties['Row']) { @($costs.Row).Count } else { 0 }
+                    Write-AZSCLog -Level VERBOSE -Message ("Cost query for '{0}': {1} row(s) in {2} ms." -f $subName, $rowCount, $costTimer.ElapsedMilliseconds)
+                }
             }
             catch {
                 # Cost data is optional enrichment -- it must never cost the caller their

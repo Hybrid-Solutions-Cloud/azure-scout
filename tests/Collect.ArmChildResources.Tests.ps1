@@ -134,6 +134,24 @@ Describe 'Get-ScoutArmChildResource - supported-dataset contract' {
         $operations[0].Status | Should -Be 'NotApplicable'
     }
 
+    It 'retries a dropped connection instead of losing the dataset' {
+        $parent = Get-TestParent -Type 'microsoft.storage/storageaccounts' -Name 'st1' -Kind 'StorageV2'
+        $script:DropCount = 0
+        Mock Start-Sleep { }
+        Mock Invoke-AzRestMethod {
+            if ($Path -match '/blobServices/default/containers' -and $script:DropCount -lt 1) {
+                $script:DropCount++
+                throw 'An error occurred while sending the request.'
+            }
+            [pscustomobject]@{ StatusCode = 200; Content = '{"value":[{"id":"c1","name":"c1"}]}' }
+        }
+        $health = [System.Collections.Generic.List[object]]::new()
+        $rows = @(Get-ScoutArmChildResource -Resources @($parent) -Dataset StorageBlobContainers -CollectionHealth $health -WarningAction SilentlyContinue)
+        $script:DropCount | Should -Be 1
+        $rows.Count | Should -BeGreaterThan 0
+        @($health | Where-Object Status -eq 'Unavailable').Count | Should -Be 0
+    }
+
     It 'records an unregistered resource provider once per subscription as not assessed, without warnings' {
         # Live run: one warning per NSG and the whole dataset Unavailable because a subscription
         # had not registered microsoft.insights. That is a stated gap, not a failure.
