@@ -320,7 +320,7 @@ function Get-ScoutArmChildResource {
                         break
                     }
                     catch {
-                        if ($transportAttempt -lt 3 -and [string]$_.Exception.Message -match '(?i)error occurred while sending the request|timed out|TaskCanceled|operation was canceled|connection (was )?(closed|reset|aborted)|No such host is known') {
+                        if ($transportAttempt -lt 3 -and [string]$_.Exception.Message -match '(?i)error occurred while sending the request|transport connection|forcibly closed|timed out|TaskCanceled|operation was canceled|connection (was )?(closed|reset|aborted)|No such host is known') {
                             Start-Sleep -Milliseconds (500 * $transportAttempt)
                             continue
                         }

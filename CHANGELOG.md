@@ -7,8 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.18.4] - 2026-11-23 - a scan that does not stall on a dropped connection
+
 ### Fixed
 
+- **The API Inventory step stalled on a dropped connection and lost the data.** Its ARM reads
+  (resource health, policy definitions and the rest) had no time limit, and a connection error
+  has no HTTP status code, so it was never retried. Live, a stalled connection held one read for
+  about five minutes before the remote host closed it, so 20 subscriptions took 49 minutes instead
+  of about 3, and each of those fields was left empty. Each read now stops after 120 seconds, and
+  a dropped or timed-out connection is retried up to three times, like a throttle.
 - **The management-group probe took over a minute and miscounted.** The permission pre-check read
   the tenant-root hierarchy with `-Expand -Recurse` (65 s on a live tenant) and got one object back,
   the root with its tree nested inside, so "Management groups : N visible" always said 1. It now

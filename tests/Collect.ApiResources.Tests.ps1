@@ -230,6 +230,79 @@ Describe 'Get-ScoutApiResources -- request efficiency and resilience' {
         $script:retryDelays | Should -Be @(0)
     }
 
+    It 'caps each read at 120 seconds and retries a dropped connection without losing the field' {
+        $script:resourceHealthAttempts = 0
+        $script:timeouts = @()
+        function Start-Sleep {
+            [Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Intentional local test shadow; no delay is performed.')]
+            [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock signature matches the production invocation.')]
+            param([int] $Milliseconds)
+        }
+        function Invoke-RestMethod {
+            [Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Intentional local test shadow; no remote request is made.')]
+            [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock signature matches the production invocation.')]
+            param([string] $Uri, [hashtable] $Headers, [string] $Method, [string] $ErrorAction, [int] $TimeoutSec)
+
+            $script:timeouts += $TimeoutSec
+            if ($Uri -match 'ResourceHealth') {
+                $script:resourceHealthAttempts++
+                if ($script:resourceHealthAttempts -eq 1) {
+                    $inner = [System.IO.IOException]::new('Unable to read data from the transport connection: An existing connection was forcibly closed by the remote host.')
+                    throw [System.Net.Http.HttpRequestException]::new('Error while copying content to a stream.', $inner)
+                }
+                return [pscustomobject]@{ value = @('recovered') }
+            }
+            return [pscustomobject]@{ value = @('ok') }
+        }
+
+        $result = @(Get-ScoutApiResources -Subscriptions @($script:subs[0]) -SkipPolicy)
+
+        $result[0].ResourceHealth | Should -Be @('recovered')
+        $result[0].ManagedIdentities | Should -Be @('ok')
+        $script:resourceHealthAttempts | Should -Be 2
+        @($script:timeouts | Sort-Object -Unique) | Should -Be @(120)
+    }
+
+    It 'gives up on a connection that keeps dropping after four attempts and keeps the other fields' {
+        $script:resourceHealthAttempts = 0
+        function Start-Sleep {
+            [Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Intentional local test shadow; no delay is performed.')]
+            [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock signature matches the production invocation.')]
+            param([int] $Milliseconds)
+        }
+        function Invoke-RestMethod {
+            [Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Intentional local test shadow; no remote request is made.')]
+            [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock signature matches the production invocation.')]
+            param([string] $Uri, [hashtable] $Headers, [string] $Method, [string] $ErrorAction)
+
+            if ($Uri -match 'ResourceHealth') {
+                $script:resourceHealthAttempts++
+                throw [System.Threading.Tasks.TaskCanceledException]::new('The request was canceled due to the configured HttpClient.Timeout of 120 seconds elapsing.')
+            }
+            return [pscustomobject]@{ value = @('ok') }
+        }
+
+        $result = @(Get-ScoutApiResources -Subscriptions @($script:subs[0]) -SkipPolicy)
+
+        $script:resourceHealthAttempts | Should -Be 4
+        $result[0].ResourceHealth | Should -BeNullOrEmpty
+        $result[0].ManagedIdentities | Should -Be @('ok')
+    }
+
+    It 'does not retry an ordinary failure that is not a connection error' {
+        $script:identityAttempts = 0
+        function Invoke-RestMethod {
+            [Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Intentional local test shadow; no remote request is made.')]
+            [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock signature matches the production invocation.')]
+            param([string] $Uri, [hashtable] $Headers, [string] $Method, [string] $ErrorAction)
+            if ($Uri -match 'ManagedIdentity') { $script:identityAttempts++; throw 'AuthorizationFailed' }
+            return [pscustomobject]@{ value = @('ok') }
+        }
+
+        $null = Get-ScoutApiResources -Subscriptions @($script:subs[0]) -SkipPolicy
+        $script:identityAttempts | Should -Be 1
+    }
+
     It 'preserves the single policy summary object instead of adding an array layer' {
         function Invoke-RestMethod {
             [Diagnostics.CodeAnalysis.SuppressMessage('PSAvoidOverwritingBuiltInCmdlets', '', Justification = 'Intentional local test shadow; no remote request is made.')]
