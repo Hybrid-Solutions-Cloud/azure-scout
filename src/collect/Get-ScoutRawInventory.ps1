@@ -963,6 +963,9 @@ function Get-ScoutRawInventory {
                     if ($null -eq $row -or -not $row.PSObject.Properties['id']) { continue }
                     $rowId = [string]$row.id
                     if ([string]::IsNullOrWhiteSpace($rowId) -or -not $discoveredIds.Add($rowId)) { continue }
+                    # Marks where the row came from: the report can say so, and the per-resource
+                    # provider-detail GET skips it (the Resource Graph row is already complete).
+                    $row | Add-Member -NotePropertyName 'AZSCSourceTable' -NotePropertyValue $table.Table -Force
                     $resources.Add($row)
                     $added++
                 }

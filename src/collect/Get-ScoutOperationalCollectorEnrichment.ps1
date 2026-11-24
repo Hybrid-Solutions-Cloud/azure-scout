@@ -305,6 +305,7 @@ function Get-ScoutOperationalCollectorEnrichment {
 
         $requestTimer = Start-ScoutOperationalRequest -Dataset $Dataset -Dynamic:$DynamicRequest
         $Response = $null
+        $apiVersionFallbackTried = $false
         for ($Attempt = 1; $Attempt -le $MaxAttempts; $Attempt++) {
             try {
                 $Arguments = @{ Path = $Path; Method = $Method; ErrorAction = 'Stop' }
@@ -420,6 +421,25 @@ function Get-ScoutOperationalCollectorEnrichment {
                     Add-ScoutOperationalHealth -Dataset $Dataset -Status NotAssessed -ParentId $ParentId `
                         -Reason 'Not applicable: the billing account does not allow cost data to be viewed for this subscription (SubscriptionCostDisabled). No role assignment can enable it.'
                     return [PSCustomObject]@{ __AZSCError = $Message }
+                }
+
+                # A provider can list an API version before it is live in every region (live
+                # 2026-11-24: storageAccounts '2026-12-01' advertised, refused in eastus). Azure's
+                # refusal names the versions it does support there; retry once with the newest
+                # stable one instead of losing the resource's detail.
+                if (-not $apiVersionFallbackTried -and $StatusCode -in 400, 404 -and $Path -match '(?i)[?&]api-version=([^&]+)' -and
+                    $Message -match "(?i)supported api-versions are '([^']+)'") {
+                    $supported = @($Matches[1] -split ',\s*' | Where-Object { $_ })
+                    $stableSupported = @($supported | Where-Object { $_ -notmatch '(?i)preview|beta|alpha|private' })
+                    $fallbackVersion = @($(if ($stableSupported.Count) { $stableSupported } else { $supported }) | Sort-Object -Descending | Select-Object -First 1)
+                    $currentVersion = [regex]::Match($Path, '(?i)[?&]api-version=([^&]+)').Groups[1].Value
+                    if ($fallbackVersion.Count -gt 0 -and $fallbackVersion[0] -ne $currentVersion) {
+                        $apiVersionFallbackTried = $true
+                        $Path = $Path -replace '(?i)([?&]api-version=)[^&]+', ('${1}' + $fallbackVersion[0])
+                        Write-ScoutOperationalDetail -Level DEBUG -Message ("Operational request api-version fallback: dataset={0}; from={1}; to={2}" -f $Dataset, $currentVersion, $fallbackVersion[0])
+                        $Attempt--
+                        continue
+                    }
                 }
 
                 Write-Warning "Get-ScoutOperationalCollectorEnrichment: $Dataset failed for '$ParentId': $Message"
@@ -966,7 +986,12 @@ function Get-ScoutOperationalCollectorEnrichment {
         $armResources = @(Get-ScoutUniqueResource -InputRows @($Resources | Where-Object {
                 $candidateType = [string](Get-ScoutValue $_ @('type', 'TYPE'))
                 $candidateId = [string](Get-ScoutValue $_ @('id', 'ID'))
-                $candidateType -match '(?i)^microsoft\.[^/]+/.+' -and $candidateId -match '(?i)/providers/'
+                # Rows from the other Resource Graph tables (role and policy assignments, Lighthouse,
+                # extension and connector resources, ...) are already complete and many have no
+                # per-resource GET at the subscription scope (live 3.18.6: 114 failed reads, a
+                # Partial run). Their Resource Graph row is the record.
+                $fromDiscoveryTable = $_.PSObject.Properties['AZSCSourceTable'] -and -not [string]::IsNullOrWhiteSpace([string]$_.AZSCSourceTable)
+                -not $fromDiscoveryTable -and $candidateType -match '(?i)^microsoft\.[^/]+/.+' -and $candidateId -match '(?i)/providers/'
             }))
         # Pass 1 plans every request; pass 2 fetches the per-resource details concurrently; pass 3
         # records them exactly as before. A 42-subscription tenant spent 6 m 48 s here making 919
