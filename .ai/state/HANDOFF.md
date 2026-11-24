@@ -16,7 +16,7 @@ retries; cost logging), 3.18.5 (Cost Management throttle waits read from its own
 and JsonEvidence for every tenant). Tenant 1 (42 subscriptions, 12,981 resources) Completed in 63
 min. Tenants 2-5 Partial only for billing reads denied with HTTP 403 (reservation and savings-plan
 orders need Reservations Reader / Savings plan Reader or a billing reader role: a permission, not a
-code gap), plus one throttled VM cost read in tenant 3, fixed in 3.18.5. The API Inventory step,
+code gap; the permissions page wrongly said Reader was the whole ARM ask, corrected in 3.18.5, where such a refusal is now not assessed with the role named), plus one throttled VM cost read in tenant 3, fixed in 3.18.5. The API Inventory step,
 which held about five minutes per stalled read on 3.18.3 (20 subscriptions in 49 min), read all 42
 subscriptions in 6.5 min with no failures.
 

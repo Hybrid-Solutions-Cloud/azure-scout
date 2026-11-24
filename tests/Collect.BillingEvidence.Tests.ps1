@@ -77,10 +77,33 @@ Describe 'Get-ScoutBillingEvidence' {
         }
 
         $result = Get-ScoutBillingEvidence
-        @($result.CollectionHealth | Where-Object Dataset -eq 'Billing/BillingAccounts').Count | Should -Be 1
+        $accounts = @($result.CollectionHealth | Where-Object Dataset -eq 'Billing/BillingAccounts')
+        $accounts.Count | Should -Be 1
+        # A billing role is optional and outside the Reader minimum: not assessed, role named.
+        $accounts[0].Status | Should -Be 'NotAssessed'
+        $accounts[0].Reason | Should -Match '^Not granted \(optional role\): HTTP 403'
+        $accounts[0].Reason | Should -Match 'Billing account reader'
         @($result.SourceOperations | Where-Object { $_.Dataset -eq 'BillingAccounts' -and $_.Status -eq 'Unavailable' }).Count | Should -Be 1
         @($result.SourceOperations | Where-Object Dataset -eq 'ReservationOrders').Count | Should -Be 1
         @($result.Resources).Count | Should -Be 0
+    }
+
+    It 'keeps a billing read that failed for another reason as unavailable' {
+        function global:Invoke-AzRestMethod {
+            param([string] $Path, [string] $Uri, [string] $Method, [string] $Payload, [string] $ErrorAction)
+            $null = $Method, $Payload, $ErrorAction
+            $requestUri = if ($Uri) { $Uri } else { $Path }
+            if ($requestUri -match 'reservationOrders') {
+                return [pscustomobject]@{ StatusCode = 500; Content = '{"error":{"code":"InternalServerError"}}' }
+            }
+            return New-BillingRestResponse
+        }
+
+        $result = Get-ScoutBillingEvidence
+        $reservations = @($result.CollectionHealth | Where-Object Dataset -eq 'Billing/ReservationOrders')
+        $reservations.Count | Should -Be 1
+        $reservations[0].Status | Should -Be 'Unavailable'
+        $reservations[0].Reason | Should -Not -Match 'Not granted'
     }
 
     It 'names the role that grants a denied reservation or savings plan read' {
@@ -99,6 +122,8 @@ Describe 'Get-ScoutBillingEvidence' {
         $savingsPlans = @($result.CollectionHealth | Where-Object Dataset -eq 'Billing/SavingsPlanOrders')
 
         $reservations.Count | Should -Be 1
+        $reservations[0].Status | Should -Be 'NotAssessed'
+        $savingsPlans[0].Status | Should -Be 'NotAssessed'
         $reservations[0].Reason | Should -Match 'HTTP 403'
         $reservations[0].Reason | Should -Match 'Reservations Reader role at /providers/Microsoft\.Capacity'
         $savingsPlans.Count | Should -Be 1

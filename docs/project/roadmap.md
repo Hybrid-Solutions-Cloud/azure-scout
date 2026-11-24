@@ -43,7 +43,7 @@ publication. Historical v2 entries below are retained as release history rather 
 
 ## Current Release — v3.18.5 — cost reads that wait out the throttle
 
-Version 3.18.5 follows the live five-tenant test of 3.18.4. When Cost Management throttled a VM or Arc server cost query (HTTP 429), the retries waited half a second and then one second, so the cost was lost and the tenant was marked Partial (live: one VM cost in a nine-subscription tenant). A throttled request now waits as long as Azure asks, read from Cost Management's own rate-limit headers as well as Retry-After, or otherwise 5, 10, 20 and 40 seconds, and a cost query gets five attempts instead of three. See AB#9300.
+Version 3.18.5 follows the live five-tenant test of 3.18.4. When Cost Management throttled a VM or Arc server cost query (HTTP 429), the retries waited half a second and then one second, so the cost was lost and the tenant was marked Partial (live: one VM cost in a nine-subscription tenant). A throttled request now waits as long as Azure asks, read from Cost Management's own rate-limit headers as well as Retry-After, or otherwise 5, 10, 20 and 40 seconds, and a cost query gets five attempts instead of three. The permissions page now lists the optional roles for reservation, savings-plan and billing-account data, which Reader cannot reach at any scope, and a refusal on those reads is reported as not assessed with the role named instead of marking the run Partial. See AB#9300.
 
 ## Previous Release — v3.18.4 — a scan that does not stall on a dropped connection
 

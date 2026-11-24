@@ -36,12 +36,37 @@ role) is needed or requested.
 | `Reader` | Subscription(s), or the tenant-root management group | Enumerate resources and read ARM properties |
 | `Management Group Reader` | Tenant-root management group | Enumerate and expand the complete management-group hierarchy |
 
-Azure's `Reader` role is the whole **ARM control-plane** ask. It is `Actions: */read` with an empty
-`NotActions` — a single wildcard over every control-plane read. There is no ARM collector in
-Scout that needs more than this, including roughly 130 of them that reach Azure through Azure
-Resource Graph (`Microsoft.ResourceGraph/resources/read` — also inside `Reader`'s `*/read`, so
-the conclusion doesn't change, but a role list that names only the per-service actions is
-understating the ask by that one action).
+Azure's `Reader` role is the whole **required** ARM control-plane ask. It is `Actions: */read` with
+an empty `NotActions` — a single wildcard over every control-plane read in the subscriptions and
+management groups it is assigned on. Every subscription-scoped ARM collector in Scout, including
+roughly 130 that reach Azure through Azure Resource Graph
+(`Microsoft.ResourceGraph/resources/read`, also inside `*/read`), needs nothing more.
+
+### Optional: billing, reservation and savings-plan data
+
+Three reads are **not** covered by `Reader` at any scope, because their data is not under a
+subscription or management group. Reservations and savings plans are tenant-level resources with
+their own role-based access, separate from subscriptions, and billing accounts use billing roles.
+Without these roles the scan still completes: each read is reported as **not assessed** with the
+role named (for example `Not granted (optional role): ARM returned HTTP 403. Reading reservation
+orders needs the Reservations Reader role…`), and the run is not marked Partial for it.
+
+| Data | Role | Scope |
+|------|------|-------|
+| Reservation orders (owned reservations, terms, expiry) | `Reservations Reader` | `/providers/Microsoft.Capacity` (tenant level) |
+| Savings plan orders | `Savings plan Reader` | `/providers/Microsoft.BillingBenefits` (tenant level) |
+| Billing accounts, billing profiles, invoice sections, billing role assignments | `Billing account reader` (MCA) or `Enterprise Administrator (read only)` (EA) | The billing account |
+
+Assigning the two tenant-level roles needs User Access Administrator at the tenant root (a Global
+Administrator can [elevate access](https://learn.microsoft.com/azure/role-based-access-control/elevate-access-global-admin)
+to get it), for example:
+
+```powershell
+New-AzRoleAssignment -Scope '/providers/Microsoft.Capacity' -ObjectId <objectId> -RoleDefinitionName 'Reservations Reader'
+New-AzRoleAssignment -Scope '/providers/Microsoft.BillingBenefits' -ObjectId <objectId> -RoleDefinitionName 'Savings plan Reader'
+```
+
+See [Permissions to view and manage Azure reservations](https://learn.microsoft.com/azure/cost-management-billing/reservations/view-reservations).
 
 ::: warning Assign Reader at management-group scope for the management-group and cross-subscription data
 Subscription-scoped `Reader` silently returns an empty or flattened management-group hierarchy —

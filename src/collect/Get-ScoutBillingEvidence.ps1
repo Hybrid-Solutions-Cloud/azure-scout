@@ -156,11 +156,18 @@ function Get-ScoutBillingEvidence {
                         CompletedAt = (Get-Date).ToString('o')
                     })
                 if (-not $expectedAgreementGap) {
+                    # Billing, reservation and savings-plan reads need billing roles that are
+                    # optional and outside the documented Reader minimum (docs/guide/permissions.md).
+                    # A refusal there is a role the operator chose not to grant, not a failed read,
+                    # so it is reported as not assessed with the role named and does not make the
+                    # run Partial. Any other failure still does.
+                    $healthStatus = if ($denied) { 'NotAssessed' } else { 'Unavailable' }
+                    $healthReason = if ($denied) { "Not granted (optional role): $reason" } else { $reason }
                     $collectionHealth.Add([pscustomobject]@{
                             Dataset = "Billing/$Dataset"
                             Operation = $currentMethod
-                            Status = 'Unavailable'
-                            Reason = $reason
+                            Status = $healthStatus
+                            Reason = $healthReason
                             ResourceTypes = @("AZSC/Billing/$Dataset")
                         })
                 }
@@ -170,7 +177,8 @@ function Get-ScoutBillingEvidence {
         return @($items)
     }
 
-    $billingAccounts = @(Invoke-BillingList -Dataset 'BillingAccounts' -Uri '/providers/Microsoft.Billing/billingAccounts?api-version=2024-04-01')
+    $billingAccounts = @(Invoke-BillingList -Dataset 'BillingAccounts' -Uri '/providers/Microsoft.Billing/billingAccounts?api-version=2024-04-01' `
+        -AccessHint 'Reading billing accounts needs a billing account role such as Billing account reader (MCA) or Enterprise read-only (EA).')
     foreach ($account in $billingAccounts) {
         $accountName = [string](Get-BillingValue -InputObject $account -Path 'name')
         if ([string]::IsNullOrWhiteSpace($accountName)) { continue }
