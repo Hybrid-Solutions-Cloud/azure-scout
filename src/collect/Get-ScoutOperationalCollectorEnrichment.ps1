@@ -296,7 +296,7 @@ function Get-ScoutOperationalCollectorEnrichment {
             [Parameter(Mandatory)][string]$Path,
             [ValidateSet('GET', 'POST')][string]$Method = 'GET',
             [AllowNull()]$Payload,
-            [ValidateRange(1, 5)][int]$MaxAttempts = 3,
+            [ValidateRange(1, 6)][int]$MaxAttempts = 3,
             [switch]$PollAsync,
             # 404 on this dataset is an expected "not configured" state, not a failure -- do not warn.
             [switch]$QuietNotFound,
@@ -378,13 +378,20 @@ function Get-ScoutOperationalCollectorEnrichment {
                     # A throttle needs seconds, not the half-second steps that suit a 5xx. Live
                     # 2026-11-23: Cost Management answered 429 to a VM cost query, the retries
                     # waited 0.5 s and 1 s, and the VM cost was lost (the run was Partial).
-                    # Azure's own wait, when it sends one, is used as given.
+                    # Azure's own wait is used as given on the first retry. A throttle that is still
+                    # there after it waits at least the doubling back-off: live 2026-11-24, Cost
+                    # Management asked for 7, 9, 6 and 10 s, all four were honoured, and the Arc
+                    # server cost was still lost after 2.4 minutes.
                     $retrySeconds = 0.0
-                    if ($null -ne $retryAfter -and [double]::TryParse([string]$retryAfter, [ref]$retrySeconds)) {
-                        $delayMilliseconds = [Math]::Max($delayMilliseconds, [int][Math]::Ceiling($retrySeconds * 1000))
+                    $hasRetryAfter = $null -ne $retryAfter -and [double]::TryParse([string]$retryAfter, [ref]$retrySeconds)
+                    if ($StatusCode -eq 429) {
+                        $backoffMilliseconds = 5000 * [int][Math]::Pow(2, $Attempt - 1)
+                        $delayMilliseconds = if (-not $hasRetryAfter) { $backoffMilliseconds }
+                        elseif ($Attempt -le 1) { [int][Math]::Ceiling($retrySeconds * 1000) }
+                        else { [Math]::Max($backoffMilliseconds, [int][Math]::Ceiling($retrySeconds * 1000)) }
                     }
-                    elseif ($StatusCode -eq 429) {
-                        $delayMilliseconds = 5000 * [int][Math]::Pow(2, $Attempt - 1)
+                    elseif ($hasRetryAfter) {
+                        $delayMilliseconds = [Math]::Max($delayMilliseconds, [int][Math]::Ceiling($retrySeconds * 1000))
                     }
                     $delayMilliseconds = [Math]::Min(60000, $delayMilliseconds)
                     Write-ScoutOperationalDetail -Level DEBUG -Message (
@@ -715,7 +722,7 @@ function Get-ScoutOperationalCollectorEnrichment {
                 $response = Invoke-ScoutOperationalArm -Dataset $Dataset `
                     -ParentId "/subscriptions/$subscriptionId" -Method POST `
                     -Path "/subscriptions/$subscriptionId/providers/Microsoft.CostManagement/query?api-version=2023-03-01" `
-                    -Payload $payload -MaxAttempts 5
+                    -Payload $payload -MaxAttempts 6
                 $batchMap = ConvertTo-ScoutCostResultMap -ResourceIds $resourceIds -Response $response
                 foreach ($key in $batchMap.Keys) { $costById[$key] = $batchMap[$key] }
             }
