@@ -136,6 +136,15 @@ Function Start-AZSCGraphExtraction {
     if ($rawInventoryCommand.Parameters.ContainsKey('CollectBillingEvidence')) {
         $RawArgs.CollectBillingEvidence = (-not $isSelectivePlan -or [bool]$CategoryPlan.CollectGovernance)
     }
+    # Discovery of everything deployed: every Resource Graph table that holds deployed resources,
+    # and Resource Manager's own resource list for types Resource Graph does not index. A full
+    # inventory only; a category-filtered run asks for its own types.
+    if ($rawInventoryCommand.Parameters.ContainsKey('CollectAllResourceGraphTables')) {
+        $RawArgs.CollectAllResourceGraphTables = -not $isSelectivePlan
+    }
+    if ($rawInventoryCommand.Parameters.ContainsKey('CollectArmResourceCrossCheck')) {
+        $RawArgs.CollectArmResourceCrossCheck = -not $isSelectivePlan -and -not [bool]$SkipAPIs
+    }
     if ($rawInventoryCommand.Parameters.ContainsKey('CollectEntraDiagnosticSettings')) {
         $RawArgs.CollectEntraDiagnosticSettings = (-not $isSelectivePlan -or [bool]$CategoryPlan.CollectTenantWideResources)
     }

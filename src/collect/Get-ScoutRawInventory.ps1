@@ -340,6 +340,11 @@ function Get-ScoutRawInventory {
         [bool]     $CollectGovernance = $true,
         [bool]     $CollectBillingEvidence = $false,
         [bool]     $CollectEntraDiagnosticSettings = $false,
+        # Discovery of everything deployed: every other Resource Graph table that holds deployed
+        # resources (Get-ScoutResourceGraphDiscoveryTable), and a cross-check against Resource
+        # Manager's own resource list for types Resource Graph does not index.
+        [bool]     $CollectAllResourceGraphTables = $false,
+        [bool]     $CollectArmResourceCrossCheck = $false,
         [string[]] $ResourceTypes,
 
         [switch]   $IncludeOperationalCollectorEnrichment,
@@ -930,6 +935,60 @@ function Get-ScoutRawInventory {
         $attackPathQuery = "securityresources $rgClause | where type =~ 'microsoft.security/attackpaths' $mgJoinClause | project $columns | order by id asc"
         foreach ($row in @(Invoke-ScoutRawTable -Query $attackPathQuery -LoopName 'Defender Attack Paths' -Subscriptions $resolvedSubscriptionIds -AffectedResourceTypes @('microsoft.security/attackpaths') -AffectedCollectorSource 'Security Center' -PageSize 200)) {
             if ($null -ne $row) { $resources.Add($row) }
+        }
+    }
+
+    # ---- everything else that is deployed (AB#9300) ----
+    # `resources` holds every top-level tracked resource Resource Graph indexes, but many deployed
+    # resources live only in another table (role assignments, policy assignments, Lighthouse,
+    # guest-configuration and maintenance assignments, Kubernetes extensions, DNS records, ...),
+    # and a type Resource Graph does not index at all is in none of them. Only for an unfiltered
+    # discovery: a -ResourceTypes run asks for named types only.
+    if (($CollectAllResourceGraphTables -or $CollectArmResourceCrossCheck) -and $resolvedResourceTypes.Count -eq 0) {
+        $discoveredIds = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+        foreach ($existing in $resources) {
+            if ($null -ne $existing -and $existing.PSObject.Properties['id'] -and $existing.id) { $null = $discoveredIds.Add([string]$existing.id) }
+        }
+
+        if ($CollectAllResourceGraphTables -and (Import-ScoutRawInventoryHelper -CommandName 'Get-ScoutResourceGraphDiscoveryTable' -FileName 'Get-ScoutResourceGraphDiscoveryTable.ps1')) {
+            $tableTimer = [System.Diagnostics.Stopwatch]::StartNew()
+            $tableCounts = [System.Collections.Generic.List[string]]::new()
+            $tableRows = 0
+            foreach ($table in @(Get-ScoutResourceGraphDiscoveryTable)) {
+                $tableQuery = "$($table.Table) $rgClause $tagClause $mgJoinClause $($table.Filter) | project $columns | order by id asc"
+                $added = 0
+                # Plain parentheses, as every other table here: Invoke-ScoutRawTable returns its
+                # rows as one array object, and @(...) would nest it so no row was ever added.
+                foreach ($row in (Invoke-ScoutRawTable -Query $tableQuery -LoopName "Discovery: $($table.Table)" -Subscriptions $resolvedSubscriptionIds)) {
+                    if ($null -eq $row -or -not $row.PSObject.Properties['id']) { continue }
+                    $rowId = [string]$row.id
+                    if ([string]::IsNullOrWhiteSpace($rowId) -or -not $discoveredIds.Add($rowId)) { continue }
+                    $resources.Add($row)
+                    $added++
+                }
+                if ($added -gt 0) { $tableCounts.Add("$($table.Table)=$added"); $tableRows += $added }
+            }
+            Write-ScoutRawInventoryTiming -Name 'Discovery of other Resource Graph tables' -Timer $tableTimer -Status 'Completed' `
+                -Rows $tableRows -Detail ($tableCounts -join '; ')
+        }
+
+        if ($CollectArmResourceCrossCheck -and (Import-ScoutRawInventoryHelper -CommandName 'Get-ScoutArmResourceCrossCheck' -FileName 'Get-ScoutArmResourceCrossCheck.ps1')) {
+            $crossCheckTimer = [System.Diagnostics.Stopwatch]::StartNew()
+            $crossCheckSubscriptions = @($resolvedSubscriptionIds)
+            if ($crossCheckSubscriptions.Count -eq 0) {
+                $crossCheckSubscriptions = @($resourceContainers | Where-Object { $_ -and [string]$_.type -ieq 'microsoft.resources/subscriptions' } | ForEach-Object { [string]$_.subscriptionId } | Where-Object { $_ } | Sort-Object -Unique)
+            }
+            $crossCheckArgs = @{ SubscriptionIds = $crossCheckSubscriptions; KnownIds = $discoveredIds; AzureEnvironment = $AzureEnvironment }
+            if ($ResourceGroups) { $crossCheckArgs.ResourceGroups = @($ResourceGroups) }
+            if ($TagKey) { $crossCheckArgs.TagKey = $TagKey }
+            if ($TagValue) { $crossCheckArgs.TagValue = $TagValue }
+            $crossCheck = Get-ScoutArmResourceCrossCheck @crossCheckArgs
+            foreach ($row in @($crossCheck.Rows)) { $resources.Add($row) }
+            foreach ($operation in @($crossCheck.Operations)) { $sourceOperations.Add($operation) }
+            foreach ($entry in @($crossCheck.Health)) { $collectionHealth.Add($entry) }
+            $missingTypes = @($crossCheck.Rows | Group-Object type | Sort-Object Count -Descending | ForEach-Object { "$($_.Name)=$($_.Count)" })
+            Write-ScoutRawInventoryTiming -Name 'Resource Manager cross-check' -Timer $crossCheckTimer -Status $(if (@($crossCheck.Health).Count -gt 0) { 'Partial' } else { 'Completed' }) `
+                -Rows @($crossCheck.Rows).Count -Detail ('subscriptions={0}; listed={1}; notInResourceGraph={2}{3}' -f $crossCheck.Subscriptions, $crossCheck.Listed, @($crossCheck.Rows).Count, $(if ($missingTypes.Count) { '; ' + ($missingTypes -join ', ') } else { '' }))
         }
     }
 

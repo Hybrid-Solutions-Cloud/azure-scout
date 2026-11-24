@@ -385,7 +385,15 @@ Describe 'AB#5648 — Resource Graph round-trip count per entry point' {
         # was "no additional Azure API call, proven by comparing query counts before and after".
         # The governance renders cost ZERO new queries. Lighthouse is not a released Scout
         # surface and therefore contributes no managedserviceresources request.
-        $script:argQueries.Count | Should -Be 10
+        #
+        # AB#9300 (3.18.6): a full inventory also reads every other Resource Graph table that
+        # holds deployed resources, one query per table in Get-ScoutResourceGraphDiscoveryTable,
+        # so anything deployed in Azure is discovered. Those are counted separately so the ten
+        # above stay pinned.
+        . (Join-Path (Split-Path $PSScriptRoot -Parent) 'src/collect/Get-ScoutResourceGraphDiscoveryTable.ps1')
+        $discoveryTables = @(Get-ScoutResourceGraphDiscoveryTable).Count
+        $script:argQueries.Count | Should -Be (10 + $discoveryTables)
+        $discoveryTables | Should -Be 35
     }
 
     It 'a combined inventory + assessment run costs 11, not 43' {
@@ -403,7 +411,9 @@ Describe 'AB#5648 — Resource Graph round-trip count per entry point' {
         # inventory-only assertion above. A combined run costing inventory+1 is the whole
         # collect-once guarantee. If this ever reads inventory+5, the assessment has stopped
         # reusing the extraction's rows and is querying Azure a second time.
-        $script:argQueries.Count | Should -Be 11 -Because 'ten inventory tables plus the one SecurityResources query'
+        . (Join-Path (Split-Path $PSScriptRoot -Parent) 'src/collect/Get-ScoutResourceGraphDiscoveryTable.ps1')
+        $discoveryTables = @(Get-ScoutResourceGraphDiscoveryTable).Count
+        $script:argQueries.Count | Should -Be (11 + $discoveryTables) -Because 'ten inventory tables, one discovery query per Resource Graph table that holds deployed resources (AB#9300), plus the one SecurityResources query'
     }
 }
 

@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.18.6] - 2026-11-24 - everything deployed is discovered
+
+### Added
+
+- **Every Resource Graph table that holds deployed resources is read.** Discovery read `resources`,
+  `networkresources` and `resourcecontainers`, 3 of the 63 tables in Microsoft's Resource Graph
+  reference, so anything that lives only in another table was never found. A full inventory now
+  also reads 35 more tables (`Get-ScoutResourceGraphDiscoveryTable`), filtered to deployed
+  resources. That adds role assignments and custom roles, policy assignments, exemptions and custom
+  definitions, Lighthouse delegations, machine-configuration and maintenance assignments,
+  Kubernetes extensions and Flux configurations, DNS record sets, Elastic SAN, Kusto and Service
+  Fabric children, Fleet members, API Center APIs, data-collection-rule associations, Defender
+  plans and connectors, backup and replication policies, and VM scale set instances. Live: an
+  eight-subscription tenant went from 12 discovered resources to 488, with none lost. The 28 tables
+  of events, state or telemetry are excluded with a reason each (`-Excluded`), and a test fails if a
+  table is neither read nor excluded. A `-Category` run still reads only its own types.
+- **Resource Manager cross-check.** Each subscription's resources are also listed directly from
+  Azure Resource Manager, and anything Resource Graph did not return is added (marked
+  `AZSCSource = 'ArmResourceList'`, without `properties`). A resource type Resource Graph does not
+  index is still discovered. A subscription whose list fails is shown as Unavailable.
+
+### Fixed
+
+- **Five assessment queries read the wrong Resource Graph table and always came back empty.**
+  Lighthouse delegations, Advisor scores, backup policies and AVD session hosts live in
+  `managedservicesresources`, `advisorresources`, `recoveryservicesresources` and
+  `desktopvirtualizationresources`, and Edge orders in `edgeorderresources`; each was queried in
+  `resources`. Live on a 42-subscription tenant: 0 rows before, and 38 delegations, 143 scores, 17
+  policies and 2 session hosts after.
+
 ## [3.18.5] - 2026-11-23 - cost reads that wait out the throttle, honest billing permissions
 
 ### Fixed

@@ -1,5 +1,29 @@
 # Handoff
 
+## Session 2026-11-24 — everything deployed is discovered (3.18.6)
+
+Operator requirement: anything that can be deployed in Azure must have a way to be discovered.
+
+**What was wrong.** Discovery read 3 of the 63 Resource Graph tables (`resources`,
+`networkresources`, `resourcecontainers`). Deployed resources that live only in another table
+(role assignments, policy assignments, Lighthouse, guest-configuration and maintenance assignments,
+Kubernetes extensions, DNS records, Defender plans, backup policies, ...) were never found. Five
+assessment queries also read `resources` for types that live elsewhere and always returned nothing.
+
+**What changed.** `Get-ScoutResourceGraphDiscoveryTable` lists the 35 tables read (with filters that
+keep deployed resources) and the 28 excluded (events, state, telemetry) with a reason each;
+`tests/Collect.DiscoverEverything.Tests.ps1` fails if a table is unclassified.
+`Get-ScoutArmResourceCrossCheck` lists each subscription from Resource Manager and adds anything
+Resource Graph missed. Both run on a full inventory (`Start-ScoutGraphExtraction`), not on
+`-Category` runs. Live: 8-subscription tenant 12 to 488 discovered, 0 lost, +41 s.
+
+**Research.** A coverage review against Microsoft's provider list and the Resource Graph reference
+found gaps in dedicated collectors (Azure Local edge machines and Arc VM networking, Arc VMware and
+SCVMM, Arc SQL databases and AGs, guest configuration, Defender automations and connectors, Update
+Manager assignments, backup resource guards, network security perimeter, DNS security policy) and
+collectors for retired services (MariaDB, MySQL single server, ISE, Maps Creator, API for FHIR,
+Health Insights, Playwright Testing). These resources are now discovered generically; dedicated
+collectors are the next piece of work. `docs/reference/service-coverage-gap.md` is out of date.
 ## Session 2026-11-23 — fix, publish, retest loop (3.18.2 to 3.18.5)
 
 Operator rule for this work: fix, merge, publish, install, then test the **installed published**

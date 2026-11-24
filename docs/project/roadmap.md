@@ -41,11 +41,15 @@ All collector definitions, source retirement, strict runtime contracts, and repo
 complete. The remaining release steps are package validation, broad test-suite completion, tag, and
 publication. Historical v2 entries below are retained as release history rather than current status.
 
-## Current Release — v3.18.5 — cost reads that wait out the throttle
+## Current Release — v3.18.6 — everything deployed is discovered
+
+Version 3.18.6 follows the operator requirement that anything that can be deployed in Azure has a way to be discovered. Discovery read 3 of the 63 Azure Resource Graph tables, so resources that live only in another table were never found. A full inventory now also reads every other table that holds deployed resources. That brings in role assignments and custom roles, policy assignments, exemptions and custom definitions, Lighthouse delegations, machine-configuration and maintenance assignments, Kubernetes extensions, DNS record sets, Defender plans and connectors, backup and replication policies, VM scale set instances and more (live: 12 resources to 488 in an eight-subscription tenant). Tables of events, state and telemetry are excluded, each with its reason. A test fails if a Resource Graph table is neither read nor excluded. A cross-check against each subscription's Azure Resource Manager resource list adds any resource Resource Graph did not return. Five assessment queries that read the wrong Resource Graph table and always came back empty (Lighthouse delegations, Advisor scores, backup policies, AVD session hosts, Edge orders) now read the right one (live: 38 delegations, 143 scores, 17 policies, 2 session hosts that had been missed). See AB#9300.
+
+## Previous Release — v3.18.5 — cost reads that wait out the throttle
 
 Version 3.18.5 follows the live five-tenant test of 3.18.4. When Cost Management throttled a VM or Arc server cost query (HTTP 429), the retries waited half a second and then one second, so the cost was lost and the tenant was marked Partial (live: one VM cost in a nine-subscription tenant). A throttled request now waits as long as Azure asks, read from Cost Management's own rate-limit headers as well as Retry-After, or otherwise 5, 10, 20 and 40 seconds, and a cost query gets five attempts instead of three. The permissions page now lists the optional roles for reservation, savings-plan and billing-account data, which Reader cannot reach at any scope, and a refusal on those reads is reported as not assessed with the role named instead of marking the run Partial. See AB#9300.
 
-## Previous Release — v3.18.4 — a scan that does not stall on a dropped connection
+## Earlier Release — v3.18.4 — a scan that does not stall on a dropped connection
 
 Version 3.18.4 follows the live five-tenant test of 3.18.3. The API Inventory step waited without limit on a stalled connection: live, each dropped connection held one read for about five minutes, so 20 subscriptions took 49 minutes instead of about 3 and the data from those reads was lost. Each read now stops after 120 seconds, and a dropped or timed-out connection is retried up to three times. The management-group pre-check takes about a second instead of over a minute and counts every group (10 instead of 1), sub-resource reads retry a dropped connection, a throttle or a server error, and the cost step logs each subscription's rows and time. See AB#9300.
 

@@ -1101,3 +1101,80 @@ param([string] $Query, [int] $First, [string] $SkipToken, [string] $ManagementGr
         $script:sawMg | Should -Be 'contoso-root-mg'
     }
 }
+
+Describe 'Get-ScoutRawInventory -- discovery of everything deployed (AB#9300)' {
+    It 'sweeps every discovery table, adds rows not already found, and never duplicates one' {
+        $script:queries = [System.Collections.Generic.List[string]]::new()
+        function Search-AzGraph {
+            param([string] $Query, [Parameter(ValueFromRemainingArguments)] $Rest)
+            $null = $Rest
+            $script:queries.Add($Query)
+            if ($Query -match '^resourcecontainers\b') { return @(New-MockSubscriptionRow -Id 's1') }
+            if ($Query -match '^resources\b') { return @([pscustomobject]@{ id = '/subscriptions/s1/providers/Microsoft.Authorization/roleAssignments/shared'; name = 'shared'; type = 'microsoft.authorization/roleassignments'; subscriptionId = 's1' }) }
+            if ($Query -match '^authorizationresources\b') {
+                return @(
+                    [pscustomobject]@{ id = '/subscriptions/s1/providers/Microsoft.Authorization/roleAssignments/shared'; name = 'shared'; type = 'microsoft.authorization/roleassignments'; subscriptionId = 's1' }
+                    [pscustomobject]@{ id = '/subscriptions/s1/providers/Microsoft.Authorization/roleAssignments/only-here'; name = 'only-here'; type = 'microsoft.authorization/roleassignments'; subscriptionId = 's1' }
+                )
+            }
+            if ($Query -match '^managedservicesresources\b') { return @([pscustomobject]@{ id = '/subscriptions/s1/providers/Microsoft.ManagedServices/registrationDefinitions/d1'; name = 'd1'; type = 'microsoft.managedservices/registrationdefinitions'; subscriptionId = 's1' }) }
+            return @()
+        }
+
+        $result = Get-ScoutRawInventory -SkipApiResourceSweep -CollectAllResourceGraphTables $true -WarningAction SilentlyContinue
+
+        # The raw pass removes helpers it loaded once it returns; read the table list here.
+        . (Join-Path (Split-Path $PSScriptRoot -Parent) 'src/collect/Get-ScoutResourceGraphDiscoveryTable.ps1')
+        foreach ($table in Get-ScoutResourceGraphDiscoveryTable) {
+            @($script:queries | Where-Object { $_ -match "^$($table.Table)\b" }).Count | Should -BeGreaterThan 0 -Because $table.Table
+        }
+        @($script:queries | Where-Object { $_ -match '^policyresources\b' })[0] | Should -Match "policyType\) !in~ \('BuiltIn','Static'\)"
+        @($result.Resources | Where-Object { $_.PSObject.Properties['id'] -and [string]$_.id -like '*roleAssignments/shared' }).Count | Should -Be 1
+        @($result.Resources | Where-Object { $_.PSObject.Properties['id'] -and [string]$_.id -like '*roleAssignments/only-here' }).Count | Should -Be 1
+        @($result.Resources | Where-Object type -eq 'microsoft.managedservices/registrationdefinitions').Count | Should -Be 1
+    }
+
+    It 'adds what only Resource Manager returned and records the cross-check health' {
+        function Search-AzGraph {
+            param([string] $Query, [Parameter(ValueFromRemainingArguments)] $Rest)
+            $null = $Rest
+            if ($Query -match '^resourcecontainers\b') { return @(New-MockSubscriptionRow -Id 's1') }
+            return @()
+        }
+        function Get-ScoutArmResourceCrossCheck {
+            param([string[]] $SubscriptionIds, $KnownIds, [Parameter(ValueFromRemainingArguments)] $Rest)
+            $null = $KnownIds, $Rest
+            $script:crossCheckSubscriptions = $SubscriptionIds
+            [pscustomobject]@{
+                Rows = @([pscustomobject]@{ id = '/subscriptions/s1/resourceGroups/rg/providers/Microsoft.New/widgets/w'; name = 'w'; type = 'microsoft.new/widgets'; subscriptionId = 's1'; properties = $null; AZSCSource = 'ArmResourceList' })
+                Health = @([pscustomobject]@{ Dataset = 'Discovery: Azure Resource Manager resource list [s2]'; Status = 'Unavailable'; Reason = 'x'; ResourceTypes = @(); Collectors = @() })
+                Operations = @()
+                Listed = 1
+                Subscriptions = 1
+            }
+        }
+
+        $result = Get-ScoutRawInventory -SubscriptionIds @('s1') -SkipApiResourceSweep -CollectArmResourceCrossCheck $true -WarningAction SilentlyContinue
+
+        $script:crossCheckSubscriptions | Should -Be @('s1')
+        @($result.Resources | Where-Object type -eq 'microsoft.new/widgets').Count | Should -Be 1
+        @($result.CollectionHealth | Where-Object Dataset -like 'Discovery: Azure Resource Manager*').Count | Should -Be 1
+    }
+
+    It 'does neither when the run asks for named resource types only' {
+        $script:queries = [System.Collections.Generic.List[string]]::new()
+        function Search-AzGraph {
+            param([string] $Query, [Parameter(ValueFromRemainingArguments)] $Rest)
+            $null = $Rest
+            $script:queries.Add($Query)
+            return @()
+        }
+        $script:crossCheckCalled = $false
+        function Get-ScoutArmResourceCrossCheck { param([Parameter(ValueFromRemainingArguments)] $Rest) $null = $Rest; $script:crossCheckCalled = $true }
+
+        $null = Get-ScoutRawInventory -ResourceTypes @('microsoft.compute/virtualmachines') -SkipApiResourceSweep -CollectAllResourceGraphTables $true -CollectArmResourceCrossCheck $true -WarningAction SilentlyContinue
+
+        @($script:queries | Where-Object { $_ -match '^(authorizationresources|policyresources|managedservicesresources)\b' }).Count | Should -Be 0
+        $script:crossCheckCalled | Should -BeFalse
+    }
+}

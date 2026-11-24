@@ -158,6 +158,43 @@ These files exist to make a run auditable. Azure Scout retains `raw-inventory.js
 long as the run folder exists. Cleanup is operator-controlled through
 `Clear-AZSCCacheFolder -OlderThan <days>`; a successful scan does not delete its own evidence.
 
+### How discovery finds everything deployed
+
+A full inventory finds every deployed resource in three passes, so a resource is discovered even
+when no collector knows its type:
+
+1. **Resource Graph, every table that holds deployed resources.** `resources` holds every
+   top-level resource that Resource Graph indexes. Many deployed resources live only in another
+   table. These include:
+   - role assignments and custom roles;
+   - policy assignments, exemptions and custom definitions;
+   - Lighthouse delegations;
+   - machine-configuration and maintenance assignments;
+   - Kubernetes extensions and Flux configurations;
+   - DNS record sets, Elastic SAN volume groups and Kusto databases;
+   - Service Fabric managed clusters, AKS Fleet members and API Center APIs;
+   - data-collection-rule associations;
+   - backup and replication policies;
+   - Defender plans and connectors.
+
+   Discovery reads all of them. The table list and its filters are in
+   `Get-ScoutResourceGraphDiscoveryTable`. Tables that hold events, state or telemetry are left
+   out, each with its reason (`Get-ScoutResourceGraphDiscoveryTable -Excluded`). These include
+   change history, fired alerts, health status, compliance results, spot prices, galleries other
+   tenants publish, and software inventory reported by machines. A unit test fails if Microsoft's
+   table reference gains a table that is neither swept nor excluded.
+2. **Resource Manager cross-check.** Each subscription's top-level resources are listed directly
+   from Azure Resource Manager (`GET /subscriptions/{id}/resources`). Any resource that Resource
+   Graph did not return is added with its name, type, location, SKU, kind, identity and tags.
+   It carries `AZSCSource = 'ArmResourceList'`, and has no `properties`, because the list does not
+   return them. This covers resource types Resource Graph does not index. If a subscription's
+   list fails, collection health shows it as Unavailable.
+3. **Collectors.** A type with a dedicated collector gets its settings read and shaped for the
+   report. A type without one is still in `raw-inventory.json` and `Discovery.json`, with every
+   property Resource Graph returned, marked `GenericOnly`.
+
+A category-filtered run (`-Category`) reads only its own types and skips passes 1 and 2.
+
 The discovery ledger and supported report payloads recursively redact password, token, shared-key,
 private-key, connection-string, access-key, and secure parameter values. Their field names remain
 visible so Scout can report that the configuration exists without writing the credential itself.
