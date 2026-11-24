@@ -3,7 +3,7 @@
   "Category": "Integration",
   "Name": "EventGrid",
   "FixturePath": "tests/fixtures/collector-equivalence/Integration.json",
-  "FixtureSha256": "115aa72b6aa101ffbc1d51ad009667eea9e05ec73de369d8cceda8f25b35d12c",
+  "FixtureSha256": "9c84da1c8e64d369e3043194f67586b1e7921f7cb5ee86c30fec388793dbd5ff",
   "Rows": [
     "Endpoint=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.eventgrid/topics/eventgrid-t1a-1|Local Auth Disabled=s:res-value|Location=s:res-value|Name=s:eventgrid-t1a|Private Endpoints=s:2|Provisioning State=s:res-value|Public Network Access=s:res-value|Resource Group=s:res-value|Resource Kind=s:microsoft.eventgrid/topics|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|SKU=s:res-value|Source Type=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",
     "Endpoint=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.eventgrid/systemtopics/eventgrid-t2a-1|Local Auth Disabled=s:res-value|Location=s:res-value|Name=s:eventgrid-t2a|Private Endpoints=s:2|Provisioning State=s:res-value|Public Network Access=s:res-value|Resource Group=s:res-value|Resource Kind=s:microsoft.eventgrid/systemtopics|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|SKU=s:res-value|Source Type=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",

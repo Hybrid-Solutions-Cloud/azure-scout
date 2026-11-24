@@ -3,7 +3,7 @@
   "Category": "Compute",
   "Name": "ComputeFleet",
   "FixturePath": "tests/fixtures/collector-equivalence/Compute.json",
-  "FixtureSha256": "243cf6b3a93bc017d70f468e868afd6a90d787cb38a4ec1e482391d73f186997",
+  "FixtureSha256": "68a458adf6ff2e096084d3fd3e7825e4fd4ec68bbea2f4033e160e856987e6fc",
   "Rows": [
     "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurefleet/fleets/computefleet-t1a-1|Identity Type=s:res-value|Location=s:res-value|Name=s:computefleet-t1a|Regular Priority Allocation Strategy=s:res-value|Resource Group=s:res-value|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|Spot Priority Allocation Strategy=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod|Zones=s:res-item-0,res-item-1",
     "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurefleet/fleets/computefleet-t1b-1|Identity Type=s:res-value|Location=s:res-value|Name=s:computefleet-t1b|Regular Priority Allocation Strategy=s:res-value|Resource Group=s:res-value|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|Spot Priority Allocation Strategy=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod|Zones=s:res-item-0,res-item-1",

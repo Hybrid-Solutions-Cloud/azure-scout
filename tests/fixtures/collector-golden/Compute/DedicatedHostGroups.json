@@ -3,7 +3,7 @@
   "Category": "Compute",
   "Name": "DedicatedHostGroups",
   "FixturePath": "tests/fixtures/collector-equivalence/Compute.json",
-  "FixtureSha256": "243cf6b3a93bc017d70f468e868afd6a90d787cb38a4ec1e482391d73f186997",
+  "FixtureSha256": "68a458adf6ff2e096084d3fd3e7825e4fd4ec68bbea2f4033e160e856987e6fc",
   "Rows": [
     "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/hostgroups/dedicatedhostgroups-t1a-1|Location=s:res-value|Name=s:dedicatedhostgroups-t1a|Platform Fault Domain Count=s:res-value|Resource Group=s:res-value|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|Subscription=s:sub-fixture-01|Support Automatic Placement=s:res-value|Tag Name=s:env|Tag Value=s:prod|Ultra SSD Enabled=s:res-value|Zones=s:res-item-0,res-item-1",
     "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/hostgroups/dedicatedhostgroups-t1b-1|Location=s:res-value|Name=s:dedicatedhostgroups-t1b|Platform Fault Domain Count=s:res-value|Resource Group=s:res-value|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|Subscription=s:sub-fixture-01|Support Automatic Placement=s:res-value|Tag Name=s:env|Tag Value=s:prod|Ultra SSD Enabled=s:res-value|Zones=s:res-item-0,res-item-1",

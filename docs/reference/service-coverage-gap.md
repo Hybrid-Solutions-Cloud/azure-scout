@@ -18,6 +18,52 @@ re-fetch against the source URLs below — Microsoft's own catalogue drifts (ser
 retire) faster than most of this repository.
 :::
 
+## Update — 2026-11-24 (3.18.6 to 3.18.10)
+
+This update supersedes the per-category tables below wherever they disagree.
+
+**Discovery now covers everything deployed (3.18.6).** A collector is no longer the only way a
+resource is found. A full inventory reads every Azure Resource Graph table that holds deployed
+resources (35 beyond `resources`, `networkresources` and `resourcecontainers`), and cross-checks
+each subscription against Resource Manager's own resource list. A service marked **Not collected**
+below is therefore still *discovered*: it appears in `raw-inventory.json` and
+`ReportCache/Discovery.json` with every property Resource Graph returns. "Not collected" now means
+"no dedicated collector shapes its settings".
+
+**30 collectors added (3.18.10)** for types that discovery found but nothing read, verified against
+live Resource Graph rows where the test tenants had them and against Microsoft's ARM template
+reference otherwise:
+
+| Area | Collectors |
+|---|---|
+| Azure Local | `Hybrid/AzureLocalMachines` (edge machines), `Hybrid/AzureLocalNetworkInterfaces`, `Hybrid/AzureLocalVirtualHardDisks`, `Hybrid/AzureLocalNetworkSecurityGroups`, `Hybrid/CustomLocations` |
+| Arc | `Hybrid/ArcVMwareVCenters`, `Hybrid/ArcVMwareInventory`, `Hybrid/ArcSCVMMServers`, `Hybrid/ArcSCVMMInventory`, `Hybrid/ArcSQLDatabases`, `Hybrid/ArcSQLAvailabilityGroups`, `Hybrid/KubernetesExtensions`, `Hybrid/ArcMachineRunCommands` |
+| Governance and patching | `Management/GuestConfigurationAssignments`, `Management/UpdateManagerAssignments` |
+| Backup | `Management/BackupVaults`, `Management/BackupResourceGuards` |
+| Security | `Security/DefenderAutomations`, `Security/DefenderStandardAssignments`, `Security/DefenderSecurityConnectors` |
+| Networking | `Networking/NetworkSecurityPerimeters`, `Networking/DnsPrivateResolvers`, `Networking/DnsForwardingRulesets`, `Networking/DnsSecurityPolicies` |
+| Monitoring | `Monitor/AlertProcessingRules`, `Monitor/PartnerMonitors` (Datadog, Elastic, Dynatrace, New Relic) |
+| Compute | `Compute/ManagedImages`, `Compute/ComputeGalleries`, `Compute/RestorePointCollections` |
+| DevOps | `DevOps/PlaywrightWorkspaces` (successor to the retired Playwright Testing) |
+
+**Retired services are flagged.** MariaDB (retired 2025-09-19), MySQL single server (2024-09-16),
+Integration Service Environment (2024-08-31), Maps Creator (2025-09-30), Azure API for FHIR
+(2026-09-30), AI Health Insights (2025-12-31) and Microsoft Playwright Testing (2026-03-08) are still
+collected for estates that have them, and their rows now carry the retirement and its successor in
+`Retiring Feature` / `Retiring Date` even after the service drops out of Azure Advisor's retirement
+feed.
+
+**Corrections to the tables below.** Managed Grafana, Data Factory, Fabric, CDN, Batch, Dedicated
+Host and Storage Mover already had collectors and are not gaps. Custom locations were collected for
+the assessment by a typed query and now also have an inventory collector. Site Recovery replicated
+items and Update Manager assignments are ordinary Resource Graph types (in
+`recoveryservicesresources` and `maintenanceresources`), not per-target reads.
+
+**Still without a dedicated collector**, but discovered: AKS Fleet Manager, Prometheus rule groups,
+Log Analytics dedicated clusters, vWAN VPN/ExpressRoute gateways and network virtual appliances, API
+Center, deployment stacks and template specs, App Gateway for Containers, SAP on Azure, Oracle
+Database@Azure, Azure Device Registry, Operator Nexus.
+
 ## Sources and method
 
 - **Product catalogue**: [azure.microsoft.com/products](https://azure.microsoft.com/en-us/products/),

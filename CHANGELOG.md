@@ -7,6 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.18.10] - 2026-11-24 - collectors for what discovery found
+
+### Added
+
+- **30 collectors for resources discovery found but nothing read** (342 collectors, up from 312).
+  - Azure Local: machines (hardware, OS build, connectivity, disks, adapters, workloads), VM network
+    interfaces, virtual hard disks and network security groups, custom locations.
+  - Arc: VMware vCenters and inventory (clusters, hosts, datastores, resource pools, networks,
+    templates), SCVMM servers and inventory, SQL Server databases and availability groups,
+    Kubernetes extensions (never their configuration or protected settings), machine run commands
+    (who ran what and the result; never the script, its parameters or its output).
+  - Governance: machine configuration (guest configuration) compliance, Update Manager
+    maintenance assignments, backup vaults (immutability, soft delete, cross-region restore,
+    resource guard) and resource guards.
+  - Security: Defender for Cloud workflow automations and continuous export, security standard
+    assignments, multicloud and DevOps connectors.
+  - Networking: network security perimeters, DNS private resolvers, forwarding rulesets and DNS
+    security policies.
+  - Monitoring: alert processing rules (including ones that suppress alerts), Datadog, Elastic,
+    Dynatrace and New Relic monitors (never user contact details).
+  - Compute and DevOps: managed images, compute galleries, restore point collections, Playwright
+    Workspaces.
+  - Fields were checked against live Resource Graph rows from the test tenants where they had the
+    type, and against Microsoft's ARM template reference otherwise. Live, the new collectors read
+    156 machine configuration assignments, 57 Defender standard assignments, 28 Arc SQL databases,
+    28 Update Manager assignments and 6 Azure Local machines, with no errors or warnings.
+
+### Changed
+
+- **Retired services are flagged.** MariaDB, MySQL single server, Integration Service Environment,
+  Maps Creator, Azure API for FHIR, AI Health Insights and Microsoft Playwright Testing rows now carry
+  the retirement date and successor in `Retiring Feature` / `Retiring Date`. A retired service drops
+  out of the Advisor retirement feed, so these columns were empty for it.
+- `docs/reference/service-coverage-gap.md` is updated for discovery, the new collectors and the
+  entries it had wrong.
+
 ## [3.18.9] - 2026-11-24 - assessment-only counts what it assessed
 
 ### Fixed

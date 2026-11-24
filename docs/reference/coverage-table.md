@@ -23,23 +23,23 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 |----------|---------|-------|
 | AI | 31 | Cognitive Services, Azure OpenAI, Machine Learning, AI Foundry, Bot Services, and AI Search. |
 | Analytics | 12 | Synapse, Databricks, Data Explorer, Event Hubs, Stream Analytics, and Purview. |
-| Compute | 19 | Virtual machines, scale sets, availability sets, and the Azure Virtual Desktop estate. |
+| Compute | 22 | Virtual machines, scale sets, availability sets, and the Azure Virtual Desktop estate. |
 | Containers | 8 | AKS, ARO, Container Apps, container instances, and container registries. |
 | Databases | 15 | Azure SQL, Cosmos DB, MySQL, PostgreSQL, MariaDB, and Redis. |
-| DevOps | 19 | Chaos Studio, Dev Box and Dev Centers, DevTest and Lab Services, Load Testing, Managed DevOps Pools, and Playwright workspaces. |
+| DevOps | 20 | Chaos Studio, Dev Box and Dev Centers, DevTest and Lab Services, Load Testing, Managed DevOps Pools, and Playwright workspaces. |
 | General | 5 | Support tickets, reservations, and VM quotas — the platform-level surfaces that belong to no service family. |
-| Hybrid | 16 | Azure Arc, Azure Local, VMware Solution, and the hybrid data services. |
+| Hybrid | 29 | Azure Arc, Azure Local, VMware Solution, and the hybrid data services. |
 | Identity | 38 | Entra ID via Microsoft Graph — users, groups, app registrations, Conditional Access, and PIM. |
 | Integration | 9 | Logic Apps, integration accounts, Event Grid, Relays, Health Data Services, API Management, and Service Bus. |
 | IoT | 8 | IoT Hub and DPS, IoT Central, Device Update, Digital Twins, Azure Maps, and Defender for IoT. |
-| Management | 23 | Subscriptions, management groups, policy, backup, automation, Advisor, and the Azure DevOps organisation collectors. |
+| Management | 27 | Subscriptions, management groups, policy, backup, automation, Advisor, and the Azure DevOps organisation collectors. |
 | Migration | 6 | Azure Migrate projects, assessments and discovery sites; Database Migration Services, Data Box, and Azure Stack Edge. |
-| Monitor | 25 | Alert rules, Application Insights, data collection rules, diagnostic settings, and Log Analytics. |
-| Networking | 25 | Virtual networks, NSGs, load balancers, gateways, Front Door, Firewall, Bastion, and ExpressRoute. |
-| Security | 22 | Defender for Cloud, Key Vault (ARM configuration only), Sentinel, HSMs, WAF and DDoS policies, and Entra Domain Services. |
+| Monitor | 27 | Alert rules, Application Insights, data collection rules, diagnostic settings, and Log Analytics. |
+| Networking | 29 | Virtual networks, NSGs, load balancers, gateways, Front Door, Firewall, Bastion, and ExpressRoute. |
+| Security | 25 | Defender for Cloud, Key Vault (ARM configuration only), Sentinel, HSMs, WAF and DDoS policies, and Entra Domain Services. |
 | Storage | 17 | Storage accounts and their containers, shares and lifecycle policies; NetApp Files, snapshots, encryption sets, and Elastic SAN. |
 | Web | 14 | App Services and plans, Function Apps, slots, Static Web Apps, SignalR, Web PubSub, and Communication Services. |
-| **Total** | **312** | across all 18 of Microsoft's published service categories |
+| **Total** | **342** | across all 18 of Microsoft's published service categories |
 
 ## AI Category (31 modules)
 
@@ -94,7 +94,7 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | Streamanalytics | `microsoft.streamanalytics/streamingjobs` | Stream Analytics Jobs |
 | Synapse | `microsoft.synapse/workspaces` | Synapse |
 
-## Compute Category (19 modules)
+## Compute Category (22 modules)
 
 | Module | Resource Type | Worksheet |
 |--------|---------------|-----------|
@@ -108,9 +108,12 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | AVDWorkspaces | `microsoft.desktopvirtualization/workspaces` | AVD Workspaces |
 | BatchAccounts | `microsoft.batch/batchaccounts` | Batch Accounts |
 | ComputeFleet | `microsoft.azurefleet/fleets` | Compute Fleet |
+| ComputeGalleries | `microsoft.compute/galleries` | Compute Galleries |
 | DedicatedHostGroups | `microsoft.compute/hostgroups` | Dedicated Host Groups |
+| ManagedImages | `microsoft.compute/images` | Managed Images |
 | NutanixNodes | `microsoft.nutanix/nodes` | Nutanix Nodes |
 | QuantumWorkspaces | `microsoft.quantum/workspaces` | Quantum Workspaces |
+| RestorePointCollections | `microsoft.compute/restorepointcollections` | Restore Point Collections |
 | VirtualMachine | `microsoft.compute/virtualmachines` | Virtual Machines |
 | VirtualMachineScaleSet | `microsoft.compute/virtualmachinescalesets` | Virtual Machine Scale Sets |
 | VMDisk | `microsoft.compute/disks` | Disks |
@@ -151,7 +154,7 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | SQLVM | `microsoft.sqlvirtualmachine/sqlvirtualmachines` | SQL VMs |
 | StorageTables | `AZSC/ARMChild/StorageTables` | Storage Tables |
 
-## DevOps Category (19 modules)
+## DevOps Category (20 modules)
 
 | Module | Resource Type | Worksheet |
 |--------|---------------|-----------|
@@ -173,6 +176,7 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | ManagedDevOpsPools | `microsoft.devopsinfrastructure/pools` | Managed DevOps Pools |
 | ManagedGrafana | `microsoft.dashboard/grafana` | Managed Grafana |
 | PlaywrightTesting | `microsoft.azureplaywrightservice/accounts` | Playwright Workspaces |
+| PlaywrightWorkspaces | `microsoft.loadtestservice/playwrightworkspaces` | App Testing Workspaces |
 | VisualStudioAccounts | `microsoft.visualstudio/account` | Visual Studio Accounts |
 
 ## General Category (5 modules)
@@ -185,7 +189,7 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | ReservationUtilization | `AZSC/ARMChild/ReservationUtilization` | Reservation Utilization |
 | SupportTickets | `Microsoft.Support/supportTickets` | Support Tickets |
 
-## Hybrid Category (16 modules)
+## Hybrid Category (29 modules)
 
 | Module | Resource Type | Worksheet |
 |--------|---------------|-----------|
@@ -193,14 +197,27 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | ArcExtensions | `microsoft.hybridcompute/machines/extensions` | Arc Extensions |
 | ArcGateways | `microsoft.hybridcompute/gateways` | Arc Gateways |
 | ArcKubernetes | `microsoft.kubernetes/connectedclusters` | Arc Kubernetes |
+| ArcMachineRunCommands | `microsoft.hybridcompute/machines/runcommands` | Arc Run Commands |
 | ArcResourceBridge | `microsoft.resourceconnector/appliances` | Arc Resource Bridge |
+| ArcSCVMMInventory | `microsoft.scvmm/clouds` · `microsoft.scvmm/virtualnetworks` · `microsoft.scvmm/virtualmachinetemplates` · `microsoft.scvmm/availabilitysets` | Arc SCVMM Inventory |
+| ArcSCVMMServers | `microsoft.scvmm/vmmservers` | Arc SCVMM Servers |
 | ArcServerOperationalData | `microsoft.hybridcompute/machines` | Arc Server Operational Data |
 | ARCServers | `microsoft.hybridcompute/machines` | ARC Servers |
 | ArcSites | `AZSC/ARMChild/ArcSites` | Arc Sites |
+| ArcSQLAvailabilityGroups | `microsoft.azurearcdata/sqlserverinstances/availabilitygroups` | Arc SQL Availability Groups |
+| ArcSQLDatabases | `microsoft.azurearcdata/sqlserverinstances/databases` | Arc SQL Databases |
 | ArcSQLManagedInstances | `microsoft.azurearcdata/sqlmanagedinstances` | Arc SQL Managed Instances |
 | ArcSQLServers | `microsoft.azurearcdata/sqlserverinstances` | Arc SQL Servers |
+| ArcVMwareInventory | `microsoft.connectedvmwarevsphere/clusters` · `microsoft.connectedvmwarevsphere/hosts` · `microsoft.connectedvmwarevsphere/datastores` · `microsoft.connectedvmwarevsphere/resourcepools` · `microsoft.connectedvmwarevsphere/virtualnetworks` · `microsoft.connectedvmwarevsphere/virtualmachinetemplates` | Arc VMware Inventory |
+| ArcVMwareVCenters | `microsoft.connectedvmwarevsphere/vcenters` | Arc VMware vCenters |
+| AzureLocalMachines | `microsoft.azurestackhci/edgemachines` | Azure Local Machines |
+| AzureLocalNetworkInterfaces | `microsoft.azurestackhci/networkinterfaces` | Azure Local VM NICs |
+| AzureLocalNetworkSecurityGroups | `microsoft.azurestackhci/networksecuritygroups` | Azure Local NSGs |
+| AzureLocalVirtualHardDisks | `microsoft.azurestackhci/virtualharddisks` | Azure Local VM Disks |
 | Clusters | `microsoft.azurestackhci/clusters` | AzLocal Clusters |
+| CustomLocations | `microsoft.extendedlocation/customlocations` | Custom Locations |
 | GalleryImages | `microsoft.azurestackhci/galleryimages` | AzLocal Images |
+| KubernetesExtensions | `microsoft.kubernetesconfiguration/extensions` | Kubernetes Extensions |
 | LogicalNetworks | `microsoft.azurestackhci/logicalnetworks` | AzLocal Networks |
 | MarketplaceGalleryImages | `microsoft.azurestackhci/marketplacegalleryimages` | AzLocal Marketplace |
 | StorageContainers | `microsoft.azurestackhci/storagecontainers` | AzLocal Storage |
@@ -276,7 +293,7 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | IoTOperations | `microsoft.iotoperations/instances` | IoT Operations |
 | Maps | `microsoft.maps/accounts` · `microsoft.maps/accounts/creators` | Azure Maps |
 
-## Management Category (23 modules)
+## Management Category (27 modules)
 
 | Module | Resource Type | Worksheet |
 |--------|---------------|-----------|
@@ -286,6 +303,8 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | AutomationAccounts | `microsoft.automation/automationaccounts` | Runbooks |
 | Backup | `microsoft.recoveryservices/vaults/backuppolicies` | Backup |
 | BackupInstances | `AZSC/ARMChild/BackupInstances` | Backup Instances |
+| BackupResourceGuards | `microsoft.dataprotection/resourceguards` | Backup Resource Guards |
+| BackupVaults | `microsoft.dataprotection/backupvaults` | Backup Vaults |
 | BillingAccounts | `AZSC/Billing/BillingAccounts` | Billing Accounts |
 | BillingBenefits | `AZSC/Billing/ReservationOrders` · `AZSC/Billing/SavingsPlanOrders` | Billing Benefits |
 | BillingHierarchy | `AZSC/Billing/BillingProfiles` · `AZSC/Billing/InvoiceSections` · `AZSC/Billing/Departments` · `AZSC/Billing/EnrollmentAccounts` | Billing Hierarchy |
@@ -293,6 +312,7 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | Budgets | `AZSC/Governance/Budget` | Budgets |
 | CustomRoleDefinitions | `AZSC/Management/RoleDefinition` | Custom Roles |
 | DefenderEasmWorkspaces | `microsoft.easm/workspaces` | Defender EASM |
+| GuestConfigurationAssignments | `microsoft.guestconfiguration/guestconfigurationassignments` | Machine Configuration |
 | MaintenanceConfigurations | `microsoft.maintenance/maintenanceconfigurations` | Maintenance Configs |
 | ManagedApplications | `microsoft.solutions/applications` | Managed Applications |
 | ManagementGroups | `AZSC/Management/ManagementGroup` | Management Groups |
@@ -303,6 +323,7 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | RecoveryVault | `microsoft.recoveryservices/vaults` | Recovery Vaults |
 | ResourceLocks | `AZSC/Governance/ResourceLock` | Resource Locks |
 | ResourceMoverCollections | `microsoft.migrate/movecollections` | Resource Mover |
+| UpdateManagerAssignments | `microsoft.maintenance/configurationassignments` | Update Manager Assignments |
 
 ## Migration Category (6 modules)
 
@@ -315,12 +336,13 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | DataBox | `microsoft.databox/jobs` | Data Box Jobs |
 | StackEdge | `microsoft.databoxedge/databoxedgedevices` | Stack Edge Devices |
 
-## Monitor Category (25 modules)
+## Monitor Category (27 modules)
 
 | Module | Resource Type | Worksheet |
 |--------|---------------|-----------|
 | ActionGroups | `microsoft.insights/actiongroups` | Action Groups |
 | ActivityLogAlertRules | `microsoft.insights/activitylogalerts` | Activity Log Alerts |
+| AlertProcessingRules | `microsoft.alertsmanagement/actionrules` | Alert Processing Rules |
 | AppInsights | `microsoft.insights/components` | AppInsights |
 | AppInsightsAvailabilityTests | `microsoft.insights/webtests` | App Insights Availability Tests |
 | AppInsightsProactiveDetection | `AZSC/ARMChild/AppInsightsProactiveDetection` | App Insights ProactiveDetection |
@@ -338,6 +360,7 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | MonitorPrivateLinkScopes | `microsoft.insights/privatelinkscopes` | Monitor Private Link Scopes |
 | MonitorWorkbooks | `microsoft.insights/workbooks` | Monitor Workbooks |
 | Outages | `AZSC/Monitor/Outage` | Outages |
+| PartnerMonitors | `microsoft.datadog/monitors` · `microsoft.elastic/monitors` · `dynatrace.observability/monitors` · `newrelic.observability/monitors` | Partner Monitors |
 | ResourceDiagnosticSettings | `AZSC/ARMChild/ResourceDiagnosticSettings` | Resource Diagnostic Settings |
 | ScheduledQueryRules | `microsoft.insights/scheduledqueryrules` | Scheduled Queries |
 | SmartDetectorAlertRules | `microsoft.alertsmanagement/smartdetectoralertrules` | Smart Detector Alerts |
@@ -345,7 +368,7 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | Workspaces | `microsoft.operationalinsights/workspaces` | Workspaces |
 | WorkspaceTableRetention | `AZSC/ARMChild/LAWorkspaceTables` | Workspace Table Retention |
 
-## Networking Category (25 modules)
+## Networking Category (29 modules)
 
 | Module | Resource Type | Worksheet |
 |--------|---------------|-----------|
@@ -354,6 +377,9 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | BastionHosts | `microsoft.network/bastionhosts` | Bastion Hosts |
 | CdnProfiles | `microsoft.cdn/profiles` | CDN Profiles |
 | Connections | `microsoft.network/connections` | Connections |
+| DnsForwardingRulesets | `microsoft.network/dnsforwardingrulesets` | DNS Forwarding Rulesets |
+| DnsPrivateResolvers | `microsoft.network/dnsresolvers` | DNS Private Resolvers |
+| DnsSecurityPolicies | `microsoft.network/dnsresolverpolicies` | DNS Security Policies |
 | ExpressRoute | `microsoft.network/expressroutecircuits` | Express Route |
 | FirewallPolicies | `microsoft.network/firewallpolicies` | Firewall Policies |
 | Frontdoor | `microsoft.network/frontdoors` | FrontDoor |
@@ -363,6 +389,7 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | NetworkInterface | `microsoft.network/networkinterfaces` | Network Interface |
 | NetworkManagers | `microsoft.network/networkmanagers` | Network Managers |
 | NetworkSecurityGroup | `microsoft.network/networksecuritygroups` | Network Security Groups |
+| NetworkSecurityPerimeters | `microsoft.network/networksecurityperimeters` | Network Security Perimeters |
 | NetworkWatchers | `microsoft.network/networkwatchers` | Network Watchers |
 | PrivateDNS | `microsoft.network/privatednszones` | Private DNS |
 | PrivateEndpoint | `microsoft.network/privateendpoints` | Private Endpoint |
@@ -375,7 +402,7 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | VirtualWAN | `microsoft.network/virtualwans` | Virtual WAN |
 | vNETPeering | `microsoft.network/virtualnetworks` | Peering |
 
-## Security Category (22 modules)
+## Security Category (25 modules)
 
 | Module | Resource Type | Worksheet |
 |--------|---------------|-----------|
@@ -389,10 +416,13 @@ Regenerate it with `scripts/Build-ArmModuleCatalog.ps1`, which writes this page 
 | DefenderAlerts | `AZSC/Subscription/SecurityPolicySweep` | Defender Alerts |
 | DefenderAssessments | `AZSC/Subscription/SecurityPolicySweep` | Defender Assessments |
 | DefenderAttackPaths | `microsoft.security/attackpaths` | Defender Attack Paths |
+| DefenderAutomations | `microsoft.security/automations` | Defender Automations |
 | DefenderPricing | `AZSC/Subscription/SecurityPolicySweep` | Defender Pricing |
 | DefenderRegulatoryCompliance | `AZSC/Subscription/SecurityPolicySweep` | Defender Compliance |
 | DefenderScoreControls | `AZSC/Subscription/SecurityPolicySweep` | Defender Score Controls |
 | DefenderSecureScore | `AZSC/Subscription/SecurityPolicySweep` | Defender Secure Score |
+| DefenderSecurityConnectors | `microsoft.security/securityconnectors` | Defender Connectors |
+| DefenderStandardAssignments | `microsoft.security/standardassignments` | Defender Standard Assignments |
 | DefenderUnhealthyRecommendations | `AZSC/Derived/DefenderUnhealthyRecommendation` | Defender Recommendations |
 | EntraDomainServices | `microsoft.aad/domainservices` | Entra Domain Services |
 | ManagedHSM | `microsoft.keyvault/managedhsms` | Managed HSM |

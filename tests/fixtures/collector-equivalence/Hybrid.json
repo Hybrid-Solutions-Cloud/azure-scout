@@ -198,6 +198,258 @@
     {
       "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/virtualmachines-t1f-1/AzureLocalVirtualMachineInstances/virtualmachines-t1f-2",
       "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcmachineruncommands-t1e-1/runcommands/arcmachineruncommands-t1e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcmachineruncommands-t1f-1/runcommands/arcmachineruncommands-t1f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcmachineruncommands-t1f-1/runcommands/arcmachineruncommands-t1f-2",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.scvmm/clouds/arcscvmminventory-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.scvmm/virtualnetworks/arcscvmminventory-t2e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.scvmm/virtualmachinetemplates/arcscvmminventory-t3e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.scvmm/availabilitysets/arcscvmminventory-t4e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.scvmm/clouds/arcscvmminventory-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.scvmm/clouds/arcscvmminventory-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.scvmm/virtualnetworks/arcscvmminventory-t2f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.scvmm/virtualnetworks/arcscvmminventory-t2f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.scvmm/virtualmachinetemplates/arcscvmminventory-t3f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.scvmm/virtualmachinetemplates/arcscvmminventory-t3f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.scvmm/availabilitysets/arcscvmminventory-t4f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.scvmm/availabilitysets/arcscvmminventory-t4f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.scvmm/vmmservers/arcscvmmservers-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.scvmm/vmmservers/arcscvmmservers-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.scvmm/vmmservers/arcscvmmservers-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurearcdata/sqlserverinstances/arcsqlavailabilitygroups-t1e-1/availabilitygroups/arcsqlavailabilitygroups-t1e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurearcdata/sqlserverinstances/arcsqlavailabilitygroups-t1f-1/availabilitygroups/arcsqlavailabilitygroups-t1f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurearcdata/sqlserverinstances/arcsqlavailabilitygroups-t1f-1/availabilitygroups/arcsqlavailabilitygroups-t1f-2",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurearcdata/sqlserverinstances/arcsqldatabases-t1e-1/databases/arcsqldatabases-t1e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurearcdata/sqlserverinstances/arcsqldatabases-t1f-1/databases/arcsqldatabases-t1f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurearcdata/sqlserverinstances/arcsqldatabases-t1f-1/databases/arcsqldatabases-t1f-2",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/clusters/arcvmwareinventory-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/hosts/arcvmwareinventory-t2e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/datastores/arcvmwareinventory-t3e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/resourcepools/arcvmwareinventory-t4e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/virtualnetworks/arcvmwareinventory-t5e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/virtualmachinetemplates/arcvmwareinventory-t6e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/clusters/arcvmwareinventory-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/clusters/arcvmwareinventory-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/hosts/arcvmwareinventory-t2f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/hosts/arcvmwareinventory-t2f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/datastores/arcvmwareinventory-t3f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/datastores/arcvmwareinventory-t3f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/resourcepools/arcvmwareinventory-t4f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/resourcepools/arcvmwareinventory-t4f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/virtualnetworks/arcvmwareinventory-t5f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/virtualnetworks/arcvmwareinventory-t5f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/virtualmachinetemplates/arcvmwareinventory-t6f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/virtualmachinetemplates/arcvmwareinventory-t6f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/vcenters/arcvmwarevcenters-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/vcenters/arcvmwarevcenters-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/vcenters/arcvmwarevcenters-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurestackhci/edgemachines/azurelocalmachines-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurestackhci/edgemachines/azurelocalmachines-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurestackhci/edgemachines/azurelocalmachines-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurestackhci/networkinterfaces/azurelocalnetworkinterfaces-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurestackhci/networkinterfaces/azurelocalnetworkinterfaces-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurestackhci/networkinterfaces/azurelocalnetworkinterfaces-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurestackhci/networksecuritygroups/azurelocalnetworksecuritygroups-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurestackhci/networksecuritygroups/azurelocalnetworksecuritygroups-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurestackhci/networksecuritygroups/azurelocalnetworksecuritygroups-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurestackhci/virtualharddisks/azurelocalvirtualharddisks-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurestackhci/virtualharddisks/azurelocalvirtualharddisks-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurestackhci/virtualharddisks/azurelocalvirtualharddisks-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.extendedlocation/customlocations/customlocations-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.extendedlocation/customlocations/customlocations-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.extendedlocation/customlocations/customlocations-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.kubernetesconfiguration/extensions/kubernetesextensions-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.kubernetesconfiguration/extensions/kubernetesextensions-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.kubernetesconfiguration/extensions/kubernetesextensions-t1f-1",
+      "ServiceID": "svc-2"
     }
   ],
   "unsupported": [
@@ -412,7 +664,7 @@
                   "res-item-0",
                   "res-item-1"
                 ],
-                "time": "2026-01-15T10:30:00.0000000Z",
+                "time": "2026-01-15T10:30:00Z",
                 "code": "res-value"
               }
             },
@@ -446,7 +698,7 @@
                   "res-item-0",
                   "res-item-1"
                 ],
-                "time": "2026-01-15T10:30:00.0000000Z",
+                "time": "2026-01-15T10:30:00Z",
                 "code": "res-value"
               }
             },
@@ -481,7 +733,7 @@
                   "res-item-0",
                   "res-item-1"
                 ],
-                "time": "2026-01-15T10:30:00.0000000Z",
+                "time": "2026-01-15T10:30:00Z",
                 "code": "res-value"
               }
             },
@@ -513,7 +765,7 @@
                   "res-item-0",
                   "res-item-1"
                 ],
-                "time": "2026-01-15T10:30:00.0000000Z",
+                "time": "2026-01-15T10:30:00Z",
                 "code": "res-value"
               }
             },
@@ -547,7 +799,7 @@
                   "res-item-0",
                   "res-item-1"
                 ],
-                "time": "2026-01-15T10:30:00.0000000Z",
+                "time": "2026-01-15T10:30:00Z",
                 "code": "res-value"
               }
             },
@@ -581,7 +833,7 @@
                   "res-item-0",
                   "res-item-1"
                 ],
-                "time": "2026-01-15T10:30:00.0000000Z",
+                "time": "2026-01-15T10:30:00Z",
                 "code": "res-value"
               }
             },
@@ -742,7 +994,7 @@
       "resources": [
         {
           "PROPERTIES": {
-            "lastConnectivityTime": "2026-01-15T10:30:00.0000000Z",
+            "lastConnectivityTime": "2026-01-15T10:30:00Z",
             "provisioningState": "res-value",
             "connectivityStatus": "res-value",
             "distribution": "res-value",
@@ -768,7 +1020,7 @@
         },
         {
           "PROPERTIES": {
-            "lastConnectivityTime": "2026-01-15T10:30:00.0000000Z",
+            "lastConnectivityTime": "2026-01-15T10:30:00Z",
             "provisioningState": "res-value",
             "connectivityStatus": "res-value",
             "distribution": "res-value",
@@ -795,7 +1047,7 @@
         },
         {
           "PROPERTIES": {
-            "lastConnectivityTime": "2026-01-15T10:30:00.0000000Z",
+            "lastConnectivityTime": "2026-01-15T10:30:00Z",
             "provisioningState": "res-value",
             "connectivityStatus": "res-value",
             "distribution": "res-value",
@@ -819,7 +1071,7 @@
         },
         {
           "PROPERTIES": {
-            "lastConnectivityTime": "2026-01-15T10:30:00.0000000Z",
+            "lastConnectivityTime": "2026-01-15T10:30:00Z",
             "provisioningState": "res-value",
             "connectivityStatus": "res-value",
             "distribution": "res-value",
@@ -845,7 +1097,7 @@
         },
         {
           "PROPERTIES": {
-            "lastConnectivityTime": "2026-01-15T10:30:00.0000000Z",
+            "lastConnectivityTime": "2026-01-15T10:30:00Z",
             "provisioningState": "res-value",
             "connectivityStatus": "res-value",
             "distribution": "res-value",
@@ -871,7 +1123,7 @@
         },
         {
           "PROPERTIES": {
-            "lastConnectivityTime": "2026-01-15T10:30:00.0000000Z",
+            "lastConnectivityTime": "2026-01-15T10:30:00Z",
             "provisioningState": "res-value",
             "connectivityStatus": "res-value",
             "distribution": "res-value",
@@ -894,6 +1146,141 @@
           "NAME": "arckubernetes-t1f",
           "LOCATION": "res-value",
           "TYPE": "microsoft.kubernetes/connectedclusters"
+        }
+      ]
+    },
+    "ArcMachineRunCommands": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "instanceView": {
+              "executionState": "res-value",
+              "exitCode": "res-value",
+              "startTime": "2026-01-15T10:30:00.0000000Z",
+              "endTime": "2026-01-15T10:30:00.0000000Z"
+            },
+            "timeoutInSeconds": "res-value",
+            "asyncExecution": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcmachineruncommands-t1a-1/runcommands/arcmachineruncommands-t1a-2",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcmachineruncommands-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.hybridcompute/machines/runcommands"
+        },
+        {
+          "PROPERTIES": {
+            "instanceView": {
+              "executionState": "res-value",
+              "exitCode": "res-value",
+              "startTime": "2026-01-15T10:30:00.0000000Z",
+              "endTime": "2026-01-15T10:30:00.0000000Z"
+            },
+            "timeoutInSeconds": "res-value",
+            "asyncExecution": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcmachineruncommands-t1b-1/runcommands/arcmachineruncommands-t1b-2",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcmachineruncommands-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.hybridcompute/machines/runcommands"
+        },
+        {
+          "PROPERTIES": {
+            "instanceView": {
+              "executionState": "res-value",
+              "exitCode": "res-value",
+              "startTime": "2026-01-15T10:30:00.0000000Z",
+              "endTime": "2026-01-15T10:30:00.0000000Z"
+            },
+            "timeoutInSeconds": "res-value",
+            "asyncExecution": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcmachineruncommands-t1c-1/runcommands/arcmachineruncommands-t1c-2",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcmachineruncommands-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.hybridcompute/machines/runcommands"
+        },
+        {
+          "PROPERTIES": {
+            "instanceView": {
+              "executionState": "res-value",
+              "exitCode": "res-value",
+              "startTime": "2026-01-15T10:30:00.0000000Z",
+              "endTime": "2026-01-15T10:30:00.0000000Z"
+            },
+            "timeoutInSeconds": "res-value",
+            "asyncExecution": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcmachineruncommands-t1d-1/runcommands/arcmachineruncommands-t1d-2",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcmachineruncommands-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.hybridcompute/machines/runcommands"
+        },
+        {
+          "PROPERTIES": {
+            "instanceView": {
+              "executionState": "res-value",
+              "exitCode": "res-value",
+              "startTime": "2026-01-15T10:30:00.0000000Z",
+              "endTime": "2026-01-15T10:30:00.0000000Z"
+            },
+            "timeoutInSeconds": "res-value",
+            "asyncExecution": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcmachineruncommands-t1e-1/runcommands/arcmachineruncommands-t1e-2",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcmachineruncommands-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.hybridcompute/machines/runcommands"
+        },
+        {
+          "PROPERTIES": {
+            "instanceView": {
+              "executionState": "res-value",
+              "exitCode": "res-value",
+              "startTime": "2026-01-15T10:30:00.0000000Z",
+              "endTime": "2026-01-15T10:30:00.0000000Z"
+            },
+            "timeoutInSeconds": "res-value",
+            "asyncExecution": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/machines/arcmachineruncommands-t1f-1/runcommands/arcmachineruncommands-t1f-2",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcmachineruncommands-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.hybridcompute/machines/runcommands"
         }
       ]
     },
@@ -1050,6 +1437,555 @@
         }
       ]
     },
+    "ArcSCVMMInventory": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "vmmServerId": "res-value",
+            "osType": "res-value",
+            "cpuCount": "res-value",
+            "memoryMB": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "TYPE": "microsoft.scvmm/clouds",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.scvmm/clouds/arcscvmminventory-t1a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcscvmminventory-t1a",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "vmmServerId": "res-value",
+            "osType": "res-value",
+            "cpuCount": "res-value",
+            "memoryMB": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "TYPE": "microsoft.scvmm/virtualnetworks",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.scvmm/virtualnetworks/arcscvmminventory-t2a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcscvmminventory-t2a",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "vmmServerId": "res-value",
+            "osType": "res-value",
+            "cpuCount": "res-value",
+            "memoryMB": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "TYPE": "microsoft.scvmm/virtualmachinetemplates",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.scvmm/virtualmachinetemplates/arcscvmminventory-t3a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcscvmminventory-t3a",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "vmmServerId": "res-value",
+            "osType": "res-value",
+            "cpuCount": "res-value",
+            "memoryMB": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "TYPE": "microsoft.scvmm/availabilitysets",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.scvmm/availabilitysets/arcscvmminventory-t4a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcscvmminventory-t4a",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "vmmServerId": "res-value",
+            "osType": "res-value",
+            "cpuCount": "res-value",
+            "memoryMB": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "TYPE": "microsoft.scvmm/clouds",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.scvmm/clouds/arcscvmminventory-t1b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcscvmminventory-t1b",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "vmmServerId": "res-value",
+            "osType": "res-value",
+            "cpuCount": "res-value",
+            "memoryMB": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "TYPE": "microsoft.scvmm/virtualnetworks",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.scvmm/virtualnetworks/arcscvmminventory-t2b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcscvmminventory-t2b",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "vmmServerId": "res-value",
+            "osType": "res-value",
+            "cpuCount": "res-value",
+            "memoryMB": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "TYPE": "microsoft.scvmm/virtualmachinetemplates",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.scvmm/virtualmachinetemplates/arcscvmminventory-t3b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcscvmminventory-t3b",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "vmmServerId": "res-value",
+            "osType": "res-value",
+            "cpuCount": "res-value",
+            "memoryMB": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "TYPE": "microsoft.scvmm/availabilitysets",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.scvmm/availabilitysets/arcscvmminventory-t4b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcscvmminventory-t4b",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "vmmServerId": "res-value",
+            "osType": "res-value",
+            "cpuCount": "res-value",
+            "memoryMB": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "TYPE": "microsoft.scvmm/clouds",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.scvmm/clouds/arcscvmminventory-t1c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcscvmminventory-t1c",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "vmmServerId": "res-value",
+            "osType": "res-value",
+            "cpuCount": "res-value",
+            "memoryMB": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "TYPE": "microsoft.scvmm/virtualnetworks",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.scvmm/virtualnetworks/arcscvmminventory-t2c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcscvmminventory-t2c",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "vmmServerId": "res-value",
+            "osType": "res-value",
+            "cpuCount": "res-value",
+            "memoryMB": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "TYPE": "microsoft.scvmm/virtualmachinetemplates",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.scvmm/virtualmachinetemplates/arcscvmminventory-t3c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcscvmminventory-t3c",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "vmmServerId": "res-value",
+            "osType": "res-value",
+            "cpuCount": "res-value",
+            "memoryMB": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "TYPE": "microsoft.scvmm/availabilitysets",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.scvmm/availabilitysets/arcscvmminventory-t4c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcscvmminventory-t4c",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "vmmServerId": "res-value",
+            "osType": "res-value",
+            "cpuCount": "res-value",
+            "memoryMB": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "TYPE": "microsoft.scvmm/clouds",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.scvmm/clouds/arcscvmminventory-t1d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcscvmminventory-t1d",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "vmmServerId": "res-value",
+            "osType": "res-value",
+            "cpuCount": "res-value",
+            "memoryMB": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "TYPE": "microsoft.scvmm/virtualnetworks",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.scvmm/virtualnetworks/arcscvmminventory-t2d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcscvmminventory-t2d",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "vmmServerId": "res-value",
+            "osType": "res-value",
+            "cpuCount": "res-value",
+            "memoryMB": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "TYPE": "microsoft.scvmm/virtualmachinetemplates",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.scvmm/virtualmachinetemplates/arcscvmminventory-t3d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcscvmminventory-t3d",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "vmmServerId": "res-value",
+            "osType": "res-value",
+            "cpuCount": "res-value",
+            "memoryMB": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "TYPE": "microsoft.scvmm/availabilitysets",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.scvmm/availabilitysets/arcscvmminventory-t4d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcscvmminventory-t4d",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "vmmServerId": "res-value",
+            "osType": "res-value",
+            "cpuCount": "res-value",
+            "memoryMB": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "TYPE": "microsoft.scvmm/clouds",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.scvmm/clouds/arcscvmminventory-t1e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcscvmminventory-t1e",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "vmmServerId": "res-value",
+            "osType": "res-value",
+            "cpuCount": "res-value",
+            "memoryMB": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "TYPE": "microsoft.scvmm/virtualnetworks",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.scvmm/virtualnetworks/arcscvmminventory-t2e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcscvmminventory-t2e",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "vmmServerId": "res-value",
+            "osType": "res-value",
+            "cpuCount": "res-value",
+            "memoryMB": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "TYPE": "microsoft.scvmm/virtualmachinetemplates",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.scvmm/virtualmachinetemplates/arcscvmminventory-t3e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcscvmminventory-t3e",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "vmmServerId": "res-value",
+            "osType": "res-value",
+            "cpuCount": "res-value",
+            "memoryMB": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "TYPE": "microsoft.scvmm/availabilitysets",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.scvmm/availabilitysets/arcscvmminventory-t4e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcscvmminventory-t4e",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "vmmServerId": "res-value",
+            "osType": "res-value",
+            "cpuCount": "res-value",
+            "memoryMB": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "TYPE": "microsoft.scvmm/clouds",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.scvmm/clouds/arcscvmminventory-t1f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcscvmminventory-t1f",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "vmmServerId": "res-value",
+            "osType": "res-value",
+            "cpuCount": "res-value",
+            "memoryMB": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "TYPE": "microsoft.scvmm/virtualnetworks",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.scvmm/virtualnetworks/arcscvmminventory-t2f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcscvmminventory-t2f",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "vmmServerId": "res-value",
+            "osType": "res-value",
+            "cpuCount": "res-value",
+            "memoryMB": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "TYPE": "microsoft.scvmm/virtualmachinetemplates",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.scvmm/virtualmachinetemplates/arcscvmminventory-t3f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcscvmminventory-t3f",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "vmmServerId": "res-value",
+            "osType": "res-value",
+            "cpuCount": "res-value",
+            "memoryMB": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "TYPE": "microsoft.scvmm/availabilitysets",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.scvmm/availabilitysets/arcscvmminventory-t4f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcscvmminventory-t4f",
+          "LOCATION": "res-value"
+        }
+      ]
+    },
+    "ArcSCVMMServers": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "fqdn": "res-value",
+            "port": "res-value",
+            "version": "res-value",
+            "connectionStatus": "res-value",
+            "errorMessage": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.scvmm/vmmservers/arcscvmmservers-t1a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcscvmmservers-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.scvmm/vmmservers"
+        },
+        {
+          "PROPERTIES": {
+            "fqdn": "res-value",
+            "port": "res-value",
+            "version": "res-value",
+            "connectionStatus": "res-value",
+            "errorMessage": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.scvmm/vmmservers/arcscvmmservers-t1b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcscvmmservers-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.scvmm/vmmservers"
+        },
+        {
+          "PROPERTIES": {
+            "fqdn": "res-value",
+            "port": "res-value",
+            "version": "res-value",
+            "connectionStatus": "res-value",
+            "errorMessage": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.scvmm/vmmservers/arcscvmmservers-t1c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcscvmmservers-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.scvmm/vmmservers"
+        },
+        {
+          "PROPERTIES": {
+            "fqdn": "res-value",
+            "port": "res-value",
+            "version": "res-value",
+            "connectionStatus": "res-value",
+            "errorMessage": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.scvmm/vmmservers/arcscvmmservers-t1d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcscvmmservers-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.scvmm/vmmservers"
+        },
+        {
+          "PROPERTIES": {
+            "fqdn": "res-value",
+            "port": "res-value",
+            "version": "res-value",
+            "connectionStatus": "res-value",
+            "errorMessage": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.scvmm/vmmservers/arcscvmmservers-t1e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcscvmmservers-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.scvmm/vmmservers"
+        },
+        {
+          "PROPERTIES": {
+            "fqdn": "res-value",
+            "port": "res-value",
+            "version": "res-value",
+            "connectionStatus": "res-value",
+            "errorMessage": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.scvmm/vmmservers/arcscvmmservers-t1f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcscvmmservers-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.scvmm/vmmservers"
+        }
+      ]
+    },
     "ArcServerOperationalData": {
       "resources": [
         {
@@ -1059,7 +1995,7 @@
             "osVersion": "res-value",
             "agentVersion": "res-value",
             "status": "res-value",
-            "lastStatusChange": "2026-01-15T10:30:00.0000000Z",
+            "lastStatusChange": "2026-01-15T10:30:00Z",
             "errorDetails": [
               {
                 "message": "res-value"
@@ -1135,7 +2071,7 @@
             "osVersion": "res-value",
             "agentVersion": "res-value",
             "status": "res-value",
-            "lastStatusChange": "2026-01-15T10:30:00.0000000Z",
+            "lastStatusChange": "2026-01-15T10:30:00Z",
             "errorDetails": [
               {
                 "message": "res-value"
@@ -1212,7 +2148,7 @@
             "osVersion": "res-value",
             "agentVersion": "res-value",
             "status": "res-value",
-            "lastStatusChange": "2026-01-15T10:30:00.0000000Z",
+            "lastStatusChange": "2026-01-15T10:30:00Z",
             "errorDetails": [
               {
                 "message": "res-value"
@@ -1237,7 +2173,7 @@
             "osVersion": "res-value",
             "agentVersion": "res-value",
             "status": "res-value",
-            "lastStatusChange": "2026-01-15T10:30:00.0000000Z",
+            "lastStatusChange": "2026-01-15T10:30:00Z",
             "errorDetails": [
               {
                 "message": "res-value"
@@ -1313,7 +2249,7 @@
             "osVersion": "res-value",
             "agentVersion": "res-value",
             "status": "res-value",
-            "lastStatusChange": "2026-01-15T10:30:00.0000000Z",
+            "lastStatusChange": "2026-01-15T10:30:00Z",
             "errorDetails": [
               {
                 "message": "res-value"
@@ -1389,7 +2325,7 @@
             "osVersion": "res-value",
             "agentVersion": "res-value",
             "status": "res-value",
-            "lastStatusChange": "2026-01-15T10:30:00.0000000Z",
+            "lastStatusChange": "2026-01-15T10:30:00Z",
             "errorDetails": [
               {
                 "message": "res-value"
@@ -1494,8 +2430,8 @@
                 ]
               }
             },
-            "laststatuschange": "2026-01-15T10:30:00.0000000Z",
-            "osinstalldate": "2026-01-15T10:30:00.0000000Z",
+            "laststatuschange": "2026-01-15T10:30:00Z",
+            "osinstalldate": "2026-01-15T10:30:00Z",
             "licenseprofile": {
               "esuprofile": {
                 "servertype": "res-value"
@@ -1585,8 +2521,8 @@
                 ]
               }
             },
-            "laststatuschange": "2026-01-15T10:30:00.0000000Z",
-            "osinstalldate": "2026-01-15T10:30:00.0000000Z",
+            "laststatuschange": "2026-01-15T10:30:00Z",
+            "osinstalldate": "2026-01-15T10:30:00Z",
             "licenseprofile": {
               "esuprofile": {
                 "servertype": "res-value"
@@ -1677,8 +2613,8 @@
                 ]
               }
             },
-            "laststatuschange": "2026-01-15T10:30:00.0000000Z",
-            "osinstalldate": "2026-01-15T10:30:00.0000000Z",
+            "laststatuschange": "2026-01-15T10:30:00Z",
+            "osinstalldate": "2026-01-15T10:30:00Z",
             "licenseprofile": {
               "esuprofile": {
                 "servertype": "res-value"
@@ -1756,8 +2692,8 @@
                 ]
               }
             },
-            "laststatuschange": "2026-01-15T10:30:00.0000000Z",
-            "osinstalldate": "2026-01-15T10:30:00.0000000Z",
+            "laststatuschange": "2026-01-15T10:30:00Z",
+            "osinstalldate": "2026-01-15T10:30:00Z",
             "licenseprofile": {
               "esuprofile": {
                 "servertype": "res-value"
@@ -1847,8 +2783,8 @@
                 ]
               }
             },
-            "laststatuschange": "2026-01-15T10:30:00.0000000Z",
-            "osinstalldate": "2026-01-15T10:30:00.0000000Z",
+            "laststatuschange": "2026-01-15T10:30:00Z",
+            "osinstalldate": "2026-01-15T10:30:00Z",
             "licenseprofile": {
               "esuprofile": {
                 "servertype": "res-value"
@@ -1938,8 +2874,8 @@
                 ]
               }
             },
-            "laststatuschange": "2026-01-15T10:30:00.0000000Z",
-            "osinstalldate": "2026-01-15T10:30:00.0000000Z",
+            "laststatuschange": "2026-01-15T10:30:00Z",
+            "osinstalldate": "2026-01-15T10:30:00Z",
             "licenseprofile": {
               "esuprofile": {
                 "servertype": "res-value"
@@ -2143,6 +3079,330 @@
           "tags": {
             "env": "prod"
           }
+        }
+      ]
+    },
+    "ArcSQLAvailabilityGroups": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "serverName": "res-value",
+            "instanceName": "res-value",
+            "info": {
+              "primaryReplica": "res-value",
+              "synchronizationHealthDescription": "res-value",
+              "primaryRecoveryHealthDescription": "res-value",
+              "clusterTypeDescription": "res-value",
+              "isDistributed": "res-value",
+              "automatedBackupPreferenceDescription": "res-value"
+            },
+            "collectionTimestamp": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurearcdata/sqlserverinstances/arcsqlavailabilitygroups-t1a-1/availabilitygroups/arcsqlavailabilitygroups-t1a-2",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcsqlavailabilitygroups-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.azurearcdata/sqlserverinstances/availabilitygroups"
+        },
+        {
+          "PROPERTIES": {
+            "serverName": "res-value",
+            "instanceName": "res-value",
+            "info": {
+              "primaryReplica": "res-value",
+              "synchronizationHealthDescription": "res-value",
+              "primaryRecoveryHealthDescription": "res-value",
+              "clusterTypeDescription": "res-value",
+              "isDistributed": "res-value",
+              "automatedBackupPreferenceDescription": "res-value"
+            },
+            "collectionTimestamp": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurearcdata/sqlserverinstances/arcsqlavailabilitygroups-t1b-1/availabilitygroups/arcsqlavailabilitygroups-t1b-2",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcsqlavailabilitygroups-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.azurearcdata/sqlserverinstances/availabilitygroups"
+        },
+        {
+          "PROPERTIES": {
+            "serverName": "res-value",
+            "instanceName": "res-value",
+            "info": {
+              "primaryReplica": "res-value",
+              "synchronizationHealthDescription": "res-value",
+              "primaryRecoveryHealthDescription": "res-value",
+              "clusterTypeDescription": "res-value",
+              "isDistributed": "res-value",
+              "automatedBackupPreferenceDescription": "res-value"
+            },
+            "collectionTimestamp": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurearcdata/sqlserverinstances/arcsqlavailabilitygroups-t1c-1/availabilitygroups/arcsqlavailabilitygroups-t1c-2",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcsqlavailabilitygroups-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.azurearcdata/sqlserverinstances/availabilitygroups"
+        },
+        {
+          "PROPERTIES": {
+            "serverName": "res-value",
+            "instanceName": "res-value",
+            "info": {
+              "primaryReplica": "res-value",
+              "synchronizationHealthDescription": "res-value",
+              "primaryRecoveryHealthDescription": "res-value",
+              "clusterTypeDescription": "res-value",
+              "isDistributed": "res-value",
+              "automatedBackupPreferenceDescription": "res-value"
+            },
+            "collectionTimestamp": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.azurearcdata/sqlserverinstances/arcsqlavailabilitygroups-t1d-1/availabilitygroups/arcsqlavailabilitygroups-t1d-2",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcsqlavailabilitygroups-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.azurearcdata/sqlserverinstances/availabilitygroups"
+        },
+        {
+          "PROPERTIES": {
+            "serverName": "res-value",
+            "instanceName": "res-value",
+            "info": {
+              "primaryReplica": "res-value",
+              "synchronizationHealthDescription": "res-value",
+              "primaryRecoveryHealthDescription": "res-value",
+              "clusterTypeDescription": "res-value",
+              "isDistributed": "res-value",
+              "automatedBackupPreferenceDescription": "res-value"
+            },
+            "collectionTimestamp": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurearcdata/sqlserverinstances/arcsqlavailabilitygroups-t1e-1/availabilitygroups/arcsqlavailabilitygroups-t1e-2",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcsqlavailabilitygroups-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.azurearcdata/sqlserverinstances/availabilitygroups"
+        },
+        {
+          "PROPERTIES": {
+            "serverName": "res-value",
+            "instanceName": "res-value",
+            "info": {
+              "primaryReplica": "res-value",
+              "synchronizationHealthDescription": "res-value",
+              "primaryRecoveryHealthDescription": "res-value",
+              "clusterTypeDescription": "res-value",
+              "isDistributed": "res-value",
+              "automatedBackupPreferenceDescription": "res-value"
+            },
+            "collectionTimestamp": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurearcdata/sqlserverinstances/arcsqlavailabilitygroups-t1f-1/availabilitygroups/arcsqlavailabilitygroups-t1f-2",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcsqlavailabilitygroups-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.azurearcdata/sqlserverinstances/availabilitygroups"
+        }
+      ]
+    },
+    "ArcSQLDatabases": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "state": "res-value",
+            "recoveryMode": "res-value",
+            "compatibilityLevel": "res-value",
+            "sizeMB": "res-value",
+            "dataFileSizeMB": "res-value",
+            "logFileSizeMB": "res-value",
+            "spaceAvailableMB": "res-value",
+            "databaseOptions": {
+              "isEncrypted": "res-value",
+              "isTrustworthyOn": "res-value",
+              "isAutoShrinkOn": "res-value"
+            },
+            "isReadOnly": "res-value",
+            "collationName": "res-value",
+            "databaseCreationDate": "2026-01-15T10:30:00.0000000Z",
+            "lastDatabaseUploadTime": "2026-01-15T10:30:00.0000000Z"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurearcdata/sqlserverinstances/arcsqldatabases-t1a-1/databases/arcsqldatabases-t1a-2",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcsqldatabases-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.azurearcdata/sqlserverinstances/databases"
+        },
+        {
+          "PROPERTIES": {
+            "state": "res-value",
+            "recoveryMode": "res-value",
+            "compatibilityLevel": "res-value",
+            "sizeMB": "res-value",
+            "dataFileSizeMB": "res-value",
+            "logFileSizeMB": "res-value",
+            "spaceAvailableMB": "res-value",
+            "databaseOptions": {
+              "isEncrypted": "res-value",
+              "isTrustworthyOn": "res-value",
+              "isAutoShrinkOn": "res-value"
+            },
+            "isReadOnly": "res-value",
+            "collationName": "res-value",
+            "databaseCreationDate": "2026-01-15T10:30:00.0000000Z",
+            "lastDatabaseUploadTime": "2026-01-15T10:30:00.0000000Z"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurearcdata/sqlserverinstances/arcsqldatabases-t1b-1/databases/arcsqldatabases-t1b-2",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcsqldatabases-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.azurearcdata/sqlserverinstances/databases"
+        },
+        {
+          "PROPERTIES": {
+            "state": "res-value",
+            "recoveryMode": "res-value",
+            "compatibilityLevel": "res-value",
+            "sizeMB": "res-value",
+            "dataFileSizeMB": "res-value",
+            "logFileSizeMB": "res-value",
+            "spaceAvailableMB": "res-value",
+            "databaseOptions": {
+              "isEncrypted": "res-value",
+              "isTrustworthyOn": "res-value",
+              "isAutoShrinkOn": "res-value"
+            },
+            "isReadOnly": "res-value",
+            "collationName": "res-value",
+            "databaseCreationDate": "2026-01-15T10:30:00.0000000Z",
+            "lastDatabaseUploadTime": "2026-01-15T10:30:00.0000000Z"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurearcdata/sqlserverinstances/arcsqldatabases-t1c-1/databases/arcsqldatabases-t1c-2",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcsqldatabases-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.azurearcdata/sqlserverinstances/databases"
+        },
+        {
+          "PROPERTIES": {
+            "state": "res-value",
+            "recoveryMode": "res-value",
+            "compatibilityLevel": "res-value",
+            "sizeMB": "res-value",
+            "dataFileSizeMB": "res-value",
+            "logFileSizeMB": "res-value",
+            "spaceAvailableMB": "res-value",
+            "databaseOptions": {
+              "isEncrypted": "res-value",
+              "isTrustworthyOn": "res-value",
+              "isAutoShrinkOn": "res-value"
+            },
+            "isReadOnly": "res-value",
+            "collationName": "res-value",
+            "databaseCreationDate": "2026-01-15T10:30:00.0000000Z",
+            "lastDatabaseUploadTime": "2026-01-15T10:30:00.0000000Z"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.azurearcdata/sqlserverinstances/arcsqldatabases-t1d-1/databases/arcsqldatabases-t1d-2",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcsqldatabases-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.azurearcdata/sqlserverinstances/databases"
+        },
+        {
+          "PROPERTIES": {
+            "state": "res-value",
+            "recoveryMode": "res-value",
+            "compatibilityLevel": "res-value",
+            "sizeMB": "res-value",
+            "dataFileSizeMB": "res-value",
+            "logFileSizeMB": "res-value",
+            "spaceAvailableMB": "res-value",
+            "databaseOptions": {
+              "isEncrypted": "res-value",
+              "isTrustworthyOn": "res-value",
+              "isAutoShrinkOn": "res-value"
+            },
+            "isReadOnly": "res-value",
+            "collationName": "res-value",
+            "databaseCreationDate": "2026-01-15T10:30:00.0000000Z",
+            "lastDatabaseUploadTime": "2026-01-15T10:30:00.0000000Z"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurearcdata/sqlserverinstances/arcsqldatabases-t1e-1/databases/arcsqldatabases-t1e-2",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcsqldatabases-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.azurearcdata/sqlserverinstances/databases"
+        },
+        {
+          "PROPERTIES": {
+            "state": "res-value",
+            "recoveryMode": "res-value",
+            "compatibilityLevel": "res-value",
+            "sizeMB": "res-value",
+            "dataFileSizeMB": "res-value",
+            "logFileSizeMB": "res-value",
+            "spaceAvailableMB": "res-value",
+            "databaseOptions": {
+              "isEncrypted": "res-value",
+              "isTrustworthyOn": "res-value",
+              "isAutoShrinkOn": "res-value"
+            },
+            "isReadOnly": "res-value",
+            "collationName": "res-value",
+            "databaseCreationDate": "2026-01-15T10:30:00.0000000Z",
+            "lastDatabaseUploadTime": "2026-01-15T10:30:00.0000000Z"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurearcdata/sqlserverinstances/arcsqldatabases-t1f-1/databases/arcsqldatabases-t1f-2",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcsqldatabases-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.azurearcdata/sqlserverinstances/databases"
         }
       ]
     },
@@ -2414,7 +3674,7 @@
             "patchLevel": "res-value",
             "collation": "res-value",
             "containerResourceId": "res-value",
-            "azureDefenderStatusLastUpdated": "2026-01-15T10:30:00.0000000Z",
+            "azureDefenderStatusLastUpdated": "2026-01-15T10:30:00Z",
             "provisioningState": "res-value"
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
@@ -2438,7 +3698,7 @@
             "patchLevel": "res-value",
             "collation": "res-value",
             "containerResourceId": "res-value",
-            "azureDefenderStatusLastUpdated": "2026-01-15T10:30:00.0000000Z",
+            "azureDefenderStatusLastUpdated": "2026-01-15T10:30:00Z",
             "provisioningState": "res-value"
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
@@ -2463,7 +3723,7 @@
             "patchLevel": "res-value",
             "collation": "res-value",
             "containerResourceId": "res-value",
-            "azureDefenderStatusLastUpdated": "2026-01-15T10:30:00.0000000Z",
+            "azureDefenderStatusLastUpdated": "2026-01-15T10:30:00Z",
             "provisioningState": "res-value"
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
@@ -2485,7 +3745,7 @@
             "patchLevel": "res-value",
             "collation": "res-value",
             "containerResourceId": "res-value",
-            "azureDefenderStatusLastUpdated": "2026-01-15T10:30:00.0000000Z",
+            "azureDefenderStatusLastUpdated": "2026-01-15T10:30:00Z",
             "provisioningState": "res-value"
           },
           "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
@@ -2509,7 +3769,7 @@
             "patchLevel": "res-value",
             "collation": "res-value",
             "containerResourceId": "res-value",
-            "azureDefenderStatusLastUpdated": "2026-01-15T10:30:00.0000000Z",
+            "azureDefenderStatusLastUpdated": "2026-01-15T10:30:00Z",
             "provisioningState": "res-value"
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
@@ -2533,7 +3793,7 @@
             "patchLevel": "res-value",
             "collation": "res-value",
             "containerResourceId": "res-value",
-            "azureDefenderStatusLastUpdated": "2026-01-15T10:30:00.0000000Z",
+            "azureDefenderStatusLastUpdated": "2026-01-15T10:30:00Z",
             "provisioningState": "res-value"
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
@@ -2548,12 +3808,1687 @@
         }
       ]
     },
+    "ArcVMwareInventory": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "vCenterId": "res-value",
+            "totalMemoryGB": "res-value",
+            "memorySizeGB": "res-value",
+            "moName": "res-value",
+            "moRefId": "res-value",
+            "capacityGB": "res-value",
+            "freeSpaceGB": "res-value",
+            "osType": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "TYPE": "microsoft.connectedvmwarevsphere/clusters",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/clusters/arcvmwareinventory-t1a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcvmwareinventory-t1a",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "vCenterId": "res-value",
+            "totalMemoryGB": "res-value",
+            "memorySizeGB": "res-value",
+            "moName": "res-value",
+            "moRefId": "res-value",
+            "capacityGB": "res-value",
+            "freeSpaceGB": "res-value",
+            "osType": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "TYPE": "microsoft.connectedvmwarevsphere/hosts",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/hosts/arcvmwareinventory-t2a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcvmwareinventory-t2a",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "vCenterId": "res-value",
+            "totalMemoryGB": "res-value",
+            "memorySizeGB": "res-value",
+            "moName": "res-value",
+            "moRefId": "res-value",
+            "capacityGB": "res-value",
+            "freeSpaceGB": "res-value",
+            "osType": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "TYPE": "microsoft.connectedvmwarevsphere/datastores",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/datastores/arcvmwareinventory-t3a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcvmwareinventory-t3a",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "vCenterId": "res-value",
+            "totalMemoryGB": "res-value",
+            "memorySizeGB": "res-value",
+            "moName": "res-value",
+            "moRefId": "res-value",
+            "capacityGB": "res-value",
+            "freeSpaceGB": "res-value",
+            "osType": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "TYPE": "microsoft.connectedvmwarevsphere/resourcepools",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/resourcepools/arcvmwareinventory-t4a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcvmwareinventory-t4a",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "vCenterId": "res-value",
+            "totalMemoryGB": "res-value",
+            "memorySizeGB": "res-value",
+            "moName": "res-value",
+            "moRefId": "res-value",
+            "capacityGB": "res-value",
+            "freeSpaceGB": "res-value",
+            "osType": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "TYPE": "microsoft.connectedvmwarevsphere/virtualnetworks",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/virtualnetworks/arcvmwareinventory-t5a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcvmwareinventory-t5a",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "vCenterId": "res-value",
+            "totalMemoryGB": "res-value",
+            "memorySizeGB": "res-value",
+            "moName": "res-value",
+            "moRefId": "res-value",
+            "capacityGB": "res-value",
+            "freeSpaceGB": "res-value",
+            "osType": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "TYPE": "microsoft.connectedvmwarevsphere/virtualmachinetemplates",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/virtualmachinetemplates/arcvmwareinventory-t6a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcvmwareinventory-t6a",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "vCenterId": "res-value",
+            "totalMemoryGB": "res-value",
+            "memorySizeGB": "res-value",
+            "moName": "res-value",
+            "moRefId": "res-value",
+            "capacityGB": "res-value",
+            "freeSpaceGB": "res-value",
+            "osType": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "TYPE": "microsoft.connectedvmwarevsphere/clusters",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/clusters/arcvmwareinventory-t1b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcvmwareinventory-t1b",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "vCenterId": "res-value",
+            "totalMemoryGB": "res-value",
+            "memorySizeGB": "res-value",
+            "moName": "res-value",
+            "moRefId": "res-value",
+            "capacityGB": "res-value",
+            "freeSpaceGB": "res-value",
+            "osType": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "TYPE": "microsoft.connectedvmwarevsphere/hosts",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/hosts/arcvmwareinventory-t2b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcvmwareinventory-t2b",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "vCenterId": "res-value",
+            "totalMemoryGB": "res-value",
+            "memorySizeGB": "res-value",
+            "moName": "res-value",
+            "moRefId": "res-value",
+            "capacityGB": "res-value",
+            "freeSpaceGB": "res-value",
+            "osType": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "TYPE": "microsoft.connectedvmwarevsphere/datastores",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/datastores/arcvmwareinventory-t3b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcvmwareinventory-t3b",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "vCenterId": "res-value",
+            "totalMemoryGB": "res-value",
+            "memorySizeGB": "res-value",
+            "moName": "res-value",
+            "moRefId": "res-value",
+            "capacityGB": "res-value",
+            "freeSpaceGB": "res-value",
+            "osType": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "TYPE": "microsoft.connectedvmwarevsphere/resourcepools",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/resourcepools/arcvmwareinventory-t4b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcvmwareinventory-t4b",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "vCenterId": "res-value",
+            "totalMemoryGB": "res-value",
+            "memorySizeGB": "res-value",
+            "moName": "res-value",
+            "moRefId": "res-value",
+            "capacityGB": "res-value",
+            "freeSpaceGB": "res-value",
+            "osType": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "TYPE": "microsoft.connectedvmwarevsphere/virtualnetworks",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/virtualnetworks/arcvmwareinventory-t5b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcvmwareinventory-t5b",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "vCenterId": "res-value",
+            "totalMemoryGB": "res-value",
+            "memorySizeGB": "res-value",
+            "moName": "res-value",
+            "moRefId": "res-value",
+            "capacityGB": "res-value",
+            "freeSpaceGB": "res-value",
+            "osType": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "TYPE": "microsoft.connectedvmwarevsphere/virtualmachinetemplates",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/virtualmachinetemplates/arcvmwareinventory-t6b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcvmwareinventory-t6b",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "vCenterId": "res-value",
+            "totalMemoryGB": "res-value",
+            "memorySizeGB": "res-value",
+            "moName": "res-value",
+            "moRefId": "res-value",
+            "capacityGB": "res-value",
+            "freeSpaceGB": "res-value",
+            "osType": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "TYPE": "microsoft.connectedvmwarevsphere/clusters",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/clusters/arcvmwareinventory-t1c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcvmwareinventory-t1c",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "vCenterId": "res-value",
+            "totalMemoryGB": "res-value",
+            "memorySizeGB": "res-value",
+            "moName": "res-value",
+            "moRefId": "res-value",
+            "capacityGB": "res-value",
+            "freeSpaceGB": "res-value",
+            "osType": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "TYPE": "microsoft.connectedvmwarevsphere/hosts",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/hosts/arcvmwareinventory-t2c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcvmwareinventory-t2c",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "vCenterId": "res-value",
+            "totalMemoryGB": "res-value",
+            "memorySizeGB": "res-value",
+            "moName": "res-value",
+            "moRefId": "res-value",
+            "capacityGB": "res-value",
+            "freeSpaceGB": "res-value",
+            "osType": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "TYPE": "microsoft.connectedvmwarevsphere/datastores",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/datastores/arcvmwareinventory-t3c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcvmwareinventory-t3c",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "vCenterId": "res-value",
+            "totalMemoryGB": "res-value",
+            "memorySizeGB": "res-value",
+            "moName": "res-value",
+            "moRefId": "res-value",
+            "capacityGB": "res-value",
+            "freeSpaceGB": "res-value",
+            "osType": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "TYPE": "microsoft.connectedvmwarevsphere/resourcepools",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/resourcepools/arcvmwareinventory-t4c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcvmwareinventory-t4c",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "vCenterId": "res-value",
+            "totalMemoryGB": "res-value",
+            "memorySizeGB": "res-value",
+            "moName": "res-value",
+            "moRefId": "res-value",
+            "capacityGB": "res-value",
+            "freeSpaceGB": "res-value",
+            "osType": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "TYPE": "microsoft.connectedvmwarevsphere/virtualnetworks",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/virtualnetworks/arcvmwareinventory-t5c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcvmwareinventory-t5c",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "vCenterId": "res-value",
+            "totalMemoryGB": "res-value",
+            "memorySizeGB": "res-value",
+            "moName": "res-value",
+            "moRefId": "res-value",
+            "capacityGB": "res-value",
+            "freeSpaceGB": "res-value",
+            "osType": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "TYPE": "microsoft.connectedvmwarevsphere/virtualmachinetemplates",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/virtualmachinetemplates/arcvmwareinventory-t6c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcvmwareinventory-t6c",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "vCenterId": "res-value",
+            "totalMemoryGB": "res-value",
+            "memorySizeGB": "res-value",
+            "moName": "res-value",
+            "moRefId": "res-value",
+            "capacityGB": "res-value",
+            "freeSpaceGB": "res-value",
+            "osType": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "TYPE": "microsoft.connectedvmwarevsphere/clusters",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/clusters/arcvmwareinventory-t1d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcvmwareinventory-t1d",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "vCenterId": "res-value",
+            "totalMemoryGB": "res-value",
+            "memorySizeGB": "res-value",
+            "moName": "res-value",
+            "moRefId": "res-value",
+            "capacityGB": "res-value",
+            "freeSpaceGB": "res-value",
+            "osType": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "TYPE": "microsoft.connectedvmwarevsphere/hosts",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/hosts/arcvmwareinventory-t2d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcvmwareinventory-t2d",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "vCenterId": "res-value",
+            "totalMemoryGB": "res-value",
+            "memorySizeGB": "res-value",
+            "moName": "res-value",
+            "moRefId": "res-value",
+            "capacityGB": "res-value",
+            "freeSpaceGB": "res-value",
+            "osType": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "TYPE": "microsoft.connectedvmwarevsphere/datastores",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/datastores/arcvmwareinventory-t3d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcvmwareinventory-t3d",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "vCenterId": "res-value",
+            "totalMemoryGB": "res-value",
+            "memorySizeGB": "res-value",
+            "moName": "res-value",
+            "moRefId": "res-value",
+            "capacityGB": "res-value",
+            "freeSpaceGB": "res-value",
+            "osType": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "TYPE": "microsoft.connectedvmwarevsphere/resourcepools",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/resourcepools/arcvmwareinventory-t4d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcvmwareinventory-t4d",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "vCenterId": "res-value",
+            "totalMemoryGB": "res-value",
+            "memorySizeGB": "res-value",
+            "moName": "res-value",
+            "moRefId": "res-value",
+            "capacityGB": "res-value",
+            "freeSpaceGB": "res-value",
+            "osType": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "TYPE": "microsoft.connectedvmwarevsphere/virtualnetworks",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/virtualnetworks/arcvmwareinventory-t5d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcvmwareinventory-t5d",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "vCenterId": "res-value",
+            "totalMemoryGB": "res-value",
+            "memorySizeGB": "res-value",
+            "moName": "res-value",
+            "moRefId": "res-value",
+            "capacityGB": "res-value",
+            "freeSpaceGB": "res-value",
+            "osType": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "TYPE": "microsoft.connectedvmwarevsphere/virtualmachinetemplates",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/virtualmachinetemplates/arcvmwareinventory-t6d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcvmwareinventory-t6d",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "vCenterId": "res-value",
+            "totalMemoryGB": "res-value",
+            "memorySizeGB": "res-value",
+            "moName": "res-value",
+            "moRefId": "res-value",
+            "capacityGB": "res-value",
+            "freeSpaceGB": "res-value",
+            "osType": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "TYPE": "microsoft.connectedvmwarevsphere/clusters",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/clusters/arcvmwareinventory-t1e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcvmwareinventory-t1e",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "vCenterId": "res-value",
+            "totalMemoryGB": "res-value",
+            "memorySizeGB": "res-value",
+            "moName": "res-value",
+            "moRefId": "res-value",
+            "capacityGB": "res-value",
+            "freeSpaceGB": "res-value",
+            "osType": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "TYPE": "microsoft.connectedvmwarevsphere/hosts",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/hosts/arcvmwareinventory-t2e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcvmwareinventory-t2e",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "vCenterId": "res-value",
+            "totalMemoryGB": "res-value",
+            "memorySizeGB": "res-value",
+            "moName": "res-value",
+            "moRefId": "res-value",
+            "capacityGB": "res-value",
+            "freeSpaceGB": "res-value",
+            "osType": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "TYPE": "microsoft.connectedvmwarevsphere/datastores",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/datastores/arcvmwareinventory-t3e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcvmwareinventory-t3e",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "vCenterId": "res-value",
+            "totalMemoryGB": "res-value",
+            "memorySizeGB": "res-value",
+            "moName": "res-value",
+            "moRefId": "res-value",
+            "capacityGB": "res-value",
+            "freeSpaceGB": "res-value",
+            "osType": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "TYPE": "microsoft.connectedvmwarevsphere/resourcepools",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/resourcepools/arcvmwareinventory-t4e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcvmwareinventory-t4e",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "vCenterId": "res-value",
+            "totalMemoryGB": "res-value",
+            "memorySizeGB": "res-value",
+            "moName": "res-value",
+            "moRefId": "res-value",
+            "capacityGB": "res-value",
+            "freeSpaceGB": "res-value",
+            "osType": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "TYPE": "microsoft.connectedvmwarevsphere/virtualnetworks",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/virtualnetworks/arcvmwareinventory-t5e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcvmwareinventory-t5e",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "vCenterId": "res-value",
+            "totalMemoryGB": "res-value",
+            "memorySizeGB": "res-value",
+            "moName": "res-value",
+            "moRefId": "res-value",
+            "capacityGB": "res-value",
+            "freeSpaceGB": "res-value",
+            "osType": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "TYPE": "microsoft.connectedvmwarevsphere/virtualmachinetemplates",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/virtualmachinetemplates/arcvmwareinventory-t6e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcvmwareinventory-t6e",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "vCenterId": "res-value",
+            "totalMemoryGB": "res-value",
+            "memorySizeGB": "res-value",
+            "moName": "res-value",
+            "moRefId": "res-value",
+            "capacityGB": "res-value",
+            "freeSpaceGB": "res-value",
+            "osType": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "TYPE": "microsoft.connectedvmwarevsphere/clusters",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/clusters/arcvmwareinventory-t1f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcvmwareinventory-t1f",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "vCenterId": "res-value",
+            "totalMemoryGB": "res-value",
+            "memorySizeGB": "res-value",
+            "moName": "res-value",
+            "moRefId": "res-value",
+            "capacityGB": "res-value",
+            "freeSpaceGB": "res-value",
+            "osType": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "TYPE": "microsoft.connectedvmwarevsphere/hosts",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/hosts/arcvmwareinventory-t2f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcvmwareinventory-t2f",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "vCenterId": "res-value",
+            "totalMemoryGB": "res-value",
+            "memorySizeGB": "res-value",
+            "moName": "res-value",
+            "moRefId": "res-value",
+            "capacityGB": "res-value",
+            "freeSpaceGB": "res-value",
+            "osType": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "TYPE": "microsoft.connectedvmwarevsphere/datastores",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/datastores/arcvmwareinventory-t3f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcvmwareinventory-t3f",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "vCenterId": "res-value",
+            "totalMemoryGB": "res-value",
+            "memorySizeGB": "res-value",
+            "moName": "res-value",
+            "moRefId": "res-value",
+            "capacityGB": "res-value",
+            "freeSpaceGB": "res-value",
+            "osType": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "TYPE": "microsoft.connectedvmwarevsphere/resourcepools",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/resourcepools/arcvmwareinventory-t4f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcvmwareinventory-t4f",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "vCenterId": "res-value",
+            "totalMemoryGB": "res-value",
+            "memorySizeGB": "res-value",
+            "moName": "res-value",
+            "moRefId": "res-value",
+            "capacityGB": "res-value",
+            "freeSpaceGB": "res-value",
+            "osType": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "TYPE": "microsoft.connectedvmwarevsphere/virtualnetworks",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/virtualnetworks/arcvmwareinventory-t5f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcvmwareinventory-t5f",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "vCenterId": "res-value",
+            "totalMemoryGB": "res-value",
+            "memorySizeGB": "res-value",
+            "moName": "res-value",
+            "moRefId": "res-value",
+            "capacityGB": "res-value",
+            "freeSpaceGB": "res-value",
+            "osType": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "TYPE": "microsoft.connectedvmwarevsphere/virtualmachinetemplates",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/virtualmachinetemplates/arcvmwareinventory-t6f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcvmwareinventory-t6f",
+          "LOCATION": "res-value"
+        }
+      ]
+    },
+    "ArcVMwareVCenters": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "fqdn": "res-value",
+            "port": "res-value",
+            "version": "res-value",
+            "connectionStatus": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/vcenters/arcvmwarevcenters-t1a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcvmwarevcenters-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.connectedvmwarevsphere/vcenters"
+        },
+        {
+          "PROPERTIES": {
+            "fqdn": "res-value",
+            "port": "res-value",
+            "version": "res-value",
+            "connectionStatus": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/vcenters/arcvmwarevcenters-t1b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcvmwarevcenters-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.connectedvmwarevsphere/vcenters"
+        },
+        {
+          "PROPERTIES": {
+            "fqdn": "res-value",
+            "port": "res-value",
+            "version": "res-value",
+            "connectionStatus": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/vcenters/arcvmwarevcenters-t1c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcvmwarevcenters-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.connectedvmwarevsphere/vcenters"
+        },
+        {
+          "PROPERTIES": {
+            "fqdn": "res-value",
+            "port": "res-value",
+            "version": "res-value",
+            "connectionStatus": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/vcenters/arcvmwarevcenters-t1d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcvmwarevcenters-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.connectedvmwarevsphere/vcenters"
+        },
+        {
+          "PROPERTIES": {
+            "fqdn": "res-value",
+            "port": "res-value",
+            "version": "res-value",
+            "connectionStatus": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/vcenters/arcvmwarevcenters-t1e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcvmwarevcenters-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.connectedvmwarevsphere/vcenters"
+        },
+        {
+          "PROPERTIES": {
+            "fqdn": "res-value",
+            "port": "res-value",
+            "version": "res-value",
+            "connectionStatus": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.connectedvmwarevsphere/vcenters/arcvmwarevcenters-t1f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcvmwarevcenters-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.connectedvmwarevsphere/vcenters"
+        }
+      ]
+    },
+    "AzureLocalMachines": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "reportedProperties": {
+              "hardwareProfile": {
+                "manufacturer": "res-value",
+                "model": "res-value",
+                "serialNumber": "res-value",
+                "processorType": "res-value",
+                "cpuSockets": "res-value",
+                "cpuCores": "res-value",
+                "memoryCapacityInGb": "res-value"
+              },
+              "osProfile": {
+                "osSku": "res-value",
+                "osVersion": "res-value",
+                "bootType": "res-value"
+              },
+              "storageProfile": {
+                "disks": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              },
+              "networkProfile": {
+                "nicDetails": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              },
+              "workloadInventory": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "connectivityStatus": "res-value",
+            "provisioningState": "res-value",
+            "lastSyncTimestamp": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurestackhci/edgemachines/azurelocalmachines-t1a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "azurelocalmachines-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.azurestackhci/edgemachines"
+        },
+        {
+          "PROPERTIES": {
+            "reportedProperties": {
+              "hardwareProfile": {
+                "manufacturer": "res-value",
+                "model": "res-value",
+                "serialNumber": "res-value",
+                "processorType": "res-value",
+                "cpuSockets": "res-value",
+                "cpuCores": "res-value",
+                "memoryCapacityInGb": "res-value"
+              },
+              "osProfile": {
+                "osSku": "res-value",
+                "osVersion": "res-value",
+                "bootType": "res-value"
+              },
+              "storageProfile": {
+                "disks": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              },
+              "networkProfile": {
+                "nicDetails": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              },
+              "workloadInventory": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "connectivityStatus": "res-value",
+            "provisioningState": "res-value",
+            "lastSyncTimestamp": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurestackhci/edgemachines/azurelocalmachines-t1b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "azurelocalmachines-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.azurestackhci/edgemachines"
+        },
+        {
+          "PROPERTIES": {
+            "reportedProperties": {
+              "hardwareProfile": {
+                "manufacturer": "res-value",
+                "model": "res-value",
+                "serialNumber": "res-value",
+                "processorType": "res-value",
+                "cpuSockets": "res-value",
+                "cpuCores": "res-value",
+                "memoryCapacityInGb": "res-value"
+              },
+              "osProfile": {
+                "osSku": "res-value",
+                "osVersion": "res-value",
+                "bootType": "res-value"
+              },
+              "storageProfile": {
+                "disks": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              },
+              "networkProfile": {
+                "nicDetails": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              },
+              "workloadInventory": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "connectivityStatus": "res-value",
+            "provisioningState": "res-value",
+            "lastSyncTimestamp": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurestackhci/edgemachines/azurelocalmachines-t1c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "azurelocalmachines-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.azurestackhci/edgemachines"
+        },
+        {
+          "PROPERTIES": {
+            "reportedProperties": {
+              "hardwareProfile": {
+                "manufacturer": "res-value",
+                "model": "res-value",
+                "serialNumber": "res-value",
+                "processorType": "res-value",
+                "cpuSockets": "res-value",
+                "cpuCores": "res-value",
+                "memoryCapacityInGb": "res-value"
+              },
+              "osProfile": {
+                "osSku": "res-value",
+                "osVersion": "res-value",
+                "bootType": "res-value"
+              },
+              "storageProfile": {
+                "disks": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              },
+              "networkProfile": {
+                "nicDetails": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              },
+              "workloadInventory": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "connectivityStatus": "res-value",
+            "provisioningState": "res-value",
+            "lastSyncTimestamp": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.azurestackhci/edgemachines/azurelocalmachines-t1d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "azurelocalmachines-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.azurestackhci/edgemachines"
+        },
+        {
+          "PROPERTIES": {
+            "reportedProperties": {
+              "hardwareProfile": {
+                "manufacturer": "res-value",
+                "model": "res-value",
+                "serialNumber": "res-value",
+                "processorType": "res-value",
+                "cpuSockets": "res-value",
+                "cpuCores": "res-value",
+                "memoryCapacityInGb": "res-value"
+              },
+              "osProfile": {
+                "osSku": "res-value",
+                "osVersion": "res-value",
+                "bootType": "res-value"
+              },
+              "storageProfile": {
+                "disks": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              },
+              "networkProfile": {
+                "nicDetails": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              },
+              "workloadInventory": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "connectivityStatus": "res-value",
+            "provisioningState": "res-value",
+            "lastSyncTimestamp": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurestackhci/edgemachines/azurelocalmachines-t1e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "azurelocalmachines-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.azurestackhci/edgemachines"
+        },
+        {
+          "PROPERTIES": {
+            "reportedProperties": {
+              "hardwareProfile": {
+                "manufacturer": "res-value",
+                "model": "res-value",
+                "serialNumber": "res-value",
+                "processorType": "res-value",
+                "cpuSockets": "res-value",
+                "cpuCores": "res-value",
+                "memoryCapacityInGb": "res-value"
+              },
+              "osProfile": {
+                "osSku": "res-value",
+                "osVersion": "res-value",
+                "bootType": "res-value"
+              },
+              "storageProfile": {
+                "disks": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              },
+              "networkProfile": {
+                "nicDetails": [
+                  "res-item-0",
+                  "res-item-1"
+                ]
+              },
+              "workloadInventory": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "connectivityStatus": "res-value",
+            "provisioningState": "res-value",
+            "lastSyncTimestamp": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurestackhci/edgemachines/azurelocalmachines-t1f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "azurelocalmachines-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.azurestackhci/edgemachines"
+        }
+      ]
+    },
+    "AzureLocalNetworkInterfaces": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "networkSecurityGroup": {
+              "id": "res-value"
+            },
+            "ipConfigurations": {
+              "properties": {
+                "privateIPAddress": [
+                  "res-item-0",
+                  "res-item-1"
+                ],
+                "subnet": {
+                  "id": [
+                    "res-item-0",
+                    "res-item-1"
+                  ]
+                }
+              }
+            },
+            "macAddress": "res-value",
+            "dnsSettings": {
+              "dnsServers": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurestackhci/networkinterfaces/azurelocalnetworkinterfaces-t1a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "azurelocalnetworkinterfaces-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.azurestackhci/networkinterfaces"
+        },
+        {
+          "PROPERTIES": {
+            "networkSecurityGroup": {
+              "id": "res-value"
+            },
+            "ipConfigurations": {
+              "properties": {
+                "privateIPAddress": [
+                  "res-item-0",
+                  "res-item-1"
+                ],
+                "subnet": {
+                  "id": [
+                    "res-item-0",
+                    "res-item-1"
+                  ]
+                }
+              }
+            },
+            "macAddress": "res-value",
+            "dnsSettings": {
+              "dnsServers": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurestackhci/networkinterfaces/azurelocalnetworkinterfaces-t1b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "azurelocalnetworkinterfaces-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.azurestackhci/networkinterfaces"
+        },
+        {
+          "PROPERTIES": {
+            "networkSecurityGroup": {
+              "id": "res-value"
+            },
+            "ipConfigurations": {
+              "properties": {
+                "privateIPAddress": [
+                  "res-item-0",
+                  "res-item-1"
+                ],
+                "subnet": {
+                  "id": [
+                    "res-item-0",
+                    "res-item-1"
+                  ]
+                }
+              }
+            },
+            "macAddress": "res-value",
+            "dnsSettings": {
+              "dnsServers": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurestackhci/networkinterfaces/azurelocalnetworkinterfaces-t1c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "azurelocalnetworkinterfaces-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.azurestackhci/networkinterfaces"
+        },
+        {
+          "PROPERTIES": {
+            "networkSecurityGroup": {
+              "id": "res-value"
+            },
+            "ipConfigurations": {
+              "properties": {
+                "privateIPAddress": [
+                  "res-item-0",
+                  "res-item-1"
+                ],
+                "subnet": {
+                  "id": [
+                    "res-item-0",
+                    "res-item-1"
+                  ]
+                }
+              }
+            },
+            "macAddress": "res-value",
+            "dnsSettings": {
+              "dnsServers": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.azurestackhci/networkinterfaces/azurelocalnetworkinterfaces-t1d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "azurelocalnetworkinterfaces-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.azurestackhci/networkinterfaces"
+        },
+        {
+          "PROPERTIES": {
+            "networkSecurityGroup": {
+              "id": "res-value"
+            },
+            "ipConfigurations": {
+              "properties": {
+                "privateIPAddress": [
+                  "res-item-0",
+                  "res-item-1"
+                ],
+                "subnet": {
+                  "id": [
+                    "res-item-0",
+                    "res-item-1"
+                  ]
+                }
+              }
+            },
+            "macAddress": "res-value",
+            "dnsSettings": {
+              "dnsServers": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurestackhci/networkinterfaces/azurelocalnetworkinterfaces-t1e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "azurelocalnetworkinterfaces-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.azurestackhci/networkinterfaces"
+        },
+        {
+          "PROPERTIES": {
+            "networkSecurityGroup": {
+              "id": "res-value"
+            },
+            "ipConfigurations": {
+              "properties": {
+                "privateIPAddress": [
+                  "res-item-0",
+                  "res-item-1"
+                ],
+                "subnet": {
+                  "id": [
+                    "res-item-0",
+                    "res-item-1"
+                  ]
+                }
+              }
+            },
+            "macAddress": "res-value",
+            "dnsSettings": {
+              "dnsServers": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurestackhci/networkinterfaces/azurelocalnetworkinterfaces-t1f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "azurelocalnetworkinterfaces-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.azurestackhci/networkinterfaces"
+        }
+      ]
+    },
+    "AzureLocalNetworkSecurityGroups": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "networkInterfaces": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "subnets": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurestackhci/networksecuritygroups/azurelocalnetworksecuritygroups-t1a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "azurelocalnetworksecuritygroups-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.azurestackhci/networksecuritygroups"
+        },
+        {
+          "PROPERTIES": {
+            "networkInterfaces": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "subnets": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurestackhci/networksecuritygroups/azurelocalnetworksecuritygroups-t1b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "azurelocalnetworksecuritygroups-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.azurestackhci/networksecuritygroups"
+        },
+        {
+          "PROPERTIES": {
+            "networkInterfaces": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "subnets": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurestackhci/networksecuritygroups/azurelocalnetworksecuritygroups-t1c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "azurelocalnetworksecuritygroups-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.azurestackhci/networksecuritygroups"
+        },
+        {
+          "PROPERTIES": {
+            "networkInterfaces": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "subnets": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.azurestackhci/networksecuritygroups/azurelocalnetworksecuritygroups-t1d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "azurelocalnetworksecuritygroups-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.azurestackhci/networksecuritygroups"
+        },
+        {
+          "PROPERTIES": {
+            "networkInterfaces": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "subnets": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurestackhci/networksecuritygroups/azurelocalnetworksecuritygroups-t1e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "azurelocalnetworksecuritygroups-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.azurestackhci/networksecuritygroups"
+        },
+        {
+          "PROPERTIES": {
+            "networkInterfaces": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "subnets": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurestackhci/networksecuritygroups/azurelocalnetworksecuritygroups-t1f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "azurelocalnetworksecuritygroups-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.azurestackhci/networksecuritygroups"
+        }
+      ]
+    },
+    "AzureLocalVirtualHardDisks": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "containerId": "res-value",
+            "diskSizeGB": "res-value",
+            "dynamic": "res-value",
+            "diskFileFormat": "res-value",
+            "hyperVGeneration": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurestackhci/virtualharddisks/azurelocalvirtualharddisks-t1a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "azurelocalvirtualharddisks-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.azurestackhci/virtualharddisks"
+        },
+        {
+          "PROPERTIES": {
+            "containerId": "res-value",
+            "diskSizeGB": "res-value",
+            "dynamic": "res-value",
+            "diskFileFormat": "res-value",
+            "hyperVGeneration": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurestackhci/virtualharddisks/azurelocalvirtualharddisks-t1b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "azurelocalvirtualharddisks-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.azurestackhci/virtualharddisks"
+        },
+        {
+          "PROPERTIES": {
+            "containerId": "res-value",
+            "diskSizeGB": "res-value",
+            "dynamic": "res-value",
+            "diskFileFormat": "res-value",
+            "hyperVGeneration": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurestackhci/virtualharddisks/azurelocalvirtualharddisks-t1c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "azurelocalvirtualharddisks-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.azurestackhci/virtualharddisks"
+        },
+        {
+          "PROPERTIES": {
+            "containerId": "res-value",
+            "diskSizeGB": "res-value",
+            "dynamic": "res-value",
+            "diskFileFormat": "res-value",
+            "hyperVGeneration": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.azurestackhci/virtualharddisks/azurelocalvirtualharddisks-t1d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "azurelocalvirtualharddisks-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.azurestackhci/virtualharddisks"
+        },
+        {
+          "PROPERTIES": {
+            "containerId": "res-value",
+            "diskSizeGB": "res-value",
+            "dynamic": "res-value",
+            "diskFileFormat": "res-value",
+            "hyperVGeneration": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurestackhci/virtualharddisks/azurelocalvirtualharddisks-t1e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "azurelocalvirtualharddisks-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.azurestackhci/virtualharddisks"
+        },
+        {
+          "PROPERTIES": {
+            "containerId": "res-value",
+            "diskSizeGB": "res-value",
+            "dynamic": "res-value",
+            "diskFileFormat": "res-value",
+            "hyperVGeneration": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurestackhci/virtualharddisks/azurelocalvirtualharddisks-t1f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "azurelocalvirtualharddisks-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.azurestackhci/virtualharddisks"
+        }
+      ]
+    },
     "Clusters": {
       "resources": [
         {
           "PROPERTIES": {
-            "lastSyncTimestamp": "2026-01-15T10:30:00.0000000Z",
-            "lastBillingTimestamp": "2026-01-15T10:30:00.0000000Z",
+            "lastSyncTimestamp": "2026-01-15T10:30:00Z",
+            "lastBillingTimestamp": "2026-01-15T10:30:00Z",
             "reportedProperties": {
               "clusterNodes": [
                 "res-item-0",
@@ -2585,8 +5520,8 @@
         },
         {
           "PROPERTIES": {
-            "lastSyncTimestamp": "2026-01-15T10:30:00.0000000Z",
-            "lastBillingTimestamp": "2026-01-15T10:30:00.0000000Z",
+            "lastSyncTimestamp": "2026-01-15T10:30:00Z",
+            "lastBillingTimestamp": "2026-01-15T10:30:00Z",
             "reportedProperties": {
               "clusterNodes": [
                 "res-item-0",
@@ -2619,8 +5554,8 @@
         },
         {
           "PROPERTIES": {
-            "lastSyncTimestamp": "2026-01-15T10:30:00.0000000Z",
-            "lastBillingTimestamp": "2026-01-15T10:30:00.0000000Z",
+            "lastSyncTimestamp": "2026-01-15T10:30:00Z",
+            "lastBillingTimestamp": "2026-01-15T10:30:00Z",
             "reportedProperties": {
               "clusterNodes": [
                 "res-item-0",
@@ -2650,8 +5585,8 @@
         },
         {
           "PROPERTIES": {
-            "lastSyncTimestamp": "2026-01-15T10:30:00.0000000Z",
-            "lastBillingTimestamp": "2026-01-15T10:30:00.0000000Z",
+            "lastSyncTimestamp": "2026-01-15T10:30:00Z",
+            "lastBillingTimestamp": "2026-01-15T10:30:00Z",
             "reportedProperties": {
               "clusterNodes": [
                 "res-item-0",
@@ -2683,8 +5618,8 @@
         },
         {
           "PROPERTIES": {
-            "lastSyncTimestamp": "2026-01-15T10:30:00.0000000Z",
-            "lastBillingTimestamp": "2026-01-15T10:30:00.0000000Z",
+            "lastSyncTimestamp": "2026-01-15T10:30:00Z",
+            "lastBillingTimestamp": "2026-01-15T10:30:00Z",
             "reportedProperties": {
               "clusterNodes": [
                 "res-item-0",
@@ -2716,8 +5651,8 @@
         },
         {
           "PROPERTIES": {
-            "lastSyncTimestamp": "2026-01-15T10:30:00.0000000Z",
-            "lastBillingTimestamp": "2026-01-15T10:30:00.0000000Z",
+            "lastSyncTimestamp": "2026-01-15T10:30:00Z",
+            "lastBillingTimestamp": "2026-01-15T10:30:00Z",
             "reportedProperties": {
               "clusterNodes": [
                 "res-item-0",
@@ -2746,6 +5681,135 @@
           "NAME": "clusters-t1f",
           "LOCATION": "res-value",
           "TYPE": "microsoft.azurestackhci/clusters"
+        }
+      ]
+    },
+    "CustomLocations": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "hostResourceId": "res-value",
+            "displayName": "res-value",
+            "namespace": "res-value",
+            "clusterExtensionIds": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.extendedlocation/customlocations/customlocations-t1a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "customlocations-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.extendedlocation/customlocations"
+        },
+        {
+          "PROPERTIES": {
+            "hostResourceId": "res-value",
+            "displayName": "res-value",
+            "namespace": "res-value",
+            "clusterExtensionIds": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.extendedlocation/customlocations/customlocations-t1b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "customlocations-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.extendedlocation/customlocations"
+        },
+        {
+          "PROPERTIES": {
+            "hostResourceId": "res-value",
+            "displayName": "res-value",
+            "namespace": "res-value",
+            "clusterExtensionIds": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.extendedlocation/customlocations/customlocations-t1c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "customlocations-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.extendedlocation/customlocations"
+        },
+        {
+          "PROPERTIES": {
+            "hostResourceId": "res-value",
+            "displayName": "res-value",
+            "namespace": "res-value",
+            "clusterExtensionIds": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.extendedlocation/customlocations/customlocations-t1d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "customlocations-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.extendedlocation/customlocations"
+        },
+        {
+          "PROPERTIES": {
+            "hostResourceId": "res-value",
+            "displayName": "res-value",
+            "namespace": "res-value",
+            "clusterExtensionIds": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.extendedlocation/customlocations/customlocations-t1e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "customlocations-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.extendedlocation/customlocations"
+        },
+        {
+          "PROPERTIES": {
+            "hostResourceId": "res-value",
+            "displayName": "res-value",
+            "namespace": "res-value",
+            "clusterExtensionIds": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.extendedlocation/customlocations/customlocations-t1f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "customlocations-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.extendedlocation/customlocations"
         }
       ]
     },
@@ -2899,6 +5963,153 @@
           "NAME": "galleryimages-t1f",
           "LOCATION": "res-value",
           "TYPE": "microsoft.azurestackhci/galleryimages"
+        }
+      ]
+    },
+    "KubernetesExtensions": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "extensionType": "res-value",
+            "version": "res-value",
+            "installState": "res-value",
+            "provisioningState": "res-value",
+            "releaseTrain": "res-value",
+            "autoUpgradeMinorVersion": "res-value",
+            "scope": {
+              "cluster": {
+                "releaseNamespace": "res-value"
+              }
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.kubernetesconfiguration/extensions/kubernetesextensions-t1a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "kubernetesextensions-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.kubernetesconfiguration/extensions"
+        },
+        {
+          "PROPERTIES": {
+            "extensionType": "res-value",
+            "version": "res-value",
+            "installState": "res-value",
+            "provisioningState": "res-value",
+            "releaseTrain": "res-value",
+            "autoUpgradeMinorVersion": "res-value",
+            "scope": {
+              "cluster": {
+                "releaseNamespace": "res-value"
+              }
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.kubernetesconfiguration/extensions/kubernetesextensions-t1b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "kubernetesextensions-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.kubernetesconfiguration/extensions"
+        },
+        {
+          "PROPERTIES": {
+            "extensionType": "res-value",
+            "version": "res-value",
+            "installState": "res-value",
+            "provisioningState": "res-value",
+            "releaseTrain": "res-value",
+            "autoUpgradeMinorVersion": "res-value",
+            "scope": {
+              "cluster": {
+                "releaseNamespace": "res-value"
+              }
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.kubernetesconfiguration/extensions/kubernetesextensions-t1c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "kubernetesextensions-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.kubernetesconfiguration/extensions"
+        },
+        {
+          "PROPERTIES": {
+            "extensionType": "res-value",
+            "version": "res-value",
+            "installState": "res-value",
+            "provisioningState": "res-value",
+            "releaseTrain": "res-value",
+            "autoUpgradeMinorVersion": "res-value",
+            "scope": {
+              "cluster": {
+                "releaseNamespace": "res-value"
+              }
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.kubernetesconfiguration/extensions/kubernetesextensions-t1d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "kubernetesextensions-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.kubernetesconfiguration/extensions"
+        },
+        {
+          "PROPERTIES": {
+            "extensionType": "res-value",
+            "version": "res-value",
+            "installState": "res-value",
+            "provisioningState": "res-value",
+            "releaseTrain": "res-value",
+            "autoUpgradeMinorVersion": "res-value",
+            "scope": {
+              "cluster": {
+                "releaseNamespace": "res-value"
+              }
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.kubernetesconfiguration/extensions/kubernetesextensions-t1e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "kubernetesextensions-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.kubernetesconfiguration/extensions"
+        },
+        {
+          "PROPERTIES": {
+            "extensionType": "res-value",
+            "version": "res-value",
+            "installState": "res-value",
+            "provisioningState": "res-value",
+            "releaseTrain": "res-value",
+            "autoUpgradeMinorVersion": "res-value",
+            "scope": {
+              "cluster": {
+                "releaseNamespace": "res-value"
+              }
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.kubernetesconfiguration/extensions/kubernetesextensions-t1f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "kubernetesextensions-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.kubernetesconfiguration/extensions"
         }
       ]
     },

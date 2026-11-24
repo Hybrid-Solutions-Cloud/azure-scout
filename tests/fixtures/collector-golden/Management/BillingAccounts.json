@@ -3,7 +3,7 @@
   "Category": "Management",
   "Name": "BillingAccounts",
   "FixturePath": "tests/fixtures/collector-equivalence/Management.json",
-  "FixtureSha256": "3887eace8dba0a4948ad972e69dd6025a8fe497739ad08400441da51064aa23c",
+  "FixtureSha256": "c66866d070eeda26948afd1c625369ba997a136a92d6d6e7ce51553976caecd4",
   "Rows": [
     "Account Subtype=s:res-value|Account Type=s:res-value|Agreement Type=s:res-value|Has Read Access=s:res-value|ID=s:res-value|Name=s:res-value|Notification Contact Configured=j:true|Status=s:res-value",
     "Account Subtype=s:res-value|Account Type=s:res-value|Agreement Type=s:res-value|Has Read Access=s:res-value|ID=s:res-value|Name=s:res-value|Notification Contact Configured=j:true|Status=s:res-value",

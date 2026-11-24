@@ -1,0 +1,24 @@
+{
+  "SchemaVersion": 1,
+  "Category": "Networking",
+  "Name": "NetworkSecurityPerimeters",
+  "FixturePath": "tests/fixtures/collector-equivalence/Networking.json",
+  "FixtureSha256": "0958b04bcac67d49c7dcc122f8e8007c00fccfb5fc4d8c8e9cc80f722a4b5e4c",
+  "Rows": [
+    "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networksecurityperimeters/networksecurityperimeters-t1a-1|Location=s:res-value|Name=s:networksecurityperimeters-t1a|Perimeter GUID=s:res-value|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",
+    "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networksecurityperimeters/networksecurityperimeters-t1b-1|Location=s:res-value|Name=s:networksecurityperimeters-t1b|Perimeter GUID=s:res-value|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",
+    "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networksecurityperimeters/networksecurityperimeters-t1b-1|Location=s:res-value|Name=s:networksecurityperimeters-t1b|Perimeter GUID=s:res-value|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:0|Subscription=s:sub-fixture-01|Tag Name=s:owner|Tag Value=s:platform",
+    "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networksecurityperimeters/networksecurityperimeters-t1c-1|Location=s:res-value|Name=s:networksecurityperimeters-t1c|Perimeter GUID=s:res-value|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Subscription=s:sub-fixture-01|Tag Name=s:|Tag Value=s:",
+    "ID=s:/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.network/networksecurityperimeters/networksecurityperimeters-t1d-1|Location=s:res-value|Name=s:networksecurityperimeters-t1d|Perimeter GUID=s:res-value|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Subscription=<null>|Tag Name=s:env|Tag Value=s:dev",
+    "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networksecurityperimeters/networksecurityperimeters-t1e-1|Location=s:res-value|Name=s:networksecurityperimeters-t1e|Perimeter GUID=s:res-value|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",
+    "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/networksecurityperimeters/networksecurityperimeters-t1f-1|Location=s:res-value|Name=s:networksecurityperimeters-t1f|Perimeter GUID=s:res-value|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod"
+  ],
+  "Workbook": {
+    "WithoutTags": [
+      "Subscription\tResource Group\tName\tLocation\tPerimeter GUID\tProvisioning State\tResource U\nsub-fixture-01\tres-value\tnetworksecurityperimeters-t1a\tres-value\tres-value\tres-value\t1\nsub-fixture-01\tres-value\tnetworksecurityperimeters-t1b\tres-value\tres-value\tres-value\t1\nsub-fixture-01\tres-value\tnetworksecurityperimeters-t1b\tres-value\tres-value\tres-value\t0\nsub-fixture-01\tres-value\tnetworksecurityperimeters-t1c\tres-value\tres-value\tres-value\t1\n\tres-value\tnetworksecurityperimeters-t1d\tres-value\tres-value\tres-value\t1\nsub-fixture-01\tres-value\tnetworksecurityperimeters-t1e\tres-value\tres-value\tres-value\t1\nsub-fixture-01\tres-value\tnetworksecurityperimeters-t1f\tres-value\tres-value\tres-value\t1"
+    ],
+    "WithTags": [
+      "Subscription\tResource Group\tName\tLocation\tPerimeter GUID\tProvisioning State\tTag Name\tTag Value\tResource U\nsub-fixture-01\tres-value\tnetworksecurityperimeters-t1a\tres-value\tres-value\tres-value\tenv\tprod\t1\nsub-fixture-01\tres-value\tnetworksecurityperimeters-t1b\tres-value\tres-value\tres-value\tenv\tprod\t1\nsub-fixture-01\tres-value\tnetworksecurityperimeters-t1b\tres-value\tres-value\tres-value\towner\tplatform\t0\nsub-fixture-01\tres-value\tnetworksecurityperimeters-t1c\tres-value\tres-value\tres-value\t\t\t1\n\tres-value\tnetworksecurityperimeters-t1d\tres-value\tres-value\tres-value\tenv\tdev\t1\nsub-fixture-01\tres-value\tnetworksecurityperimeters-t1e\tres-value\tres-value\tres-value\tenv\tprod\t1\nsub-fixture-01\tres-value\tnetworksecurityperimeters-t1f\tres-value\tres-value\tres-value\tenv\tprod\t1"
+    ]
+  }
+}
