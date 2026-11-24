@@ -13,7 +13,9 @@ Fixtures extended with `New-ScoutCollectorFixture.ps1 -PreserveExisting`; golden
 against the 3.18.8 live raw inventory: every new collector ran with 0 warnings. Tests:
 `tests/Collect.DiscoveredTypeCollectors.Tests.ps1` (13) plus the collector/golden/docs suites (1,629).
 
-**Next.** Live five-tenant run on the installed 3.18.10. Remaining discovered-but-uncollected types are
+**Live result.** Full five-tenant run on the installed 3.18.10 (84.9 min): all five Completed, collection health Complete, 0 failed collectors, 0 `[ERROR]` lines, one log, React + Json + JsonEvidence each; the new collectors produced rows in every tenant (14, 2, 7, 4 and 11 of them) with none failed, and appear in the React report as "<Category> -> <Name> (collected details)" tables.
+
+**Next.** Remaining discovered-but-uncollected types are
 listed in the update section of `docs/reference/service-coverage-gap.md`.
 
 ## Session 2026-11-24 — everything deployed is discovered (3.18.6)
