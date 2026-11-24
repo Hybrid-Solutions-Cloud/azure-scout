@@ -838,16 +838,25 @@ Function Invoke-AzureScout {
                 # The multi-tenant overview showed every assessment-only tenant with 0 subscriptions
                 # because this was hard-coded. The assessment's own collect.json lists them.
                 $standaloneSubscriptionCount = 0
+                # The same for resources: it was hard-coded to 0 ("resources 0" for a tenant whose
+                # assessment read 879). Count the distinct resource IDs the assessment collected.
+                $standaloneResourceCount = 0
                 $standaloneCollect = if ($standaloneRunPath) { Join-Path ([string]$standaloneRunPath) 'collect.json' }
                 if ($standaloneCollect -and (Test-Path -LiteralPath $standaloneCollect -PathType Leaf)) {
                     try {
                         $collectToken = [Newtonsoft.Json.Linq.JToken]::Parse([System.IO.File]::ReadAllText($standaloneCollect))
                         if ($collectToken['subscriptions']) { $standaloneSubscriptionCount = [int]$collectToken['subscriptions'].Count }
+                        $assessedIds = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+                        foreach ($idToken in $collectToken.SelectTokens('$..id')) {
+                            $idText = [string]$idToken
+                            if ($idText -match '(?i)^/subscriptions/[^/]+/resourceGroups/[^/]+/providers/') { $null = $assessedIds.Add($idText) }
+                        }
+                        $standaloneResourceCount = $assessedIds.Count
                     }
-                    catch { Write-Debug ('Invoke-AzureScout: could not count subscriptions in collect.json: ' + $_.Exception.Message) }
+                    catch { Write-Debug ('Invoke-AzureScout: could not count subscriptions and resources in collect.json: ' + $_.Exception.Message) }
                 }
                 return New-AZSCRunResult -TenantId $TenantID -OutputPath $standaloneRunPath `
-                    -ReactFile $standaloneReact -SubscriptionCount $standaloneSubscriptionCount -ResourceCount 0 `
+                    -ReactFile $standaloneReact -SubscriptionCount $standaloneSubscriptionCount -ResourceCount $standaloneResourceCount `
                     -EvidenceFile $(if (Test-Path (Join-Path $standaloneRunPath 'evidence.json')) { Join-Path $standaloneRunPath 'evidence.json' }) `
                     -JsonFile $(if (Test-Path (Join-Path $standaloneRunPath 'findings.json')) { Join-Path $standaloneRunPath 'findings.json' })
             }

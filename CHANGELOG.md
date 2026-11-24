@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.18.9] - 2026-11-24 - assessment-only counts what it assessed
+
+### Fixed
+
+- **Every assessment-only tenant reported "resources 0".** The run result hard-coded the count, so
+  the multi-tenant summary and log said 0 for a tenant whose assessment read 879 resources. It is
+  now the number of distinct resource IDs in the assessment's `collect.json`.
+
+### Documentation
+
+- `docs/guide/output.md` shows what `React`, `Json` and `JsonEvidence` write in each run mode. In an
+  assessment-only run `Json` is `findings.json`, because there is no inventory to write.
+
 ## [3.18.8] - 2026-11-24 - a throttle that outlasts Azure's own wait
 
 ### Fixed
