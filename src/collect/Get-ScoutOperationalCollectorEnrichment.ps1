@@ -4,6 +4,15 @@ $ErrorActionPreference = 'Stop'
 if (-not (Get-Command Invoke-ScoutDiagnosticOperation -ErrorAction SilentlyContinue)) { . (Join-Path $PSScriptRoot '../Write-AZTIRunLog.ps1') }
 if (-not (Get-Command Get-ScoutHttpFailure -ErrorAction SilentlyContinue)) { . (Join-Path $PSScriptRoot '../Get-ScoutHttpFailure.ps1') }
 
+# Cost Management sends its throttle wait in its own headers, not in Retry-After.
+$script:ScoutRetryAfterHeaderNames = @(
+    'Retry-After'
+    'x-ms-ratelimit-microsoft.costmanagement-qpu-retry-after'
+    'x-ms-ratelimit-microsoft.costmanagement-entity-retry-after'
+    'x-ms-ratelimit-microsoft.costmanagement-tenant-retry-after'
+    'x-ms-ratelimit-microsoft.costmanagement-clienttype-retry-after'
+)
+
 <#
 .SYNOPSIS
     Prefetch live operational data used by legacy inventory collectors.
@@ -327,7 +336,7 @@ function Get-ScoutOperationalCollectorEnrichment {
                     $failure = Get-ScoutHttpFailure -Response $Response
                     $statusException = [System.InvalidOperationException]::new("ARM returned status $Status. $($failure.Summary)")
                     $statusException.Data['StatusCode'] = [int]$Status
-                    $retryAfterHeader = Get-ScoutResponseHeader -Response $Response -Name @('Retry-After')
+                    $retryAfterHeader = Get-ScoutResponseHeader -Response $Response -Name $script:ScoutRetryAfterHeaderNames
                     if ($retryAfterHeader) { $statusException.Data['RetryAfter'] = $retryAfterHeader }
                     throw $statusException
                 }
@@ -363,13 +372,20 @@ function Get-ScoutOperationalCollectorEnrichment {
                     $retryAfter = if ($_.Exception.Data -and $_.Exception.Data.Contains('RetryAfter')) {
                         $_.Exception.Data['RetryAfter']
                     }
-                    elseif ($null -ne $Response) { Get-ScoutResponseHeader -Response $Response -Name @('Retry-After') }
+                    elseif ($null -ne $Response) { Get-ScoutResponseHeader -Response $Response -Name $script:ScoutRetryAfterHeaderNames }
                     else { $null }
+                    # A throttle needs seconds, not the half-second steps that suit a 5xx. Live
+                    # 2026-11-23: Cost Management answered 429 to a VM cost query, the retries
+                    # waited 0.5 s and 1 s, and the VM cost was lost (the run was Partial).
+                    # Azure's own wait, when it sends one, is used as given.
                     $retrySeconds = 0.0
                     if ($null -ne $retryAfter -and [double]::TryParse([string]$retryAfter, [ref]$retrySeconds)) {
                         $delayMilliseconds = [Math]::Max($delayMilliseconds, [int][Math]::Ceiling($retrySeconds * 1000))
                     }
-                    $delayMilliseconds = [Math]::Min(30000, $delayMilliseconds)
+                    elseif ($StatusCode -eq 429) {
+                        $delayMilliseconds = 5000 * [int][Math]::Pow(2, $Attempt - 1)
+                    }
+                    $delayMilliseconds = [Math]::Min(60000, $delayMilliseconds)
                     Write-ScoutOperationalDetail -Level DEBUG -Message (
                         'Operational request retry: dataset={0}; attempt={1}; maximum={2}; delayMs={3}' -f
                             $Dataset, $Attempt, $MaxAttempts, $delayMilliseconds
@@ -679,7 +695,7 @@ function Get-ScoutOperationalCollectorEnrichment {
                 $response = Invoke-ScoutOperationalArm -Dataset $Dataset `
                     -ParentId "/subscriptions/$subscriptionId" -Method POST `
                     -Path "/subscriptions/$subscriptionId/providers/Microsoft.CostManagement/query?api-version=2023-03-01" `
-                    -Payload $payload
+                    -Payload $payload -MaxAttempts 5
                 $batchMap = ConvertTo-ScoutCostResultMap -ResourceIds $resourceIds -Response $response
                 foreach ($key in $batchMap.Keys) { $costById[$key] = $batchMap[$key] }
             }

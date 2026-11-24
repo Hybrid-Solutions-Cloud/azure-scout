@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.18.5] - 2026-11-23 - cost reads that wait out the throttle, honest billing permissions
+
+### Fixed
+
+- **A throttled cost query gave up after 1.5 seconds.** When Cost Management answered 429 to a VM or
+  Arc server cost query, the retries waited 0.5 s and 1 s, so the cost was lost and the tenant was
+  Partial (live: one VM cost in a nine-subscription tenant). Cost Management puts its wait in its own
+  `x-ms-ratelimit-microsoft.costmanagement-*-retry-after` headers, which were not read. A throttled
+  request now waits as long as Azure asks, or 5, 10, 20 and 40 seconds when it does not say, and a
+  cost query gets five attempts instead of three.
+- **The permissions page said `Reader` was the whole ARM ask, and it is not.** Reservation orders,
+  savings plan orders and billing accounts are outside every subscription and management group, so
+  `Reader` at any scope cannot read them; they need `Reservations Reader` at
+  `/providers/Microsoft.Capacity`, `Savings plan Reader` at `/providers/Microsoft.BillingBenefits`,
+  and a billing account role. A scan with exactly the documented permissions was marked Partial
+  for them (live: four of five tenants). `docs/guide/permissions.md` and `prerequisites.md` now list
+  them as optional roles, and a refusal on one of these reads is reported as not assessed with the
+  role named instead of making the run Partial. Any other failure on them still does.
+
 ## [3.18.4] - 2026-11-23 - a scan that does not stall on a dropped connection
 
 ### Fixed

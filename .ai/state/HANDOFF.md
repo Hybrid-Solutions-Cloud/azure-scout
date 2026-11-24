@@ -1,5 +1,34 @@
 # Handoff
 
+## Session 2026-11-23 — fix, publish, retest loop (3.18.2 to 3.18.5)
+
+Operator rule for this work: fix, merge, publish, install, then test the **installed published**
+version across the full matrix (five tenants, inventory + every assessment, Entra, cost, React +
+Json + JsonEvidence, one log file), and repeat until it works.
+
+**Released today.** 3.18.2 (menu pause, one log per run, second-tenant subscription fix), 3.18.3
+(policy prefetch on Az 2.x, concurrent security and provider reads), 3.18.4 (API Inventory reads
+capped at 120 s and dropped connections retried; 1-second management-group probe; sub-resource
+retries; cost logging), 3.18.5 (Cost Management throttle waits read from its own rate-limit headers,
+5/10/20/40 s otherwise, five attempts).
+
+**Live result on the installed 3.18.4** (five tenants, 143.6 min, one `scout-run.log`, React, Json
+and JsonEvidence for every tenant). Tenant 1 (42 subscriptions, 12,981 resources) Completed in 63
+min. Tenants 2-5 Partial only for billing reads denied with HTTP 403 (reservation and savings-plan
+orders need Reservations Reader / Savings plan Reader or a billing reader role: a permission, not a
+code gap; the permissions page wrongly said Reader was the whole ARM ask, corrected in 3.18.5, where such a refusal is now not assessed with the role named), plus one throttled VM cost read in tenant 3, fixed in 3.18.5. The API Inventory step,
+which held about five minutes per stalled read on 3.18.3 (20 subscriptions in 49 min), read all 42
+subscriptions in 6.5 min with no failures.
+
+**Rejected by measurement.** Concurrent Cost Management queries (slower, and 13 of 42 subscriptions
+came back empty). A rewrite of the discovery-index redaction (identical output on 24,432 real values
+but no faster). Live timings today are inflated: the VM ran at 100% CPU from other sessions' test
+runs and builds.
+
+**Next.** Install 3.18.5, run the assessment-only multi-tenant test and the full test on it.
+Remaining speed items: processing pipeline (about 10 min on the 42-subscription tenant under load),
+assessment reshaping (about 7 min under load), the three security prefetch pools run one after
+another.
 ## Session 2026-11-15 — full live scan of 3.18.0 and its fixes
 
 A full scan of the published 3.18.0 (inventory, `-Assessment All`, every extra) found the issues
