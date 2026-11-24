@@ -878,7 +878,7 @@ resourcecontainers
         # flight on a separate branch) and RecoveryVault (already wired, see the file header) are
         # deliberately not re-declared here.
         advisorScores = @'
-resources | where type =~ "microsoft.advisor/advisorscore"
+advisorresources | where type =~ "microsoft.advisor/advisorscore"
 | extend lastRefreshedScore = todouble(properties.lastRefreshedScore.score)
 | project id, name, subscriptionId, lastRefreshedScore
 '@
@@ -887,13 +887,15 @@ resources | where type =~ "microsoft.automation/automationaccounts"
 | project id, name, resourceGroup, subscriptionId, location, sku = tostring(properties.sku.name)
 '@
         recoveryVaultBackupPolicies = @'
-resources | where type =~ "microsoft.recoveryservices/vaults/backuppolicies"
+recoveryservicesresources | where type =~ "microsoft.recoveryservices/vaults/backuppolicies"
 | extend backupManagementType = tostring(properties.backupManagementType)
 | extend scheduleFrequency = tostring(properties.schedulePolicy.scheduleRunFrequency)
 | project id, name, resourceGroup, subscriptionId, backupManagementType, scheduleFrequency
 '@
+        # Lighthouse delegations live in managedservicesresources, not resources: the query
+        # against resources always came back empty (live 2026-11-24: 38 delegations missed).
         lighthouseDelegations = @'
-resources | where type =~ "microsoft.managedservices/registrationdefinitions"
+managedservicesresources | where type =~ "microsoft.managedservices/registrationdefinitions"
 | extend provisioningState = tostring(properties.provisioningState)
 | extend authorizationCount = array_length(properties.authorizations)
 | project id, name, subscriptionId, provisioningState, authorizationCount
@@ -947,7 +949,7 @@ resources | where type =~ "microsoft.storage/storageaccounts"
         # as "not wired" (the other three -- BlobContainers/FileShares/LifecyclePolicies -- are
         # synthetic ARM-child sweeps, out of scope for this flat-ARG plumbing slice).
         edgeHardwareCenterOrders = @'
-resources
+resources | union edgeorderresources
 | where type in~ ("microsoft.edgeorder/orders", "microsoft.edgeorder/orderitems", "microsoft.edgeorder/addresses")
 | extend orderStatus = tostring(properties.orderItemDetails.orderItemStatus.status)
 | project id, name, type, resourceGroup, subscriptionId, orderStatus
@@ -1950,8 +1952,10 @@ resources | where type =~ "microsoft.desktopvirtualization/hostpools"
 | extend maxSessionLimit = toint(properties.maxSessionLimit)
 | project name, resourceGroup, hostPoolType, loadBalancerType, maxSessionLimit
 '@
+        # Session hosts, advisor scores, backup policies and Edge orders live outside the resources
+        # table (Resource Graph table reference); querying resources always returned nothing.
         avdSessionHosts = @'
-resources | where type =~ "microsoft.desktopvirtualization/hostpools/sessionhosts"
+desktopvirtualizationresources | where type =~ "microsoft.desktopvirtualization/hostpools/sessionhosts"
 | extend hostPoolName = tostring(split(id, "/sessionHosts/")[0])
 | extend status = tostring(properties.status)
 | extend agentVersion = tostring(properties.agentVersion)
