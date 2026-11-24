@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.18.8] - 2026-11-24 - a throttle that outlasts Azure's own wait
+
+### Fixed
+
+- **A throttled cost query was lost while Azure's suggested wait was honoured.** Cost Management
+  answered HTTP 429 to an Arc server cost query five times while its rate-limit header asked for
+  7, 9, 6 and 10 s. Each wait was honoured exactly, the throttle did not clear, and the cost was
+  lost after 2.4 minutes: the only gap in a five-tenant run of 3.18.7 (four tenants Completed,
+  81 minutes). Azure's wait is still used as given on the first retry. A throttle that is still
+  there afterwards waits the longer of Azure's wait and a doubling back-off (10, 20, 40, 60 s).
+  A cost query now gets six attempts.
+
 ## [3.18.7] - 2026-11-24 - discovery without false failures
 
 ### Fixed

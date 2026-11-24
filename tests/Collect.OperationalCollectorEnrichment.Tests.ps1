@@ -522,6 +522,30 @@ Describe 'Get-ScoutOperationalCollectorEnrichment' {
         $EstimatedCost = ($Rows | Where-Object type -eq 'AZSC/Operational/VirtualMachine').properties.EstimatedCost
         $EstimatedCost.PSObject.Properties['__AZSCError'] | Should -BeNullOrEmpty
     }
+    It 'waits longer than a short throttle header once that wait has not cleared the throttle' {
+        # Live 2026-11-24: Cost Management asked for 7, 9, 6 and 10 s; honouring exactly that
+        # four times did not clear it and the Arc server cost was lost.
+        $script:AttemptCount = 0
+        $script:SleepMilliseconds = [System.Collections.Generic.List[int]]::new()
+        function global:Start-Sleep { param([int]$Milliseconds) $script:SleepMilliseconds.Add($Milliseconds) }
+        function global:Invoke-AzRestMethod {
+            param($Path,$Method,$Payload,$ErrorAction) $null=$Method,$Payload,$ErrorAction
+            if ($Path -match 'Microsoft.CostManagement/query') {
+                $script:AttemptCount++
+                if ($script:AttemptCount -le 5) {
+                    return [pscustomobject]@{ StatusCode=429; Content='{}'; Headers=@{ 'x-ms-ratelimit-microsoft.costmanagement-qpu-retry-after' = '7' } }
+                }
+            }
+            [pscustomobject]@{StatusCode=200;Content='{"value":[]}' }
+        }
+
+        $Rows = @(Get-ScoutOperationalCollectorEnrichment -Resources @($script:Resources[0]) -Subscriptions @())
+
+        $script:AttemptCount | Should -Be 6
+        @($script:SleepMilliseconds | Where-Object { $_ -ge 5000 }) | Should -Be @(7000, 10000, 20000, 40000, 60000)
+        $EstimatedCost = ($Rows | Where-Object type -eq 'AZSC/Operational/VirtualMachine').properties.EstimatedCost
+        $EstimatedCost.PSObject.Properties['__AZSCError'] | Should -BeNullOrEmpty
+    }
     It 'keeps retrying a throttled cost query with growing waits for up to five attempts' {
         $script:AttemptCount = 0
         $script:SleepMilliseconds = [System.Collections.Generic.List[int]]::new()
@@ -736,7 +760,7 @@ Describe 'Get-ScoutOperationalCollectorEnrichment' {
         }
         try {
             $null = @(Get-ScoutOperationalCollectorEnrichment -Resources @($script:Resources[0]) -Subscriptions @())
-            @($script:OperationalLogs | Where-Object { $_ -match 'Operational request retry: dataset=VirtualMachine.EstimatedCost; attempt=1; maximum=5; delayMs=5000' }).Count | Should -Be 1
+            @($script:OperationalLogs | Where-Object { $_ -match 'Operational request retry: dataset=VirtualMachine.EstimatedCost; attempt=1; maximum=6; delayMs=5000' }).Count | Should -Be 1
             @($script:OperationalLogs | Where-Object { $_ -match 'Operational request finished: dataset=VirtualMachine.EstimatedCost; status=Success; attempts=2;' }).Count | Should -Be 1
         }
         finally {
