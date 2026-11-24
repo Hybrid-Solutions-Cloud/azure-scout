@@ -445,6 +445,47 @@ Describe 'Get-ScoutOperationalCollectorEnrichment' {
 
         $script:SleepMilliseconds | Should -Contain 2000
     }
+    It 'waits for the Cost Management throttle header and keeps the VM cost' {
+        $script:AttemptCount = 0
+        $script:SleepMilliseconds = [System.Collections.Generic.List[int]]::new()
+        function global:Start-Sleep { param([int]$Milliseconds) $script:SleepMilliseconds.Add($Milliseconds) }
+        function global:Invoke-AzRestMethod {
+            param($Path,$Method,$Payload,$ErrorAction) $null=$Method,$Payload,$ErrorAction
+            if ($Path -match 'Microsoft.CostManagement/query') {
+                $script:AttemptCount++
+                if ($script:AttemptCount -eq 1) {
+                    return [pscustomobject]@{ StatusCode=429; Content='{}'; Headers=@{ 'x-ms-ratelimit-microsoft.costmanagement-qpu-retry-after' = '23' } }
+                }
+            }
+            [pscustomobject]@{StatusCode=200;Content='{"value":[]}' }
+        }
+
+        $Rows = @(Get-ScoutOperationalCollectorEnrichment -Resources $script:Resources -Subscriptions @())
+
+        $script:SleepMilliseconds | Should -Contain 23000
+        $EstimatedCost = ($Rows | Where-Object type -eq 'AZSC/Operational/VirtualMachine').properties.EstimatedCost
+        $EstimatedCost.PSObject.Properties['__AZSCError'] | Should -BeNullOrEmpty
+    }
+    It 'keeps retrying a throttled cost query with growing waits for up to five attempts' {
+        $script:AttemptCount = 0
+        $script:SleepMilliseconds = [System.Collections.Generic.List[int]]::new()
+        function global:Start-Sleep { param([int]$Milliseconds) $script:SleepMilliseconds.Add($Milliseconds) }
+        function global:Invoke-AzRestMethod {
+            param($Path,$Method,$Payload,$ErrorAction) $null=$Method,$Payload,$ErrorAction
+            if ($Path -match 'Microsoft.CostManagement/query') {
+                $script:AttemptCount++
+                if ($script:AttemptCount -le 4) { return [pscustomobject]@{ StatusCode=429; Content='{}' } }
+            }
+            [pscustomobject]@{StatusCode=200;Content='{"value":[]}' }
+        }
+
+        $Rows = @(Get-ScoutOperationalCollectorEnrichment -Resources @($script:Resources[0]) -Subscriptions @())
+
+        $script:AttemptCount | Should -Be 5
+        @($script:SleepMilliseconds | Where-Object { $_ -ge 5000 }) | Should -Be @(5000, 10000, 20000, 40000)
+        $EstimatedCost = ($Rows | Where-Object type -eq 'AZSC/Operational/VirtualMachine').properties.EstimatedCost
+        $EstimatedCost.PSObject.Properties['__AZSCError'] | Should -BeNullOrEmpty
+    }
     It 'treats missing VM metrics as not configured without warnings or failed health' {
         function global:Invoke-AzRestMethod {
             param($Path,$Method,$Payload,$ErrorAction) $null=$Method,$Payload,$ErrorAction
@@ -624,6 +665,8 @@ Describe 'Get-ScoutOperationalCollectorEnrichment' {
     It 'logs retry attempts and one final completion with the accurate attempt count' {
         $script:OperationalLogs = [System.Collections.Generic.List[string]]::new()
         $script:RetryLedgerAttempts = 0
+        $script:SleepMilliseconds = [System.Collections.Generic.List[int]]::new()
+        function global:Start-Sleep { param([int]$Milliseconds) $script:SleepMilliseconds.Add($Milliseconds) }
         Mock Write-AZSCLog { param($Level, $Message) $script:OperationalLogs.Add("$Level|$Message") }
         function global:Write-Progress { param($Id, $ParentId, $Activity, $Status, $PercentComplete, [switch]$Completed) }
         function global:Invoke-AzRestMethod {
@@ -637,7 +680,7 @@ Describe 'Get-ScoutOperationalCollectorEnrichment' {
         }
         try {
             $null = @(Get-ScoutOperationalCollectorEnrichment -Resources @($script:Resources[0]) -Subscriptions @())
-            @($script:OperationalLogs | Where-Object { $_ -match 'Operational request retry: dataset=VirtualMachine.EstimatedCost; attempt=1; maximum=3' }).Count | Should -Be 1
+            @($script:OperationalLogs | Where-Object { $_ -match 'Operational request retry: dataset=VirtualMachine.EstimatedCost; attempt=1; maximum=5; delayMs=5000' }).Count | Should -Be 1
             @($script:OperationalLogs | Where-Object { $_ -match 'Operational request finished: dataset=VirtualMachine.EstimatedCost; status=Success; attempts=2;' }).Count | Should -Be 1
         }
         finally {

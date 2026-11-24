@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.18.5] - 2026-11-23 - cost reads that wait out the throttle
+
+### Fixed
+
+- **A throttled cost query gave up after 1.5 seconds.** When Cost Management answered 429 to a VM or
+  Arc server cost query, the retries waited 0.5 s and 1 s, so the cost was lost and the tenant was
+  Partial (live: one VM cost in a nine-subscription tenant). Cost Management puts its wait in its own
+  `x-ms-ratelimit-microsoft.costmanagement-*-retry-after` headers, which were not read. A throttled
+  request now waits as long as Azure asks, or 5, 10, 20 and 40 seconds when it does not say, and a
+  cost query gets five attempts instead of three.
+
 ## [3.18.4] - 2026-11-23 - a scan that does not stall on a dropped connection
 
 ### Fixed

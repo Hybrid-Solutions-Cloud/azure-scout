@@ -41,11 +41,15 @@ All collector definitions, source retirement, strict runtime contracts, and repo
 complete. The remaining release steps are package validation, broad test-suite completion, tag, and
 publication. Historical v2 entries below are retained as release history rather than current status.
 
-## Current Release — v3.18.4 — a scan that does not stall on a dropped connection
+## Current Release — v3.18.5 — cost reads that wait out the throttle
+
+Version 3.18.5 follows the live five-tenant test of 3.18.4. When Cost Management throttled a VM or Arc server cost query (HTTP 429), the retries waited half a second and then one second, so the cost was lost and the tenant was marked Partial (live: one VM cost in a nine-subscription tenant). A throttled request now waits as long as Azure asks, read from Cost Management's own rate-limit headers as well as Retry-After, or otherwise 5, 10, 20 and 40 seconds, and a cost query gets five attempts instead of three. See AB#9300.
+
+## Previous Release — v3.18.4 — a scan that does not stall on a dropped connection
 
 Version 3.18.4 follows the live five-tenant test of 3.18.3. The API Inventory step waited without limit on a stalled connection: live, each dropped connection held one read for about five minutes, so 20 subscriptions took 49 minutes instead of about 3 and the data from those reads was lost. Each read now stops after 120 seconds, and a dropped or timed-out connection is retried up to three times. The management-group pre-check takes about a second instead of over a minute and counts every group (10 instead of 1), sub-resource reads retry a dropped connection, a throttle or a server error, and the cost step logs each subscription's rows and time. See AB#9300.
 
-## Previous Release — v3.18.3 — faster security reads and provider check
+## Earlier Release — v3.18.3 — faster security reads and provider check
 
 Version 3.18.3 follows the live five-tenant test of 3.18.2. The policy-state speed-up from 3.18.2 now actually runs (it skipped itself on Az.PolicyInsights 2.x), the rest of the security sweep and the `-CheckResourceProviders` check read concurrently (live: provider check 367 s to 75 s on 42 subscriptions; security sweep 158 s to 108 s on nine, identical data), provider details with case-colliding JSON keys are kept instead of lost, and a NIC on a stopped VM is not applicable instead of a warning. See AB#9300.
 
