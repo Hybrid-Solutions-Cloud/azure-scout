@@ -193,6 +193,62 @@ Describe 'Get-ScoutOperationalCollectorEnrichment' {
         @($script:Calls | Where-Object { $_ -match '/providers/Microsoft\.Contoso\?' }).Count | Should -Be 1
     }
 
+    It 'falls back to the newest stable API version Azure says it supports in that region' {
+        # Live 2026-11-24: storageAccounts advertised 2026-12-01, which eastus refused with
+        # NoRegisteredProviderFound and the list of versions it does support.
+        $widget = [pscustomobject]@{
+            id = '/subscriptions/sub-1/resourceGroups/rg/providers/Microsoft.Contoso/widgets/widget-1'
+            type = 'microsoft.contoso/widgets'; name = 'widget-1'; subscriptionId = 'sub-1'; resourceGroup = 'rg'
+        }
+        $health = [System.Collections.Generic.List[object]]::new()
+        function global:Invoke-AzRestMethod {
+            param($Path,$Uri,$Method,$Payload,$ErrorAction)
+            $null=$Uri,$Method,$Payload,$ErrorAction
+            $script:Calls.Add($Path)
+            if ($Path -match '/providers/Microsoft\.Contoso\?api-version=2021-04-01$') {
+                return [pscustomobject]@{ StatusCode=200; Content='{"resourceTypes":[{"resourceType":"widgets","apiVersions":["2026-12-01","2026-09-01"]}]}' }
+            }
+            if ($Path -match '/widgets/widget-1\?api-version=2026-12-01$') {
+                return [pscustomobject]@{ StatusCode=400; Content='{"error":{"code":"NoRegisteredProviderFound","message":"No registered resource provider found for location ''eastus'' and API version ''2026-12-01'' for type ''widgets''. The supported api-versions are ''2026-09-01, 2026-06-01-preview, 2025-01-01''."}}' }
+            }
+            if ($Path -match '/widgets/widget-1\?api-version=2026-09-01$') {
+                return [pscustomobject]@{ StatusCode=200; Content='{"id":"widget-1","properties":{"fullSetting":"retained"}}' }
+            }
+            [pscustomobject]@{ StatusCode=200; Content='{"value":[]}' }
+        }
+
+        $rows = @(Get-ScoutOperationalCollectorEnrichment -Resources @($widget) -Subscriptions @() -IncludeProviderResourceDetails -CollectionHealth $health -WarningVariable fallbackWarnings -WarningAction SilentlyContinue)
+        $detail = $rows | Where-Object type -eq 'AZSC/ProviderDetail'
+
+        $detail.properties.Payload.properties.fullSetting | Should -Be 'retained'
+        @($script:Calls | Where-Object { $_ -match 'widget-1\?api-version=2026-09-01$' }).Count | Should -BeGreaterThan 0
+        @($health | Where-Object { $_.SourceDataset -like 'ProviderDetails.Resource*' }).Count | Should -Be 0
+        @($fallbackWarnings).Count | Should -Be 0
+    }
+
+    It 'does not make a per-resource read for rows from the other Resource Graph tables' {
+        # Live 3.18.6: role assignments, Lighthouse, extension and connector rows have no
+        # per-resource GET at the subscription scope; 114 of them failed and the run was Partial.
+        $roleAssignment = [pscustomobject]@{
+            id = '/subscriptions/sub-1/providers/Microsoft.Authorization/roleAssignments/ra-1'
+            type = 'microsoft.authorization/roleassignments'; name = 'ra-1'; subscriptionId = 'sub-1'
+            properties = [pscustomobject]@{ principalId = 'p1' }; AZSCSourceTable = 'authorizationresources'
+        }
+        $health = [System.Collections.Generic.List[object]]::new()
+        function global:Invoke-AzRestMethod {
+            param($Path,$Uri,$Method,$Payload,$ErrorAction)
+            $null=$Uri,$Method,$Payload,$ErrorAction
+            $script:Calls.Add($Path)
+            [pscustomobject]@{ StatusCode=401; Content='{}' }
+        }
+
+        $rows = @(Get-ScoutOperationalCollectorEnrichment -Resources @($roleAssignment) -Subscriptions @() -IncludeProviderResourceDetails -CollectionHealth $health -WarningAction SilentlyContinue)
+
+        @($script:Calls | Where-Object { $_ -match 'Microsoft\.Authorization' }).Count | Should -Be 0
+        @($rows | Where-Object type -eq 'AZSC/ProviderDetail').Count | Should -Be 0
+        @($health | Where-Object { $_.SourceDataset -like 'ProviderDetails*' }).Count | Should -Be 0
+    }
+
     It 'records a type the provider does not publish as not applicable, not as missing evidence' {
         # Field run 2026-10-05: 133 patch-result rows (Resource Graph only, no ARM GET exists)
         # were each recorded as Unavailable, which marked the whole discovery Partial.

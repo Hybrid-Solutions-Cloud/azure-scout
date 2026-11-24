@@ -1132,6 +1132,8 @@ Describe 'Get-ScoutRawInventory -- discovery of everything deployed (AB#9300)' {
         @($result.Resources | Where-Object { $_.PSObject.Properties['id'] -and [string]$_.id -like '*roleAssignments/shared' }).Count | Should -Be 1
         @($result.Resources | Where-Object { $_.PSObject.Properties['id'] -and [string]$_.id -like '*roleAssignments/only-here' }).Count | Should -Be 1
         @($result.Resources | Where-Object type -eq 'microsoft.managedservices/registrationdefinitions').Count | Should -Be 1
+        @($result.Resources | Where-Object type -eq 'microsoft.managedservices/registrationdefinitions')[0].AZSCSourceTable | Should -Be 'managedservicesresources'
+        @($result.Resources | Where-Object { $_.PSObject.Properties['id'] -and [string]$_.id -like '*roleAssignments/shared' })[0].PSObject.Properties['AZSCSourceTable'] | Should -BeNullOrEmpty
     }
 
     It 'adds what only Resource Manager returned and records the cross-check health' {

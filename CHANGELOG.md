@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.18.7] - 2026-11-24 - discovery without false failures
+
+### Fixed
+
+- **Newly discovered resources made the run Partial.** The rows 3.18.6 reads from the other Resource
+  Graph tables (role assignments, Lighthouse delegations, maintenance assignments, unified protected
+  items, AWS connector resources and others) also went to the per-resource provider-detail read.
+  Their Resource Graph row is already complete, and many have no per-resource read at the
+  subscription scope. Live: 111 failed reads (401, 404) in a 42-subscription tenant and a Partial
+  run. These rows are now tagged `AZSCSourceTable` and skip that read. Rows from the Resource
+  Manager cross-check still get it, because they arrive without properties.
+- **An API version listed before it is live lost the resource's detail.** The provider-detail read
+  uses the newest stable API version a provider lists. Live, storage accounts listed `2026-12-01`,
+  and East US refused it with `NoRegisteredProviderFound` and the versions it does support. The
+  read now retries once with the newest stable version from that list.
+
 ## [3.18.6] - 2026-11-24 - everything deployed is discovered
 
 ### Added
