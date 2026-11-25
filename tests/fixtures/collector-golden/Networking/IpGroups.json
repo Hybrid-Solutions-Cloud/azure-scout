@@ -1,0 +1,24 @@
+{
+  "SchemaVersion": 1,
+  "Category": "Networking",
+  "Name": "IpGroups",
+  "FixturePath": "tests/fixtures/collector-equivalence/Networking.json",
+  "FixtureSha256": "3be7615633bbe76470a0f809a24578bd7aaa3fc34402dcf8d4183b68acd9bb93",
+  "Rows": [
+    "Addresses=j:2|Firewall Policies=j:2|Firewalls=j:2|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/ipgroups/ipgroups-t1a-1|Location=s:res-value|Name=s:ipgroups-t1a|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",
+    "Addresses=j:2|Firewall Policies=j:2|Firewalls=j:2|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/ipgroups/ipgroups-t1b-1|Location=s:res-value|Name=s:ipgroups-t1b|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",
+    "Addresses=j:2|Firewall Policies=j:2|Firewalls=j:2|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/ipgroups/ipgroups-t1b-1|Location=s:res-value|Name=s:ipgroups-t1b|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:0|Subscription=s:sub-fixture-01|Tag Name=s:owner|Tag Value=s:platform",
+    "Addresses=j:2|Firewall Policies=j:2|Firewalls=j:2|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/ipgroups/ipgroups-t1c-1|Location=s:res-value|Name=s:ipgroups-t1c|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Subscription=s:sub-fixture-01|Tag Name=s:|Tag Value=s:",
+    "Addresses=j:2|Firewall Policies=j:2|Firewalls=j:2|ID=s:/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.network/ipgroups/ipgroups-t1d-1|Location=s:res-value|Name=s:ipgroups-t1d|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Subscription=<null>|Tag Name=s:env|Tag Value=s:dev",
+    "Addresses=j:2|Firewall Policies=j:2|Firewalls=j:2|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/ipgroups/ipgroups-t1e-1|Location=s:res-value|Name=s:ipgroups-t1e|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",
+    "Addresses=j:2|Firewall Policies=j:2|Firewalls=j:2|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/ipgroups/ipgroups-t1f-1|Location=s:res-value|Name=s:ipgroups-t1f|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod"
+  ],
+  "Workbook": {
+    "WithoutTags": [
+      "Subscription\tResource Group\tName\tLocation\tAddresses\tFirewalls\tFirewall Policies\tProvisioning State\tResource U\nsub-fixture-01\tres-value\tipgroups-t1a\tres-value\t2\t2\t2\tres-value\t1\nsub-fixture-01\tres-value\tipgroups-t1b\tres-value\t2\t2\t2\tres-value\t1\nsub-fixture-01\tres-value\tipgroups-t1b\tres-value\t2\t2\t2\tres-value\t0\nsub-fixture-01\tres-value\tipgroups-t1c\tres-value\t2\t2\t2\tres-value\t1\n\tres-value\tipgroups-t1d\tres-value\t2\t2\t2\tres-value\t1\nsub-fixture-01\tres-value\tipgroups-t1e\tres-value\t2\t2\t2\tres-value\t1\nsub-fixture-01\tres-value\tipgroups-t1f\tres-value\t2\t2\t2\tres-value\t1"
+    ],
+    "WithTags": [
+      "Subscription\tResource Group\tName\tLocation\tAddresses\tFirewalls\tFirewall Policies\tProvisioning State\tTag Name\tTag Value\tResource U\nsub-fixture-01\tres-value\tipgroups-t1a\tres-value\t2\t2\t2\tres-value\tenv\tprod\t1\nsub-fixture-01\tres-value\tipgroups-t1b\tres-value\t2\t2\t2\tres-value\tenv\tprod\t1\nsub-fixture-01\tres-value\tipgroups-t1b\tres-value\t2\t2\t2\tres-value\towner\tplatform\t0\nsub-fixture-01\tres-value\tipgroups-t1c\tres-value\t2\t2\t2\tres-value\t\t\t1\n\tres-value\tipgroups-t1d\tres-value\t2\t2\t2\tres-value\tenv\tdev\t1\nsub-fixture-01\tres-value\tipgroups-t1e\tres-value\t2\t2\t2\tres-value\tenv\tprod\t1\nsub-fixture-01\tres-value\tipgroups-t1f\tres-value\t2\t2\t2\tres-value\tenv\tprod\t1"
+    ]
+  }
+}

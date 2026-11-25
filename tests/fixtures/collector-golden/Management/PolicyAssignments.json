@@ -3,7 +3,7 @@
   "Category": "Management",
   "Name": "PolicyAssignments",
   "FixturePath": "tests/fixtures/collector-equivalence/Management.json",
-  "FixtureSha256": "c66866d070eeda26948afd1c625369ba997a136a92d6d6e7ce51553976caecd4",
+  "FixtureSha256": "c77e9e15a3fc4669aca46a6c6717a0b7c5e3efef9743a8f439287ccc09f85aa4",
   "Rows": [
     "Assigned=s:Assigned value|Assignment Name=s:Assignment Name value|Definition=s:Definition value|Definition ID=s:Definition ID value|Description=s:Description value|Display Name=s:Display Name value|Enforcement Mode=s:Enforcement Mode value|Excluded Scopes=s:Excluded Scopes value|ID=s:ID value|Parameters=s:Parameters value|Resource U=j:1|Scope=s:Scope value|Scope Type=s:Scope Type value|Subscription=s:Subscription value",
     "Assigned=s:Assigned value|Assignment Name=s:Assignment Name value|Definition=s:Definition value|Definition ID=s:Definition ID value|Description=s:Description value|Display Name=s:Display Name value|Enforcement Mode=s:Enforcement Mode value|Excluded Scopes=s:Excluded Scopes value|ID=s:ID value|Parameters=s:Parameters value|Resource U=j:1|Scope=s:Scope value|Scope Type=s:Scope Type value|Subscription=s:Subscription value",

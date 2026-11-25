@@ -3,7 +3,7 @@
   "Category": "Monitor",
   "Name": "MonitorWorkbooks",
   "FixturePath": "tests/fixtures/collector-equivalence/Monitor.json",
-  "FixtureSha256": "b273b054a39c4a6006f5260b937da728661d76f73c1e527c90dc9cb4b596da37",
+  "FixtureSha256": "e91e9c767d77474626d1aed0c297606b9fe8c43788c78e7b17d7e6f9affb72ef",
   "Rows": [
     "Category=s:res-value|Display Name=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.insights/workbooks/monitorworkbooks-t1a-1|Kind=s:res-value|Location=s:res-value|Resource Group=s:res-value|Resource U=j:1|Source ID=s:res-value|Source Resource=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod|Time Modified=s:2026-01-15|Version=s:res-value|Workbook Name=s:monitorworkbooks-t1a",
     "Category=s:res-value|Display Name=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.insights/workbooks/monitorworkbooks-t1b-1|Kind=s:res-value|Location=s:res-value|Resource Group=s:res-value|Resource U=j:1|Source ID=s:res-value|Source Resource=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod|Time Modified=s:2026-01-15|Version=s:res-value|Workbook Name=s:monitorworkbooks-t1b",

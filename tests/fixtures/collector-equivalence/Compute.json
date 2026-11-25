@@ -270,6 +270,66 @@
     {
       "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/restorepointcollections/restorepointcollections-t1f-1",
       "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/capacityreservationgroups/capacityreservationgroups-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/capacityreservationgroups/capacityreservationgroups-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/capacityreservationgroups/capacityreservationgroups-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/proximityplacementgroups/proximityplacementgroups-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/proximityplacementgroups/proximityplacementgroups-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/proximityplacementgroups/proximityplacementgroups-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.workloads/monitors/sapmonitors-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.workloads/monitors/sapmonitors-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.workloads/monitors/sapmonitors-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.workloads/sapvirtualinstances/sapvirtualinstances-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.workloads/sapvirtualinstances/sapvirtualinstances-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.workloads/sapvirtualinstances/sapvirtualinstances-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/sshpublickeys/sshpublickeys-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/sshpublickeys/sshpublickeys-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/sshpublickeys/sshpublickeys-t1f-1",
+      "ServiceID": "svc-2"
     }
   ],
   "unsupported": [
@@ -1714,6 +1774,195 @@
         }
       ]
     },
+    "CapacityReservationGroups": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "capacityReservations": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "virtualMachinesAssociated": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "sharingProfile": {
+              "subscriptionIds": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/capacityreservationgroups/capacityreservationgroups-t1a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "capacityreservationgroups-t1a",
+          "LOCATION": "res-value",
+          "zones": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "TYPE": "microsoft.compute/capacityreservationgroups"
+        },
+        {
+          "PROPERTIES": {
+            "capacityReservations": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "virtualMachinesAssociated": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "sharingProfile": {
+              "subscriptionIds": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/capacityreservationgroups/capacityreservationgroups-t1b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "capacityreservationgroups-t1b",
+          "LOCATION": "res-value",
+          "zones": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "TYPE": "microsoft.compute/capacityreservationgroups"
+        },
+        {
+          "PROPERTIES": {
+            "capacityReservations": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "virtualMachinesAssociated": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "sharingProfile": {
+              "subscriptionIds": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/capacityreservationgroups/capacityreservationgroups-t1c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "capacityreservationgroups-t1c",
+          "LOCATION": "res-value",
+          "zones": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "TYPE": "microsoft.compute/capacityreservationgroups"
+        },
+        {
+          "PROPERTIES": {
+            "capacityReservations": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "virtualMachinesAssociated": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "sharingProfile": {
+              "subscriptionIds": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.compute/capacityreservationgroups/capacityreservationgroups-t1d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "capacityreservationgroups-t1d",
+          "LOCATION": "res-value",
+          "zones": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "TYPE": "microsoft.compute/capacityreservationgroups"
+        },
+        {
+          "PROPERTIES": {
+            "capacityReservations": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "virtualMachinesAssociated": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "sharingProfile": {
+              "subscriptionIds": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/capacityreservationgroups/capacityreservationgroups-t1e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "capacityreservationgroups-t1e",
+          "LOCATION": "res-value",
+          "zones": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "TYPE": "microsoft.compute/capacityreservationgroups"
+        },
+        {
+          "PROPERTIES": {
+            "capacityReservations": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "virtualMachinesAssociated": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "sharingProfile": {
+              "subscriptionIds": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/capacityreservationgroups/capacityreservationgroups-t1f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "capacityreservationgroups-t1f",
+          "LOCATION": "res-value",
+          "zones": [
+            "res-item-0",
+            "res-item-1"
+          ],
+          "TYPE": "microsoft.compute/capacityreservationgroups"
+        }
+      ]
+    },
     "ComputeFleet": {
       "resources": [
         {
@@ -2473,6 +2722,183 @@
         }
       ]
     },
+    "ProximityPlacementGroups": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "proximityPlacementGroupType": "res-value",
+            "virtualMachines": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "availabilitySets": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "virtualMachineScaleSets": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "colocationStatus": {
+              "code": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/proximityplacementgroups/proximityplacementgroups-t1a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "proximityplacementgroups-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.compute/proximityplacementgroups"
+        },
+        {
+          "PROPERTIES": {
+            "proximityPlacementGroupType": "res-value",
+            "virtualMachines": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "availabilitySets": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "virtualMachineScaleSets": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "colocationStatus": {
+              "code": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/proximityplacementgroups/proximityplacementgroups-t1b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "proximityplacementgroups-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.compute/proximityplacementgroups"
+        },
+        {
+          "PROPERTIES": {
+            "proximityPlacementGroupType": "res-value",
+            "virtualMachines": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "availabilitySets": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "virtualMachineScaleSets": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "colocationStatus": {
+              "code": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/proximityplacementgroups/proximityplacementgroups-t1c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "proximityplacementgroups-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.compute/proximityplacementgroups"
+        },
+        {
+          "PROPERTIES": {
+            "proximityPlacementGroupType": "res-value",
+            "virtualMachines": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "availabilitySets": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "virtualMachineScaleSets": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "colocationStatus": {
+              "code": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.compute/proximityplacementgroups/proximityplacementgroups-t1d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "proximityplacementgroups-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.compute/proximityplacementgroups"
+        },
+        {
+          "PROPERTIES": {
+            "proximityPlacementGroupType": "res-value",
+            "virtualMachines": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "availabilitySets": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "virtualMachineScaleSets": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "colocationStatus": {
+              "code": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/proximityplacementgroups/proximityplacementgroups-t1e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "proximityplacementgroups-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.compute/proximityplacementgroups"
+        },
+        {
+          "PROPERTIES": {
+            "proximityPlacementGroupType": "res-value",
+            "virtualMachines": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "availabilitySets": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "virtualMachineScaleSets": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "colocationStatus": {
+              "code": "res-value"
+            }
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/proximityplacementgroups/proximityplacementgroups-t1f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "proximityplacementgroups-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.compute/proximityplacementgroups"
+        }
+      ]
+    },
     "QuantumWorkspaces": {
       "resources": [
         {
@@ -2716,6 +3142,333 @@
           "NAME": "restorepointcollections-t1f",
           "LOCATION": "res-value",
           "TYPE": "microsoft.compute/restorepointcollections"
+        }
+      ]
+    },
+    "SapMonitors": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "monitorSubnet": "res-value",
+            "logAnalyticsWorkspaceArmId": "res-value",
+            "routingPreference": "res-value",
+            "appLocation": "res-value",
+            "zoneRedundancyPreference": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.workloads/monitors/sapmonitors-t1a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "sapmonitors-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.workloads/monitors"
+        },
+        {
+          "PROPERTIES": {
+            "monitorSubnet": "res-value",
+            "logAnalyticsWorkspaceArmId": "res-value",
+            "routingPreference": "res-value",
+            "appLocation": "res-value",
+            "zoneRedundancyPreference": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.workloads/monitors/sapmonitors-t1b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "sapmonitors-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.workloads/monitors"
+        },
+        {
+          "PROPERTIES": {
+            "monitorSubnet": "res-value",
+            "logAnalyticsWorkspaceArmId": "res-value",
+            "routingPreference": "res-value",
+            "appLocation": "res-value",
+            "zoneRedundancyPreference": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.workloads/monitors/sapmonitors-t1c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "sapmonitors-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.workloads/monitors"
+        },
+        {
+          "PROPERTIES": {
+            "monitorSubnet": "res-value",
+            "logAnalyticsWorkspaceArmId": "res-value",
+            "routingPreference": "res-value",
+            "appLocation": "res-value",
+            "zoneRedundancyPreference": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.workloads/monitors/sapmonitors-t1d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "sapmonitors-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.workloads/monitors"
+        },
+        {
+          "PROPERTIES": {
+            "monitorSubnet": "res-value",
+            "logAnalyticsWorkspaceArmId": "res-value",
+            "routingPreference": "res-value",
+            "appLocation": "res-value",
+            "zoneRedundancyPreference": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.workloads/monitors/sapmonitors-t1e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "sapmonitors-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.workloads/monitors"
+        },
+        {
+          "PROPERTIES": {
+            "monitorSubnet": "res-value",
+            "logAnalyticsWorkspaceArmId": "res-value",
+            "routingPreference": "res-value",
+            "appLocation": "res-value",
+            "zoneRedundancyPreference": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.workloads/monitors/sapmonitors-t1f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "sapmonitors-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.workloads/monitors"
+        }
+      ]
+    },
+    "SapVirtualInstances": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "environment": "res-value",
+            "sapProduct": "res-value",
+            "state": "res-value",
+            "health": "res-value",
+            "status": "res-value",
+            "managedResourcesNetworkAccessType": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.workloads/sapvirtualinstances/sapvirtualinstances-t1a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "sapvirtualinstances-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.workloads/sapvirtualinstances"
+        },
+        {
+          "PROPERTIES": {
+            "environment": "res-value",
+            "sapProduct": "res-value",
+            "state": "res-value",
+            "health": "res-value",
+            "status": "res-value",
+            "managedResourcesNetworkAccessType": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.workloads/sapvirtualinstances/sapvirtualinstances-t1b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "sapvirtualinstances-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.workloads/sapvirtualinstances"
+        },
+        {
+          "PROPERTIES": {
+            "environment": "res-value",
+            "sapProduct": "res-value",
+            "state": "res-value",
+            "health": "res-value",
+            "status": "res-value",
+            "managedResourcesNetworkAccessType": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.workloads/sapvirtualinstances/sapvirtualinstances-t1c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "sapvirtualinstances-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.workloads/sapvirtualinstances"
+        },
+        {
+          "PROPERTIES": {
+            "environment": "res-value",
+            "sapProduct": "res-value",
+            "state": "res-value",
+            "health": "res-value",
+            "status": "res-value",
+            "managedResourcesNetworkAccessType": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.workloads/sapvirtualinstances/sapvirtualinstances-t1d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "sapvirtualinstances-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.workloads/sapvirtualinstances"
+        },
+        {
+          "PROPERTIES": {
+            "environment": "res-value",
+            "sapProduct": "res-value",
+            "state": "res-value",
+            "health": "res-value",
+            "status": "res-value",
+            "managedResourcesNetworkAccessType": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.workloads/sapvirtualinstances/sapvirtualinstances-t1e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "sapvirtualinstances-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.workloads/sapvirtualinstances"
+        },
+        {
+          "PROPERTIES": {
+            "environment": "res-value",
+            "sapProduct": "res-value",
+            "state": "res-value",
+            "health": "res-value",
+            "status": "res-value",
+            "managedResourcesNetworkAccessType": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.workloads/sapvirtualinstances/sapvirtualinstances-t1f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "sapvirtualinstances-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.workloads/sapvirtualinstances"
+        }
+      ]
+    },
+    "SshPublicKeys": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "publicKey": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/sshpublickeys/sshpublickeys-t1a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "sshpublickeys-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.compute/sshpublickeys"
+        },
+        {
+          "PROPERTIES": {
+            "publicKey": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/sshpublickeys/sshpublickeys-t1b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "sshpublickeys-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.compute/sshpublickeys"
+        },
+        {
+          "PROPERTIES": {
+            "publicKey": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/sshpublickeys/sshpublickeys-t1c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "sshpublickeys-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.compute/sshpublickeys"
+        },
+        {
+          "PROPERTIES": {
+            "publicKey": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.compute/sshpublickeys/sshpublickeys-t1d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "sshpublickeys-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.compute/sshpublickeys"
+        },
+        {
+          "PROPERTIES": {
+            "publicKey": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/sshpublickeys/sshpublickeys-t1e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "sshpublickeys-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.compute/sshpublickeys"
+        },
+        {
+          "PROPERTIES": {
+            "publicKey": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/sshpublickeys/sshpublickeys-t1f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "sshpublickeys-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.compute/sshpublickeys"
         }
       ]
     },

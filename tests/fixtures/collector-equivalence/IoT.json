@@ -186,6 +186,42 @@
     {
       "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.maps/accounts/maps-t2f-1/creators/maps-t2f-2",
       "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.deviceregistry/namespaces/deviceregistry-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.deviceregistry/namespaces/deviceregistry-t2e-1/assets/deviceregistry-t2e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.deviceregistry/namespaces/deviceregistry-t3e-1/devices/deviceregistry-t3e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.deviceregistry/namespaces/deviceregistry-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.deviceregistry/namespaces/deviceregistry-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.deviceregistry/namespaces/deviceregistry-t2f-1/assets/deviceregistry-t2f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.deviceregistry/namespaces/deviceregistry-t2f-1/assets/deviceregistry-t2f-2",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.deviceregistry/namespaces/deviceregistry-t3f-1/devices/deviceregistry-t3f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.deviceregistry/namespaces/deviceregistry-t3f-1/devices/deviceregistry-t3f-2",
+      "ServiceID": "svc-2"
     }
   ],
   "unsupported": [
@@ -909,6 +945,421 @@
             "capacity": "res-value"
           },
           "TYPE": "microsoft.devices/provisioningservices"
+        }
+      ]
+    },
+    "DeviceRegistry": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "externalAssetId": "res-value",
+            "externalDeviceId": "res-value",
+            "enabled": "res-value",
+            "manufacturer": "res-value",
+            "model": "res-value",
+            "discoveredAssetRefs": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "TYPE": "microsoft.deviceregistry/namespaces",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.deviceregistry/namespaces/deviceregistry-t1a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "deviceregistry-t1a",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "externalAssetId": "res-value",
+            "externalDeviceId": "res-value",
+            "enabled": "res-value",
+            "manufacturer": "res-value",
+            "model": "res-value",
+            "discoveredAssetRefs": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "TYPE": "microsoft.deviceregistry/namespaces/assets",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.deviceregistry/namespaces/deviceregistry-t2a-1/assets/deviceregistry-t2a-2",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "deviceregistry-t2a",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "externalAssetId": "res-value",
+            "externalDeviceId": "res-value",
+            "enabled": "res-value",
+            "manufacturer": "res-value",
+            "model": "res-value",
+            "discoveredAssetRefs": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "TYPE": "microsoft.deviceregistry/namespaces/devices",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.deviceregistry/namespaces/deviceregistry-t3a-1/devices/deviceregistry-t3a-2",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "deviceregistry-t3a",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "externalAssetId": "res-value",
+            "externalDeviceId": "res-value",
+            "enabled": "res-value",
+            "manufacturer": "res-value",
+            "model": "res-value",
+            "discoveredAssetRefs": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "TYPE": "microsoft.deviceregistry/namespaces",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.deviceregistry/namespaces/deviceregistry-t1b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "deviceregistry-t1b",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "externalAssetId": "res-value",
+            "externalDeviceId": "res-value",
+            "enabled": "res-value",
+            "manufacturer": "res-value",
+            "model": "res-value",
+            "discoveredAssetRefs": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "TYPE": "microsoft.deviceregistry/namespaces/assets",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.deviceregistry/namespaces/deviceregistry-t2b-1/assets/deviceregistry-t2b-2",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "deviceregistry-t2b",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "externalAssetId": "res-value",
+            "externalDeviceId": "res-value",
+            "enabled": "res-value",
+            "manufacturer": "res-value",
+            "model": "res-value",
+            "discoveredAssetRefs": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "TYPE": "microsoft.deviceregistry/namespaces/devices",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.deviceregistry/namespaces/deviceregistry-t3b-1/devices/deviceregistry-t3b-2",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "deviceregistry-t3b",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "externalAssetId": "res-value",
+            "externalDeviceId": "res-value",
+            "enabled": "res-value",
+            "manufacturer": "res-value",
+            "model": "res-value",
+            "discoveredAssetRefs": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "TYPE": "microsoft.deviceregistry/namespaces",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.deviceregistry/namespaces/deviceregistry-t1c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "deviceregistry-t1c",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "externalAssetId": "res-value",
+            "externalDeviceId": "res-value",
+            "enabled": "res-value",
+            "manufacturer": "res-value",
+            "model": "res-value",
+            "discoveredAssetRefs": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "TYPE": "microsoft.deviceregistry/namespaces/assets",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.deviceregistry/namespaces/deviceregistry-t2c-1/assets/deviceregistry-t2c-2",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "deviceregistry-t2c",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "externalAssetId": "res-value",
+            "externalDeviceId": "res-value",
+            "enabled": "res-value",
+            "manufacturer": "res-value",
+            "model": "res-value",
+            "discoveredAssetRefs": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "TYPE": "microsoft.deviceregistry/namespaces/devices",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.deviceregistry/namespaces/deviceregistry-t3c-1/devices/deviceregistry-t3c-2",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "deviceregistry-t3c",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "externalAssetId": "res-value",
+            "externalDeviceId": "res-value",
+            "enabled": "res-value",
+            "manufacturer": "res-value",
+            "model": "res-value",
+            "discoveredAssetRefs": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "TYPE": "microsoft.deviceregistry/namespaces",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.deviceregistry/namespaces/deviceregistry-t1d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "deviceregistry-t1d",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "externalAssetId": "res-value",
+            "externalDeviceId": "res-value",
+            "enabled": "res-value",
+            "manufacturer": "res-value",
+            "model": "res-value",
+            "discoveredAssetRefs": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "TYPE": "microsoft.deviceregistry/namespaces/assets",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.deviceregistry/namespaces/deviceregistry-t2d-1/assets/deviceregistry-t2d-2",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "deviceregistry-t2d",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "externalAssetId": "res-value",
+            "externalDeviceId": "res-value",
+            "enabled": "res-value",
+            "manufacturer": "res-value",
+            "model": "res-value",
+            "discoveredAssetRefs": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "TYPE": "microsoft.deviceregistry/namespaces/devices",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.deviceregistry/namespaces/deviceregistry-t3d-1/devices/deviceregistry-t3d-2",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "deviceregistry-t3d",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "externalAssetId": "res-value",
+            "externalDeviceId": "res-value",
+            "enabled": "res-value",
+            "manufacturer": "res-value",
+            "model": "res-value",
+            "discoveredAssetRefs": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "TYPE": "microsoft.deviceregistry/namespaces",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.deviceregistry/namespaces/deviceregistry-t1e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "deviceregistry-t1e",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "externalAssetId": "res-value",
+            "externalDeviceId": "res-value",
+            "enabled": "res-value",
+            "manufacturer": "res-value",
+            "model": "res-value",
+            "discoveredAssetRefs": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "TYPE": "microsoft.deviceregistry/namespaces/assets",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.deviceregistry/namespaces/deviceregistry-t2e-1/assets/deviceregistry-t2e-2",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "deviceregistry-t2e",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "externalAssetId": "res-value",
+            "externalDeviceId": "res-value",
+            "enabled": "res-value",
+            "manufacturer": "res-value",
+            "model": "res-value",
+            "discoveredAssetRefs": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "TYPE": "microsoft.deviceregistry/namespaces/devices",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.deviceregistry/namespaces/deviceregistry-t3e-1/devices/deviceregistry-t3e-2",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "deviceregistry-t3e",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "externalAssetId": "res-value",
+            "externalDeviceId": "res-value",
+            "enabled": "res-value",
+            "manufacturer": "res-value",
+            "model": "res-value",
+            "discoveredAssetRefs": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "TYPE": "microsoft.deviceregistry/namespaces",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.deviceregistry/namespaces/deviceregistry-t1f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "deviceregistry-t1f",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "externalAssetId": "res-value",
+            "externalDeviceId": "res-value",
+            "enabled": "res-value",
+            "manufacturer": "res-value",
+            "model": "res-value",
+            "discoveredAssetRefs": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "TYPE": "microsoft.deviceregistry/namespaces/assets",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.deviceregistry/namespaces/deviceregistry-t2f-1/assets/deviceregistry-t2f-2",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "deviceregistry-t2f",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "externalAssetId": "res-value",
+            "externalDeviceId": "res-value",
+            "enabled": "res-value",
+            "manufacturer": "res-value",
+            "model": "res-value",
+            "discoveredAssetRefs": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "TYPE": "microsoft.deviceregistry/namespaces/devices",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.deviceregistry/namespaces/deviceregistry-t3f-1/devices/deviceregistry-t3f-2",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "deviceregistry-t3f",
+          "LOCATION": "res-value"
         }
       ]
     },

@@ -1,5 +1,5 @@
 ---
-description: For each of the 18 Azure portal service categories, every Azure service Microsoft publishes in that category, marked Collected or Not collected against AzureScout's 245 collectors.
+description: For each of the 18 Azure portal service categories, every Azure service Microsoft publishes in that category, marked Collected or Not collected against AzureScout's collectors (381 as of 3.18.12).
 ---
 
 # Service Coverage Gap
@@ -59,10 +59,29 @@ the assessment by a typed query and now also have an inventory collector. Site R
 items and Update Manager assignments are ordinary Resource Graph types (in
 `recoveryservicesresources` and `maintenanceresources`), not per-target reads.
 
-**Still without a dedicated collector**, but discovered: AKS Fleet Manager, Prometheus rule groups,
-Log Analytics dedicated clusters, vWAN VPN/ExpressRoute gateways and network virtual appliances, API
-Center, deployment stacks and template specs, App Gateway for Containers, SAP on Azure, Oracle
-Database@Azure, Azure Device Registry, Operator Nexus.
+**39 more collectors (3.18.12)** cover the rest of the list above. Property paths are from
+Microsoft's ARM template reference and SDK models; none of these types was present in the test
+tenants. Secret and personal fields are never projected (NVA SSH keys and cloud-init, RADIUS secrets,
+Oracle admin passwords, session-pool secrets, connection strings, partner user details, SSH key
+material, deployment-script content).
+
+| Area | Collectors |
+|---|---|
+| Containers | `Containers/AksFleets`, `Containers/AksFleetMembers`, `Containers/AppGatewayForContainers`, `Containers/ContainerAppSessionPools`, `Containers/ContainerAppConnectedEnvironments` |
+| Monitoring | `Monitor/PrometheusRuleGroups`, `Monitor/LogAnalyticsClusters`, `Monitor/LogAnalyticsQueryPacks` |
+| Networking | `Networking/VirtualWanGateways` (S2S, P2S, ExpressRoute), `Networking/VpnServerConfigurations`, `Networking/ExpressRoutePorts`, `Networking/RouteFilters`, `Networking/NetworkVirtualAppliances`, `Networking/IpGroups`, `Networking/PublicIpPrefixes` (with custom IP prefixes), `Networking/PrivateLinkServices`, `Networking/ServiceEndpointPolicies`, `Networking/VirtualNetworkTaps`, `Networking/NginxDeployments`, `Networking/OperatorNexus` |
+| Integration | `Integration/ApiCenterServices`, `Integration/DurableTaskSchedulers` |
+| Governance | `Management/DeploymentStacks`, `Management/TemplateSpecs`, `Management/DeploymentScripts` |
+| Compute | `Compute/SapVirtualInstances`, `Compute/SapMonitors`, `Compute/CapacityReservationGroups`, `Compute/ProximityPlacementGroups`, `Compute/SshPublicKeys` (presence only) |
+| Hybrid | `Hybrid/ArcServerLicenses` (ESU), `Hybrid/ArcPrivateLinkScopes`, `Hybrid/MulticloudConnectors`, `Hybrid/AksArcClusters` |
+| IoT | `IoT/DeviceRegistry` (namespaces, assets, devices) |
+| Databases | `Databases/OracleDatabaseAtAzure`, `Databases/MongoDBAtlas` |
+| Analytics | `Analytics/ConfluentOrganizations` |
+| Security | `Security/PaloAltoCloudNgfw` |
+
+Every other deployed resource type is discovered and filed under its category (see
+[Resource Categories](resource-categories.md)) and listed on that category's page of the React
+report as **Other discovered resources**, with every property Resource Graph returns.
 
 ## Sources and method
 

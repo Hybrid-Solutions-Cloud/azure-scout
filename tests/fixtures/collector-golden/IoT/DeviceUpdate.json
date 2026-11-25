@@ -3,7 +3,7 @@
   "Category": "IoT",
   "Name": "DeviceUpdate",
   "FixturePath": "tests/fixtures/collector-equivalence/IoT.json",
-  "FixtureSha256": "0bff95e290911f38a661d975b6cb58ceedb53a21520d74be286ee772d4f7affd",
+  "FixtureSha256": "79cdcfbddc375090d13511288025cabe8bbc5168654e2162c38e96ddb1e09ff4",
   "Rows": [
     "Host Name=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.deviceupdate/accounts/deviceupdate-t1a-1|Linked IoT Hubs=s:2|Location=s:res-value|Name=s:deviceupdate-t1a|Provisioning State=s:res-value|Public Network Access=s:res-value|Resource Group=s:res-value|Resource Kind=s:microsoft.deviceupdate/accounts|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|SKU=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",
     "Host Name=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.deviceupdate/accounts/deviceupdate-t2a-1/instances/deviceupdate-t2a-2|Linked IoT Hubs=s:2|Location=s:res-value|Name=s:deviceupdate-t2a|Provisioning State=s:res-value|Public Network Access=s:res-value|Resource Group=s:res-value|Resource Kind=s:microsoft.deviceupdate/accounts/instances|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|SKU=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",

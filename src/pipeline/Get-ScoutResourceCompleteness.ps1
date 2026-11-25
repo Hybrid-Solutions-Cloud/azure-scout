@@ -8,6 +8,7 @@ $ErrorActionPreference = 'Stop'
 $script:ScoutResourceCompletenessScriptRoot = $PSScriptRoot
 # Every discovery record carries a category (AB#9300); a standalone dot-source needs the resolver.
 if (-not (Get-Command Get-ScoutResourceCategory -ErrorAction SilentlyContinue)) { . (Join-Path $PSScriptRoot 'Get-ScoutResourceCategory.ps1') }
+if (-not (Get-Command Initialize-ScoutDiscoveryRedactor -ErrorAction SilentlyContinue)) { . (Join-Path $PSScriptRoot 'Initialize-ScoutDiscoveryRedactor.ps1') }
 
 <#
 .SYNOPSIS
@@ -67,12 +68,23 @@ function Test-ScoutDiscoverySensitiveName {
 
 function Protect-ScoutDiscoveryValue {
     [CmdletBinding()]
+    [OutputType([object], [object[]], [string])]
     param(
         [AllowNull()]$InputObject,
         [AllowNull()][string]$PropertyName = '',
         [ValidateRange(0, 100)][int]$Depth = 0,
-        [ValidateRange(1, 100)][int]$MaximumDepth = 60
+        [ValidateRange(1, 100)][int]$MaximumDepth = 60,
+        # The PowerShell walk below, even when the compiled redactor is available (used by the
+        # equivalence test that holds the two to the same output).
+        [switch]$UsePowerShell
     )
+
+    # The compiled redactor applies exactly these rules in one call per resource instead of one
+    # PowerShell call per property node (AB#9300). The comma keeps an array result an array.
+    if (-not $UsePowerShell -and $Depth -eq 0 -and (Initialize-ScoutDiscoveryRedactor)) {
+        $compiledResult = [AzureScout.DiscoveryRedactor]::Protect($InputObject, $PropertyName, $Depth, $MaximumDepth)
+        return , $compiledResult
+    }
 
     if ($null -eq $InputObject) { return $null }
     if (Test-ScoutDiscoverySensitiveName -Name $PropertyName) { return '[REDACTED]' }
@@ -392,7 +404,7 @@ function Get-ScoutResourceCompleteness {
     # Normalize coverage once, not once per resource. The base traversal is shared; each
     # caller still gets independent coverage/collector metadata and summary (AB#9302).
     $healthRows = @($CollectionHealth | Where-Object { $null -ne $_ })
-    $healthIndex = foreach ($health in $healthRows) {
+    $healthIndex = @(foreach ($health in $healthRows) {
         [pscustomobject]@{
             Row = $health
             Collectors = @((Get-ScoutResourceCompletenessValue $health 'Collectors') | Where-Object { $_ })
@@ -400,6 +412,37 @@ function Get-ScoutResourceCompleteness {
             Ids = @((Get-ScoutResourceCompletenessValue $health 'ResourceIds') | Where-Object { $_ })
             Reason = [string](Get-ScoutResourceCompletenessValue $health 'Reason')
         }
+    })
+    # Index the health entries once instead of testing every entry against every resource: a
+    # 42-subscription tenant had 8,299 resources and 2,706 entries, 22 million tests per pass and
+    # three passes per run. An entry naming resource IDs is a candidate only for those IDs; any
+    # other entry only for its collectors and its exact types; wildcard types are still tested by
+    # -like. Candidates are visited in their original order, so the output is unchanged.
+    $healthById = [System.Collections.Generic.Dictionary[string, System.Collections.Generic.List[int]]]::new([System.StringComparer]::OrdinalIgnoreCase)
+    $healthByCollector = [System.Collections.Generic.Dictionary[string, System.Collections.Generic.List[int]]]::new([System.StringComparer]::OrdinalIgnoreCase)
+    $healthByType = [System.Collections.Generic.Dictionary[string, System.Collections.Generic.List[int]]]::new([System.StringComparer]::OrdinalIgnoreCase)
+    $healthPatterns = [System.Collections.Generic.List[int]]::new()
+    $addHealthKey = {
+        param($Map, [string] $Key, [int] $Index)
+        $list = $null
+        if (-not $Map.TryGetValue($Key, [ref]$list)) { $list = [System.Collections.Generic.List[int]]::new(); $Map[$Key] = $list }
+        if ($list.Count -eq 0 -or $list[$list.Count - 1] -ne $Index) { $list.Add($Index) }
+    }
+    for ($healthNumber = 0; $healthNumber -lt $healthIndex.Count; $healthNumber++) {
+        $entry = $healthIndex[$healthNumber]
+        if ($entry.Ids.Count -gt 0) {
+            foreach ($entryId in $entry.Ids) { & $addHealthKey $healthById ([string]$entryId) $healthNumber }
+            continue
+        }
+        foreach ($name in $entry.Collectors) { if ($name) { & $addHealthKey $healthByCollector ([string]$name) $healthNumber } }
+        $hasPattern = $false
+        foreach ($pattern in $entry.Types) {
+            if (-not $pattern) { continue }
+            $patternText = [string]$pattern
+            if ($patternText.IndexOfAny([char[]]@('*', '?', '[')) -ge 0) { $hasPattern = $true }
+            else { & $addHealthKey $healthByType $patternText $healthNumber }
+        }
+        if ($hasPattern) { $healthPatterns.Add($healthNumber) }
     }
     $rows = [Collections.Generic.List[object]]::new()
     foreach ($baseRow in $DiscoveryContext.Base.Resources) {
@@ -416,7 +459,14 @@ function Get-ScoutResourceCompleteness {
         $rowHealth = [Collections.Generic.List[object]]::new()
         $reasons = [Collections.Generic.List[string]]::new()
         if ($matches.Count -eq 0) { $reasons.Add('No specialized collector declares this resource type; the complete Resource Graph row is retained generically.') }
-        foreach ($entry in $healthIndex) {
+        $candidates = [System.Collections.Generic.SortedSet[int]]::new()
+        $list = $null
+        if ($row.Id -and $healthById.TryGetValue([string]$row.Id, [ref]$list)) { foreach ($n in $list) { [void]$candidates.Add($n) } }
+        foreach ($name in $matches) { if ($healthByCollector.TryGetValue($name, [ref]$list)) { foreach ($n in $list) { [void]$candidates.Add($n) } } }
+        if ($healthByType.TryGetValue($typeKey, [ref]$list)) { foreach ($n in $list) { [void]$candidates.Add($n) } }
+        foreach ($n in $healthPatterns) { [void]$candidates.Add($n) }
+        foreach ($healthNumber in $candidates) {
+            $entry = $healthIndex[$healthNumber]
             if ($entry.Ids.Count -gt 0 -and $entry.Ids -notcontains $row.Id) { continue }
             $applies = $false
             foreach ($name in $entry.Collectors) { if ($name -and $matches.Contains([string]$name)) { $applies = $true; break } }

@@ -111,7 +111,7 @@ back empty with `Reader` assigned, the cause is a **billing setting**, not a per
 The pre-flight checker validates:
 
 - **Subscription Enumeration** — Can `Get-AzSubscription` return at least one subscription? (Fail if not)
-- **Role Assignment Read** — Can `Get-AzRoleAssignment` read `Reader` on each target subscription? (Fail per subscription if `Reader` is missing there — `Reader` is the whole ARM ask, so there is no separate "optional role missing" Warn state any more)
+- **Role Assignment Read** — Can `Get-AzRoleAssignment` read `Reader` on each target subscription? (Fail per subscription if `Reader` is missing there — `Reader` is the whole required ARM ask, so there is no separate "optional role missing" Warn state; the optional billing roles are reported per dataset as not assessed)
 
 ## Microsoft Graph Permissions
 

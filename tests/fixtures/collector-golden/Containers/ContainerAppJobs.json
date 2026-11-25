@@ -3,7 +3,7 @@
   "Category": "Containers",
   "Name": "ContainerAppJobs",
   "FixturePath": "tests/fixtures/collector-equivalence/Containers.json",
-  "FixtureSha256": "cc1f023f45b0747a8b7e33ea43b7b584dabf5afa299fa14a27621353186ed66b",
+  "FixtureSha256": "51b366836ed902f0622e425c9ff1e14f4812d99adf9dceab618c002752d19db1",
   "Rows": [
     "Container Count=s:2|Environment=s:seg8|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.app/jobs/containerappjobs-t1a-1|Identity Type=s:res-value|Location=s:res-value|Name=s:containerappjobs-t1a|Outbound IP Count=s:2|Provisioning State=s:res-value|Replica Retry Limit=s:res-value|Replica Timeout=s:res-value|Resource Group=s:res-value|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|Running Status=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod|Trigger Type=s:res-value|Workload Profile=s:res-value",
     "Container Count=s:2|Environment=s:seg8|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.app/jobs/containerappjobs-t1b-1|Identity Type=s:res-value|Location=s:res-value|Name=s:containerappjobs-t1b|Outbound IP Count=s:2|Provisioning State=s:res-value|Replica Retry Limit=s:res-value|Replica Timeout=s:res-value|Resource Group=s:res-value|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|Running Status=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod|Trigger Type=s:res-value|Workload Profile=s:res-value",

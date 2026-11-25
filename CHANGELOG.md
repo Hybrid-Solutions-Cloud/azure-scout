@@ -7,6 +7,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.18.12] - 2026-11-24 - the remaining discovered types get collectors
+
+### Added
+
+- **39 collectors for the rest of the discovered-but-unread types** (381 collectors, up from 342).
+  - Containers: AKS Fleet and fleet members, Application Gateway for Containers, Container Apps
+    session pools and connected (Arc) environments.
+  - Monitoring: managed Prometheus rule groups, Log Analytics dedicated clusters (capacity,
+    customer-managed key name, double encryption) and query packs.
+  - Networking: Virtual WAN site-to-site, point-to-site and ExpressRoute gateways, VPN server
+    configurations, ExpressRoute Direct ports, route filters, network virtual appliances, IP groups,
+    public and custom IP prefixes, Private Link services, service endpoint policies, virtual network
+    TAPs, NGINXaaS, Operator Nexus clusters and fabrics.
+  - Integration and governance: API Center, Durable Task Schedulers, deployment stacks (deny
+    settings), template specs, deployment scripts.
+  - Compute: SAP virtual instances and Azure Monitor for SAP, capacity reservation groups, proximity
+    placement groups, SSH public keys (whether a key is present, never the key).
+  - Hybrid and IoT: Arc ESU licenses, Arc private link scopes, Arc multicloud connectors, AKS on
+    Azure Local cluster instances, Azure Device Registry namespaces, assets and devices.
+  - Partner services: Oracle Database@Azure, MongoDB Atlas, Confluent Cloud, Palo Alto Cloud NGFW.
+  - Property paths are from Microsoft's ARM template reference and SDK models. Never projected: NVA
+    SSH keys and cloud-init, RADIUS secrets, Oracle admin passwords, session-pool secrets, connection
+    strings, partner user details, SSH key material, deployment-script content (tests assert it).
+
+### Changed
+
+- **Faster completeness pass.** Every discovered resource was tested against every collection-health
+  entry (8,299 x 2,706 on a 42-subscription tenant, three passes per run). Entries are now indexed
+  by resource ID, collector and type. Live data: 51.3 s to 9.3 s per pass, byte-identical output.
+- **Faster discovery build.** Credential redaction of every resource's properties and tags was a
+  recursive PowerShell call per property node. The same rules now run compiled (C#, built once per
+  session the first time discovery runs; the PowerShell walk remains the fallback). On the
+  42-subscription tenant's live data: 28,930 of 28,930 values identical, redaction 675 s to 16 s,
+  discovery build 164 s to 63 s.
+- **Docs collector counts corrected.** The home page said 245 collectors, the README and Category
+  Reference 240, the testing guide 240; the catalogue has 381. `tests/Docs.CollectorCounts.Tests.ps1`
+  now holds every stated count to `manifests/collectors/`.
+
 ## [3.18.11] - 2026-11-24 - every discovered resource has a category
 
 ### Added

@@ -102,6 +102,66 @@
     {
       "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.app/managedenvironments/containerappmanagedcertificates-t1f-1/managedcertificates/containerappmanagedcertificates-t1f-2",
       "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.containerservice/fleets/aksfleetmembers-t1e-1/members/aksfleetmembers-t1e-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.containerservice/fleets/aksfleetmembers-t1f-1/members/aksfleetmembers-t1f-2",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.containerservice/fleets/aksfleetmembers-t1f-1/members/aksfleetmembers-t1f-2",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.containerservice/fleets/aksfleets-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.containerservice/fleets/aksfleets-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.containerservice/fleets/aksfleets-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.servicenetworking/trafficcontrollers/appgatewayforcontainers-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.servicenetworking/trafficcontrollers/appgatewayforcontainers-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.servicenetworking/trafficcontrollers/appgatewayforcontainers-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.app/connectedenvironments/containerappconnectedenvironments-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.app/connectedenvironments/containerappconnectedenvironments-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.app/connectedenvironments/containerappconnectedenvironments-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.app/sessionpools/containerappsessionpools-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.app/sessionpools/containerappsessionpools-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.app/sessionpools/containerappsessionpools-t1f-1",
+      "ServiceID": "svc-2"
     }
   ],
   "unsupported": [
@@ -943,6 +1003,411 @@
           "LOCATION": "eastus",
           "PROPERTIES": {},
           "tags": {}
+        }
+      ]
+    },
+    "AksFleetMembers": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "clusterResourceId": "res-value",
+            "group": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.containerservice/fleets/aksfleetmembers-t1a-1/members/aksfleetmembers-t1a-2",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "aksfleetmembers-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.containerservice/fleets/members"
+        },
+        {
+          "PROPERTIES": {
+            "clusterResourceId": "res-value",
+            "group": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.containerservice/fleets/aksfleetmembers-t1b-1/members/aksfleetmembers-t1b-2",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "aksfleetmembers-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.containerservice/fleets/members"
+        },
+        {
+          "PROPERTIES": {
+            "clusterResourceId": "res-value",
+            "group": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.containerservice/fleets/aksfleetmembers-t1c-1/members/aksfleetmembers-t1c-2",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "aksfleetmembers-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.containerservice/fleets/members"
+        },
+        {
+          "PROPERTIES": {
+            "clusterResourceId": "res-value",
+            "group": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.containerservice/fleets/aksfleetmembers-t1d-1/members/aksfleetmembers-t1d-2",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "aksfleetmembers-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.containerservice/fleets/members"
+        },
+        {
+          "PROPERTIES": {
+            "clusterResourceId": "res-value",
+            "group": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.containerservice/fleets/aksfleetmembers-t1e-1/members/aksfleetmembers-t1e-2",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "aksfleetmembers-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.containerservice/fleets/members"
+        },
+        {
+          "PROPERTIES": {
+            "clusterResourceId": "res-value",
+            "group": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.containerservice/fleets/aksfleetmembers-t1f-1/members/aksfleetmembers-t1f-2",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "aksfleetmembers-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.containerservice/fleets/members"
+        }
+      ]
+    },
+    "AksFleets": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "hubProfile": {
+              "dnsPrefix": "res-value",
+              "agentProfile": {
+                "vmSize": "res-value"
+              },
+              "apiServerAccessProfile": {
+                "enablePrivateCluster": "res-value"
+              }
+            },
+            "status": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.containerservice/fleets/aksfleets-t1a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "aksfleets-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.containerservice/fleets"
+        },
+        {
+          "PROPERTIES": {
+            "hubProfile": {
+              "dnsPrefix": "res-value",
+              "agentProfile": {
+                "vmSize": "res-value"
+              },
+              "apiServerAccessProfile": {
+                "enablePrivateCluster": "res-value"
+              }
+            },
+            "status": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.containerservice/fleets/aksfleets-t1b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "aksfleets-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.containerservice/fleets"
+        },
+        {
+          "PROPERTIES": {
+            "hubProfile": {
+              "dnsPrefix": "res-value",
+              "agentProfile": {
+                "vmSize": "res-value"
+              },
+              "apiServerAccessProfile": {
+                "enablePrivateCluster": "res-value"
+              }
+            },
+            "status": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.containerservice/fleets/aksfleets-t1c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "aksfleets-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.containerservice/fleets"
+        },
+        {
+          "PROPERTIES": {
+            "hubProfile": {
+              "dnsPrefix": "res-value",
+              "agentProfile": {
+                "vmSize": "res-value"
+              },
+              "apiServerAccessProfile": {
+                "enablePrivateCluster": "res-value"
+              }
+            },
+            "status": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.containerservice/fleets/aksfleets-t1d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "aksfleets-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.containerservice/fleets"
+        },
+        {
+          "PROPERTIES": {
+            "hubProfile": {
+              "dnsPrefix": "res-value",
+              "agentProfile": {
+                "vmSize": "res-value"
+              },
+              "apiServerAccessProfile": {
+                "enablePrivateCluster": "res-value"
+              }
+            },
+            "status": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.containerservice/fleets/aksfleets-t1e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "aksfleets-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.containerservice/fleets"
+        },
+        {
+          "PROPERTIES": {
+            "hubProfile": {
+              "dnsPrefix": "res-value",
+              "agentProfile": {
+                "vmSize": "res-value"
+              },
+              "apiServerAccessProfile": {
+                "enablePrivateCluster": "res-value"
+              }
+            },
+            "status": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.containerservice/fleets/aksfleets-t1f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "aksfleets-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.containerservice/fleets"
+        }
+      ]
+    },
+    "AppGatewayForContainers": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "configurationEndpoints": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "frontends": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "associations": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.servicenetworking/trafficcontrollers/appgatewayforcontainers-t1a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "appgatewayforcontainers-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.servicenetworking/trafficcontrollers"
+        },
+        {
+          "PROPERTIES": {
+            "configurationEndpoints": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "frontends": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "associations": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.servicenetworking/trafficcontrollers/appgatewayforcontainers-t1b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "appgatewayforcontainers-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.servicenetworking/trafficcontrollers"
+        },
+        {
+          "PROPERTIES": {
+            "configurationEndpoints": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "frontends": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "associations": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.servicenetworking/trafficcontrollers/appgatewayforcontainers-t1c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "appgatewayforcontainers-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.servicenetworking/trafficcontrollers"
+        },
+        {
+          "PROPERTIES": {
+            "configurationEndpoints": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "frontends": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "associations": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.servicenetworking/trafficcontrollers/appgatewayforcontainers-t1d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "appgatewayforcontainers-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.servicenetworking/trafficcontrollers"
+        },
+        {
+          "PROPERTIES": {
+            "configurationEndpoints": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "frontends": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "associations": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.servicenetworking/trafficcontrollers/appgatewayforcontainers-t1e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "appgatewayforcontainers-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.servicenetworking/trafficcontrollers"
+        },
+        {
+          "PROPERTIES": {
+            "configurationEndpoints": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "frontends": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "associations": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.servicenetworking/trafficcontrollers/appgatewayforcontainers-t1f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "appgatewayforcontainers-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.servicenetworking/trafficcontrollers"
         }
       ]
     },
@@ -1816,6 +2281,123 @@
         }
       ]
     },
+    "ContainerAppConnectedEnvironments": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "defaultDomain": "res-value",
+            "staticIp": "res-value",
+            "customDomainConfiguration": {
+              "dnsSuffix": "res-value"
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.app/connectedenvironments/containerappconnectedenvironments-t1a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "containerappconnectedenvironments-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.app/connectedenvironments"
+        },
+        {
+          "PROPERTIES": {
+            "defaultDomain": "res-value",
+            "staticIp": "res-value",
+            "customDomainConfiguration": {
+              "dnsSuffix": "res-value"
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.app/connectedenvironments/containerappconnectedenvironments-t1b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "containerappconnectedenvironments-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.app/connectedenvironments"
+        },
+        {
+          "PROPERTIES": {
+            "defaultDomain": "res-value",
+            "staticIp": "res-value",
+            "customDomainConfiguration": {
+              "dnsSuffix": "res-value"
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.app/connectedenvironments/containerappconnectedenvironments-t1c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "containerappconnectedenvironments-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.app/connectedenvironments"
+        },
+        {
+          "PROPERTIES": {
+            "defaultDomain": "res-value",
+            "staticIp": "res-value",
+            "customDomainConfiguration": {
+              "dnsSuffix": "res-value"
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.app/connectedenvironments/containerappconnectedenvironments-t1d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "containerappconnectedenvironments-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.app/connectedenvironments"
+        },
+        {
+          "PROPERTIES": {
+            "defaultDomain": "res-value",
+            "staticIp": "res-value",
+            "customDomainConfiguration": {
+              "dnsSuffix": "res-value"
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.app/connectedenvironments/containerappconnectedenvironments-t1e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "containerappconnectedenvironments-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.app/connectedenvironments"
+        },
+        {
+          "PROPERTIES": {
+            "defaultDomain": "res-value",
+            "staticIp": "res-value",
+            "customDomainConfiguration": {
+              "dnsSuffix": "res-value"
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.app/connectedenvironments/containerappconnectedenvironments-t1f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "containerappconnectedenvironments-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.app/connectedenvironments"
+        }
+      ]
+    },
     "ContainerAppEnv": {
       "resources": [
         {
@@ -2410,6 +2992,165 @@
           "NAME": "containerappmanagedcertificates-t1f",
           "LOCATION": "res-value",
           "TYPE": "microsoft.app/managedenvironments/managedcertificates"
+        }
+      ]
+    },
+    "ContainerAppSessionPools": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "environmentId": "res-value",
+            "containerType": "res-value",
+            "poolManagementType": "res-value",
+            "scaleConfiguration": {
+              "maxConcurrentSessions": "res-value",
+              "readySessionInstances": "res-value"
+            },
+            "dynamicPoolConfiguration": {
+              "lifecycleConfiguration": {
+                "lifecycleType": "res-value"
+              }
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.app/sessionpools/containerappsessionpools-t1a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "containerappsessionpools-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.app/sessionpools"
+        },
+        {
+          "PROPERTIES": {
+            "environmentId": "res-value",
+            "containerType": "res-value",
+            "poolManagementType": "res-value",
+            "scaleConfiguration": {
+              "maxConcurrentSessions": "res-value",
+              "readySessionInstances": "res-value"
+            },
+            "dynamicPoolConfiguration": {
+              "lifecycleConfiguration": {
+                "lifecycleType": "res-value"
+              }
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.app/sessionpools/containerappsessionpools-t1b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "containerappsessionpools-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.app/sessionpools"
+        },
+        {
+          "PROPERTIES": {
+            "environmentId": "res-value",
+            "containerType": "res-value",
+            "poolManagementType": "res-value",
+            "scaleConfiguration": {
+              "maxConcurrentSessions": "res-value",
+              "readySessionInstances": "res-value"
+            },
+            "dynamicPoolConfiguration": {
+              "lifecycleConfiguration": {
+                "lifecycleType": "res-value"
+              }
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.app/sessionpools/containerappsessionpools-t1c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "containerappsessionpools-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.app/sessionpools"
+        },
+        {
+          "PROPERTIES": {
+            "environmentId": "res-value",
+            "containerType": "res-value",
+            "poolManagementType": "res-value",
+            "scaleConfiguration": {
+              "maxConcurrentSessions": "res-value",
+              "readySessionInstances": "res-value"
+            },
+            "dynamicPoolConfiguration": {
+              "lifecycleConfiguration": {
+                "lifecycleType": "res-value"
+              }
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.app/sessionpools/containerappsessionpools-t1d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "containerappsessionpools-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.app/sessionpools"
+        },
+        {
+          "PROPERTIES": {
+            "environmentId": "res-value",
+            "containerType": "res-value",
+            "poolManagementType": "res-value",
+            "scaleConfiguration": {
+              "maxConcurrentSessions": "res-value",
+              "readySessionInstances": "res-value"
+            },
+            "dynamicPoolConfiguration": {
+              "lifecycleConfiguration": {
+                "lifecycleType": "res-value"
+              }
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.app/sessionpools/containerappsessionpools-t1e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "containerappsessionpools-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.app/sessionpools"
+        },
+        {
+          "PROPERTIES": {
+            "environmentId": "res-value",
+            "containerType": "res-value",
+            "poolManagementType": "res-value",
+            "scaleConfiguration": {
+              "maxConcurrentSessions": "res-value",
+              "readySessionInstances": "res-value"
+            },
+            "dynamicPoolConfiguration": {
+              "lifecycleConfiguration": {
+                "lifecycleType": "res-value"
+              }
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.app/sessionpools/containerappsessionpools-t1f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "containerappsessionpools-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.app/sessionpools"
         }
       ]
     },

@@ -3,7 +3,7 @@
   "Category": "Management",
   "Name": "BackupResourceGuards",
   "FixturePath": "tests/fixtures/collector-equivalence/Management.json",
-  "FixtureSha256": "c66866d070eeda26948afd1c625369ba997a136a92d6d6e7ce51553976caecd4",
+  "FixtureSha256": "c77e9e15a3fc4669aca46a6c6717a0b7c5e3efef9743a8f439287ccc09f85aa4",
   "Rows": [
     "Auto Approvals=s:res-value|Description=s:res-value|Excluded Operations=s:res-item-0, res-item-1|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.dataprotection/resourceguards/backupresourceguards-t1a-1|Location=s:res-value|Name=s:backupresourceguards-t1a|Protected Operations=s:res-item-0, res-item-1|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",
     "Auto Approvals=s:res-value|Description=s:res-value|Excluded Operations=s:res-item-0, res-item-1|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.dataprotection/resourceguards/backupresourceguards-t1b-1|Location=s:res-value|Name=s:backupresourceguards-t1b|Protected Operations=s:res-item-0, res-item-1|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",

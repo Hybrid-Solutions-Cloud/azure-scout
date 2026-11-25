@@ -3,7 +3,7 @@
   "Category": "Security",
   "Name": "SentinelDataConnectors",
   "FixturePath": "tests/fixtures/collector-equivalence/Security.json",
-  "FixtureSha256": "65b9bdbb6abedc0ef43f2b16bb72df2b6da8900923826166c28871e758e05216",
+  "FixtureSha256": "19b01f5bd6e1530107814417d9a00d89e23d33e48693ccf3990bf612f5e92488",
   "Rows": [
     "Connector=s:sentineldataconnectors-t1a|Data Types=s:[\"res-item-0\",\"res-item-1\"]|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/sentineldataconnectors-t1a-1/SentinelDataConnectors/sentineldataconnectors-t1a-2|Kind=s:res-value|Resource U=j:1|Subscription ID=s:res-value|Tenant ID=s:res-value|Workspace=s:res-value",
     "Connector=s:sentineldataconnectors-t1b|Data Types=s:[\"res-item-0\",\"res-item-1\"]|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/AZSC/ARMChild/sentineldataconnectors-t1b-1/SentinelDataConnectors/sentineldataconnectors-t1b-2|Kind=s:res-value|Resource U=j:1|Subscription ID=s:res-value|Tenant ID=s:res-value|Workspace=s:res-value",

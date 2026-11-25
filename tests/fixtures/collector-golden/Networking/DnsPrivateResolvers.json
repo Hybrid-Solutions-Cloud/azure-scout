@@ -3,7 +3,7 @@
   "Category": "Networking",
   "Name": "DnsPrivateResolvers",
   "FixturePath": "tests/fixtures/collector-equivalence/Networking.json",
-  "FixtureSha256": "0958b04bcac67d49c7dcc122f8e8007c00fccfb5fc4d8c8e9cc80f722a4b5e4c",
+  "FixtureSha256": "3be7615633bbe76470a0f809a24578bd7aaa3fc34402dcf8d4183b68acd9bb93",
   "Rows": [
     "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/dnsresolvers/dnsprivateresolvers-t1a-1|Location=s:res-value|Name=s:dnsprivateresolvers-t1a|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|State=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod|Virtual Network=s:res-value",
     "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/dnsresolvers/dnsprivateresolvers-t1b-1|Location=s:res-value|Name=s:dnsprivateresolvers-t1b|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|State=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod|Virtual Network=s:res-value",

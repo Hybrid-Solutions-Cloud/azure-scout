@@ -13,7 +13,8 @@ each have one page, and both are **generated from the product** rather than hand
 |---|---|
 | [Assessment Catalogue](./assessment-catalogue.md) | All **46 assessments**, grouped into CAF design areas, WAF pillars, per-service slices and specialised reviews — with the rule files, rule counts, and the automated-versus-manual split behind each |
 | [Framework Coverage](./framework-coverage.md) | **How much of each framework actually has a rule behind it.** Scout enumerates every framework in full; this is the gap between enumerating an item and testing it |
-| [ARM Modules](./arm-modules.md) | All **245 collector definitions** across Microsoft's 18 published service categories, each mapped to the resource types it targets |
+| [ARM Modules](./arm-modules.md) | All **381 collector definitions** across Microsoft's 18 published service categories, each mapped to the resource types it targets |
+| [Resource Categories](./resource-categories.md) | Every Azure resource provider namespace and the category its discovered resources are filed under, including resources no collector reads |
 | [Collector Fields](./collector-fields.md) | The worksheet and the ordered columns each collector produces — what actually comes back, as opposed to what is covered |
 
 ::: tip Both pages are generated

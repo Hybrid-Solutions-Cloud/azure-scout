@@ -1,0 +1,24 @@
+{
+  "SchemaVersion": 1,
+  "Category": "Networking",
+  "Name": "RouteFilters",
+  "FixturePath": "tests/fixtures/collector-equivalence/Networking.json",
+  "FixtureSha256": "3be7615633bbe76470a0f809a24578bd7aaa3fc34402dcf8d4183b68acd9bb93",
+  "Rows": [
+    "Communities=s:res-item-0, res-item-1|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/routefilters/routefilters-t1a-1|Location=s:res-value|Name=s:routefilters-t1a|Peerings=j:2|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Rules=j:2|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",
+    "Communities=s:res-item-0, res-item-1|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/routefilters/routefilters-t1b-1|Location=s:res-value|Name=s:routefilters-t1b|Peerings=j:2|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Rules=j:2|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",
+    "Communities=s:res-item-0, res-item-1|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/routefilters/routefilters-t1b-1|Location=s:res-value|Name=s:routefilters-t1b|Peerings=j:2|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:0|Rules=j:2|Subscription=s:sub-fixture-01|Tag Name=s:owner|Tag Value=s:platform",
+    "Communities=s:res-item-0, res-item-1|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/routefilters/routefilters-t1c-1|Location=s:res-value|Name=s:routefilters-t1c|Peerings=j:2|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Rules=j:2|Subscription=s:sub-fixture-01|Tag Name=s:|Tag Value=s:",
+    "Communities=s:res-item-0, res-item-1|ID=s:/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.network/routefilters/routefilters-t1d-1|Location=s:res-value|Name=s:routefilters-t1d|Peerings=j:2|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Rules=j:2|Subscription=<null>|Tag Name=s:env|Tag Value=s:dev",
+    "Communities=s:res-item-0, res-item-1|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/routefilters/routefilters-t1e-1|Location=s:res-value|Name=s:routefilters-t1e|Peerings=j:2|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Rules=j:2|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",
+    "Communities=s:res-item-0, res-item-1|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.network/routefilters/routefilters-t1f-1|Location=s:res-value|Name=s:routefilters-t1f|Peerings=j:2|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Rules=j:2|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod"
+  ],
+  "Workbook": {
+    "WithoutTags": [
+      "Subscription\tResource Group\tName\tLocation\tRules\tCommunities\tPeerings\tProvisioning State\tResource U\nsub-fixture-01\tres-value\troutefilters-t1a\tres-value\t2\tres-item-0, res-item-1\t2\tres-value\t1\nsub-fixture-01\tres-value\troutefilters-t1b\tres-value\t2\tres-item-0, res-item-1\t2\tres-value\t1\nsub-fixture-01\tres-value\troutefilters-t1b\tres-value\t2\tres-item-0, res-item-1\t2\tres-value\t0\nsub-fixture-01\tres-value\troutefilters-t1c\tres-value\t2\tres-item-0, res-item-1\t2\tres-value\t1\n\tres-value\troutefilters-t1d\tres-value\t2\tres-item-0, res-item-1\t2\tres-value\t1\nsub-fixture-01\tres-value\troutefilters-t1e\tres-value\t2\tres-item-0, res-item-1\t2\tres-value\t1\nsub-fixture-01\tres-value\troutefilters-t1f\tres-value\t2\tres-item-0, res-item-1\t2\tres-value\t1"
+    ],
+    "WithTags": [
+      "Subscription\tResource Group\tName\tLocation\tRules\tCommunities\tPeerings\tProvisioning State\tTag Name\tTag Value\tResource U\nsub-fixture-01\tres-value\troutefilters-t1a\tres-value\t2\tres-item-0, res-item-1\t2\tres-value\tenv\tprod\t1\nsub-fixture-01\tres-value\troutefilters-t1b\tres-value\t2\tres-item-0, res-item-1\t2\tres-value\tenv\tprod\t1\nsub-fixture-01\tres-value\troutefilters-t1b\tres-value\t2\tres-item-0, res-item-1\t2\tres-value\towner\tplatform\t0\nsub-fixture-01\tres-value\troutefilters-t1c\tres-value\t2\tres-item-0, res-item-1\t2\tres-value\t\t\t1\n\tres-value\troutefilters-t1d\tres-value\t2\tres-item-0, res-item-1\t2\tres-value\tenv\tdev\t1\nsub-fixture-01\tres-value\troutefilters-t1e\tres-value\t2\tres-item-0, res-item-1\t2\tres-value\tenv\tprod\t1\nsub-fixture-01\tres-value\troutefilters-t1f\tres-value\t2\tres-item-0, res-item-1\t2\tres-value\tenv\tprod\t1"
+    ]
+  }
+}

@@ -3,7 +3,7 @@
   "Category": "IoT",
   "Name": "DeviceProvisioningServices",
   "FixturePath": "tests/fixtures/collector-equivalence/IoT.json",
-  "FixtureSha256": "0bff95e290911f38a661d975b6cb58ceedb53a21520d74be286ee772d4f7affd",
+  "FixtureSha256": "79cdcfbddc375090d13511288025cabe8bbc5168654e2162c38e96ddb1e09ff4",
   "Rows": [
     "Allocation Policy=s:res-value|Capacity=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.devices/provisioningservices/deviceprovisioningservices-t1a-1|Linked IoT Hubs=s:2|Location=s:res-value|Name=s:deviceprovisioningservices-t1a|Provisioning State=s:res-value|Public Network Access=s:res-value|Resource Group=s:res-value|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|Service Endpoint=s:res-value|SKU=s:res-value|State=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",
     "Allocation Policy=s:res-value|Capacity=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.devices/provisioningservices/deviceprovisioningservices-t1b-1|Linked IoT Hubs=s:2|Location=s:res-value|Name=s:deviceprovisioningservices-t1b|Provisioning State=s:res-value|Public Network Access=s:res-value|Resource Group=s:res-value|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|Service Endpoint=s:res-value|SKU=s:res-value|State=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",

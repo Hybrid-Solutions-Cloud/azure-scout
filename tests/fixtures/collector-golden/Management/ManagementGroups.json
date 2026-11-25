@@ -3,7 +3,7 @@
   "Category": "Management",
   "Name": "ManagementGroups",
   "FixturePath": "tests/fixtures/collector-equivalence/Management.json",
-  "FixtureSha256": "c66866d070eeda26948afd1c625369ba997a136a92d6d6e7ce51553976caecd4",
+  "FixtureSha256": "c77e9e15a3fc4669aca46a6c6717a0b7c5e3efef9743a8f439287ccc09f85aa4",
   "Rows": [
     "Direct Child MGs=s:Direct Child MGs value|Direct Subscription Names=s:Direct Subscription Names value|Direct Subscriptions=s:Direct Subscriptions value|Display Name=s:Display Name value|Display Name (Raw)=s:Display Name (Raw) value|Full Path=s:Full Path value|Hierarchy Depth=s:Hierarchy Depth value|Management Group ID=s:Management Group ID value|Parent Management Group=s:Parent Management Group value|Resource U=j:1|Tenant ID=s:Tenant ID value",
     "Direct Child MGs=s:Direct Child MGs value|Direct Subscription Names=s:Direct Subscription Names value|Direct Subscriptions=s:Direct Subscriptions value|Display Name=s:Display Name value|Display Name (Raw)=s:Display Name (Raw) value|Full Path=s:Full Path value|Hierarchy Depth=s:Hierarchy Depth value|Management Group ID=s:Management Group ID value|Parent Management Group=s:Parent Management Group value|Resource U=j:1|Tenant ID=s:Tenant ID value",

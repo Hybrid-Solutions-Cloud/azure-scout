@@ -3,7 +3,7 @@
   "Category": "Analytics",
   "Name": "PowerBIEmbedded",
   "FixturePath": "tests/fixtures/collector-equivalence/Analytics.json",
-  "FixtureSha256": "1cbb86c5035a1eb17e7b9d015662e4137dc385e6479ca6d3f426d931a29ba666",
+  "FixtureSha256": "eb8ef264dd15e518074dc0f69f6624b829088ace09cc8c63770f3f020f91b1ad",
   "Rows": [
     "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.powerbidedicated/capacities/powerbiembedded-t1a-1|Location=s:res-value|Mode=s:res-value|Name=s:powerbiembedded-t1a|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|SKU Capacity=s:res-value|SKU Name=s:res-value|SKU Tier=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",
     "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.powerbidedicated/capacities/powerbiembedded-t1b-1|Location=s:res-value|Mode=s:res-value|Name=s:powerbiembedded-t1b|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|SKU Capacity=s:res-value|SKU Name=s:res-value|SKU Tier=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",

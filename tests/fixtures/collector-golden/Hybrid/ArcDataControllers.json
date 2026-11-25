@@ -3,7 +3,7 @@
   "Category": "Hybrid",
   "Name": "ArcDataControllers",
   "FixturePath": "tests/fixtures/collector-equivalence/Hybrid.json",
-  "FixtureSha256": "9967d0c3e74de8d506e4a9443407b2504563b561ccbbf0728a8e06cc734d9057",
+  "FixtureSha256": "16078ebb15d2b7ed3798673de0950f7d289b9d454d8aaac528ad55d896478cb2",
   "Rows": [
     "Connectivity Mode=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurearcdata/datacontrollers/arcdatacontrollers-t1a-1|K8s Namespace=s:res-value|Location=s:res-value|Log Analytics Workspace=s:res-value|Logs Last Uploaded=s:res-value|Metrics Last Uploaded=s:res-value|Name=s:arcdatacontrollers-t1a|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",
     "Connectivity Mode=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.azurearcdata/datacontrollers/arcdatacontrollers-t1b-1|K8s Namespace=s:res-value|Location=s:res-value|Log Analytics Workspace=s:res-value|Logs Last Uploaded=s:res-value|Metrics Last Uploaded=s:res-value|Name=s:arcdatacontrollers-t1b|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",

@@ -1,5 +1,15 @@
 # Handoff
 
+## Session 2026-11-24 (continued) — the remaining collectors, faster completeness (3.18.12)
+
+Live on the installed 3.18.11 (five tenants, 82.9 min): all Completed, 19,773 discovered resources, 0
+uncategorized, one log, 0 [ERROR]. Then: 39 more collectors (381) for every remaining type on the gap
+list, generated from the scratch spec script; property paths from an MS Learn research pass (no live
+rows existed). Databases goldens use the shared `tests/fixtures/databases-collector-input.json`, so the
+new Oracle/MongoDB sample rows were appended there. Completeness pass indexed (51.3 s to 9.3 s per pass,
+byte-identical on live data); credential redaction compiled (`Initialize-ScoutDiscoveryRedactor`, PowerShell walk kept as fallback and as the equivalence reference: 28,930/28,930 identical, 675 s to 16 s). Docs counts corrected and pinned by `tests/Docs.CollectorCounts.Tests.ps1`.
+The docs website redeploys from `main` on every merge (Build and Deploy Documentation workflow).
+
 ## Session 2026-11-24 (continued) — every discovered resource has a category (3.18.11)
 
 Operator requirement: everything deployable discovered AND categorized in the 18 categories, and the

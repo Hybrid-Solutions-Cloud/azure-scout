@@ -3,7 +3,7 @@
   "Category": "Databases",
   "Name": "SQLPOOL",
   "FixturePath": "tests/fixtures/databases-collector-input.json",
-  "FixtureSha256": "63b569e979eea4cefb9c5863766827f997880edefd85c38b5b74d514698622e5",
+  "FixtureSha256": "4bdcda5f990ced215604055b52e462bc698d02b12235098b2e45448fa35a33bc",
   "Rows": [
     "Capacity=j:200|DB Max DTU=j:2|DB Min DTU=j:0|Edition=s:GeneralPurpose|ID=s:/subscriptions/sub-00000001/resourceGroups/rg-databases/providers/microsoft.sql/servers/sql-prod/elasticPools/ep-prod|License=s:LicenseIncluded|Location=s:eastus|Max Size (GB)=j:100|Name=s:ep-prod|Resource Group=s:rg-databases|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|Sku Name=s:GP_Gen5|State=s:Ready|Subscription=s:Scout Sample Subscription 1|Tag Name=s:env|Tag Value=s:test|Zone Redundant=j:false"
   ],

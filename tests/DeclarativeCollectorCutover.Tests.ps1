@@ -38,8 +38,8 @@ Describe 'v3 declarative collector cutover' {
         # Arc VM resources, Arc VMware and SCVMM, Arc SQL databases and availability groups, guest
         # configuration, Update Manager assignments, Defender automations, connectors and standards,
         # backup vaults and resource guards, DNS resolvers and policies, network security perimeters,
-        # alert processing rules, partner monitors and more), plus Playwright Workspaces, the successor to the retired Playwright Testing, bringing it to 342. The number remains pinned so an accidental removal is still a release-gate failure.
-        $Collectors.Count | Should -Be 342
+        # alert processing rules, partner monitors and more), plus Playwright Workspaces, the successor to the retired Playwright Testing, bringing it to 342; 3.18.12 added the remaining 39 (Fleet, Prometheus rules, dedicated Log Analytics, vWAN gateways, NVAs, API Center, deployment stacks, SAP, Oracle, Device Registry, Operator Nexus and others), bringing it to 381. The number remains pinned so an accidental removal is still a release-gate failure.
+        $Collectors.Count | Should -Be 381
         @($Collectors | Where-Object { -not $_.HasDeclarativeDefinition }).Count | Should -Be 0
         @($Collectors | Where-Object { $_.Path }).Count | Should -Be 0
     }
