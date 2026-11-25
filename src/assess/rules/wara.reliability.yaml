@@ -13,7 +13,9 @@
 # properties Scout really collects. Where APRL needs a property Scout does not collect yet, the item
 # is either a Manual rule that attaches the nearest evidence, or it is listed in the doc under
 # "Needs a new projection" with no rule at all (a rule on an uncollected property would score the
-# estate on nothing).
+# estate on nothing). Phase 4 of AB#9300 added the zone, tier, HA-mode, autoscale and instance-count
+# fields to collect.json, which is what turned the zone / HA / tier items from Manual into scored
+# rules and added the scale set, public IP and load balancer frontend rules.
 #
 # Every rule is gated on its own resource type existing, so an estate without that service reports
 # the rule Not assessed rather than passed or failed.
@@ -23,10 +25,18 @@
 #     per-SKU zone capability APRL's own query uses.
 #   - SQL databases, AKS clusters, storage accounts and Event Hubs namespaces carry no `location`
 #     in Scout's projection, so "no zone" findings can include a region that has no zones. The
-#     remediation says to record an exception in that case.
+#     remediation says to record an exception in that case. The zone rules added in phase 4
+#     (scale sets, public IPs, firewalls, gateways, caches, databases) have the same limit.
+#   - A zone count Resource Graph reports as null means the resource has no `zones` array, that is,
+#     it is not zonal. JSONPath compares null as lower than any number, so `zoneCount < 2` matches
+#     both 0 and null; a property that is missing from the row altogether matches nothing.
+#   - Newtonsoft JSONPath has no parentheses, so a filter that mixes && and || nests to the RIGHT:
+#     `a && b || c` reads `a && (b || c)` and `a || b && c` reads `a || (b && c)`. WARA-ASP-02 and
+#     WARA-REDIS-01 rely on that and tests/Assessment.WaraAdvisor.Tests.ps1 pins the result, so a
+#     JSONPath library change that breaks it fails a test instead of silently scoring the estate.
 area: "Reliability (WARA / APRL)"
 framework: WARA
-frameworkversion: "Azure Proactive Resiliency Library v2 (APRL) azure-resources/*/recommendations.yaml on main + Microsoft Learn reliability guides by service, docs/frameworks/wara-aprl-checklist.md, read 2026-11-25 (31 items: 21 automated, 10 manual)"
+frameworkversion: "Azure Proactive Resiliency Library v2 (APRL) azure-resources/*/recommendations.yaml on main + Microsoft Learn reliability guides by service, docs/frameworks/wara-aprl-checklist.md, read 2026-11-25 (38 items: 36 automated, 2 manual)"
 weight: 1.0
 verifiedAgainst: "docs/frameworks/wara-aprl-checklist.md (Scout enumeration of github.com/Azure/Azure-Proactive-Resiliency-Library-v2 and learn.microsoft.com/azure/reliability/overview-reliability-guidance), verified 2026-11-25"
 rules:
@@ -65,6 +75,44 @@ rules:
     assert: { type: countEquals, value: 0, gate: "$.compute.virtualMachines[*]" }
     remediation: "WARA-VM-03. The virtual machines listed use a burstable B-series size, which throttles to a baseline CPU once its credits run out. That is fine for dev and test; for production that needs steady CPU move to a non-burstable family. Scout cannot tell production from test, so confirm the environment before acting."
     manual: false
+  - id: WARA-VM-04
+    title: "WARA-VM-04. Virtual machines are not placed in an availability set"
+    severity: high
+    aprl: "a8d25876-7951-b646-b4e8-880c9031596b"
+    source: "https://github.com/Azure/Azure-Proactive-Resiliency-Library-v2/tree/main/azure-resources/Compute/virtualMachines"
+    query: "$.compute.virtualMachines[?(@.inAvailabilitySet == true)]"
+    assert: { type: countEquals, value: 0, gate: "$.compute.virtualMachines[*]" }
+    remediation: "WARA-VM-04. The virtual machines listed are in an availability set, which spreads them over fault and update domains inside ONE datacenter, so a datacenter failure takes the whole set down. Move them to availability zones (or a zonal Flexible scale set); the machine has to be redeployed, since the placement cannot be changed in place. In a region that has no availability zones an availability set is still the right choice, so record that as an exception. inAvailabilitySet is true only when the VM names an availability set; null or absent reads as no set."
+    manual: false
+  - id: WARA-VM-05
+    title: "WARA-VM-05. Virtual machine operating system disks are managed disks"
+    severity: high
+    aprl: "122d11d7-b91f-8747-a562-f56b79bcfbdc"
+    source: "https://github.com/Azure/Azure-Proactive-Resiliency-Library-v2/tree/main/azure-resources/Compute/virtualMachines"
+    query: "$.compute.virtualMachines[?(@.unmanagedOsDisk == true)]"
+    assert: { type: countEquals, value: 0, gate: "$.compute.virtualMachines[*]" }
+    remediation: "WARA-VM-05. The virtual machines listed boot from an unmanaged disk, a VHD blob in a storage account the VM owner has to size and spread by hand; one storage account's limits and outage then affect every VM that shares it, and unmanaged disks are being retired. Convert them to managed disks. unmanagedOsDisk is true only when the OS disk names a VHD uri (the uri itself is never collected); null or absent reads as a managed disk, which is what ARM defaults to."
+    manual: false
+  - id: WARA-VMSS-01
+    title: "WARA-VMSS-01. Virtual machine scale sets are spread across availability zones"
+    severity: high
+    aprl: "1422c567-782c-7148-ac7c-5fc14cf45adc"
+    source: "https://github.com/Azure/Azure-Proactive-Resiliency-Library-v2/tree/main/azure-resources/Compute/virtualMachineScaleSets"
+    # Scout has no zone-capable region list for scale sets, so the finding is zoneCount < 1
+    # (0 and null both match; null is how Resource Graph reports a scale set with no zones array).
+    query: "$.compute.virtualMachineScaleSets[?(@.zoneCount < 1)]"
+    assert: { type: countEquals, value: 0, gate: "$.compute.virtualMachineScaleSets[*]" }
+    remediation: "WARA-VMSS-01. The scale sets listed have no availability zone, so every instance sits in one datacenter. Zones cannot be added to an existing scale set: create a zonal (ideally Flexible) scale set across all the region's zones and move the workload. Scout has no list of zone-capable regions for scale sets (the list it keeps is for single virtual machines), so a scale set in a region without zones, or a size that cannot use zones, shows up here as a false positive: record those as exceptions. Both Flexible and Uniform scale sets are checked. A null zone count reads as no zones."
+    manual: false
+  - id: WARA-VMSS-02
+    title: "WARA-VMSS-02. Virtual machine scale sets have automatic instance repairs turned on"
+    severity: high
+    aprl: "820f4743-1f94-e946-ae0b-45efafd87962"
+    source: "https://github.com/Azure/Azure-Proactive-Resiliency-Library-v2/tree/main/azure-resources/Compute/virtualMachineScaleSets"
+    query: "$.compute.virtualMachineScaleSets[?(@.automaticRepairs != true)]"
+    assert: { type: countEquals, value: 0, gate: "$.compute.virtualMachineScaleSets[*]" }
+    remediation: "WARA-VMSS-02. The scale sets listed do not have automatic instance repairs on, so an unhealthy instance stays in rotation until someone replaces it. Turn the policy on; it needs an application health extension or a load balancer health probe to judge health. A scale set that never set the policy has no automaticRepairsPolicy, which ARM treats as off, so null and absent values are reported the same as an explicit false."
+    manual: false
   - id: WARA-DSK-01
     title: "WARA-DSK-01. Attached managed disks are Premium SSD or better where the workload needs a higher uptime SLA"
     severity: medium
@@ -99,10 +147,13 @@ rules:
     severity: high
     aprl: "0611251f-e70f-4243-8ddd-cfe894bec2e7"
     source: "https://github.com/Azure/Azure-Proactive-Resiliency-Library-v2/tree/main/azure-resources/ContainerService/managedClusters"
-    query: "$.domains.containers.aksClusters[*]"
-    assert: { type: manual, gate: "$.domains.containers.aksClusters[*]" }
-    remediation: "WARA-AKS-03. The cluster tier (Free has no uptime SLA), cluster autoscaler setting and system-pool node count are not in Scout's AKS projection, so the clusters are attached as evidence. Confirm production clusters are on Standard or Premium, the autoscaler is on, and the system pool keeps at least three nodes."
-    manual: true
+    # An empty tier reads as Free, which is what ARM defaults to. systemPoolMinNodes is the smallest
+    # a system pool may fall to (minCount when it autoscales, else its fixed count); null means no
+    # readable system pool and is reported, since null compares below 3.
+    query: "$.domains.containers.aksClusters[?(@.tier =~ /^(free)?$/i || @.systemPoolMinNodes < 3 || @.allPoolsAutoscale == false)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.containers.aksClusters[*]" }
+    remediation: "WARA-AKS-03. The clusters listed fail at least one of three checks: they are on the Free tier (no uptime SLA; an empty tier is read as Free, the ARM default), their system node pool can fall to fewer than three nodes (its autoscaler minimum, or its fixed count, or no readable system pool), or at least one node pool does not use the cluster autoscaler. Move production clusters to Standard or Premium, keep three or more system nodes and turn the autoscaler on for every pool. Scout cannot tell production from test, so a dev cluster on Free is an exception to record."
+    manual: false
   - id: WARA-ACR-01
     title: "WARA-ACR-01. Container registries that serve production are on the Premium tier (zone redundancy and geo-replication)"
     severity: medium
@@ -128,10 +179,13 @@ rules:
     severity: high
     aprl: "88cb90c2-3b99-814b-9820-821a63f600dd"
     source: "https://github.com/Azure/Azure-Proactive-Resiliency-Library-v2/tree/main/azure-resources/Web/serverFarms"
-    query: "$.domains.web.appServicePlans[*]"
-    assert: { type: manual, gate: "$.domains.web.appServicePlans[*]" }
-    remediation: "WARA-ASP-02. Scout's App Service plan projection has the SKU and OS kind only, not the zone-redundancy flag or the instance count, so the plans are attached as evidence. Confirm production plans have zone redundancy on and a minimum of two instances (three if warm-up is slow)."
-    manual: true
+    # The tier filter keeps Free, Shared, Basic and consumption plans out (WARA-ASP-01 owns those).
+    # `A && B || C` nests as A && (B || C), so the instance count applies to Standard-and-above
+    # plans only; the test file pins that.
+    query: "$.domains.web.appServicePlans[?(@.tier =~ /^(Standard|Premium|Isolated|Elastic|Workflow)/i && @.zoneRedundant != true || @.instanceCount < 2)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.web.appServicePlans[?(@.tier =~ /^(Standard|Premium|Isolated|Elastic|Workflow)/i)]" }
+    remediation: "WARA-ASP-02. The Standard-and-above plans listed are not zone redundant (a null or absent flag reads as off, the ARM default) or run fewer than two instances. Zone redundancy needs a Premium v2 or later or Isolated v2 plan with at least two instances, so a Standard-tier plan is listed because it cannot be zone redundant at all: move it to Premium v3. Zone redundancy can usually be set only when the plan is created, so the fix is a new plan. Scout does not collect the region, so a plan in a region without zones is an exception to record. Free, Shared, Basic and consumption plans are not checked here (see WARA-ASP-01)."
+    manual: false
 
   # ---- Databases and caches (WARA-SQL, WARA-COSMOS, WARA-REDIS, WARA-PGSQL, WARA-MYSQL) -------
   - id: WARA-SQL-01
@@ -153,41 +207,47 @@ rules:
     remediation: "WARA-SQL-02. Replicas and failover groups are child resources Scout does not collect, so the SQL servers are attached as evidence. Confirm each critical database has a readable secondary in another region, ideally in a failover group the application reaches through the group endpoint."
     manual: true
   - id: WARA-COSMOS-01
-    title: "WARA-COSMOS-01. Cosmos DB accounts span more than one region, use availability zones and fail over automatically"
+    title: "WARA-COSMOS-01. Cosmos DB accounts span more than one region and use availability zones"
     severity: high
     aprl: "43663217-a1d3-844b-80ea-571a2ce37c6c"
     source: "https://github.com/Azure/Azure-Proactive-Resiliency-Library-v2/tree/main/azure-resources/DocumentDB/databaseAccounts"
-    query: "$.domains.databases.cosmosDbAccounts[*]"
-    assert: { type: manual, gate: "$.domains.databases.cosmosDbAccounts[*]" }
-    remediation: "WARA-COSMOS-01. Scout's Cosmos DB projection has the API kind, public access and local-auth setting, not the region list, zone flags or failover policy, so the accounts are attached as evidence. Confirm each production account has a second region, zone redundancy in its regions and service-managed failover turned on."
-    manual: true
+    # JSONPath cannot compare two fields, so "zoneRedundantRegionCount < regionCount" cannot be
+    # written; the rule flags an account with fewer than two regions or with NO zone-redundant
+    # region. An account with some zone-redundant regions and some not is not caught.
+    query: "$.domains.databases.cosmosDbAccounts[?(@.regionCount < 2 || @.zoneRedundantRegionCount < 1)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.databases.cosmosDbAccounts[*]" }
+    remediation: "WARA-COSMOS-01. The accounts listed have fewer than two regions, or none of their regions is zone redundant (a location with no flag, or a null count, is read as not redundant, the ARM default). Add a second region and turn zone redundancy on for each region that supports it. Scout cannot compare the two counts per account, so an account with some zone-redundant regions and some not is not listed, and the automatic-failover setting is not scored (a multi-region-write account legitimately reports it off); check both by hand. A region without availability zones is an exception to record."
+    manual: false
   - id: WARA-REDIS-01
     title: "WARA-REDIS-01. Production Redis caches are zone redundant (Premium or Enterprise tier)"
     severity: high
     aprl: "5a44bd30-ae6a-4b81-9b68-dc3a8ffca4d8"
     source: "https://github.com/Azure/Azure-Proactive-Resiliency-Library-v2/tree/main/azure-resources/Cache/Redis"
-    query: "$.domains.databases.redisCaches[*]"
-    assert: { type: manual, gate: "$.domains.databases.redisCaches[*]" }
-    remediation: "WARA-REDIS-01. Scout collects the cache SKU but not the zone placement, so the caches are attached as evidence. Basic and Standard caches cannot span zones; confirm production caches are Premium or Enterprise with zones selected."
-    manual: true
+    # Enterprise caches carry highAvailability (Enabled / Disabled); classic caches never do. A
+    # classic cache (type ends in "redis") is zonal when it lists two or more zones or its
+    # zonalAllocationPolicy is Automatic. `A || B && C && D` nests as A || (B && C && D).
+    query: "$.domains.databases.redisCaches[?(@.highAvailability =~ /^disabled$/i || @.type =~ /redis$/i && @.zoneCount < 2 && @.zonalAllocationPolicy != 'Automatic')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.databases.redisCaches[*]" }
+    remediation: "WARA-REDIS-01. The caches listed are not zone redundant. A classic Azure Cache for Redis is listed when it spans fewer than two zones and its zonal allocation policy is not Automatic (a null policy and a null zone count are read as no zones, the ARM default); only the Premium tier can use zones, so Basic and Standard caches are listed and need a tier change. A Redis Enterprise cache is listed when high availability is Disabled. Zones are set when the cache is created, so the fix is a new cache and a data migration. Scout does not collect the region, so a cache in a region without zones is an exception to record."
+    manual: false
   - id: WARA-PGSQL-01
     title: "WARA-PGSQL-01. PostgreSQL flexible servers use zone-redundant high availability"
     severity: high
     aprl: "ca87914f-aac4-4783-ab67-82a6f936f194"
     source: "https://github.com/Azure/Azure-Proactive-Resiliency-Library-v2/tree/main/azure-resources/DBforPostgreSQL/flexibleServers"
-    query: "$.domains.databases.postgreSqlFlexibleServers[*]"
-    assert: { type: manual, gate: "$.domains.databases.postgreSqlFlexibleServers[*]" }
-    remediation: "WARA-PGSQL-01. The high-availability mode is not in Scout's PostgreSQL projection, so the servers are attached as evidence. Confirm production servers run a standby replica in another zone, geo-redundant backup, and at least one cross-region read replica where the recovery target needs it."
-    manual: true
+    query: "$.domains.databases.postgreSqlFlexibleServers[?(@.haMode != 'ZoneRedundant')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.databases.postgreSqlFlexibleServers[*]" }
+    remediation: "WARA-PGSQL-01. The servers listed do not run zone-redundant high availability: the mode is Disabled or SameZone, or it is null or empty, which ARM treats as Disabled. Turn on zone-redundant HA so a standby replica is kept in another zone (the Burstable tier cannot use HA, so those servers need a tier change first). Scout does not collect the region, so a server in a region without zones is an exception to record. Geo-redundant backup and a cross-region read replica are not scored here; confirm them where the recovery target needs them."
+    manual: false
   - id: WARA-MYSQL-01
     title: "WARA-MYSQL-01. MySQL flexible servers use zone-redundant high availability"
     severity: high
     aprl: "88856605-53d8-4bbd-a75b-4a7b14939d32"
     source: "https://github.com/Azure/Azure-Proactive-Resiliency-Library-v2/tree/main/azure-resources/DBforMySQL/flexibleServers"
-    query: "$.domains.databases.mySqlFlexibleServers[*]"
-    assert: { type: manual, gate: "$.domains.databases.mySqlFlexibleServers[*]" }
-    remediation: "WARA-MYSQL-01. The high-availability mode is not in Scout's MySQL projection, so the servers are attached as evidence. Confirm production servers run a standby replica in another zone, geo-redundant backup, and a cross-region read replica where the recovery target needs it."
-    manual: true
+    query: "$.domains.databases.mySqlFlexibleServers[?(@.haMode != 'ZoneRedundant')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.databases.mySqlFlexibleServers[*]" }
+    remediation: "WARA-MYSQL-01. The servers listed do not run zone-redundant high availability: the mode is Disabled or SameZone, or it is null or empty, which ARM treats as Disabled. Turn on zone-redundant HA so a standby replica is kept in another zone (the Burstable tier cannot use HA, so those servers need a tier change first). Scout does not collect the region, so a server in a region without zones is an exception to record. Geo-redundant backup and a cross-region read replica are not scored here; confirm them where the recovery target needs them."
+    manual: false
 
   # ---- Storage and Key Vault (WARA-STG, WARA-KV) ----------------------------------------------
   - id: WARA-STG-01
@@ -252,6 +312,37 @@ rules:
     assert: { type: countEquals, value: 0, gate: "$.networking.loadBalancers[*]" }
     remediation: "WARA-LB-01. The load balancers listed are Basic, which has no availability-zone support and no SLA, and Microsoft has retired it. Migrate them to Standard with the Basic-to-Standard upgrade guidance, then make the frontends zone redundant."
     manual: false
+  - id: WARA-LB-02
+    title: "WARA-LB-02. Standard load balancer frontends are zone redundant"
+    severity: high
+    aprl: "621dbc78-3745-4d32-8eac-9e65b27b7512"
+    source: "https://github.com/Azure/Azure-Proactive-Resiliency-Library-v2/tree/main/azure-resources/Network/loadBalancers"
+    # minFrontendZoneCount is the WEAKEST frontend's zone count (0 for a frontend with no zones, and
+    # for a load balancer with no frontends), so one weak frontend is enough to list the balancer.
+    query: "$.networking.loadBalancers[?(@.sku =~ /^standard$/i && @.minFrontendZoneCount < 2)]"
+    assert: { type: countEquals, value: 0, gate: "$.networking.loadBalancers[?(@.sku =~ /^standard$/i)]" }
+    remediation: "WARA-LB-02. The Standard load balancers listed have at least one frontend that lists fewer than two zones (a null count reads as none). Make every frontend zone redundant. Internal frontends carry their zones on the frontend itself, so for them this is a reliable signal. A public frontend takes its zones from its public IP address, so for a load balancer with a public frontend confirm the public IP is zone redundant (WARA-PIP-01) before acting: a zone-redundant public IP behind a balancer listed here is a false positive to record as an exception. A region without availability zones is an exception too, as Scout does not collect whether it has zones. Basic load balancers are not checked (see WARA-LB-01)."
+    manual: false
+  - id: WARA-PIP-01
+    title: "WARA-PIP-01. Standard public IP addresses are zone redundant"
+    severity: high
+    aprl: "c63b81fb-7afc-894c-a840-91bb8a8dcfaf"
+    source: "https://github.com/Azure/Azure-Proactive-Resiliency-Library-v2/tree/main/azure-resources/Network/publicIPAddresses"
+    # APRL asks for all three zones; Scout asks for at least two so a two-zone region is not failed.
+    # 0 and null both match; null is a Standard address with no zones array.
+    query: "$.networking.publicIPAddresses[?(@.skuName =~ /^standard$/i && @.zoneCount < 2)]"
+    assert: { type: countEquals, value: 0, gate: "$.networking.publicIPAddresses[?(@.skuName =~ /^standard$/i)]" }
+    remediation: "WARA-PIP-01. The Standard public IP addresses listed span fewer than two availability zones (a null zone count reads as no zones, which is how a non-zonal address is stored). A zonal address is tied to one zone and a non-zonal one has no zone guarantee, so a zone failure can take down whatever it fronts. Zones cannot be changed on an existing address: create a zone-redundant one and move the association. Scout does not collect whether the region has zones, so an address in a region without them is an exception to record. Basic addresses are not checked here (see WARA-PIP-02)."
+    manual: false
+  - id: WARA-PIP-02
+    title: "WARA-PIP-02. No public IP address uses the Basic SKU"
+    severity: medium
+    aprl: "5cea1501-6fe4-4ec4-ac8f-f72320eb18d3"
+    source: "https://github.com/Azure/Azure-Proactive-Resiliency-Library-v2/tree/main/azure-resources/Network/publicIPAddresses"
+    query: "$.networking.publicIPAddresses[?(@.skuName =~ /^basic$/i)]"
+    assert: { type: countEquals, value: 0, gate: "$.networking.publicIPAddresses[*]" }
+    remediation: "WARA-PIP-02. The public IP addresses listed use the Basic SKU, which has no availability-zone support and is open to inbound traffic by default; Microsoft has retired it. Upgrade each to Standard (a dynamic address has to be made static first) and then make it zone redundant (WARA-PIP-01)."
+    manual: false
   - id: WARA-AGW-01
     title: "WARA-AGW-01. Application gateways use the v2 SKU"
     severity: high
@@ -266,10 +357,10 @@ rules:
     severity: high
     aprl: "c9c00f2a-3888-714b-a72b-b4c9e8fcffb2"
     source: "https://github.com/Azure/Azure-Proactive-Resiliency-Library-v2/tree/main/azure-resources/Network/applicationGateways"
-    query: "$.networking.applicationGateways[*]"
-    assert: { type: manual, gate: "$.networking.applicationGateways[*]" }
-    remediation: "WARA-AGW-02. The gateway zones and autoscale configuration are not in Scout's application gateway projection, so the gateways are attached as evidence. Confirm each v2 gateway lists all zones in its region and has autoscale with a sensible minimum instance count."
-    manual: true
+    query: "$.networking.applicationGateways[?(@.zoneCount < 2 || @.autoscaleMax == null)]"
+    assert: { type: countEquals, value: 0, gate: "$.networking.applicationGateways[*]" }
+    remediation: "WARA-AGW-02. The gateways listed span fewer than two availability zones (a null zone count reads as no zones) or have no autoscale configuration (a fixed instance count). Zones can only be chosen when the gateway is created, so the fix is a new v2 gateway across all the region's zones, with autoscale and a minimum instance count that covers the loss of a zone. The v1 gateways flagged by WARA-AGW-01 appear here too, because v1 supports neither. Scout does not collect whether the region has zones, so a gateway in a region without zones is an exception to record."
+    manual: false
   - id: WARA-VPN-01
     title: "WARA-VPN-01. VPN gateways use zone-redundant (AZ) SKUs"
     severity: high
@@ -311,10 +402,10 @@ rules:
     severity: high
     aprl: "c72b7fee-1fa0-5b4b-98e5-54bcae95bb74"
     source: "https://github.com/Azure/Azure-Proactive-Resiliency-Library-v2/tree/main/azure-resources/Network/azureFirewalls"
-    query: "$.networking.azureFirewalls[*]"
-    assert: { type: manual, gate: "$.networking.azureFirewalls[*]" }
-    remediation: "WARA-FW-01. The firewall zone list is not in Scout's Azure Firewall projection, so the firewalls are attached as evidence. Confirm each firewall in a region with zones lists all of them; zones can only be set when the firewall is created, so a fix means redeploying."
-    manual: true
+    query: "$.networking.azureFirewalls[?(@.zoneCount < 2)]"
+    assert: { type: countEquals, value: 0, gate: "$.networking.azureFirewalls[*]" }
+    remediation: "WARA-FW-01. The firewalls listed span fewer than two availability zones (a null zone count reads as no zones). Zones can only be set when the firewall is created, so the fix means redeploying it across all the region's zones. Scout does not collect the firewall region, so a firewall in a region without zones is an exception to record."
+    manual: false
 
   # ---- Integration and messaging (WARA-APIM, WARA-EH) -----------------------------------------
   - id: WARA-APIM-01

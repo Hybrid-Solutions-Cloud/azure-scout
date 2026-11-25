@@ -72,7 +72,7 @@ resource configuration.
 | CASA-PM-01 | Identity strengthening — MFA, Conditional Access, least-privilege, just-in-time access — is integrated | ⚠️ Partial — `Identity/ConditionalAccess`, `Identity/PIMAssignments` existence; policy *effectiveness* not scored |
 | CASA-PM-02 | Network/workload segmentation is implemented | ⚠️ Partial — `Networking/NetworkSecurityGroup`, `$.networking.nsgPublicInbound[*]` |
 | CASA-PM-03 | Threat detection is tuned and enabled via Microsoft Defender for Cloud | ✅ `Security/DefenderPricing`, `Security/DefenderAlerts` |
-| CASA-PM-04 | Secure score is tracked in Microsoft Defender for Cloud | ✅ `Security/DefenderSecureScore` (point-in-time only, no trend — same limitation `waf.security.yaml`'s WAF-SE analogue records) |
+| CASA-PM-04 | Secure score is tracked in Microsoft Defender for Cloud | ✅ `Security/DefenderSecureScore` (point-in-time only, no trend — same limitation `waf.security.yaml`'s WAF-SE analogue records). **Automated**: `security.defenderSecureScores` exists, gated on that dataset, so a run without the policy-compliance sweep reads Not assessed rather than Fail |
 | CASA-PM-05 | Validation is automated through policy, IaC, and continuous compliance scanning | ⚠️ Partial — `Management/PolicyAssignments`, `Management/PolicyComplianceStates`, `$.management.deployments[?(@.properties.templateHash)]` |
 
 ### IR — Incident preparedness and response
@@ -80,7 +80,7 @@ resource configuration.
 | # | Item | Scout can evidence? |
 |---|---|---|
 | CASA-IR-01 | Incident-lifecycle roles, communication channels, evidence handling, and decision authority are codified | ❌ Organisational |
-| CASA-IR-02 | Telemetry ingestion and alert fidelity are tuned to reduce mean time to detect (MTTD) | ⚠️ Partial — `Security/DefenderAlerts`, `Security/Sentinel` existence; alert-fidelity/tuning quality not observable |
+| CASA-IR-02 | Telemetry ingestion and alert fidelity are tuned to reduce mean time to detect (MTTD) | ⚠️ Partial — **automated** on Sentinel onboarding existence (`domains.security.sentinelWorkspaces`), the ingestion foundation; alert-fidelity/tuning quality is not observable, and Defender alerts are not used because their existence says nothing about quality |
 | CASA-IR-03 | Runbooks are refined and tabletop simulations practiced | ❌ Organisational |
 | CASA-IR-04 | Automated containment actions (isolate hosts, revoke tokens, quarantine storage) run through orchestrated workflows | ⚠️ Partial — `Management/AutomationAccounts` runbook existence only; containment-specific intent is not distinguishable from any other runbook |
 
@@ -91,7 +91,7 @@ resource configuration.
 | CASA-CO-01 | Encryption and key-management controls enforce confidentiality | ❌ Unanswerable — answering it needs the keys inside a Key Vault, which AzureScout never reads; `Security/Vault` shows vault configuration only |
 | CASA-CO-02 | Identity and access policies restrict access to sensitive data | ⚠️ Partial — `Identity/RoleAssignments` |
 | CASA-CO-03 | Network segmentation restricts access to confidential data paths | ⚠️ Partial — `Networking/NetworkSecurityGroup`, `Networking/PrivateEndpoint` |
-| CASA-CO-04 | Data classification and sensitivity labelling controls are applied | ❌ Microsoft Purview is not collected by Scout |
+| CASA-CO-04 | Data classification and sensitivity labelling controls are applied | ⚠️ Partial — **automated** on Microsoft Purview account existence (`domains.analytics.purviewAccounts`, Epic AB#6741); an account does not show the data is classified |
 
 ### IN — Integrity
 
@@ -108,28 +108,28 @@ resource configuration.
 |---|---|---|
 | CASA-AV-01 | Redundancy design (zone-redundant resources) is applied | ✅ `$.compute.virtualMachines[?(@.zoneEligible == true && @.zoneRedundant == false)]`, `$.domains.databases.sqlDatabases[?(@.zoneRedundant == true)]` |
 | CASA-AV-02 | Backup and disaster-recovery protection cover workloads | ✅ `Management/Backup`, `Management/BackupInstances`, `Management/RecoveryVault` |
-| CASA-AV-03 | Autoscaling is configured to sustain availability under load | ✅ `Monitor/AutoscaleSettings` |
-| CASA-AV-04 | Resilience is validated through chaos testing | ⚠️ Partial — `DevOps/ChaosStudio` existence only, no experiment-run history |
-| CASA-AV-05 | Health probes and fault-domain isolation are deployed (load balancing) | ⚠️ Partial — `Networking/LoadBalancer` existence only |
+| CASA-AV-03 | Autoscaling is configured to sustain availability under load | ✅ `Monitor/AutoscaleSettings`. **Automated**: an enabled `monitor.autoscaleSettings` row exists, gated on virtual machine scale sets outside AKS node resource groups (`MC_*`); App Service plans are scored per plan by `WAF-SVC-APP-04` |
+| CASA-AV-04 | Resilience is validated through chaos testing | ⚠️ Partial — `DevOps/ChaosStudio` existence only, no experiment-run history. **Stays manual**, with `devops.chaosExperiments` attached as evidence: an experiment resource existing does not show it was ever run, so an automated pass would over-claim |
+| CASA-AV-05 | Health probes and fault-domain isolation are deployed (load balancing) | ⚠️ Partial — **automated** on `networking.loadBalancers` with no health probe (`probeCount`); fault-domain isolation is scored per load balancer by `WAF-SVC-LB-04` |
 
 ### SS — Sustain security posture
 
 | # | Item | Scout can evidence? |
 |---|---|---|
-| CASA-SS-01 | Secure score security controls are tracked to quantify remaining gaps | ✅ `Security/DefenderSecureScore` |
+| CASA-SS-01 | Secure score security controls are tracked to quantify remaining gaps | ✅ `Security/DefenderSecureScore`. **Automated**: Defender assessment rows exist (`security.defenderAssessments`), gated on the secure-score dataset; per-control scores are not in the collect |
 | CASA-SS-02 | Risk-based metrics (exposed high-privilege identities, unencrypted stores) are coupled to secure score | ⚠️ Partial — `Identity/RoleAssignments` and Key Vault encryption fields exist individually; no composite risk metric is computed |
 | CASA-SS-03 | Drift detection is automated through policy, configuration baselines, and deployment pipelines | ⚠️ Partial — `Management/PolicyAssignments[?(@.properties.parameters)]` (DINE/Modify), same signal as `CAF-AUT-02` |
 | CASA-SS-04 | Incident retrospectives and threat intelligence feed backlog refinement | ❌ Organisational |
 
 ## What this means for the rule file
 
-**7 of 32 items are fully answerable, 15 are partial, 1 (`CASA-CO-01`) is unanswerable because it needs the contents of a Key Vault, and 9 are organisational and permanently out of
-reach.** The `TR` domain (6 items) is entirely manual by nature — no ARM resource encodes a RACI
+**This enumeration classifies 7 of 32 items as fully answerable, 15 as partial, 1 (`CASA-CO-01`) as unanswerable because it needs the contents of a Key Vault, and 9 as organisational and permanently out of
+reach.** What the rule file does with them is narrower (revised 2026-11-25, AB#9300): `casa.security.yaml` carries 31 rules (`CASA-CO-01` has none), of which **12 are automated** (`CASA-PM-02`, `PM-04`, `PM-05`, `IR-02`, `CO-02`, `CO-03`, `CO-04`, `AV-01`, `AV-02`, `AV-03`, `AV-05`, `SS-01`) and **19 are manual**. Existence-based automated items (`PM-04`, `IR-02`, `CO-04`) evidence a foundation, not that it is used well. The `TR` domain (6 items) is entirely manual by nature — no ARM resource encodes a RACI
 chart — and should be surfaced as a manual questionnaire section rather than omitted, per the
 pattern `smart.migration.yaml` already established for SMART's organisational items. The strongest
 signal is `AV` (availability): backup, redundancy, and autoscaling are all directly observable
-today. The weakest is `CO`/data classification (`CASA-CO-04`), which is blocked on Purview
-collection the same way `CGOV-DG-01`/`CGOV-DG-02` are in the Cloud Governance enumeration — the same
-underlying gap surfaces in both frameworks, which is worth knowing before scoping the collector work
-that would close it. `CASA-IN-02` (immutable storage) is the pleasant surprise here: `Storage/
-BlobContainers` already carries exactly the three fields this item needs.
+today. The weakest is `CO`/data classification (`CASA-CO-04`): Purview accounts are collected, but
+an account existing does not show data is classified, the same limit `CGOV-DG-01`/`CGOV-DG-02` have in
+the Cloud Governance enumeration. `CASA-IN-02` (immutable storage) is the pleasant surprise here: `Storage/
+BlobContainers` carries exactly the three fields this item needs in the inventory worksheet, but they are not in the
+assessment collect, so the rule stays manual.

@@ -23,6 +23,7 @@ Two things are true of almost all of them:
 |---|---|---|
 | Azure Well-Architected Review | `WAF: Reliability`, `WAF: Security`, `WAF: Cost Optimization`, `WAF: Operational Excellence`, `WAF: Performance Efficiency`, `CAF: Azure Landing Zone` | Core review, by pillar |
 | Azure Well-Architected Framework Maturity Model Assessment | `WAF: Maturity Model` | |
+| Well-Architected service guides (guidance, not in the catalog) | `WAF: Service Guides` | Configuration recommendations of 20 service guides |
 | Azure Landing Zone Review | `CAF: Azure Landing Zone` and the eight `CAF:` design areas | |
 | Azure Local \| Well-Architected Review | `WAF: Azure Local` | |
 | Azure Well-Architected AI workload | `Assess: AI Workload` | All ten design areas |

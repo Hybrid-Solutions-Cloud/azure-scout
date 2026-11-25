@@ -250,6 +250,526 @@ Describe 'ConvertFrom-ScoutInventory — KQL semantics are preserved' {
     }
 }
 
+# Discovery-time data for the sparse-payload table below: Pester evaluates -ForEach before any
+# BeforeAll has run, so this lives at file scope. Each case is one resource with an EMPTY properties
+# bag; Expected is what that absence must read as. $null is "unknown" (KQL tobool()/toint()/
+# array_length() of a missing property is null, never false/0); $false / 0 / '' appear only where
+# the KQL itself yields them (isnotempty() is a real false, a countif over no rows is a real 0).
+$script:Phase4SparseCases = @(
+    @{ Type = 'microsoft.sql/managedinstances'; Dataset = 'sqlManagedInstances'; Field = 'zoneRedundant'; Expected = $null }
+    @{ Type = 'microsoft.sql/managedinstances'; Dataset = 'sqlManagedInstances'; Field = 'entraOnlyAuth'; Expected = $null }
+    @{ Type = 'microsoft.sql/managedinstances'; Dataset = 'sqlManagedInstances'; Field = 'cmkEnabled'; Expected = $false }
+    @{ Type = 'microsoft.sql/servers'; Dataset = 'sqlServers'; Field = 'entraOnlyAuth'; Expected = $null }
+    @{ Type = 'microsoft.sql/servers'; Dataset = 'sqlServers'; Field = 'cmkEnabled'; Expected = $false }
+    @{ Type = 'microsoft.sql/servers/databases'; Dataset = 'sqlDatabases'; Field = 'haReplicaCount'; Expected = $null }
+    @{ Type = 'microsoft.documentdb/databaseaccounts'; Dataset = 'cosmosDbAccounts'; Field = 'automaticFailover'; Expected = $null }
+    @{ Type = 'microsoft.documentdb/databaseaccounts'; Dataset = 'cosmosDbAccounts'; Field = 'regionCount'; Expected = $null }
+    @{ Type = 'microsoft.documentdb/databaseaccounts'; Dataset = 'cosmosDbAccounts'; Field = 'zoneRedundantRegionCount'; Expected = 0 }
+    @{ Type = 'microsoft.documentdb/databaseaccounts'; Dataset = 'cosmosDbAccounts'; Field = 'ipRuleCount'; Expected = $null }
+    @{ Type = 'microsoft.documentdb/databaseaccounts'; Dataset = 'cosmosDbAccounts'; Field = 'cmkEnabled'; Expected = $false }
+    @{ Type = 'microsoft.containerservice/managedclusters'; Dataset = 'aksClusters'; Field = 'systemPoolMinNodes'; Expected = $null }
+    @{ Type = 'microsoft.containerservice/managedclusters'; Dataset = 'aksClusters'; Field = 'disableLocalAccounts'; Expected = $null }
+    @{ Type = 'microsoft.containerservice/managedclusters'; Dataset = 'aksClusters'; Field = 'authorizedIpRangeCount'; Expected = $null }
+    @{ Type = 'microsoft.network/azurefirewalls'; Dataset = 'azureFirewalls'; Field = 'zoneCount'; Expected = $null }
+    @{ Type = 'microsoft.network/azurefirewalls'; Dataset = 'azureFirewalls'; Field = 'hasPolicy'; Expected = $false }
+    @{ Type = 'microsoft.network/publicipaddresses'; Dataset = 'publicIPAddresses'; Field = 'zoneCount'; Expected = $null }
+    @{ Type = 'microsoft.network/publicipaddresses'; Dataset = 'publicIPAddresses'; Field = 'attached'; Expected = $false }
+    @{ Type = 'microsoft.network/networkwatchers/flowlogs'; Dataset = 'flowLogs'; Field = 'enabled'; Expected = $null }
+    @{ Type = 'microsoft.network/networkwatchers/flowlogs'; Dataset = 'flowLogs'; Field = 'retentionDays'; Expected = $null }
+    @{ Type = 'microsoft.network/networkwatchers/flowlogs'; Dataset = 'flowLogs'; Field = 'trafficAnalytics'; Expected = $null }
+    @{ Type = 'microsoft.network/loadbalancers'; Dataset = 'loadBalancers'; Field = 'probeCount'; Expected = $null }
+    @{ Type = 'microsoft.network/loadbalancers'; Dataset = 'loadBalancers'; Field = 'minFrontendZoneCount'; Expected = 0 }
+    @{ Type = 'microsoft.network/virtualnetworks'; Dataset = 'virtualNetworks'; Field = 'encryptionEnabled'; Expected = $null }
+    @{ Type = 'microsoft.compute/virtualmachines'; Dataset = 'virtualMachines'; Field = 'encryptionAtHost'; Expected = $null }
+    @{ Type = 'microsoft.compute/virtualmachines'; Dataset = 'virtualMachines'; Field = 'bootDiagnostics'; Expected = $null }
+    @{ Type = 'microsoft.compute/virtualmachines'; Dataset = 'virtualMachines'; Field = 'inAvailabilitySet'; Expected = $false }
+    @{ Type = 'microsoft.compute/virtualmachines'; Dataset = 'virtualMachines'; Field = 'unmanagedOsDisk'; Expected = $false }
+    @{ Type = 'microsoft.compute/virtualmachinescalesets'; Dataset = 'virtualMachineScaleSets'; Field = 'zoneBalance'; Expected = $null }
+    @{ Type = 'microsoft.compute/virtualmachinescalesets'; Dataset = 'virtualMachineScaleSets'; Field = 'capacity'; Expected = $null }
+    @{ Type = 'microsoft.compute/disks'; Dataset = 'managedDisks'; Field = 'zoneCount'; Expected = $null }
+    @{ Type = 'microsoft.cache/redis'; Dataset = 'redisCaches'; Field = 'nonSslPortEnabled'; Expected = $null }
+    @{ Type = 'microsoft.cache/redis'; Dataset = 'redisCaches'; Field = 'replicasPerPrimary'; Expected = $null }
+    @{ Type = 'microsoft.cache/redis'; Dataset = 'redisCaches'; Field = 'aadEnabled'; Expected = $null }
+    @{ Type = 'microsoft.web/serverfarms'; Dataset = 'appServicePlans'; Field = 'zoneRedundant'; Expected = $null }
+    @{ Type = 'microsoft.web/serverfarms'; Dataset = 'appServicePlans'; Field = 'instanceCount'; Expected = $null }
+    @{ Type = 'microsoft.operationalinsights/workspaces'; Dataset = 'logAnalyticsWorkspaces'; Field = 'dailyQuotaGb'; Expected = $null }
+    @{ Type = 'microsoft.operationalinsights/workspaces'; Dataset = 'logAnalyticsWorkspaces'; Field = 'disableLocalAuth'; Expected = $null }
+    @{ Type = 'microsoft.insights/components'; Dataset = 'appInsights'; Field = 'workspaceBased'; Expected = $false }
+    @{ Type = 'microsoft.insights/components'; Dataset = 'appInsights'; Field = 'disableLocalAuth'; Expected = $null }
+    @{ Type = 'microsoft.insights/activitylogalerts'; Dataset = 'activityLogAlertRules'; Field = 'category'; Expected = $null }
+    @{ Type = 'microsoft.databricks/workspaces'; Dataset = 'databricksWorkspaces'; Field = 'vnetInjected'; Expected = $false }
+    @{ Type = 'microsoft.databricks/workspaces'; Dataset = 'databricksWorkspaces'; Field = 'noPublicIp'; Expected = $null }
+    @{ Type = 'microsoft.eventgrid/topics'; Dataset = 'eventGrid'; Field = 'disableLocalAuth'; Expected = $null }
+    @{ Type = 'microsoft.eventgrid/topics'; Dataset = 'eventGrid'; Field = 'zoneRedundant'; Expected = $null }
+    @{ Type = 'microsoft.eventhub/namespaces'; Dataset = 'eventHubNamespaces'; Field = 'geoReplicaCount'; Expected = $null }
+    @{ Type = 'microsoft.servicebus/namespaces'; Dataset = 'serviceBusNamespaces'; Field = 'geoReplicaCount'; Expected = $null }
+    @{ Type = 'microsoft.search/searchservices'; Dataset = 'searchServices'; Field = 'ipRuleCount'; Expected = $null }
+    @{ Type = 'microsoft.app/containerapps'; Dataset = 'containerApps'; Field = 'minReplicas'; Expected = $null }
+    @{ Type = 'microsoft.app/managedenvironments'; Dataset = 'containerAppEnvironments'; Field = 'vnetIntegrated'; Expected = $false }
+    @{ Type = 'microsoft.storage/storageaccounts'; Dataset = 'storageAccounts'; Field = 'sharedKeyAccess'; Expected = $null }
+    @{ Type = 'microsoft.machinelearningservices/workspaces'; Dataset = 'mlWorkspaces'; Field = 'hbiWorkspace'; Expected = $null }
+)
+
+Describe 'ConvertFrom-ScoutInventory — AB#9300 phase 4 collection properties' {
+
+    Context 'the two bug fixes' {
+        It 'reads the classic Redis SKU from properties.sku and the Enterprise SKU from the top-level sku' {
+            $shaped = ConvertFrom-ScoutInventory -Resources @(
+                New-Resource -Type 'microsoft.cache/redis' -Name 'classic' -Properties @{
+                    sku = [pscustomobject]@{ name = 'Premium'; family = 'P'; capacity = 2 }
+                }
+                New-Resource -Type 'microsoft.cache/redisenterprise' -Name 'ent' -Properties @{
+                    highAvailability = 'Enabled'; minimumTlsVersion = '1.2'
+                } -Extra @{ sku = [pscustomobject]@{ name = 'Enterprise_E10'; capacity = 2 }; zones = @('1', '2') }
+            ) -ResourceContainers @()
+
+            $classic = $shaped['redisCaches'] | Where-Object name -EQ 'classic'
+            $enterprise = $shaped['redisCaches'] | Where-Object name -EQ 'ent'
+            $classic.sku | Should -Be 'Premium' -Because 'classic Redis has no top-level sku column; the tier is properties.sku.name'
+            $classic.skuFamily | Should -Be 'P'
+            $classic.skuCapacity | Should -BeExactly 2
+            $enterprise.sku | Should -Be 'Enterprise_E10' -Because 'Redis Enterprise keeps its SKU in the top-level sku column'
+            $enterprise.skuFamily | Should -BeNullOrEmpty
+            ($null -eq $enterprise.skuCapacity) | Should -BeTrue -Because 'Enterprise has no properties.sku, so there is no classic capacity to report'
+            $enterprise.highAvailability | Should -Be 'Enabled'
+            $enterprise.zoneCount | Should -BeExactly 2
+        }
+
+        It 'never reads the classic Redis SKU from a top-level sku column' {
+            # If a classic cache ever did carry one, properties.sku still wins -- the type decides.
+            $shaped = ConvertFrom-ScoutInventory -Resources @(
+                New-Resource -Type 'microsoft.cache/redis' -Name 'classic' -Properties @{
+                    sku = [pscustomobject]@{ name = 'Standard'; family = 'C'; capacity = 1 }
+                } -Extra @{ sku = [pscustomobject]@{ name = 'WrongColumn' } }
+            ) -ResourceContainers @()
+            $shaped['redisCaches'][0].sku | Should -Be 'Standard'
+        }
+
+        It 'reports the Azure Firewall tier from properties.sku.tier, not the AZFW_VNet / AZFW_Hub sku name' {
+            $shaped = ConvertFrom-ScoutInventory -Resources @(
+                New-Resource -Type 'microsoft.network/azurefirewalls' -Name 'fw1' -Properties @{
+                    sku             = [pscustomobject]@{ name = 'AZFW_VNet'; tier = 'Premium' }
+                    firewallPolicy  = [pscustomobject]@{ id = '/subscriptions/sub1/resourceGroups/rg1/providers/Microsoft.Network/firewallPolicies/pol1' }
+                    threatIntelMode = 'Deny'
+                } -Extra @{ zones = @('1', '2', '3') }
+                New-Resource -Type 'microsoft.network/azurefirewalls' -Name 'fw2' -Properties @{
+                    sku = [pscustomobject]@{ name = 'AZFW_Hub'; tier = 'Standard' }
+                }
+            ) -ResourceContainers @()
+            $fw1 = $shaped['azureFirewalls'] | Where-Object name -EQ 'fw1'
+            $fw2 = $shaped['azureFirewalls'] | Where-Object name -EQ 'fw2'
+            $fw1.sku | Should -Be 'AZFW_VNet'
+            $fw1.tier | Should -Be 'Premium'
+            $fw1.zoneCount | Should -BeExactly 3
+            $fw1.hasPolicy | Should -BeExactly $true
+            $fw1.threatIntelMode | Should -Be 'Deny'
+            $fw2.tier | Should -Be 'Standard'
+            $fw2.hasPolicy | Should -BeExactly $false -Because 'no firewallPolicy.id means no policy attached'
+            ($null -eq $fw2.zoneCount) | Should -BeTrue -Because 'no zones array is unknown, not zero zones'
+        }
+    }
+
+    Context 'per-element counts' {
+        It 'counts only the Cosmos locations flagged zone redundant (a missing flag is not redundant)' {
+            $shaped = ConvertFrom-ScoutInventory -Resources @(
+                New-Resource -Type 'microsoft.documentdb/databaseaccounts' -Name 'c1' -Properties @{
+                    locations = @(
+                        [pscustomobject]@{ locationName = 'East US'; isZoneRedundant = $true }
+                        [pscustomobject]@{ locationName = 'West US'; isZoneRedundant = $false }
+                        [pscustomobject]@{ locationName = 'North Europe' }
+                        [pscustomobject]@{ locationName = 'UK South'; isZoneRedundant = $true }
+                    )
+                }
+                New-Resource -Type 'microsoft.documentdb/databaseaccounts' -Name 'c2' -Properties @{
+                    locations = @([pscustomobject]@{ locationName = 'East US' })
+                }
+                New-Resource -Type 'microsoft.documentdb/databaseaccounts' -Name 'c3' -Properties @{ locations = @() }
+            ) -ResourceContainers @()
+            $c1 = $shaped['cosmosDbAccounts'] | Where-Object name -EQ 'c1'
+            $c2 = $shaped['cosmosDbAccounts'] | Where-Object name -EQ 'c2'
+            $c3 = $shaped['cosmosDbAccounts'] | Where-Object name -EQ 'c3'
+            $c1.regionCount | Should -BeExactly 4
+            $c1.zoneRedundantRegionCount | Should -BeExactly 2
+            $c2.regionCount | Should -BeExactly 1
+            $c2.zoneRedundantRegionCount | Should -BeExactly 0
+            $c3.regionCount | Should -BeExactly 0 -Because 'a present-but-empty locations array is zero regions, like array_length([])'
+            $c3.zoneRedundantRegionCount | Should -BeExactly 0
+        }
+
+        It 'takes the AKS system pool floor from minCount when it autoscales and from count when it does not' {
+            $shaped = ConvertFrom-ScoutInventory -Resources @(
+                # An autoscaling system pool (floor 2, current 6) and a fixed system pool (1): min = 1.
+                New-Resource -Type 'microsoft.containerservice/managedclusters' -Name 'mixed' -Properties @{
+                    agentPoolProfiles = @(
+                        [pscustomobject]@{ name = 'sys'; mode = 'System'; enableAutoScaling = $true; minCount = 2; maxCount = 8; count = 6 }
+                        [pscustomobject]@{ name = 'sys2'; mode = 'System'; count = 1 }
+                        [pscustomobject]@{ name = 'user'; mode = 'User'; enableAutoScaling = $true; minCount = 0; count = 9 }
+                    )
+                }
+                # The autoscale floor, not the current count, is the capacity the pool may fall to.
+                New-Resource -Type 'microsoft.containerservice/managedclusters' -Name 'auto' -Properties @{
+                    agentPoolProfiles = @([pscustomobject]@{ name = 'sys'; mode = 'System'; enableAutoScaling = $true; minCount = 3; maxCount = 9; count = 7 })
+                }
+                # User pools never count towards the system floor.
+                New-Resource -Type 'microsoft.containerservice/managedclusters' -Name 'useronly' -Properties @{
+                    agentPoolProfiles = @([pscustomobject]@{ name = 'u'; mode = 'User'; count = 5 })
+                }
+            ) -ResourceContainers @()
+            ($shaped['aksClusters'] | Where-Object name -EQ 'mixed').systemPoolMinNodes | Should -BeExactly 1
+            ($shaped['aksClusters'] | Where-Object name -EQ 'auto').systemPoolMinNodes | Should -BeExactly 3
+            $null -eq ($shaped['aksClusters'] | Where-Object name -EQ 'useronly').systemPoolMinNodes | Should -BeTrue
+        }
+
+        It 'marks allPoolsAutoscale only when every pool carries an explicit autoscale flag' {
+            $shaped = ConvertFrom-ScoutInventory -Resources @(
+                New-Resource -Type 'microsoft.containerservice/managedclusters' -Name 'all' -Properties @{
+                    agentPoolProfiles = @(
+                        [pscustomobject]@{ mode = 'System'; enableAutoScaling = $true; minCount = 1 }
+                        [pscustomobject]@{ mode = 'User'; enableAutoScaling = $true; minCount = 0 }
+                    )
+                }
+                New-Resource -Type 'microsoft.containerservice/managedclusters' -Name 'some' -Properties @{
+                    agentPoolProfiles = @(
+                        [pscustomobject]@{ mode = 'System'; enableAutoScaling = $true; minCount = 1 }
+                        [pscustomobject]@{ mode = 'User'; count = 3 }
+                    )
+                }
+            ) -ResourceContainers @()
+            ($shaped['aksClusters'] | Where-Object name -EQ 'all').allPoolsAutoscale | Should -BeExactly $true
+            ($shaped['aksClusters'] | Where-Object name -EQ 'some').allPoolsAutoscale | Should -BeExactly $false
+        }
+
+        It 'reports a load balancer''s WEAKEST frontend zone count, 0 when a frontend has none or there is no frontend' {
+            $shaped = ConvertFrom-ScoutInventory -Resources @(
+                New-Resource -Type 'microsoft.network/loadbalancers' -Name 'allzoned' -Properties @{
+                    frontendIPConfigurations = @(
+                        [pscustomobject]@{ name = 'a'; zones = @('1', '2', '3') }
+                        [pscustomobject]@{ name = 'b'; zones = @('1', '2', '3') }
+                    )
+                }
+                New-Resource -Type 'microsoft.network/loadbalancers' -Name 'oneweak' -Properties @{
+                    frontendIPConfigurations = @(
+                        [pscustomobject]@{ name = 'a'; zones = @('1', '2', '3') }
+                        [pscustomobject]@{ name = 'b'; zones = @('1') }
+                    )
+                }
+                New-Resource -Type 'microsoft.network/loadbalancers' -Name 'nozones' -Properties @{
+                    frontendIPConfigurations = @([pscustomobject]@{ name = 'a' })
+                }
+                New-Resource -Type 'microsoft.network/loadbalancers' -Name 'nofrontend' -Properties @{}
+            ) -ResourceContainers @()
+            ($shaped['loadBalancers'] | Where-Object name -EQ 'allzoned').minFrontendZoneCount | Should -BeExactly 3
+            ($shaped['loadBalancers'] | Where-Object name -EQ 'oneweak').minFrontendZoneCount | Should -BeExactly 1
+            ($shaped['loadBalancers'] | Where-Object name -EQ 'nozones').minFrontendZoneCount | Should -BeExactly 0
+            ($shaped['loadBalancers'] | Where-Object name -EQ 'nofrontend').minFrontendZoneCount | Should -BeExactly 0
+        }
+
+        It 'extracts the activity-log alert category from the allOf entry whose field is category, null when none' {
+            $shaped = ConvertFrom-ScoutInventory -Resources @(
+                New-Resource -Type 'microsoft.insights/activitylogalerts' -Name 'admin' -Properties @{
+                    condition = [pscustomobject]@{ allOf = @(
+                            [pscustomobject]@{ field = 'operationName'; equals = 'Microsoft.Compute/virtualMachines/delete' }
+                            [pscustomobject]@{ field = 'category'; equals = 'Administrative' }
+                        ) }
+                }
+                # ARM field names are not consistently cased.
+                New-Resource -Type 'microsoft.insights/activitylogalerts' -Name 'health' -Properties @{
+                    condition = [pscustomobject]@{ allOf = @([pscustomobject]@{ field = 'Category'; equals = 'ServiceHealth' }) }
+                }
+                New-Resource -Type 'microsoft.insights/activitylogalerts' -Name 'nocategory' -Properties @{
+                    condition = [pscustomobject]@{ allOf = @([pscustomobject]@{ field = 'resourceType'; equals = 'Microsoft.Sql/servers' }) }
+                }
+                # A category entry with no `equals` (a containsAny condition) names no category.
+                New-Resource -Type 'microsoft.insights/activitylogalerts' -Name 'noequals' -Properties @{
+                    condition = [pscustomobject]@{ allOf = @([pscustomobject]@{ field = 'category'; containsAny = @('Security') }) }
+                }
+                New-Resource -Type 'microsoft.insights/activitylogalerts' -Name 'nocondition' -Properties @{}
+            ) -ResourceContainers @()
+            ($shaped['activityLogAlertRules'] | Where-Object name -EQ 'admin').category | Should -Be 'Administrative'
+            ($shaped['activityLogAlertRules'] | Where-Object name -EQ 'health').category | Should -Be 'ServiceHealth'
+            foreach ($name in 'nocategory', 'noequals', 'nocondition') {
+                $row = $shaped['activityLogAlertRules'] | Where-Object name -EQ $name
+                ($null -eq $row.category) | Should -BeTrue -Because "'$name' names no category, so null (not an empty string)"
+            }
+            @($shaped['activityLogAlertRules']).Count | Should -Be 5 -Because 'no alert is dropped for lacking a category'
+        }
+    }
+
+    Context 'bool-only fields and attachment flags' {
+        It 'reports VM unmanagedOsDisk as a real bool and never carries the VHD uri' {
+            $vhdUri = 'https://unmanagedstorageacct.blob.core.windows.net/vhds/osdisk.vhd'
+            $shaped = ConvertFrom-ScoutInventory -Resources @(
+                New-Resource -Type 'microsoft.compute/virtualmachines' -Name 'legacy' -Properties @{
+                    storageProfile = [pscustomobject]@{ osDisk = [pscustomobject]@{ osType = 'Linux'; vhd = [pscustomobject]@{ uri = $vhdUri } } }
+                    availabilitySet = [pscustomobject]@{ id = '/subscriptions/sub1/resourceGroups/rg1/providers/Microsoft.Compute/availabilitySets/as1' }
+                }
+                New-Resource -Type 'microsoft.compute/virtualmachines' -Name 'managed' -Properties @{
+                    storageProfile = [pscustomobject]@{ osDisk = [pscustomobject]@{ osType = 'Windows'; managedDisk = [pscustomobject]@{ storageAccountType = 'Premium_LRS' } } }
+                }
+            ) -ResourceContainers @()
+            $legacy = $shaped['virtualMachines'] | Where-Object name -EQ 'legacy'
+            $managed = $shaped['virtualMachines'] | Where-Object name -EQ 'managed'
+            $legacy.unmanagedOsDisk | Should -BeOfType [bool]
+            $legacy.unmanagedOsDisk | Should -BeExactly $true
+            $legacy.inAvailabilitySet | Should -BeExactly $true
+            $managed.unmanagedOsDisk | Should -BeOfType [bool]
+            $managed.unmanagedOsDisk | Should -BeExactly $false
+            $managed.osDiskType | Should -Be 'Premium_LRS'
+            ($shaped['virtualMachines'] | ConvertTo-Json -Depth 5) | Should -Not -Match 'unmanagedstorageacct' -Because 'only the bool is shaped, never the uri'
+        }
+
+        It 'flags a public IP as attached only when it is bound to an IP configuration' {
+            $shaped = ConvertFrom-ScoutInventory -Resources @(
+                New-Resource -Type 'microsoft.network/publicipaddresses' -Name 'bound' -Properties @{
+                    publicIPAllocationMethod = 'Static'
+                    ddosSettings             = [pscustomobject]@{ protectionMode = 'Enabled' }
+                    ipConfiguration          = [pscustomobject]@{ id = '/subscriptions/sub1/resourceGroups/rg1/providers/Microsoft.Network/networkInterfaces/nic1/ipConfigurations/ipc1' }
+                } -Extra @{ sku = [pscustomobject]@{ name = 'Standard'; tier = 'Regional' }; zones = @('1', '2', '3') }
+                New-Resource -Type 'microsoft.network/publicipaddresses' -Name 'floating' -Properties @{
+                    publicIPAllocationMethod = 'Dynamic'
+                } -Extra @{ sku = [pscustomobject]@{ name = 'Basic'; tier = 'Regional' } }
+                # An address bound only to a NAT gateway carries properties.natGateway, not an
+                # ipConfiguration -- the documented limit of this flag.
+                New-Resource -Type 'microsoft.network/publicipaddresses' -Name 'natonly' -Properties @{
+                    natGateway = [pscustomobject]@{ id = '/subscriptions/sub1/resourceGroups/rg1/providers/Microsoft.Network/natGateways/ng1' }
+                }
+            ) -ResourceContainers @()
+            $bound = $shaped['publicIPAddresses'] | Where-Object name -EQ 'bound'
+            $floating = $shaped['publicIPAddresses'] | Where-Object name -EQ 'floating'
+            $natOnly = $shaped['publicIPAddresses'] | Where-Object name -EQ 'natonly'
+            $bound.attached | Should -BeOfType [bool]
+            $bound.attached | Should -BeExactly $true
+            $floating.attached | Should -BeExactly $false
+            $natOnly.attached | Should -BeExactly $false
+            $bound.skuName | Should -Be 'Standard'
+            $bound.skuTier | Should -Be 'Regional'
+            $bound.zoneCount | Should -BeExactly 3
+            $bound.ddosProtectionMode | Should -Be 'Enabled'
+            $bound.allocationMethod | Should -Be 'Static'
+            $floating.allocationMethod | Should -Be 'Dynamic'
+            # orphanedPips still lists the unbound ones and only those, independently of this dataset.
+            @($shaped['orphanedPips'] | ForEach-Object name) | Should -Contain 'floating'
+            @($shaped['orphanedPips'] | ForEach-Object name) | Should -Not -Contain 'bound'
+        }
+
+        It 'lower-cases a flow log''s target id and never shapes the workspace or storage ids' {
+            $shaped = ConvertFrom-ScoutInventory -Resources @(
+                New-Resource -Type 'microsoft.network/networkwatchers/flowlogs' -Name 'fl1' -Properties @{
+                    enabled                     = $true
+                    targetResourceId            = '/subscriptions/SUB1/resourceGroups/RG1/providers/Microsoft.Network/networkSecurityGroups/NSG1'
+                    storageId                   = '/subscriptions/sub1/resourceGroups/rg1/providers/Microsoft.Storage/storageAccounts/flowlogstorageacct'
+                    retentionPolicy             = [pscustomobject]@{ enabled = $true; days = 30 }
+                    flowAnalyticsConfiguration  = [pscustomobject]@{
+                        networkWatcherFlowAnalyticsConfiguration = [pscustomobject]@{
+                            enabled = $true; workspaceResourceId = '/subscriptions/sub1/resourceGroups/rg1/providers/Microsoft.OperationalInsights/workspaces/flowlogworkspace'
+                        }
+                    }
+                }
+            ) -ResourceContainers @()
+            $row = $shaped['flowLogs'][0]
+            $row.enabled | Should -BeExactly $true
+            $row.targetResourceId | Should -BeExactly '/subscriptions/sub1/resourcegroups/rg1/providers/microsoft.network/networksecuritygroups/nsg1'
+            $row.retentionEnabled | Should -BeExactly $true
+            $row.retentionDays | Should -BeExactly 30
+            $row.trafficAnalytics | Should -BeExactly $true
+            ($row | ConvertTo-Json -Depth 4) | Should -Not -Match 'flowlogstorageacct|flowlogworkspace'
+        }
+    }
+
+    Context 'nothing secret-bearing or identifying is shaped' {
+        It 'keeps every sentinel value planted in a never-project property out of every shaped dataset' {
+            $s = 'SENTINEL-MUST-NOT-APPEAR'
+            $resources = @(
+                New-Resource -Type 'microsoft.cache/redis' -Name 'r1' -Properties @{
+                    sku = [pscustomobject]@{ name = 'Premium'; family = 'P'; capacity = 1 }
+                    redisConfiguration = [pscustomobject]@{
+                        'aad-enabled'                   = 'true'
+                        'rdb-storage-connection-string' = $s
+                        'aof-storage-connection-string-0' = $s
+                        'maxmemory-policy'              = 'volatile-lru'
+                    }
+                }
+                New-Resource -Type 'microsoft.network/applicationgateways' -Name 'agw1' -Properties @{
+                    sslCertificates = @([pscustomobject]@{ name = 'c1'; properties = [pscustomobject]@{ data = $s; password = $s; keyVaultSecretId = $s } })
+                    sslPolicy       = [pscustomobject]@{ policyType = 'Predefined'; policyName = 'AppGwSslPolicy20220101'; minProtocolVersion = 'TLSv1_2' }
+                }
+                New-Resource -Type 'microsoft.app/containerapps' -Name 'ca1' -Properties @{
+                    configuration = [pscustomobject]@{
+                        secrets = @([pscustomobject]@{ name = 'db'; value = $s })
+                        ingress = [pscustomobject]@{ external = $true; allowInsecure = $false }
+                    }
+                    template = [pscustomobject]@{ scale = [pscustomobject]@{ minReplicas = 1 } }
+                }
+                New-Resource -Type 'microsoft.app/managedenvironments' -Name 'cae1' -Properties @{
+                    appLogsConfiguration = [pscustomobject]@{ logAnalyticsConfiguration = [pscustomobject]@{ customerId = $s; sharedKey = $s } }
+                    vnetConfiguration    = [pscustomobject]@{ internal = $true; infrastructureSubnetId = $s }
+                }
+                New-Resource -Type 'microsoft.eventhub/namespaces' -Name 'eh1' -Properties @{
+                    encryption = [pscustomobject]@{
+                        keySource = 'Microsoft.KeyVault'; requireInfrastructureEncryption = $true
+                        keyVaultProperties = @([pscustomobject]@{ keyName = $s; keyVaultUri = $s; keyVersion = $s })
+                    }
+                }
+                New-Resource -Type 'microsoft.servicebus/namespaces' -Name 'sb1' -Properties @{
+                    encryption = [pscustomobject]@{ keySource = 'Microsoft.KeyVault'; keyVaultProperties = @([pscustomobject]@{ keyName = $s; keyVaultUri = $s }) }
+                }
+                New-Resource -Type 'microsoft.sql/servers' -Name 'sql1' -Properties @{
+                    keyId = $s
+                    administrators = [pscustomobject]@{ login = $s; sid = $s; tenantId = $s; azureADOnlyAuthentication = $true }
+                }
+                New-Resource -Type 'microsoft.sql/managedinstances' -Name 'mi1' -Properties @{
+                    keyId = $s
+                    administrators = [pscustomobject]@{ login = $s; sid = $s; tenantId = $s; azureADOnlyAuthentication = $true }
+                }
+                New-Resource -Type 'microsoft.compute/virtualmachines' -Name 'vm1' -Properties @{
+                    storageProfile  = [pscustomobject]@{ osDisk = [pscustomobject]@{ vhd = [pscustomobject]@{ uri = $s } } }
+                    availabilitySet = [pscustomobject]@{ id = $s }
+                }
+                New-Resource -Type 'microsoft.network/networkwatchers/flowlogs' -Name 'fl1' -Properties @{
+                    enabled = $true; targetResourceId = '/subscriptions/sub1/x'
+                    storageId = $s
+                    flowAnalyticsConfiguration = [pscustomobject]@{ networkWatcherFlowAnalyticsConfiguration = [pscustomobject]@{ enabled = $true; workspaceId = $s; workspaceResourceId = $s } }
+                }
+                New-Resource -Type 'microsoft.documentdb/databaseaccounts' -Name 'cosmos1' -Properties @{
+                    ipRules = @([pscustomobject]@{ ipAddressOrRange = $s })
+                    keyVaultKeyUri = $s
+                }
+                New-Resource -Type 'microsoft.search/searchservices' -Name 'srch1' -Properties @{
+                    networkRuleSet = [pscustomobject]@{ ipRules = @([pscustomobject]@{ value = $s }) }
+                }
+                New-Resource -Type 'microsoft.containerservice/managedclusters' -Name 'aks1' -Properties @{
+                    apiServerAccessProfile = [pscustomobject]@{ authorizedIPRanges = @($s) }
+                }
+                New-Resource -Type 'microsoft.databricks/workspaces' -Name 'dbw1' -Properties @{
+                    parameters = [pscustomobject]@{ customVirtualNetworkId = [pscustomobject]@{ value = $s }; enableNoPublicIp = [pscustomobject]@{ value = $true } }
+                }
+                New-Resource -Type 'microsoft.insights/components' -Name 'ai1' -Properties @{ WorkspaceResourceId = $s; DisableLocalAuth = $true }
+                New-Resource -Type 'microsoft.eventgrid/topics' -Name 'eg1' -Properties @{
+                    inboundIpRules = @([pscustomobject]@{ ipMask = $s; action = 'Allow' })
+                }
+            )
+            $shaped = ConvertFrom-ScoutInventory -Resources $resources -ResourceContainers @()
+
+            ($shaped | ConvertTo-Json -Depth 8) | Should -Not -Match 'SENTINEL-MUST-NOT-APPEAR'
+
+            # ...while the one legitimate key read out of the secret-bearing bag IS read.
+            $shaped['redisCaches'][0].aadEnabled | Should -BeExactly $true
+            # ...and the bool stand-ins still say what they stand in for.
+            $shaped['sqlServers'][0].cmkEnabled | Should -BeExactly $true
+            $shaped['sqlServers'][0].entraOnlyAuth | Should -BeExactly $true
+            $shaped['databricksWorkspaces'][0].vnetInjected | Should -BeExactly $true
+            $shaped['appInsights'][0].workspaceBased | Should -BeExactly $true
+            $shaped['cosmosDbAccounts'][0].ipRuleCount | Should -BeExactly 1
+            $shaped['eventGrid'][0].inboundIpRuleCount | Should -BeExactly 1
+        }
+
+        It 'gives the shaped Redis row no property named like a connection string or a configuration bag' {
+            $shaped = ConvertFrom-ScoutInventory -Resources @(
+                New-Resource -Type 'microsoft.cache/redis' -Name 'r1' -Properties @{
+                    sku = [pscustomobject]@{ name = 'Premium'; family = 'P'; capacity = 1 }
+                    redisConfiguration = [pscustomobject]@{ 'rdb-storage-connection-string' = 'x'; 'aad-enabled' = 'false' }
+                }
+                New-Resource -Type 'microsoft.cache/redisenterprise' -Name 'r2' -Properties @{ highAvailability = 'Enabled' }
+            ) -ResourceContainers @()
+            foreach ($row in $shaped['redisCaches']) {
+                @($row.PSObject.Properties.Name | Where-Object { $_ -match 'connection|configuration|secret|password|credential|sharedkey' }) |
+                    Should -BeNullOrEmpty -Because "row '$($row.name)' must carry no secret-bearing property name"
+            }
+            $shaped['redisCaches'][0].aadEnabled | Should -BeExactly $false
+        }
+
+        It 'never asks the typed KQL pack for a secret-bearing property' {
+            # The typed pack is the other half of every dataset above and is not executed here, so the
+            # same rule is held against its text. Comment lines (the KQL `//` ones that explain what is
+            # NEVER projected) are stripped first -- they name the very properties being banned.
+            $collectDir = Join-Path -Path $PSScriptRoot -ChildPath '..' -AdditionalChildPath 'src', 'collect'
+            $source = Get-Content -Raw (Join-Path -Path $collectDir -ChildPath 'Invoke-Collect.ps1')
+            $pack = [regex]::Match($source, '(?s)\$q = @\{.*?\r?\n    \}').Value
+            $pack | Should -Not -BeNullOrEmpty
+            $kql = (($pack -split "`r?`n") | Where-Object { $_ -notmatch '^\s*(//|#)' }) -join "`n"
+
+            $kql | Should -Not -Match 'sslCertificates'
+            $kql | Should -Not -Match 'configuration\.secrets'
+            $kql | Should -Not -Match 'logAnalyticsConfiguration'
+            $kql | Should -Not -Match 'keyVaultProperties'
+            $kql | Should -Not -Match 'administrators\.(sid|login|tenantId)'
+            # redisConfiguration is read for exactly one key, by name -- never as a whole.
+            $redisReads = @([regex]::Matches($kql, 'redisConfiguration[^\r\n]*') | ForEach-Object { $_.Value })
+            $redisReads.Count | Should -BeGreaterThan 0 -Because 'the scan must have found the one aad-enabled read, or it asserts nothing'
+            foreach ($read in $redisReads) { $read | Should -Match "redisConfiguration\['aad-enabled'\]" }
+            # the unmanaged OS disk and the workspace/VNet ids only ever appear inside isnotempty().
+            foreach ($path in 'osDisk\.vhd\.uri', 'customVirtualNetworkId\.value', 'WorkspaceResourceId', 'availabilitySet\.id') {
+                $pathHits = @([regex]::Matches($kql, "[^\r\n]*$path[^\r\n]*"))
+                $pathHits.Count | Should -BeGreaterThan 0 -Because "the scan must have found '$path', or it asserts nothing"
+                foreach ($hit in $pathHits) {
+                    $hit.Value | Should -Match "isnotempty\(tostring\(properties\.[A-Za-z.]*$path\)\)" -Because "'$path' must only be projected as a bool"
+                }
+            }
+        }
+
+        It 'carries the two bug fixes in the typed KQL as well as the shaper' {
+            $collectDir = Join-Path -Path $PSScriptRoot -ChildPath '..' -AdditionalChildPath 'src', 'collect'
+            $source = Get-Content -Raw (Join-Path -Path $collectDir -ChildPath 'Invoke-Collect.ps1')
+            $pack = [regex]::Match($source, '(?s)\$q = @\{.*?\r?\n    \}').Value
+            $redis = [regex]::Match($pack, "(?s)redisCaches = @'.*?\r?\n'@").Value
+            $redis | Should -Match 'iff\(type =~ "microsoft\.cache/redis", tostring\(properties\.sku\.name\), tostring\(sku\.name\)\)'
+            $redis | Should -Match 'skuFamily = tostring\(properties\.sku\.family\)'
+            $firewall = [regex]::Match($pack, "(?s)azureFirewalls = @'.*?\r?\n'@").Value
+            $firewall | Should -Match 'tier = tostring\(properties\.sku\.tier\)'
+            $firewall | Should -Match 'zoneCount = array_length\(zones\)'
+        }
+    }
+
+    Context 'null stays null; absence is never a false or a zero' {
+        It 'reads <Dataset>.<Field> from an empty properties bag (expected: <Expected>; blank is null)' -ForEach $script:Phase4SparseCases {
+            $shaped = ConvertFrom-ScoutInventory -Resources @(
+                New-Resource -Type $Type -Name 'sparse' -Properties @{}
+            ) -ResourceContainers @()
+            $row = @($shaped[$Dataset])[0]
+            $row | Should -Not -BeNullOrEmpty -Because "the $Type row must still produce a $Dataset row"
+            $row.PSObject.Properties[$Field] | Should -Not -BeNullOrEmpty -Because "$Dataset must always carry '$Field', even when it is null"
+            $value = $row.PSObject.Properties[$Field].Value
+            if ($null -eq $Expected) {
+                ($null -eq $value) | Should -BeTrue -Because "a missing property is unknown (KQL null), not '$value'"
+            }
+            else {
+                $value | Should -BeExactly $Expected
+            }
+        }
+
+        It 'does not throw on a non-numeric count or capacity, it reads null (KQL toint of a non-number)' {
+            { ConvertFrom-ScoutInventory -Resources @(
+                    New-Resource -Type 'microsoft.web/serverfarms' -Name 'p1' -Extra @{ sku = [pscustomobject]@{ name = 'P1v3'; capacity = 'not-a-number' } }
+                    New-Resource -Type 'microsoft.search/searchservices' -Name 's1' -Properties @{ partitionCount = 'abc' }
+                ) -ResourceContainers @() } | Should -Not -Throw
+            $shaped = ConvertFrom-ScoutInventory -Resources @(
+                New-Resource -Type 'microsoft.web/serverfarms' -Name 'p1' -Extra @{ sku = [pscustomobject]@{ name = 'P1v3'; capacity = 'not-a-number' } }
+            ) -ResourceContainers @()
+            ($null -eq $shaped['appServicePlans'][0].instanceCount) | Should -BeTrue
+        }
+    }
+
+    Context 'ids and locations on the datasets that lacked them' {
+        It 'carries id and location on <Dataset>' -ForEach @(
+            @{ Type = 'microsoft.eventhub/namespaces'; Dataset = 'eventHubNamespaces' }
+            @{ Type = 'microsoft.operationalinsights/workspaces'; Dataset = 'logAnalyticsWorkspaces' }
+            @{ Type = 'microsoft.containerservice/managedclusters'; Dataset = 'aksClusters' }
+            @{ Type = 'microsoft.web/sites'; Dataset = 'webApps' }
+            @{ Type = 'microsoft.sql/servers/databases'; Dataset = 'sqlDatabases' }
+            @{ Type = 'microsoft.sql/servers'; Dataset = 'sqlServers' }
+            @{ Type = 'microsoft.network/virtualnetworks'; Dataset = 'virtualNetworks' }
+            @{ Type = 'microsoft.apimanagement/service'; Dataset = 'apiManagement' }
+            @{ Type = 'microsoft.servicebus/namespaces'; Dataset = 'serviceBusNamespaces' }
+        ) {
+            $resource = New-Resource -Type $Type -Name 'thing'
+            $shaped = ConvertFrom-ScoutInventory -Resources @($resource) -ResourceContainers @()
+            $row = @($shaped[$Dataset])[0]
+            $row.id | Should -Be $resource.id
+            $row.location | Should -Be 'eastus'
+        }
+    }
+}
+
 Describe 'Invoke-Collect -FromInventory — collects once, not twice' {
 
     BeforeAll {

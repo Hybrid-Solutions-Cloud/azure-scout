@@ -7,6 +7,65 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.18.15] - 2026-11-25 - more assessment answered from data, and WAF service guides
+
+### Added
+
+- **WAF: Service Guides** (214 checks, 126 automated): the Configuration recommendations of 20 Well-Architected service
+  guides (AKS, App Service, Functions, Container Apps, API Management, Service Bus, Event Grid, Firewall, Application
+  Gateway, Load Balancer, Virtual Network, Virtual Machines and scale sets, Disk, Application Insights, Front Door,
+  Traffic Manager, Virtual WAN, ExpressRoute, Files, NetApp Files). A guide is assessed only when the service exists.
+- **About 150 settings and four datasets** added to the assessment collection (both the inventory path and the typed
+  Resource Graph queries): zones/HA/failover for PostgreSQL, MySQL, Cosmos DB, SQL MI and databases, Redis, App Service
+  plans, AKS, Application Gateway, Load Balancer, API Management, Service Bus, Event Hubs, Container Apps; TLS, local
+  auth, encryption and public-access settings; id and location on nine datasets; new networking.publicIPAddresses,
+  compute.virtualMachineScaleSets, networking.flowLogs and domains.integration.eventGrid. Secrets are never projected
+  (enforced by test).
+- **179 more checks scored from data** (650 of 1,732): WARA 36 of 38 automated (was 21 of 31, with VM, scale set, public
+  IP and load balancer zone items added), Data Services 44, Analytics 16, AI Search 7, Machine Learning 5, CASA 12.
+  Customer-managed-key "where required" items stay questionnaire items with the evidence attached.
+- `tests/Collect.ResourceGraphKqlDialect.Tests.ps1` blocks KQL Resource Graph does not accept.
+
+### Fixed
+
+- Five typed Resource Graph queries were rejected by Azure (`mv-apply` is not supported; `count` is reserved). Rewritten
+  with mv-expand + summarize and checked live against a tenant; the whole typed pack now runs clean.
+- Classic Redis SKU was always empty (it lives at properties.sku); Azure Firewall tier was never collected.
+- Combined inventory + assessment runs reported diagnostic coverage as not measured: the raw pass's source operations
+  were not handed to the assessment.
+- Defender reads gave up after 0.6 s on a server-side 5xx and marked the subscription Partial; back-off is now 2, 4, 8,
+  16 s with five attempts.
+- Two custom compliance initiatives with the same name produced duplicate finding ids and drift tracking skipped the
+  run; colliding ids now get a stable hash suffix.
+
+### Collection detail
+
+### Added
+
+- **Assessment collection: automatable properties, batch 1** (collection only; no rule reads them
+  yet). Zones, HA and failover, backup and geo-redundancy, Entra-only and local-auth settings, TLS
+  floors, customer-managed keys and exposure for Cosmos DB, PostgreSQL / MySQL flexible servers, SQL
+  managed instances, SQL servers and databases, Redis, App Service plans, AKS (system-pool floor,
+  autoscale, upgrade channels, Defender, workload identity), Application Gateway, load balancers
+  (weakest-frontend zone count), API Management, Service Bus, Event Hubs, Container Apps and
+  environments, Log Analytics, managed disks, virtual machines, storage accounts, web apps, AI Search,
+  Machine Learning, Databricks, Application Insights and Monitor alert rules. Four new datasets:
+  `networking.publicIPAddresses`, `networking.flowLogs`, `compute.virtualMachineScaleSets`,
+  `domains.integration.eventGrid`. `id` and `location` now ride on the datasets that lacked them.
+  Never collected: Redis `redisConfiguration` (only `aad-enabled`), Application Gateway
+  certificates, Container Apps secrets, Event Hubs / Service Bus key vault properties, SQL
+  administrator identity, unmanaged-disk VHD uris, flow-log workspace and storage ids, IP ranges.
+
+### Fixed
+
+- **Classic Azure Cache for Redis always reported an empty SKU.** It keeps its SKU at
+  `properties.sku`, not in the top-level `sku` column; `redisCaches[].sku` now reads the right one for
+  each of classic and Enterprise, and adds `skuFamily` / `skuCapacity`.
+- **Azure Firewall tier was unreadable.** `azureFirewalls[].sku` is only `AZFW_VNet` / `AZFW_Hub`;
+  the Standard / Premium / Basic tier is now `tier`, with `zoneCount`, `hasPolicy` and
+  `threatIntelMode` beside it.
+
+
 ## [3.18.14] - 2026-11-25 - Microsoft's workload, technology and questionnaire assessments
 
 ### Added

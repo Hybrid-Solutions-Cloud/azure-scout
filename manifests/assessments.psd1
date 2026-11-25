@@ -255,10 +255,16 @@
         Tags = @('waf', 'analytics', 'technology-review'); Reporters = @('Html', 'Excel')
     }
     'WAF: Data Services' = @{
-        Description = 'Data Services technology review (Well-Architected guides for Azure SQL Database, SQL Managed Instance, Cosmos DB, PostgreSQL, MySQL, Azure Managed Redis, HorizonDB and Blob Storage) -- 100 items across all 5 pillars; see docs/frameworks/waf-data-services-checklist.md'
+        Description = 'Data Services technology review (Well-Architected guides for Azure SQL Database, SQL Managed Instance, Cosmos DB, PostgreSQL, MySQL, Azure Managed Redis, HorizonDB and Blob Storage) -- 104 items across all 5 pillars; see docs/frameworks/waf-data-services-checklist.md'
         Category    = 'Databases'; Collect = @('Databases', 'Storage', 'Networking', 'Security', 'Monitor', 'Management', 'FinOps'); Ingest = @('Governance')
         Rules = @('waf.dataservices'); Frameworks = @('WAF: Data Services')
         Tags = @('waf', 'databases', 'storage', 'technology-review'); Reporters = @('Html', 'Excel')
+    }
+    'WAF: Service Guides' = @{
+        Description = 'Well-Architected Framework service guides -- 214 items (126 automated) from the Configuration recommendations of 20 Azure service guides: AKS, App Service, Functions, Container Apps, API Management, Service Bus, Event Grid, Firewall, Application Gateway, Load Balancer, Virtual Network, Virtual Machines and scale sets, Disk, Application Insights, Front Door, Traffic Manager, Virtual WAN, ExpressRoute, Files and NetApp Files. A guide is assessed only when the estate has that service; see docs/frameworks/waf-service-guides-checklist.md'
+        Category    = '*'; Collect = @('Compute', 'Containers', 'Web', 'Integration', 'Networking', 'Storage', 'Monitor', 'Management', 'Security', 'Databases'); Ingest = @()
+        Rules = @('waf.serviceguides'); Frameworks = @('WAF: Service guides')
+        Tags = @('waf', 'service-guides'); Reporters = @('Html', 'Excel')
     }
     'WAF: Mission Critical' = @{
         Description = 'Mission-critical workload review -- 81 items across the 8 design areas of Microsoft''s mission-critical guidance (application design, platform, data platform, networking, health modeling, deployment and testing, security, operations); 41 scored from collected data, 40 questionnaire items. Scout''s reading of the guidance; Microsoft does not publish the assessment''s questions'
@@ -324,7 +330,7 @@
         Tags = @('modernization', 'readiness', 'questionnaire', 'inferred-enumeration'); Reporters = @('Html', 'Excel')
     }
     'Microsoft: Well-Architected Reliability Assessment' = @{
-        Description = 'Well-Architected Reliability Assessment (WARA) from the data Scout already collected, backed by the Azure Proactive Resiliency Library (APRL) -- 31 items across compute, containers, web, databases, storage, backup, networking and integration: zones, redundancy SKUs, backup coverage, Key Vault protection, gateway and load-balancer SKUs'
+        Description = 'Well-Architected Reliability Assessment (WARA) from the data Scout already collected, backed by the Azure Proactive Resiliency Library (APRL) -- 38 items (36 automated) across compute, containers, web, databases, storage, backup, networking and integration: zones, redundancy SKUs, backup coverage, Key Vault protection, gateway and load-balancer SKUs'
         Category    = '*'; Collect = @('Compute', 'Storage', 'Networking', 'Containers', 'Web', 'Databases', 'Security', 'Integration', 'Management'); Ingest = @()
         Rules = @('wara.reliability'); Frameworks = @('WARA: Reliability (WARA / APRL)')
         Tags = @('wara', 'aprl', 'reliability', 'microsoft'); Reporters = @('Html', 'Excel')

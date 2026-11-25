@@ -204,5 +204,9 @@ Function Start-AZSCGraphExtraction {
         # combined run's assessment half reads them instead of collecting them a second time.
         Governance         = $(if ($Raw.PSObject.Properties['Governance']) { $Raw.Governance } else { $null })
         CollectionHealth   = @($CollectionHealth)
+        # AB#9300 -- the per-request log of the raw pass. A combined run's assessment half reads
+        # the ResourceDiagnosticSettings GETs from it to measure diagnostic-settings coverage; without
+        # it coverage read as "not measured" even though inventory had run the sweep.
+        SourceOperations   = @(if ($Raw.PSObject.Properties['SourceOperations']) { $Raw.SourceOperations })
     }
 }

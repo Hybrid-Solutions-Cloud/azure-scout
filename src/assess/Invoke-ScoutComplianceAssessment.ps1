@@ -98,5 +98,19 @@ function Invoke-ScoutComplianceAssessment {
         }
     }
 
-    return @($findings)
+    # Finding ids must be unique: drift tracking keys on them and refuses a duplicate. Two custom
+    # initiatives with the same name at different scopes (a management group and a subscription,
+    # say) produced the same id, and drift was skipped for the whole run (AB#9300). Where ids
+    # collide, add a short, stable hash of each finding's full initiative id. Unique ids are left
+    # exactly as they were, so existing drift history is undisturbed.
+    $findings = @($findings)
+    foreach ($group in @($findings | Group-Object Id | Where-Object Count -gt 1)) {
+        foreach ($finding in $group.Group) {
+            $initiativeKey = if ($finding.PSObject.Properties['InitiativeId']) { ([string]$finding.InitiativeId).ToLowerInvariant() } else { '' }
+            $hash = [System.Convert]::ToHexString(
+                [System.Security.Cryptography.SHA256]::HashData([System.Text.Encoding]::UTF8.GetBytes($initiativeKey))).Substring(0, 8).ToLowerInvariant()
+            $finding.Id = '{0}-{1}' -f $finding.Id, $hash
+        }
+    }
+    return $findings
 }

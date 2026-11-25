@@ -157,6 +157,7 @@ parallel record.
 | `waf-ai-workload-checklist.md` | WAF-AI | All ten AI workload design areas plus the AI architecture pattern, 63 items |
 | `waf-avd-azure-workload-checklist.md` | WAF-AVD | Azure Virtual Desktop in Azure, 30 items across the five pillars |
 | `waf-avd-workload-checklist.md` | WAF-AVD | Azure Virtual Desktop on Azure Local, 20 items |
+| `waf-service-guides-checklist.md` | WAF-SVC | Configuration recommendations of 20 WAF service guides, 214 items (126 automated) |
 | `waf-mission-critical-checklist.md` | WAF-MC | Mission-critical workload, 8 design areas, 81 items |
 | `waf-sustainability-checklist.md` | WAF-SUS | Sustainability workload, 5 pillars plus sustainable AI, 67 items |
 | `waf-go-live-checklist.md` | WAF-GOLIVE | Go-live readiness from the 5 pillar checklists (Scout's own; Microsoft publishes no Go-Live questions), 57 items |
@@ -165,8 +166,8 @@ parallel record.
 | `waf-machine-learning-checklist.md` | WAF-ML | Azure Machine Learning service guide, 44 items |
 | `waf-ai-search-checklist.md` | WAF-AISEARCH | Azure AI Search (no Microsoft service guide; product articles), 37 items |
 | `waf-analytics-checklist.md` | WAF-ANALYTICS | Databricks, Event Hubs, Log Analytics and Fabric guidance, 74 items |
-| `waf-data-services-checklist.md` | WAF-DATA | SQL, SQL MI, Cosmos DB, PostgreSQL, MySQL, Managed Redis, HorizonDB, Blob Storage guidance, 100 items |
-| `wara-aprl-checklist.md` | WARA | Well-Architected Reliability Assessment items from the Azure Proactive Resiliency Library, 31 items |
+| `waf-data-services-checklist.md` | WAF-DATA | SQL, SQL MI, Cosmos DB, PostgreSQL, MySQL, Managed Redis, HorizonDB, Blob Storage guidance, 104 items |
+| `wara-aprl-checklist.md` | WARA | Well-Architected Reliability Assessment items from the Azure Proactive Resiliency Library, 38 items (36 automated) |
 | `advisor-recommendations.md` | ADVISOR | Azure Advisor recommendations by category and impact, 15 items |
 | `waf-saas-checklist.md` | WAF-SAAS | SaaS workload, 10 design areas, 108 items (Scout-derived) |
 | `ai-readiness-question-set.md` | AI-READINESS | AI Readiness, Microsoft's 7 pillars, 64 items (Scout-derived questions) |

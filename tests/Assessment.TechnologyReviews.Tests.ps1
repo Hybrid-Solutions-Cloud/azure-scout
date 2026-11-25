@@ -5,8 +5,16 @@
     AB#9300: the four Microsoft Well-Architected technology reviews added after the workload
     reviews -- Azure Machine Learning, Azure AI Search, Analytics and Data Services. Each rule set
     is run against small collect objects built here, so every automated rule's Pass and Fail is
-    pinned, every gated rule is proven NotAssessed on an estate without its resources, no rule
-    errors, and every rule id is enumerated in its docs/frameworks page.
+    pinned (with exact evidence counts), every gated rule is proven NotAssessed on an estate
+    without its resources, no rule errors, and every rule id is enumerated in its docs/frameworks
+    page.
+
+    Phase 4 projected many more settings (TLS, Entra-only and local authentication, backup
+    redundancy, regions, high availability, key source), which converted most of the manual
+    items. Several of those are "absent means bad": a projected string is '' and a projected
+    boolean or count is null when ARM does not return it, Newtonsoft JSONPath never matches a
+    MISSING property with == or != but does match null and '' with !=, so the edge-case table at
+    the end pins each of those with an explicit null and '' row.
 
     Microsoft does not publish these assessments' question text, so the docs are Scout's reading of
     the service guides; the tests pin Scout's own enumeration, not Microsoft's.
@@ -37,15 +45,31 @@ BeforeAll {
 
     $script:P = '/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg/providers'
     function Get-TestPrivateEndpoint { param([string] $Target) [ordered]@{ targetResourceId = $Target; targetProvider = 'x'; targetType = 'y' } }
+
+    # A collect object holding ONE dataset at a dotted path (for example domains.storage.storageAccounts).
+    # Every other section is absent, so gated rules on other datasets are NotAssessed and manual rules
+    # report no evidence -- nothing else can interfere with the rule under test.
+    function Get-TestCollectAt {
+        param([string] $Path, $Rows)
+        $root = [ordered]@{}
+        $cursor = $root
+        $segments = @($Path -split '\.')
+        for ($i = 0; $i -lt $segments.Count - 1; $i++) {
+            $cursor[$segments[$i]] = [ordered]@{}
+            $cursor = $cursor[$segments[$i]]
+        }
+        $cursor[$segments[-1]] = @($Rows)
+        $root
+    }
 }
 
 Describe 'Technology review rule files' {
     BeforeAll {
         $script:Reviews = @(
             @{ File = 'waf.machinelearning'; Framework = 'WAF-ML'; Doc = 'waf-machine-learning-checklist.md'; Rules = 44; Auto = 5 }
-            @{ File = 'waf.aisearch'; Framework = 'WAF-AISEARCH'; Doc = 'waf-ai-search-checklist.md'; Rules = 37; Auto = 5 }
-            @{ File = 'waf.analytics'; Framework = 'WAF-ANALYTICS'; Doc = 'waf-analytics-checklist.md'; Rules = 74; Auto = 8 }
-            @{ File = 'waf.dataservices'; Framework = 'WAF-DATA'; Doc = 'waf-data-services-checklist.md'; Rules = 100; Auto = 22 }
+            @{ File = 'waf.aisearch'; Framework = 'WAF-AISEARCH'; Doc = 'waf-ai-search-checklist.md'; Rules = 37; Auto = 7 }
+            @{ File = 'waf.analytics'; Framework = 'WAF-ANALYTICS'; Doc = 'waf-analytics-checklist.md'; Rules = 74; Auto = 16 }
+            @{ File = 'waf.dataservices'; Framework = 'WAF-DATA'; Doc = 'waf-data-services-checklist.md'; Rules = 104; Auto = 44 }
         )
     }
 
@@ -53,7 +77,7 @@ Describe 'Technology review rule files' {
         @{ File = 'waf.machinelearning'; Rules = 44 }
         @{ File = 'waf.aisearch'; Rules = 37 }
         @{ File = 'waf.analytics'; Rules = 74 }
-        @{ File = 'waf.dataservices'; Rules = 100 }
+        @{ File = 'waf.dataservices'; Rules = 104 }
     ) {
         $set = & $script:Module { param($f) Get-RuleSet -Patterns $f } $File
         @($set.Rules).Count | Should -Be $Rules
@@ -66,9 +90,9 @@ Describe 'Technology review rule files' {
 
     It '<File> declares framework <Framework>, a version and the number of automated rules <Auto>' -ForEach @(
         @{ File = 'waf.machinelearning'; Framework = 'WAF-ML'; Auto = 5 }
-        @{ File = 'waf.aisearch'; Framework = 'WAF-AISEARCH'; Auto = 5 }
-        @{ File = 'waf.analytics'; Framework = 'WAF-ANALYTICS'; Auto = 8 }
-        @{ File = 'waf.dataservices'; Framework = 'WAF-DATA'; Auto = 22 }
+        @{ File = 'waf.aisearch'; Framework = 'WAF-AISEARCH'; Auto = 7 }
+        @{ File = 'waf.analytics'; Framework = 'WAF-ANALYTICS'; Auto = 16 }
+        @{ File = 'waf.dataservices'; Framework = 'WAF-DATA'; Auto = 44 }
     ) {
         $set = & $script:Module { param($f) Get-RuleSet -Patterns $f } $File
         $set.Framework | Should -Be $Framework
@@ -80,6 +104,16 @@ Describe 'Technology review rule files' {
         }
     }
 
+    It '<File> states its item count (<Rules>) in the framework version' -ForEach @(
+        @{ File = 'waf.machinelearning'; Rules = 44 }
+        @{ File = 'waf.aisearch'; Rules = 37 }
+        @{ File = 'waf.analytics'; Rules = 74 }
+        @{ File = 'waf.dataservices'; Rules = 104 }
+    ) {
+        $set = & $script:Module { param($f) Get-RuleSet -Patterns $f } $File
+        $set.FrameworkVersion | Should -Match "\($Rules items\)"
+    }
+
     It 'every rule id is enumerated in its checklist doc' -ForEach @(
         @{ File = 'waf.machinelearning'; Doc = 'waf-machine-learning-checklist.md' }
         @{ File = 'waf.aisearch'; Doc = 'waf-ai-search-checklist.md' }
@@ -89,6 +123,22 @@ Describe 'Technology review rule files' {
         $set = & $script:Module { param($f) Get-RuleSet -Patterns $f } $File
         $doc = Get-Content "$script:root/docs/frameworks/$Doc" -Raw
         foreach ($r in $set.Rules) { $doc | Should -Match "\| $([regex]::Escape([string]$r.id)) \|" -Because "$($r.id) must be a row in $Doc" }
+    }
+
+    It '<Doc> marks automated rows with a tick and manual rows with a cross, matching the rule file (<File>)' -ForEach @(
+        @{ File = 'waf.machinelearning'; Doc = 'waf-machine-learning-checklist.md' }
+        @{ File = 'waf.aisearch'; Doc = 'waf-ai-search-checklist.md' }
+        @{ File = 'waf.analytics'; Doc = 'waf-analytics-checklist.md' }
+        @{ File = 'waf.dataservices'; Doc = 'waf-data-services-checklist.md' }
+    ) {
+        $set = & $script:Module { param($f) Get-RuleSet -Patterns $f } $File
+        $lines = @(Get-Content "$script:root/docs/frameworks/$Doc")
+        foreach ($r in $set.Rules) {
+            $row = @($lines | Where-Object { $_ -match "^\| $([regex]::Escape([string]$r.id)) \|" })
+            $row.Count | Should -Be 1 -Because "$($r.id) must be one row in $Doc"
+            if ($r.manual) { $row[0] | Should -Match ("\| " + [char]0x274C + " ") -Because "$($r.id) is manual" }
+            else { $row[0] | Should -Match ("\| " + [char]0x2705 + " ") -Because "$($r.id) is automated" }
+        }
     }
 
     It 'every checklist doc states that Microsoft does not publish the question text' -ForEach @(
@@ -104,39 +154,53 @@ Describe 'Technology review rule files' {
         $doc | Should -Match '\| Extraction date \|'
         $doc | Should -Match '\| Verification method \|'
     }
+
+    It '<Doc> summary table states the same totals as the rule file (<File>)' -ForEach @(
+        @{ File = 'waf.machinelearning'; Doc = 'waf-machine-learning-checklist.md' }
+        @{ File = 'waf.aisearch'; Doc = 'waf-ai-search-checklist.md' }
+        @{ File = 'waf.analytics'; Doc = 'waf-analytics-checklist.md' }
+        @{ File = 'waf.dataservices'; Doc = 'waf-data-services-checklist.md' }
+    ) {
+        $set = & $script:Module { param($f) Get-RuleSet -Patterns $f } $File
+        $total = @($set.Rules).Count
+        $auto = @($set.Rules | Where-Object { -not $_.manual }).Count
+        $manual = $total - $auto
+        $doc = Get-Content "$script:root/docs/frameworks/$Doc" -Raw
+        $doc | Should -Match "\| \*\*Total\*\* \| \*\*$total\*\* \| \*\*$auto\*\* \| \*\*$manual\*\* \|"
+    }
 }
 
 Describe 'Technology review: Azure Machine Learning' {
     BeforeAll {
         $p = $script:P
-        $bad = [ordered]@{
-            domains    = [ordered]@{
-                ai      = [ordered]@{ mlWorkspaces = @(
-                        [ordered]@{ id = "$p/Microsoft.MachineLearningServices/workspaces/bad"; name = 'bad'; location = 'x'; workspaceKind = 'Default'; publicAccess = 'Enabled'; identityType = ''; isolationMode = 'Disabled' }
-                        [ordered]@{ id = "$p/Microsoft.MachineLearningServices/workspaces/good"; name = 'good'; location = 'x'; workspaceKind = 'Default'; publicAccess = 'Disabled'; identityType = 'SystemAssigned'; isolationMode = 'AllowOnlyApprovedOutbound' }
-                    ) }
-                storage = [ordered]@{ storageAccounts = @() }
-            }
-            networking = [ordered]@{ privateEndpoints = @((Get-TestPrivateEndpoint "$p/Microsoft.MachineLearningServices/workspaces/good")) }
-            governance = [ordered]@{ roleAssignments = @() }
-            monitor    = [ordered]@{ appInsights = @(); autoscaleSettings = @() }
-            finops     = [ordered]@{ reservations = @() }
-            opsPosture = [ordered]@{ diagnosticCoverage = @(); diagnosticCoverageMeasured = $false }
+        $ws = {
+            param($Name, $Kind, $Public, $Identity, $Isolation, $Cmk)
+            [ordered]@{ id = "$p/Microsoft.MachineLearningServices/workspaces/$Name"; name = $Name; location = 'x'; workspaceKind = $Kind; publicAccess = $Public; identityType = $Identity; isolationMode = $Isolation; cmkStatus = $Cmk; hbiWorkspace = $false; v1LegacyMode = $false }
         }
-        $good = [ordered]@{
-            domains    = [ordered]@{
-                ai      = [ordered]@{ mlWorkspaces = @(
-                        [ordered]@{ id = "$p/Microsoft.MachineLearningServices/workspaces/good"; name = 'good'; location = 'x'; workspaceKind = 'Default'; publicAccess = 'Disabled'; identityType = 'SystemAssigned'; isolationMode = 'AllowOnlyApprovedOutbound' }
-                        [ordered]@{ id = "$p/Microsoft.MachineLearningServices/workspaces/proj"; name = 'proj'; location = 'x'; workspaceKind = 'Project'; publicAccess = 'Disabled'; identityType = 'SystemAssigned'; isolationMode = 'AllowOnlyApprovedOutbound' }
-                    ) }
-                storage = [ordered]@{ storageAccounts = @() }
+        $dom = {
+            param($Workspaces)
+            [ordered]@{
+                domains    = [ordered]@{
+                    ai      = [ordered]@{ mlWorkspaces = @($Workspaces) }
+                    storage = [ordered]@{ storageAccounts = @() }
+                }
+                networking = [ordered]@{ privateEndpoints = @((Get-TestPrivateEndpoint "$p/Microsoft.MachineLearningServices/workspaces/good")) }
+                governance = [ordered]@{ roleAssignments = @() }
+                monitor    = [ordered]@{ appInsights = @(); autoscaleSettings = @() }
+                finops     = [ordered]@{ reservations = @() }
+                opsPosture = [ordered]@{ diagnosticCoverage = @(); diagnosticCoverageMeasured = $false }
             }
-            networking = [ordered]@{ privateEndpoints = @((Get-TestPrivateEndpoint "$p/Microsoft.MachineLearningServices/workspaces/good")) }
-            governance = [ordered]@{ roleAssignments = @() }
-            monitor    = [ordered]@{ appInsights = @(); autoscaleSettings = @() }
-            finops     = [ordered]@{ reservations = @() }
-            opsPosture = [ordered]@{ diagnosticCoverage = @(); diagnosticCoverageMeasured = $false }
         }
+        # bad: no network isolation, public, no identity, and an ABSENT (null) encryption status
+        $bad = & $dom @(
+            (& $ws 'bad' 'Default' 'Enabled' '' 'Disabled' $null)
+            (& $ws 'good' 'Default' 'Disabled' 'SystemAssigned' 'AllowOnlyApprovedOutbound' 'Enabled')
+        )
+        # good: the Foundry project workspace has no key of its own and is skipped by the rules that say so
+        $good = & $dom @(
+            (& $ws 'good' 'Default' 'Disabled' 'SystemAssigned' 'AllowOnlyApprovedOutbound' 'Enabled')
+            (& $ws 'proj' 'Project' 'Disabled' 'SystemAssigned' 'AllowOnlyApprovedOutbound' '')
+        )
         $script:MlBad = ConvertTo-ById (Invoke-ScoutTestRuleSet -Pattern 'waf.machinelearning' -Collect $bad -Assessment 'WAF: Azure Machine Learning')
         $script:MlGood = ConvertTo-ById (Invoke-ScoutTestRuleSet -Pattern 'waf.machinelearning' -Collect $good -Assessment 'WAF: Azure Machine Learning')
     }
@@ -157,8 +221,15 @@ Describe 'Technology review: Azure Machine Learning' {
         $script:MlGood[$Id].Status | Should -Be 'Pass'
     }
 
-    It 'names only the offending workspace in a failing join' {
+    It 'names only the offending workspace in a failing rule' {
         $script:MlBad['WAF-ML-SE-04'].EvidenceCount | Should -Be 1
+    }
+
+    It 'keeps the customer-managed-key item Manual and attaches only the workspaces not on a key' {
+        $script:MlBad['WAF-ML-SE-14'].Status | Should -Be 'Manual'
+        $script:MlBad['WAF-ML-SE-14'].EvidenceCount | Should -Be 1   # bad has a null status; good has a key
+        $script:MlGood['WAF-ML-SE-14'].Status | Should -Be 'Manual'
+        $script:MlGood['WAF-ML-SE-14'].EvidenceCount | Should -Be 0   # the Project kind is skipped
     }
 
     It 'leaves the judgement items Manual with their evidence attached' {
@@ -171,8 +242,12 @@ Describe 'Technology review: Azure AI Search' {
     BeforeAll {
         $p = $script:P
         $mk = {
-            param($Name, $Sku, $Replicas, $Public, $LocalAuthOff)
-            [ordered]@{ id = "$p/Microsoft.Search/searchServices/$Name"; name = $Name; location = 'x'; sku = $Sku; publicAccess = $Public; disableLocalAuth = $LocalAuthOff; replicaCount = $Replicas }
+            param($Name, $Sku, $Replicas, $Public, $LocalAuthOff, $Identity, $IpRules, $Cmk, $Semantic)
+            [ordered]@{
+                id = "$p/Microsoft.Search/searchServices/$Name"; name = $Name; location = 'x'; sku = $Sku; publicAccess = $Public
+                disableLocalAuth = $LocalAuthOff; replicaCount = $Replicas; identityType = $Identity; ipRuleCount = $IpRules
+                cmkEnforcement = $Cmk; semanticSearch = $Semantic; partitionCount = 1
+            }
         }
         $dom = {
             param($Services, $Pes)
@@ -184,14 +259,15 @@ Describe 'Technology review: Azure AI Search' {
                 opsPosture = [ordered]@{ diagnosticCoverage = @(); diagnosticCoverageMeasured = $false }
             }
         }
+        # free: public with NO ip rules (null), no identity; basic1: public with three ip rules, identity None
         $bad = & $dom @(
-            (& $mk 'free' 'free' 1 'enabled' $false)
-            (& $mk 'basic1' 'basic' 1 'Enabled' $false)
-            (& $mk 'good' 'standard' 3 'Disabled' $true)
+            (& $mk 'free' 'free' 1 'enabled' $false '' $null 'Unspecified' 'disabled')
+            (& $mk 'basic1' 'basic' 1 'Enabled' $false 'None' 3 'Disabled' 'standard')
+            (& $mk 'good' 'standard' 3 'Disabled' $true 'SystemAssigned' 0 'Enabled' 'free')
         ) @((Get-TestPrivateEndpoint "$p/Microsoft.Search/searchServices/good"))
         $good = & $dom @(
-            (& $mk 'good' 'standard' 3 'Disabled' $true)
-            (& $mk 'serverless' 'serverless' $null 'Disabled' $true)
+            (& $mk 'good' 'standard' 3 'Disabled' $true 'SystemAssigned' 0 'Enabled' 'free')
+            (& $mk 'serverless' 'serverless' $null 'Disabled' $true 'UserAssigned' $null 'Enabled' 'disabled')
         ) @((Get-TestPrivateEndpoint "$p/Microsoft.Search/searchServices/good"), (Get-TestPrivateEndpoint "$p/Microsoft.Search/searchServices/serverless"))
         $script:SrBad = ConvertTo-ById (Invoke-ScoutTestRuleSet -Pattern 'waf.aisearch' -Collect $bad -Assessment 'WAF: Azure AI Search')
         $script:SrGood = ConvertTo-ById (Invoke-ScoutTestRuleSet -Pattern 'waf.aisearch' -Collect $good -Assessment 'WAF: Azure AI Search')
@@ -208,10 +284,20 @@ Describe 'Technology review: Azure AI Search' {
         @{ Id = 'WAF-AISEARCH-SE-01'; Count = 2 }
         @{ Id = 'WAF-AISEARCH-SE-02'; Count = 2 }
         @{ Id = 'WAF-AISEARCH-SE-03'; Count = 2 }
+        @{ Id = 'WAF-AISEARCH-SE-04'; Count = 2 }   # identity '' and None
+        @{ Id = 'WAF-AISEARCH-SE-11'; Count = 1 }   # free is public with a null rule count; basic1 has rules and passes
     ) {
         $script:SrBad[$Id].Status | Should -Be 'Fail'
         $script:SrBad[$Id].EvidenceCount | Should -Be $Count
         $script:SrGood[$Id].Status | Should -Be 'Pass'
+    }
+
+    It 'keeps the per-index key item and the semantic plan item Manual, with only the services worth reviewing attached' {
+        $script:SrBad['WAF-AISEARCH-SE-06'].Status | Should -Be 'Manual'
+        $script:SrBad['WAF-AISEARCH-SE-06'].EvidenceCount | Should -Be 2   # free (Unspecified) and basic1 (Disabled); good enforces
+        $script:SrGood['WAF-AISEARCH-SE-06'].EvidenceCount | Should -Be 0
+        $script:SrBad['WAF-AISEARCH-CO-06'].Status | Should -Be 'Manual'
+        $script:SrBad['WAF-AISEARCH-CO-06'].EvidenceCount | Should -Be 1   # basic1 is on the billed standard plan
     }
 }
 
@@ -234,12 +320,40 @@ Describe 'Technology review: Analytics' {
                 opsPosture    = [ordered]@{ diagnosticCoverage = @($Cov); diagnosticCoverageMeasured = $true }
             }
         }
+        $eh = {
+            param($Name, $Zone, $Public, $Sku, $AutoInflate, $LocalAuthOff, $Tls, $Key)
+            [ordered]@{
+                id = "$p/Microsoft.EventHub/namespaces/$Name"; name = $Name; location = 'x'; zoneRedundant = $Zone; publicAccess = $Public
+                autoInflateEnabled = $AutoInflate; skuName = $Sku; capacity = 1; maxThroughputUnits = 0; geoReplicaCount = 0
+                disableLocalAuth = $LocalAuthOff; minimumTlsVersion = $Tls; cmkKeySource = $Key; doubleEncryption = $false
+            }
+        }
+        $dbx = {
+            param($Name, $Sku, $Vnet, $NoPublicIp)
+            [ordered]@{ id = "$p/Microsoft.Databricks/workspaces/$Name"; name = $Name; sku = $Sku; vnetInjected = $Vnet; noPublicIp = $NoPublicIp; publicNetworkAccess = 'Disabled' }
+        }
+        $la = {
+            param($Name, $Retention, $Ingest, $Query, $LocalAuthOff, $Resource, $Quota)
+            [ordered]@{
+                id = "$p/Microsoft.OperationalInsights/workspaces/$Name"; name = $Name; location = 'x'; retentionInDays = $Retention; skuName = 'PerGB2018'
+                dailyQuotaGb = $Quota; publicNetworkAccessForIngestion = $Ingest; publicNetworkAccessForQuery = $Query; disableLocalAuth = $LocalAuthOff
+                resourceContextAccess = $Resource; replicationEnabled = $false
+            }
+        }
+        # eh-bad: not zone redundant, public, Standard without auto-inflate, SAS on, TLS 1.0, Microsoft-managed keys
+        # eh-b2: SAS flag ABSENT (null), TLS ABSENT (''), Standard with auto-inflate
+        # eh-b3: Premium without auto-inflate (not Standard, so PE-05 skips it); otherwise compliant
         $bad = & $mk @(
-            [ordered]@{ name = 'eh-bad'; zoneRedundant = $false; publicAccess = 'Enabled'; autoInflateEnabled = $false }
+            (& $eh 'eh-bad' $false 'Enabled' 'Standard' $false $false '1.0' '')
+            (& $eh 'eh-b2' $true 'Disabled' 'Standard' $true $null '' 'Microsoft.KeyVault')
+            (& $eh 'eh-b3' $true 'Disabled' 'Premium' $false $true '1.2' 'Microsoft.KeyVault')
         ) @(
-            [ordered]@{ id = "$p/Microsoft.Databricks/workspaces/dbx-bad"; name = 'dbx-bad'; sku = 'trial' }
+            (& $dbx 'dbx-bad' 'trial' $false $null)
+            (& $dbx 'dbx-b2' 'premium' $true $false)
         ) @(
-            [ordered]@{ name = 'la-bad'; retentionInDays = 7 }
+            (& $la 'la-bad' 7 'Enabled' 'Enabled' $null $false -1)
+            (& $la 'la-b2' 90 'Disabled' 'Disabled' $true $true 10)
+            (& $la 'la-b3' 90 'Disabled' 'Enabled' $true $null $null)
         ) @(
             [ordered]@{ id = 'f1'; name = 'f1'; sku = 'F2'; state = 'Failed' }
         ) @(
@@ -247,11 +361,11 @@ Describe 'Technology review: Analytics' {
             [ordered]@{ type = 'microsoft.operationalinsights/workspaces'; total = 1; withDiag = 0; coveragePct = 0 }
         )
         $good = & $mk @(
-            [ordered]@{ name = 'eh-good'; zoneRedundant = $true; publicAccess = 'Disabled'; autoInflateEnabled = $true }
+            (& $eh 'eh-good' $true 'Disabled' 'Standard' $true $true '1.2' 'Microsoft.KeyVault')
         ) @(
-            [ordered]@{ id = "$p/Microsoft.Databricks/workspaces/dbx-good"; name = 'dbx-good'; sku = 'premium' }
+            (& $dbx 'dbx-good' 'premium' $true $true)
         ) @(
-            [ordered]@{ name = 'la-good'; retentionInDays = 90 }
+            (& $la 'la-good' 90 'Disabled' 'Disabled' $true $true 10)
         ) @(
             [ordered]@{ id = 'f1'; name = 'f1'; sku = 'F2'; state = 'Paused' }
         ) @(
@@ -280,6 +394,39 @@ Describe 'Technology review: Analytics' {
         $script:AnBad[$Id].Status | Should -Be 'Fail'
         $script:AnGood[$Id].Status | Should -Be 'Pass'
     }
+
+    It 'scores <Id> as Fail with exactly <Count> offenders on the bad estate and Pass on the good one' -ForEach @(
+        @{ Id = 'WAF-ANALYTICS-SE-01'; Count = 1 }   # dbx-bad is not injected
+        @{ Id = 'WAF-ANALYTICS-SE-03'; Count = 2 }   # dbx-bad (null) and dbx-b2 (false)
+        @{ Id = 'WAF-ANALYTICS-SE-11'; Count = 2 }   # eh-bad (false) and eh-b2 (null: absent means SAS on)
+        @{ Id = 'WAF-ANALYTICS-SE-12'; Count = 1 }   # only the explicit 1.0; an empty value is not flagged
+        @{ Id = 'WAF-ANALYTICS-SE-16'; Count = 2 }   # la-bad (public, key auth) and la-b3 (public query)
+        @{ Id = 'WAF-ANALYTICS-SE-17'; Count = 2 }   # la-bad (false) and la-b3 (null)
+        @{ Id = 'WAF-ANALYTICS-CO-11'; Count = 2 }   # la-bad (-1) and la-b3 (null) have no cap
+        @{ Id = 'WAF-ANALYTICS-PE-05'; Count = 1 }   # eh-bad; Premium eh-b3 is skipped
+    ) {
+        $script:AnBad[$Id].Status | Should -Be 'Fail'
+        $script:AnBad[$Id].EvidenceCount | Should -Be $Count
+        $script:AnGood[$Id].Status | Should -Be 'Pass'
+    }
+
+    It 'keeps the customer-managed-key item Manual and attaches only the namespaces not on a key' {
+        $script:AnBad['WAF-ANALYTICS-SE-13'].Status | Should -Be 'Manual'
+        $script:AnBad['WAF-ANALYTICS-SE-13'].EvidenceCount | Should -Be 1   # eh-bad; the others use Key Vault keys
+        $script:AnGood['WAF-ANALYTICS-SE-13'].Status | Should -Be 'Manual'
+        $script:AnGood['WAF-ANALYTICS-SE-13'].EvidenceCount | Should -Be 0
+    }
+
+    It 'keeps the capacity and workspace-tier judgement items Manual with their evidence attached' {
+        foreach ($id in 'WAF-ANALYTICS-RE-07', 'WAF-ANALYTICS-RE-08', 'WAF-ANALYTICS-CO-07', 'WAF-ANALYTICS-PE-04') {
+            $script:AnBad[$id].Status | Should -Be 'Manual'
+            $script:AnBad[$id].EvidenceCount | Should -Be 3
+        }
+        foreach ($id in 'WAF-ANALYTICS-RE-10', 'WAF-ANALYTICS-CO-09') {
+            $script:AnBad[$id].Status | Should -Be 'Manual'
+            $script:AnBad[$id].EvidenceCount | Should -Be 3
+        }
+    }
 }
 
 Describe 'Technology review: Data Services' {
@@ -287,30 +434,119 @@ Describe 'Technology review: Data Services' {
         $p = $script:P
         $mk = {
             param([bool] $Compliant)
-            $pe = @()
             $id = { param($t) "$p/$t" }
-            $cos = [ordered]@{ id = (& $id 'Microsoft.DocumentDB/databaseAccounts/cos'); name = 'cos'; kind = 'GlobalDocumentDB'; publicNetworkAccess = $(if ($Compliant) { 'Disabled' } else { 'Enabled' }); disableLocalAuth = $Compliant }
-            $red = [ordered]@{ id = (& $id 'Microsoft.Cache/redisEnterprise/red'); name = 'red'; type = 'microsoft.cache/redisenterprise'; sku = 'Balanced_B5'; publicNetworkAccess = $(if ($Compliant) { 'Disabled' } else { 'Enabled' }) }
-            $sto = [ordered]@{ id = (& $id 'Microsoft.Storage/storageAccounts/sto'); name = 'sto'; sku = $(if ($Compliant) { 'Standard_ZRS' } else { 'Standard_LRS' }); publicAccess = (-not $Compliant); httpsOnly = $Compliant; minTls = $(if ($Compliant) { 'TLS1_2' } else { 'TLS1_0' }); networkDefaultDeny = $Compliant }
-            if ($Compliant) { $pe = @((Get-TestPrivateEndpoint $cos.id), (Get-TestPrivateEndpoint $red.id), (Get-TestPrivateEndpoint $sto.id)) }
+            $pna = $(if ($Compliant) { 'Disabled' } else { 'Enabled' })
+
+            # ---- SQL: servers (bad adds one with an ABSENT tls and Entra flag, and one fully compliant) ----
+            $srv = [ordered]@{ id = (& $id 'Microsoft.Sql/servers/srv'); name = 'srv'; resourceGroup = 'rg'; location = 'x'; publicNetworkAccess = $pna; minimalTlsVersion = $(if ($Compliant) { '1.2' } else { '1.0' }); entraOnlyAuth = $Compliant; identityType = ''; cmkEnabled = $false }
+            $srv2 = [ordered]@{ id = (& $id 'Microsoft.Sql/servers/srv2'); name = 'srv2'; resourceGroup = 'rg'; location = 'x'; publicNetworkAccess = 'Enabled'; minimalTlsVersion = ''; entraOnlyAuth = $null; identityType = ''; cmkEnabled = $false }
+            $srv3 = [ordered]@{ id = (& $id 'Microsoft.Sql/servers/srv3'); name = 'srv3'; resourceGroup = 'rg'; location = 'x'; publicNetworkAccess = 'Disabled'; minimalTlsVersion = '1.3'; entraOnlyAuth = $true; identityType = 'UserAssigned'; cmkEnabled = $true }
+            $sqlServers = @($srv); if (-not $Compliant) { $sqlServers += $srv2, $srv3 }
+
+            # ---- SQL: databases (master is a system database: excluded from zone redundancy and backup redundancy) ----
+            $dbs = @(
+                [ordered]@{ id = (& $id 'Microsoft.Sql/servers/srv/databases/db1'); name = 'db1'; resourceGroup = 'rg'; location = 'x'; zoneRedundant = $Compliant; tier = 'GeneralPurpose'; backupRedundancy = $(if ($Compliant) { 'Geo' } else { 'Local' }); secondaryType = ''; haReplicaCount = 0 }
+                [ordered]@{ id = (& $id 'Microsoft.Sql/servers/srv/databases/master'); name = 'master'; resourceGroup = 'rg'; location = 'x'; zoneRedundant = $false; tier = 'System'; backupRedundancy = ''; secondaryType = ''; haReplicaCount = $null }
+            )
+            if (-not $Compliant) {
+                $dbs += [ordered]@{ id = (& $id 'Microsoft.Sql/servers/srv/databases/db2'); name = 'db2'; resourceGroup = 'rg'; location = 'x'; zoneRedundant = $true; tier = 'BusinessCritical'; backupRedundancy = 'Zone'; secondaryType = ''; haReplicaCount = 1 }
+                $dbs += [ordered]@{ id = (& $id 'Microsoft.Sql/servers/srv/databases/db3'); name = 'db3'; resourceGroup = 'rg'; location = 'x'; zoneRedundant = $true; tier = 'Hyperscale'; backupRedundancy = 'GeoZone'; secondaryType = ''; haReplicaCount = 1 }
+            }
+
+            # ---- SQL managed instances ----
+            $mi = [ordered]@{ id = (& $id 'Microsoft.Sql/managedInstances/mi'); name = 'mi'; sku = 'GP_Gen5'; publicDataEndpointEnabled = (-not $Compliant); vCores = 4; zoneRedundant = $Compliant; backupRedundancy = $(if ($Compliant) { 'Geo' } else { 'Local' }); entraOnlyAuth = $(if ($Compliant) { $true } else { $null }); minimalTlsVersion = '1.2'; cmkEnabled = $Compliant }
+            $mis = @($mi)
+            if (-not $Compliant) {
+                $mis += [ordered]@{ id = (& $id 'Microsoft.Sql/managedInstances/mi2'); name = 'mi2'; sku = 'GP_Gen5'; publicDataEndpointEnabled = $false; vCores = 4; zoneRedundant = $true; backupRedundancy = 'Zone'; entraOnlyAuth = $false; minimalTlsVersion = '1.2'; cmkEnabled = $true }
+                $mis += [ordered]@{ id = (& $id 'Microsoft.Sql/managedInstances/mi3'); name = 'mi3'; sku = 'GP_Gen5'; publicDataEndpointEnabled = $false; vCores = 4; zoneRedundant = $true; backupRedundancy = 'GeoZone'; entraOnlyAuth = $true; minimalTlsVersion = '1.2'; cmkEnabled = $true }
+            }
+
+            # ---- Cosmos DB: cos is the primary row; the bad estate adds a multi-region account with null flags,
+            # a compliant multi-region account behind IP rules, and a multi-region-write account ----
+            $cosRow = {
+                param($Name, $Pna, $LocalAuthOff, $Regions, $ZoneRegions, $Failover, $MultiWrite, $Backup, $Vnet, $IpRules, $Cmk)
+                [ordered]@{
+                    id = (& $id "Microsoft.DocumentDB/databaseAccounts/$Name"); name = $Name; kind = 'GlobalDocumentDB'; publicNetworkAccess = $Pna; disableLocalAuth = $LocalAuthOff
+                    regionCount = $Regions; zoneRedundantRegionCount = $ZoneRegions; automaticFailover = $Failover; backupType = $Backup; multiRegionWrites = $MultiWrite
+                    minimalTlsVersion = 'Tls12'; vnetFilterEnabled = $Vnet; ipRuleCount = $IpRules; cmkEnabled = $Cmk
+                }
+            }
+            $cos = $(if ($Compliant) { & $cosRow 'cos' 'Disabled' $true 2 2 $true $false 'Continuous' $true 0 $true } else { & $cosRow 'cos' 'Enabled' $false 1 0 $false $false 'Periodic' $false 0 $false })
+            $cosAll = @($cos)
+            if (-not $Compliant) {
+                $cosAll += & $cosRow 'cos2' 'Enabled' $false 2 0 $null $false $null $true $null $null
+                $cosAll += & $cosRow 'cos3' 'Enabled' $false 2 2 $true $false 'Continuous' $false 1 $true
+                $cosAll += & $cosRow 'cos4' 'Disabled' $true 2 1 $null $true 'Continuous' $true 0 $true
+            }
+
+            # ---- PostgreSQL (pg2 has every new flag ABSENT) and MySQL ----
+            $pgRow = {
+                param($Name, $Pna, $Ha, $Geo, $Entra, $PwAuth)
+                [ordered]@{ id = (& $id "Microsoft.DBforPostgreSQL/flexibleServers/$Name"); name = $Name; sku = 'Standard_D2s_v3'; version = '16'; publicNetworkAccess = $Pna; tier = 'GeneralPurpose'; haMode = $Ha; geoBackup = $Geo; backupRetentionDays = 7; encryptionType = 'SystemManaged'; entraAuth = $Entra; passwordAuth = $PwAuth }
+            }
+            $pgs = @($(if ($Compliant) { & $pgRow 'pg' 'Disabled' 'ZoneRedundant' 'Enabled' 'Enabled' 'Disabled' } else { & $pgRow 'pg' 'Enabled' 'SameZone' 'Disabled' 'Disabled' 'Enabled' }))
+            if (-not $Compliant) {
+                $pgs += & $pgRow 'pg2' 'Enabled' '' $null $null $null
+                $pgs += & $pgRow 'pg3' 'Disabled' 'ZoneRedundant' 'Enabled' 'Enabled' 'Disabled'
+            }
+            $myRow = {
+                param($Name, $Pna, $Ha, $Geo)
+                [ordered]@{ id = (& $id "Microsoft.DBforMySQL/flexibleServers/$Name"); name = $Name; sku = 'Standard_D2ds_v4'; version = '8.0'; publicNetworkAccess = $Pna; haMode = $Ha; geoBackup = $Geo; backupRetentionDays = 7; encryptionType = ''; storageAutoGrow = 'Enabled' }
+            }
+            $mys = @($(if ($Compliant) { & $myRow 'my' 'Disabled' 'ZoneRedundant' 'Enabled' } else { & $myRow 'my' 'Enabled' 'Disabled' 'Disabled' }))
+            if (-not $Compliant) {
+                $mys += & $myRow 'my2' 'Enabled' '' $null
+                $mys += & $myRow 'my3' 'Disabled' 'SameZone' 'Enabled'
+            }
+
+            # ---- Redis: red is Redis Enterprise (key setting lives on a child database, so RED-06 skips it);
+            # redc and redc2 are classic caches ----
+            $redRow = {
+                param($Name, $Type, $Sku, $Pna, $Ha, $KeyAuthOff, $NonSsl, $Tls)
+                [ordered]@{ id = (& $id "Microsoft.Cache/$Name"); name = $Name; type = $Type; sku = $Sku; skuFamily = ''; skuCapacity = $null; publicNetworkAccess = $Pna; zoneCount = $null; zonalAllocationPolicy = ''; replicasPerPrimary = $null; minimumTlsVersion = $Tls; nonSslPortEnabled = $NonSsl; accessKeyAuthDisabled = $KeyAuthOff; aadEnabled = $null; highAvailability = $Ha }
+            }
+            $reds = @(
+                $(if ($Compliant) { & $redRow 'red' 'microsoft.cache/redisenterprise' 'Balanced_B5' 'Disabled' 'Enabled' $null $null '1.2' } else { & $redRow 'red' 'microsoft.cache/redisenterprise' 'Balanced_B5' 'Enabled' 'Disabled' $null $null '1.2' })
+                $(if ($Compliant) { & $redRow 'redc' 'microsoft.cache/redis' 'Premium' 'Disabled' '' $true $false '1.2' } else { & $redRow 'redc' 'microsoft.cache/redis' 'Basic' 'Enabled' '' $null $true '1.0' })
+            )
+            if (-not $Compliant) { $reds += & $redRow 'redc2' 'microsoft.cache/redis' 'Standard' 'Enabled' '' $false $false '1.1' }
+
+            # ---- Storage: sto is the primary row; the bad estate adds one with every flag ABSENT, one compliant
+            # row (TLS 1.3, the alternate Keyvault casing, perimeter) and one legacy blob-only account ----
+            $stoRow = {
+                param($Name, $Kind, $Sku, $PublicAccess, $Https, $Tls, $DefaultDeny, $SharedKey, $KeySource, $Pna)
+                [ordered]@{
+                    id = (& $id "Microsoft.Storage/storageAccounts/$Name"); name = $Name; location = 'x'; kind = $Kind; sku = $Sku; publicAccess = $PublicAccess; httpsOnly = $Https; minTls = $Tls
+                    networkDefaultDeny = $DefaultDeny; sharedKeyAccess = $SharedKey; keySource = $KeySource; infrastructureEncryption = $false; publicNetworkAccess = $Pna
+                    allowCrossTenantReplication = $false; defaultToOAuth = $true
+                }
+            }
+            $sto = $(if ($Compliant) { & $stoRow 'sto' 'StorageV2' 'Standard_ZRS' $false $true 'TLS1_2' $true $false 'Microsoft.Keyvault' 'Disabled' } else { & $stoRow 'sto' 'Storage' 'Standard_LRS' $true $false 'TLS1_0' $false $true 'Microsoft.Storage' 'Enabled' })
+            $stos = @($sto)
+            if (-not $Compliant) {
+                $stos += & $stoRow 'sto2' 'StorageV1' 'Standard_LRS' $false $true '' $true $null '' ''
+                $stos += & $stoRow 'sto3' 'BlockBlobStorage' 'Premium_ZRS' $false $true 'TLS1_3' $true $false 'Microsoft.KeyVault' 'SecuredByPerimeter'
+                $stos += & $stoRow 'sto4' 'BlobStorage' 'Standard_LRS' $false $true 'TLS1_1' $true $true 'Microsoft.Storage' 'Enabled'
+            }
+
+            $pe = @()
+            if ($Compliant) { $pe = @((Get-TestPrivateEndpoint $srv.id), (Get-TestPrivateEndpoint $cos.id), (Get-TestPrivateEndpoint $reds[0].id), (Get-TestPrivateEndpoint $reds[1].id), (Get-TestPrivateEndpoint $sto.id)) }
+            else { $pe = @((Get-TestPrivateEndpoint $srv2.id), (Get-TestPrivateEndpoint $srv3.id)) }
             $cov = $(if ($Compliant) { 100 } else { 0 })
             [ordered]@{
                 domains    = [ordered]@{
                     databases = [ordered]@{
-                        sqlDatabases              = @(
-                            [ordered]@{ name = 'db1'; resourceGroup = 'rg'; zoneRedundant = $Compliant; tier = 'GeneralPurpose' }
-                            [ordered]@{ name = 'master'; resourceGroup = 'rg'; zoneRedundant = $false; tier = 'System' }
-                        )
-                        sqlServers                = @([ordered]@{ name = 'srv'; resourceGroup = 'rg'; publicNetworkAccess = $(if ($Compliant) { 'Disabled' } else { 'Enabled' }) })
+                        sqlDatabases              = $dbs
+                        sqlServers                = $sqlServers
                         sqlDefenderPricing        = @([ordered]@{ subscriptionId = 's'; name = 'sqlservers'; pricingTier = $(if ($Compliant) { 'Standard' } else { 'Free' }) })
-                        sqlManagedInstances       = @([ordered]@{ id = (& $id 'Microsoft.Sql/managedInstances/mi'); name = 'mi'; sku = 'GP_Gen5'; publicDataEndpointEnabled = (-not $Compliant); vCores = 4 })
+                        sqlManagedInstances       = $mis
                         sqlElasticPools           = @()
-                        cosmosDbAccounts          = @($cos)
-                        postgreSqlFlexibleServers = @([ordered]@{ id = (& $id 'Microsoft.DBforPostgreSQL/flexibleServers/pg'); name = 'pg'; sku = 'Standard_D2s_v3'; version = '16'; publicNetworkAccess = $(if ($Compliant) { 'Disabled' } else { 'Enabled' }) })
-                        mySqlFlexibleServers      = @([ordered]@{ id = (& $id 'Microsoft.DBforMySQL/flexibleServers/my'); name = 'my'; sku = 'Standard_D2ds_v4'; version = '8.0'; publicNetworkAccess = $(if ($Compliant) { 'Disabled' } else { 'Enabled' }) })
-                        redisCaches               = @($red)
+                        cosmosDbAccounts          = $cosAll
+                        postgreSqlFlexibleServers = $pgs
+                        mySqlFlexibleServers      = $mys
+                        redisCaches               = $reds
                     }
-                    storage   = [ordered]@{ storageAccounts = @($sto) }
+                    storage   = [ordered]@{ storageAccounts = $stos }
                     security  = [ordered]@{ keyVaults = @() }
                 }
                 networking = [ordered]@{ privateEndpoints = @($pe) }
@@ -356,13 +592,43 @@ Describe 'Technology review: Data Services' {
         @{ Id = 'WAF-DATA-RED-05' }
         @{ Id = 'WAF-DATA-BLOB-01' }
         @{ Id = 'WAF-DATA-BLOB-02' }
-        @{ Id = 'WAF-DATA-BLOB-03' }
         @{ Id = 'WAF-DATA-BLOB-04' }
         @{ Id = 'WAF-DATA-BLOB-05' }
         @{ Id = 'WAF-DATA-BLOB-09' }
         @{ Id = 'WAF-DATA-BLOB-12' }
     ) {
         $script:DtBad[$Id].Status | Should -Be 'Fail'
+        $script:DtGood[$Id].Status | Should -Be 'Pass'
+    }
+
+    It 'scores <Id> as Fail with exactly <Count> offenders on the bad estate and Pass on the good one' -ForEach @(
+        @{ Id = 'WAF-DATA-SQL-01'; Count = 1 }     # db1; master excluded, db2 and db3 are zone redundant
+        @{ Id = 'WAF-DATA-SQL-07'; Count = 1 }     # srv has no private endpoint; srv2 and srv3 do
+        @{ Id = 'WAF-DATA-SQL-08'; Count = 2 }     # srv (1.0) and srv2 (empty: absent means every version)
+        @{ Id = 'WAF-DATA-SQL-09'; Count = 2 }     # srv (false) and srv2 (null: no Entra administrator)
+        @{ Id = 'WAF-DATA-SQL-19'; Count = 2 }     # db1 (Local) and db2 (Zone); master excluded, db3 is GeoZone
+        @{ Id = 'WAF-DATA-MI-01'; Count = 1 }      # mi
+        @{ Id = 'WAF-DATA-MI-02'; Count = 2 }      # mi (Local) and mi2 (Zone)
+        @{ Id = 'WAF-DATA-MI-05'; Count = 2 }      # mi (null) and mi2 (false)
+        @{ Id = 'WAF-DATA-COS-01'; Count = 2 }     # cos and cos2 have no zone-redundant region
+        @{ Id = 'WAF-DATA-COS-02'; Count = 1 }     # cos is single region
+        @{ Id = 'WAF-DATA-COS-03'; Count = 1 }     # cos2: two regions, single write, null failover; cos is single region, cos4 writes in many
+        @{ Id = 'WAF-DATA-COS-04'; Count = 2 }     # cos (Periodic) and cos2 (null)
+        @{ Id = 'WAF-DATA-COS-08'; Count = 1 }     # cos: public, no vnet filter, no ip rules; cos2 has a filter, cos3 has a rule
+        @{ Id = 'WAF-DATA-PG-01'; Count = 2 }      # pg (SameZone) and pg2 (empty)
+        @{ Id = 'WAF-DATA-PG-02'; Count = 2 }      # pg (Disabled) and pg2 (null)
+        @{ Id = 'WAF-DATA-PG-04'; Count = 2 }      # pg (Disabled) and pg2 (null)
+        @{ Id = 'WAF-DATA-MYS-01'; Count = 2 }     # my (Disabled) and my2 (empty); my3 is SameZone
+        @{ Id = 'WAF-DATA-RED-01'; Count = 2 }     # red (HA Disabled) and redc (Basic); redc2 is Standard
+        @{ Id = 'WAF-DATA-RED-06'; Count = 2 }     # redc (null) and redc2 (false); the Enterprise cache is skipped
+        @{ Id = 'WAF-DATA-RED-07'; Count = 2 }     # redc (non-TLS port, 1.0) and redc2 (1.1)
+        @{ Id = 'WAF-DATA-BLOB-03'; Count = 3 }    # sto (TLS1_0), sto2 (empty: absent means 1.0), sto4 (TLS1_1)
+        @{ Id = 'WAF-DATA-BLOB-06'; Count = 3 }    # sto (true), sto2 (null: absent means allowed), sto4 (true)
+        @{ Id = 'WAF-DATA-BLOB-15'; Count = 3 }    # sto (Enabled), sto2 (empty), sto4 (Enabled); sto3 is perimeter
+        @{ Id = 'WAF-DATA-BLOB-16'; Count = 3 }    # Storage, StorageV1 and BlobStorage
+    ) {
+        $script:DtBad[$Id].Status | Should -Be 'Fail'
+        $script:DtBad[$Id].EvidenceCount | Should -Be $Count
         $script:DtGood[$Id].Status | Should -Be 'Pass'
     }
 
@@ -373,6 +639,140 @@ Describe 'Technology review: Data Services' {
     It 'keeps Azure HorizonDB items Manual because no HorizonDB dataset is collected' {
         foreach ($id in $script:DtBad.Keys | Where-Object { $_ -like 'WAF-DATA-HZ-*' }) { $script:DtBad[$id].Status | Should -Be 'Manual' }
         @($script:DtBad.Keys | Where-Object { $_ -like 'WAF-DATA-HZ-*' }).Count | Should -BeGreaterThan 0
+    }
+
+    It 'keeps the customer-managed-key items Manual and attaches only the resources not on a key' -ForEach @(
+        @{ Id = 'WAF-DATA-MI-06'; Count = 1 }     # mi; mi2 and mi3 use a key
+        @{ Id = 'WAF-DATA-COS-11'; Count = 2 }    # cos (false) and cos2 (null)
+        @{ Id = 'WAF-DATA-BLOB-07'; Count = 3 }   # sto, sto2 (empty) and sto4; sto3 uses the alternate Keyvault casing
+    ) {
+        $script:DtBad[$Id].Status | Should -Be 'Manual'
+        $script:DtBad[$Id].EvidenceCount | Should -Be $Count
+        $script:DtGood[$Id].Status | Should -Be 'Manual'
+        $script:DtGood[$Id].EvidenceCount | Should -Be 0
+    }
+
+    It 'keeps the items ARM cannot answer Manual, with their evidence attached' {
+        foreach ($id in 'WAF-DATA-SQL-02', 'WAF-DATA-SQL-18', 'WAF-DATA-COS-17', 'WAF-DATA-PG-09', 'WAF-DATA-MYS-08', 'WAF-DATA-RED-09', 'WAF-DATA-BLOB-14') {
+            $script:DtBad[$id].Status | Should -Be 'Manual' -Because "$id needs a human"
+        }
+        $script:DtBad['WAF-DATA-COS-17'].EvidenceCount | Should -Be 4
+        $script:DtBad['WAF-DATA-MYS-08'].EvidenceCount | Should -Be 3
+        $script:DtBad['WAF-DATA-RED-09'].EvidenceCount | Should -Be 3
+        $script:DtBad['WAF-DATA-BLOB-14'].EvidenceCount | Should -Be 4
+    }
+}
+
+Describe 'Technology review: settings where an absent value is itself the finding' {
+    BeforeAll {
+        $p = $script:P
+        # one compliant baseline row per dataset; each case overrides a single setting with an explicit
+        # null, an empty string or a real value, and the rule under test must read it correctly
+        $script:Baseline = @{
+            'domains.storage.storageAccounts'          = [ordered]@{ id = "$p/Microsoft.Storage/storageAccounts/edge"; name = 'edge'; location = 'x'; kind = 'StorageV2'; sku = 'Standard_ZRS'; publicAccess = $false; httpsOnly = $true; minTls = 'TLS1_2'; networkDefaultDeny = $true; sharedKeyAccess = $false; keySource = 'Microsoft.Keyvault'; infrastructureEncryption = $false; publicNetworkAccess = 'Disabled' }
+            'domains.databases.sqlServers'             = [ordered]@{ id = "$p/Microsoft.Sql/servers/edge"; name = 'edge'; location = 'x'; publicNetworkAccess = 'Disabled'; minimalTlsVersion = '1.2'; entraOnlyAuth = $true; identityType = 'UserAssigned'; cmkEnabled = $true }
+            'domains.databases.sqlManagedInstances'    = [ordered]@{ id = "$p/Microsoft.Sql/managedInstances/edge"; name = 'edge'; publicDataEndpointEnabled = $false; zoneRedundant = $true; backupRedundancy = 'Geo'; entraOnlyAuth = $true; minimalTlsVersion = '1.2'; cmkEnabled = $true }
+            'domains.databases.cosmosDbAccounts'       = [ordered]@{ id = "$p/Microsoft.DocumentDB/databaseAccounts/edge"; name = 'edge'; publicNetworkAccess = 'Disabled'; disableLocalAuth = $true; regionCount = 2; zoneRedundantRegionCount = 2; automaticFailover = $true; backupType = 'Continuous'; multiRegionWrites = $false; vnetFilterEnabled = $true; ipRuleCount = 0; cmkEnabled = $true }
+            'domains.databases.redisCaches'            = [ordered]@{ id = "$p/Microsoft.Cache/Redis/edge"; name = 'edge'; type = 'microsoft.cache/redis'; sku = 'Premium'; publicNetworkAccess = 'Disabled'; minimumTlsVersion = '1.2'; nonSslPortEnabled = $false; accessKeyAuthDisabled = $true; highAvailability = '' }
+            'domains.integration.eventHubNamespaces'   = [ordered]@{ id = "$p/Microsoft.EventHub/namespaces/edge"; name = 'edge'; zoneRedundant = $true; publicAccess = 'Disabled'; autoInflateEnabled = $true; skuName = 'Standard'; disableLocalAuth = $true; minimumTlsVersion = '1.2'; cmkKeySource = 'Microsoft.KeyVault' }
+            'management.logAnalyticsWorkspaces'        = [ordered]@{ id = "$p/Microsoft.OperationalInsights/workspaces/edge"; name = 'edge'; location = 'x'; retentionInDays = 90; skuName = 'PerGB2018'; dailyQuotaGb = 10; publicNetworkAccessForIngestion = 'Disabled'; publicNetworkAccessForQuery = 'Disabled'; disableLocalAuth = $true; resourceContextAccess = $true; replicationEnabled = $false }
+            'domains.analytics.databricksWorkspaces'   = [ordered]@{ id = "$p/Microsoft.Databricks/workspaces/edge"; name = 'edge'; sku = 'premium'; vnetInjected = $true; noPublicIp = $true; publicNetworkAccess = 'Disabled' }
+            'domains.ai.searchServices'                = [ordered]@{ id = "$p/Microsoft.Search/searchServices/edge"; name = 'edge'; sku = 'standard'; publicAccess = 'Disabled'; disableLocalAuth = $true; replicaCount = 3; identityType = 'SystemAssigned'; cmkEnforcement = 'Enabled'; ipRuleCount = 2; semanticSearch = 'free'; partitionCount = 1 }
+            'domains.ai.mlWorkspaces'                  = [ordered]@{ id = "$p/Microsoft.MachineLearningServices/workspaces/edge"; name = 'edge'; workspaceKind = 'Default'; publicAccess = 'Disabled'; identityType = 'SystemAssigned'; isolationMode = 'AllowOnlyApprovedOutbound'; cmkStatus = 'Enabled'; hbiWorkspace = $false; v1LegacyMode = $false }
+        }
+    }
+
+    It '<Case>' -ForEach @(
+        # ---- storage: absent minimumTlsVersion, shared-key flag, key source and public network access ----
+        @{ Case = 'BLOB-03 flags a null minimum TLS version'; Pattern = 'waf.dataservices'; Id = 'WAF-DATA-BLOB-03'; Path = 'domains.storage.storageAccounts'; Row = @{ minTls = $null }; Status = 'Fail'; Count = 1 }
+        @{ Case = 'BLOB-03 flags an empty minimum TLS version'; Pattern = 'waf.dataservices'; Id = 'WAF-DATA-BLOB-03'; Path = 'domains.storage.storageAccounts'; Row = @{ minTls = '' }; Status = 'Fail'; Count = 1 }
+        @{ Case = 'BLOB-03 flags TLS1_1'; Pattern = 'waf.dataservices'; Id = 'WAF-DATA-BLOB-03'; Path = 'domains.storage.storageAccounts'; Row = @{ minTls = 'TLS1_1' }; Status = 'Fail'; Count = 1 }
+        @{ Case = 'BLOB-03 passes TLS1_2'; Pattern = 'waf.dataservices'; Id = 'WAF-DATA-BLOB-03'; Path = 'domains.storage.storageAccounts'; Row = @{ minTls = 'TLS1_2' }; Status = 'Pass'; Count = 0 }
+        @{ Case = 'BLOB-03 passes TLS1_3'; Pattern = 'waf.dataservices'; Id = 'WAF-DATA-BLOB-03'; Path = 'domains.storage.storageAccounts'; Row = @{ minTls = 'TLS1_3' }; Status = 'Pass'; Count = 0 }
+        @{ Case = 'BLOB-06 flags a null shared-key flag (absent means allowed)'; Pattern = 'waf.dataservices'; Id = 'WAF-DATA-BLOB-06'; Path = 'domains.storage.storageAccounts'; Row = @{ sharedKeyAccess = $null }; Status = 'Fail'; Count = 1 }
+        @{ Case = 'BLOB-06 flags shared key allowed'; Pattern = 'waf.dataservices'; Id = 'WAF-DATA-BLOB-06'; Path = 'domains.storage.storageAccounts'; Row = @{ sharedKeyAccess = $true }; Status = 'Fail'; Count = 1 }
+        @{ Case = 'BLOB-06 passes shared key disallowed'; Pattern = 'waf.dataservices'; Id = 'WAF-DATA-BLOB-06'; Path = 'domains.storage.storageAccounts'; Row = @{ sharedKeyAccess = $false }; Status = 'Pass'; Count = 0 }
+        @{ Case = 'BLOB-07 lists an empty key source'; Pattern = 'waf.dataservices'; Id = 'WAF-DATA-BLOB-07'; Path = 'domains.storage.storageAccounts'; Row = @{ keySource = '' }; Status = 'Manual'; Count = 1 }
+        @{ Case = 'BLOB-07 lists a null key source'; Pattern = 'waf.dataservices'; Id = 'WAF-DATA-BLOB-07'; Path = 'domains.storage.storageAccounts'; Row = @{ keySource = $null }; Status = 'Manual'; Count = 1 }
+        @{ Case = 'BLOB-07 does not list the Keyvault spelling'; Pattern = 'waf.dataservices'; Id = 'WAF-DATA-BLOB-07'; Path = 'domains.storage.storageAccounts'; Row = @{ keySource = 'Microsoft.Keyvault' }; Status = 'Manual'; Count = 0 }
+        @{ Case = 'BLOB-07 does not list the KeyVault spelling'; Pattern = 'waf.dataservices'; Id = 'WAF-DATA-BLOB-07'; Path = 'domains.storage.storageAccounts'; Row = @{ keySource = 'Microsoft.KeyVault' }; Status = 'Manual'; Count = 0 }
+        @{ Case = 'BLOB-15 flags an empty public network access'; Pattern = 'waf.dataservices'; Id = 'WAF-DATA-BLOB-15'; Path = 'domains.storage.storageAccounts'; Row = @{ publicNetworkAccess = '' }; Status = 'Fail'; Count = 1 }
+        @{ Case = 'BLOB-15 flags a null public network access'; Pattern = 'waf.dataservices'; Id = 'WAF-DATA-BLOB-15'; Path = 'domains.storage.storageAccounts'; Row = @{ publicNetworkAccess = $null }; Status = 'Fail'; Count = 1 }
+        @{ Case = 'BLOB-15 passes a security perimeter'; Pattern = 'waf.dataservices'; Id = 'WAF-DATA-BLOB-15'; Path = 'domains.storage.storageAccounts'; Row = @{ publicNetworkAccess = 'SecuredByPerimeter' }; Status = 'Pass'; Count = 0 }
+        @{ Case = 'BLOB-16 flags the legacy Storage kind'; Pattern = 'waf.dataservices'; Id = 'WAF-DATA-BLOB-16'; Path = 'domains.storage.storageAccounts'; Row = @{ kind = 'Storage' }; Status = 'Fail'; Count = 1 }
+        @{ Case = 'BLOB-16 flags the StorageV1 kind'; Pattern = 'waf.dataservices'; Id = 'WAF-DATA-BLOB-16'; Path = 'domains.storage.storageAccounts'; Row = @{ kind = 'StorageV1' }; Status = 'Fail'; Count = 1 }
+        @{ Case = 'BLOB-16 passes a premium block blob account'; Pattern = 'waf.dataservices'; Id = 'WAF-DATA-BLOB-16'; Path = 'domains.storage.storageAccounts'; Row = @{ kind = 'BlockBlobStorage' }; Status = 'Pass'; Count = 0 }
+        # ---- SQL servers and managed instances ----
+        @{ Case = 'SQL-08 flags a null minimal TLS version'; Pattern = 'waf.dataservices'; Id = 'WAF-DATA-SQL-08'; Path = 'domains.databases.sqlServers'; Row = @{ minimalTlsVersion = $null }; Status = 'Fail'; Count = 1 }
+        @{ Case = 'SQL-08 flags an empty minimal TLS version'; Pattern = 'waf.dataservices'; Id = 'WAF-DATA-SQL-08'; Path = 'domains.databases.sqlServers'; Row = @{ minimalTlsVersion = '' }; Status = 'Fail'; Count = 1 }
+        @{ Case = 'SQL-08 flags None'; Pattern = 'waf.dataservices'; Id = 'WAF-DATA-SQL-08'; Path = 'domains.databases.sqlServers'; Row = @{ minimalTlsVersion = 'None' }; Status = 'Fail'; Count = 1 }
+        @{ Case = 'SQL-08 flags 1.1'; Pattern = 'waf.dataservices'; Id = 'WAF-DATA-SQL-08'; Path = 'domains.databases.sqlServers'; Row = @{ minimalTlsVersion = '1.1' }; Status = 'Fail'; Count = 1 }
+        @{ Case = 'SQL-08 passes 1.3'; Pattern = 'waf.dataservices'; Id = 'WAF-DATA-SQL-08'; Path = 'domains.databases.sqlServers'; Row = @{ minimalTlsVersion = '1.3' }; Status = 'Pass'; Count = 0 }
+        @{ Case = 'SQL-09 flags a null Entra-only flag (no Entra administrator)'; Pattern = 'waf.dataservices'; Id = 'WAF-DATA-SQL-09'; Path = 'domains.databases.sqlServers'; Row = @{ entraOnlyAuth = $null }; Status = 'Fail'; Count = 1 }
+        @{ Case = 'SQL-09 flags SQL authentication still allowed'; Pattern = 'waf.dataservices'; Id = 'WAF-DATA-SQL-09'; Path = 'domains.databases.sqlServers'; Row = @{ entraOnlyAuth = $false }; Status = 'Fail'; Count = 1 }
+        @{ Case = 'MI-05 flags a null Entra-only flag'; Pattern = 'waf.dataservices'; Id = 'WAF-DATA-MI-05'; Path = 'domains.databases.sqlManagedInstances'; Row = @{ entraOnlyAuth = $null }; Status = 'Fail'; Count = 1 }
+        @{ Case = 'MI-02 flags an empty backup redundancy'; Pattern = 'waf.dataservices'; Id = 'WAF-DATA-MI-02'; Path = 'domains.databases.sqlManagedInstances'; Row = @{ backupRedundancy = '' }; Status = 'Fail'; Count = 1 }
+        @{ Case = 'MI-02 passes geo-zone-redundant backups'; Pattern = 'waf.dataservices'; Id = 'WAF-DATA-MI-02'; Path = 'domains.databases.sqlManagedInstances'; Row = @{ backupRedundancy = 'GeoZone' }; Status = 'Pass'; Count = 0 }
+        @{ Case = 'MI-01 flags a null zone-redundancy flag'; Pattern = 'waf.dataservices'; Id = 'WAF-DATA-MI-01'; Path = 'domains.databases.sqlManagedInstances'; Row = @{ zoneRedundant = $null }; Status = 'Fail'; Count = 1 }
+        @{ Case = 'MI-06 lists a null key flag'; Pattern = 'waf.dataservices'; Id = 'WAF-DATA-MI-06'; Path = 'domains.databases.sqlManagedInstances'; Row = @{ cmkEnabled = $null }; Status = 'Manual'; Count = 1 }
+        # ---- Cosmos DB: null counts and flags ----
+        @{ Case = 'COS-01 flags a null zone-redundant region count'; Pattern = 'waf.dataservices'; Id = 'WAF-DATA-COS-01'; Path = 'domains.databases.cosmosDbAccounts'; Row = @{ zoneRedundantRegionCount = $null }; Status = 'Fail'; Count = 1 }
+        @{ Case = 'COS-02 flags a null region count'; Pattern = 'waf.dataservices'; Id = 'WAF-DATA-COS-02'; Path = 'domains.databases.cosmosDbAccounts'; Row = @{ regionCount = $null }; Status = 'Fail'; Count = 1 }
+        @{ Case = 'COS-03 flags a multi-region account with null write and failover flags'; Pattern = 'waf.dataservices'; Id = 'WAF-DATA-COS-03'; Path = 'domains.databases.cosmosDbAccounts'; Row = @{ multiRegionWrites = $null; automaticFailover = $null }; Status = 'Fail'; Count = 1 }
+        @{ Case = 'COS-03 skips a single-region account'; Pattern = 'waf.dataservices'; Id = 'WAF-DATA-COS-03'; Path = 'domains.databases.cosmosDbAccounts'; Row = @{ regionCount = 1; multiRegionWrites = $null; automaticFailover = $null }; Status = 'Pass'; Count = 0 }
+        @{ Case = 'COS-03 skips a multi-region-write account'; Pattern = 'waf.dataservices'; Id = 'WAF-DATA-COS-03'; Path = 'domains.databases.cosmosDbAccounts'; Row = @{ multiRegionWrites = $true; automaticFailover = $null }; Status = 'Pass'; Count = 0 }
+        @{ Case = 'COS-04 flags a null backup type'; Pattern = 'waf.dataservices'; Id = 'WAF-DATA-COS-04'; Path = 'domains.databases.cosmosDbAccounts'; Row = @{ backupType = $null }; Status = 'Fail'; Count = 1 }
+        @{ Case = 'COS-08 flags public access with null network filter and rule count'; Pattern = 'waf.dataservices'; Id = 'WAF-DATA-COS-08'; Path = 'domains.databases.cosmosDbAccounts'; Row = @{ publicNetworkAccess = 'Enabled'; vnetFilterEnabled = $null; ipRuleCount = $null }; Status = 'Fail'; Count = 1 }
+        @{ Case = 'COS-08 passes public access limited by an IP rule'; Pattern = 'waf.dataservices'; Id = 'WAF-DATA-COS-08'; Path = 'domains.databases.cosmosDbAccounts'; Row = @{ publicNetworkAccess = 'Enabled'; vnetFilterEnabled = $false; ipRuleCount = 2 }; Status = 'Pass'; Count = 0 }
+        @{ Case = 'COS-11 lists a null key flag'; Pattern = 'waf.dataservices'; Id = 'WAF-DATA-COS-11'; Path = 'domains.databases.cosmosDbAccounts'; Row = @{ cmkEnabled = $null }; Status = 'Manual'; Count = 1 }
+        # ---- Redis: the classic-only access-key rule ----
+        @{ Case = 'RED-06 flags a classic cache with a null access-key flag'; Pattern = 'waf.dataservices'; Id = 'WAF-DATA-RED-06'; Path = 'domains.databases.redisCaches'; Row = @{ accessKeyAuthDisabled = $null }; Status = 'Fail'; Count = 1 }
+        @{ Case = 'RED-06 is not assessed when only Redis Enterprise caches exist'; Pattern = 'waf.dataservices'; Id = 'WAF-DATA-RED-06'; Path = 'domains.databases.redisCaches'; Row = @{ type = 'microsoft.cache/redisenterprise'; accessKeyAuthDisabled = $null }; Status = 'NotAssessed'; Count = 0 }
+        @{ Case = 'RED-07 does not flag an absent TLS version'; Pattern = 'waf.dataservices'; Id = 'WAF-DATA-RED-07'; Path = 'domains.databases.redisCaches'; Row = @{ minimumTlsVersion = '' }; Status = 'Pass'; Count = 0 }
+        @{ Case = 'RED-07 flags the non-TLS port'; Pattern = 'waf.dataservices'; Id = 'WAF-DATA-RED-07'; Path = 'domains.databases.redisCaches'; Row = @{ nonSslPortEnabled = $true }; Status = 'Fail'; Count = 1 }
+        @{ Case = 'RED-01 flags a Redis Enterprise cache with high availability disabled'; Pattern = 'waf.dataservices'; Id = 'WAF-DATA-RED-01'; Path = 'domains.databases.redisCaches'; Row = @{ type = 'microsoft.cache/redisenterprise'; sku = 'Balanced_B5'; highAvailability = 'Disabled' }; Status = 'Fail'; Count = 1 }
+        # ---- Event Hubs ----
+        @{ Case = 'SE-11 flags a null SAS-disabled flag (absent means SAS on)'; Pattern = 'waf.analytics'; Id = 'WAF-ANALYTICS-SE-11'; Path = 'domains.integration.eventHubNamespaces'; Row = @{ disableLocalAuth = $null }; Status = 'Fail'; Count = 1 }
+        @{ Case = 'SE-11 flags SAS still enabled'; Pattern = 'waf.analytics'; Id = 'WAF-ANALYTICS-SE-11'; Path = 'domains.integration.eventHubNamespaces'; Row = @{ disableLocalAuth = $false }; Status = 'Fail'; Count = 1 }
+        @{ Case = 'SE-12 does not flag an absent TLS version'; Pattern = 'waf.analytics'; Id = 'WAF-ANALYTICS-SE-12'; Path = 'domains.integration.eventHubNamespaces'; Row = @{ minimumTlsVersion = '' }; Status = 'Pass'; Count = 0 }
+        @{ Case = 'SE-12 does not flag a null TLS version'; Pattern = 'waf.analytics'; Id = 'WAF-ANALYTICS-SE-12'; Path = 'domains.integration.eventHubNamespaces'; Row = @{ minimumTlsVersion = $null }; Status = 'Pass'; Count = 0 }
+        @{ Case = 'SE-12 flags TLS 1.0'; Pattern = 'waf.analytics'; Id = 'WAF-ANALYTICS-SE-12'; Path = 'domains.integration.eventHubNamespaces'; Row = @{ minimumTlsVersion = '1.0' }; Status = 'Fail'; Count = 1 }
+        @{ Case = 'SE-13 lists an empty key source'; Pattern = 'waf.analytics'; Id = 'WAF-ANALYTICS-SE-13'; Path = 'domains.integration.eventHubNamespaces'; Row = @{ cmkKeySource = '' }; Status = 'Manual'; Count = 1 }
+        @{ Case = 'SE-13 does not list the Keyvault spelling'; Pattern = 'waf.analytics'; Id = 'WAF-ANALYTICS-SE-13'; Path = 'domains.integration.eventHubNamespaces'; Row = @{ cmkKeySource = 'Microsoft.Keyvault' }; Status = 'Manual'; Count = 0 }
+        @{ Case = 'PE-05 flags a Standard namespace with a null auto-inflate flag'; Pattern = 'waf.analytics'; Id = 'WAF-ANALYTICS-PE-05'; Path = 'domains.integration.eventHubNamespaces'; Row = @{ autoInflateEnabled = $null }; Status = 'Fail'; Count = 1 }
+        @{ Case = 'PE-05 skips a Basic namespace'; Pattern = 'waf.analytics'; Id = 'WAF-ANALYTICS-PE-05'; Path = 'domains.integration.eventHubNamespaces'; Row = @{ skuName = 'Basic'; autoInflateEnabled = $false }; Status = 'Pass'; Count = 0 }
+        # ---- Log Analytics ----
+        @{ Case = 'SE-16 flags a null local-authentication flag'; Pattern = 'waf.analytics'; Id = 'WAF-ANALYTICS-SE-16'; Path = 'management.logAnalyticsWorkspaces'; Row = @{ disableLocalAuth = $null }; Status = 'Fail'; Count = 1 }
+        @{ Case = 'SE-16 flags public ingestion'; Pattern = 'waf.analytics'; Id = 'WAF-ANALYTICS-SE-16'; Path = 'management.logAnalyticsWorkspaces'; Row = @{ publicNetworkAccessForIngestion = 'Enabled' }; Status = 'Fail'; Count = 1 }
+        @{ Case = 'SE-16 passes a security perimeter'; Pattern = 'waf.analytics'; Id = 'WAF-ANALYTICS-SE-16'; Path = 'management.logAnalyticsWorkspaces'; Row = @{ publicNetworkAccessForIngestion = 'SecuredByPerimeter'; publicNetworkAccessForQuery = 'SecuredByPerimeter' }; Status = 'Pass'; Count = 0 }
+        @{ Case = 'SE-17 flags a null access-mode flag'; Pattern = 'waf.analytics'; Id = 'WAF-ANALYTICS-SE-17'; Path = 'management.logAnalyticsWorkspaces'; Row = @{ resourceContextAccess = $null }; Status = 'Fail'; Count = 1 }
+        @{ Case = 'CO-11 flags a daily cap of -1 (none)'; Pattern = 'waf.analytics'; Id = 'WAF-ANALYTICS-CO-11'; Path = 'management.logAnalyticsWorkspaces'; Row = @{ dailyQuotaGb = -1 }; Status = 'Fail'; Count = 1 }
+        @{ Case = 'CO-11 flags a null daily cap'; Pattern = 'waf.analytics'; Id = 'WAF-ANALYTICS-CO-11'; Path = 'management.logAnalyticsWorkspaces'; Row = @{ dailyQuotaGb = $null }; Status = 'Fail'; Count = 1 }
+        # ---- Databricks ----
+        @{ Case = 'SE-01 flags a null injection flag'; Pattern = 'waf.analytics'; Id = 'WAF-ANALYTICS-SE-01'; Path = 'domains.analytics.databricksWorkspaces'; Row = @{ vnetInjected = $null }; Status = 'Fail'; Count = 1 }
+        @{ Case = 'SE-03 flags a null no-public-IP flag'; Pattern = 'waf.analytics'; Id = 'WAF-ANALYTICS-SE-03'; Path = 'domains.analytics.databricksWorkspaces'; Row = @{ noPublicIp = $null }; Status = 'Fail'; Count = 1 }
+        # ---- AI Search ----
+        @{ Case = 'AISEARCH-SE-04 flags an empty identity type'; Pattern = 'waf.aisearch'; Id = 'WAF-AISEARCH-SE-04'; Path = 'domains.ai.searchServices'; Row = @{ identityType = '' }; Status = 'Fail'; Count = 1 }
+        @{ Case = 'AISEARCH-SE-04 flags identity None'; Pattern = 'waf.aisearch'; Id = 'WAF-AISEARCH-SE-04'; Path = 'domains.ai.searchServices'; Row = @{ identityType = 'None' }; Status = 'Fail'; Count = 1 }
+        @{ Case = 'AISEARCH-SE-04 passes a user-assigned identity'; Pattern = 'waf.aisearch'; Id = 'WAF-AISEARCH-SE-04'; Path = 'domains.ai.searchServices'; Row = @{ identityType = 'UserAssigned' }; Status = 'Pass'; Count = 0 }
+        @{ Case = 'AISEARCH-SE-11 flags public access with a null rule count'; Pattern = 'waf.aisearch'; Id = 'WAF-AISEARCH-SE-11'; Path = 'domains.ai.searchServices'; Row = @{ publicAccess = 'Enabled'; ipRuleCount = $null }; Status = 'Fail'; Count = 1 }
+        @{ Case = 'AISEARCH-SE-11 flags public access (lower case) with no rules'; Pattern = 'waf.aisearch'; Id = 'WAF-AISEARCH-SE-11'; Path = 'domains.ai.searchServices'; Row = @{ publicAccess = 'enabled'; ipRuleCount = 0 }; Status = 'Fail'; Count = 1 }
+        @{ Case = 'AISEARCH-SE-11 passes public access with a rule'; Pattern = 'waf.aisearch'; Id = 'WAF-AISEARCH-SE-11'; Path = 'domains.ai.searchServices'; Row = @{ publicAccess = 'Enabled'; ipRuleCount = 2 }; Status = 'Pass'; Count = 0 }
+        @{ Case = 'AISEARCH-SE-11 passes a security perimeter with a null rule count'; Pattern = 'waf.aisearch'; Id = 'WAF-AISEARCH-SE-11'; Path = 'domains.ai.searchServices'; Row = @{ publicAccess = 'SecuredByPerimeter'; ipRuleCount = $null }; Status = 'Pass'; Count = 0 }
+        # ---- Machine Learning ----
+        @{ Case = 'ML-SE-14 lists a null encryption status'; Pattern = 'waf.machinelearning'; Id = 'WAF-ML-SE-14'; Path = 'domains.ai.mlWorkspaces'; Row = @{ cmkStatus = $null }; Status = 'Manual'; Count = 1 }
+        @{ Case = 'ML-SE-14 lists Disabled'; Pattern = 'waf.machinelearning'; Id = 'WAF-ML-SE-14'; Path = 'domains.ai.mlWorkspaces'; Row = @{ cmkStatus = 'Disabled' }; Status = 'Manual'; Count = 1 }
+        @{ Case = 'ML-SE-14 does not list a Foundry project workspace'; Pattern = 'waf.machinelearning'; Id = 'WAF-ML-SE-14'; Path = 'domains.ai.mlWorkspaces'; Row = @{ workspaceKind = 'Project'; cmkStatus = '' }; Status = 'Manual'; Count = 0 }
+    ) {
+        # NOT $row: variable names are case-insensitive and the case table already binds $Row
+        $merged = [ordered]@{}
+        foreach ($k in $script:Baseline[$Path].Keys) { $merged[$k] = $script:Baseline[$Path][$k] }
+        foreach ($k in $Row.Keys) { $merged[$k] = $Row[$k] }
+        $collect = Get-TestCollectAt -Path $Path -Rows @($merged)
+        $findings = ConvertTo-ById (Invoke-ScoutTestRuleSet -Pattern $Pattern -Collect $collect -Assessment 'edge')
+        @($findings.Values | Where-Object Status -eq 'Error').Count | Should -Be 0
+        $findings[$Id].Status | Should -Be $Status
+        $findings[$Id].EvidenceCount | Should -Be $Count
     }
 }
 
@@ -399,9 +799,9 @@ Describe 'Technology reviews on an estate with none of the resources' {
 
     It '<File> reports every automated rule NotAssessed and never Pass, Fail or Error' -ForEach @(
         @{ File = 'waf.machinelearning'; Auto = 5 }
-        @{ File = 'waf.aisearch'; Auto = 5 }
-        @{ File = 'waf.analytics'; Auto = 8 }
-        @{ File = 'waf.dataservices'; Auto = 22 }
+        @{ File = 'waf.aisearch'; Auto = 7 }
+        @{ File = 'waf.analytics'; Auto = 16 }
+        @{ File = 'waf.dataservices'; Auto = 44 }
     ) {
         $findings = $script:Empty[$File]
         @($findings | Where-Object { $_.Status -in 'Pass', 'Fail', 'Partial', 'Error' }).Count | Should -Be 0
@@ -410,9 +810,9 @@ Describe 'Technology reviews on an estate with none of the resources' {
 
     It '<File> returns every other rule as Manual' -ForEach @(
         @{ File = 'waf.machinelearning'; Manual = 39 }
-        @{ File = 'waf.aisearch'; Manual = 32 }
-        @{ File = 'waf.analytics'; Manual = 66 }
-        @{ File = 'waf.dataservices'; Manual = 78 }
+        @{ File = 'waf.aisearch'; Manual = 30 }
+        @{ File = 'waf.analytics'; Manual = 58 }
+        @{ File = 'waf.dataservices'; Manual = 60 }
     ) {
         @($script:Empty[$File] | Where-Object Status -eq 'Manual').Count | Should -Be $Manual
     }

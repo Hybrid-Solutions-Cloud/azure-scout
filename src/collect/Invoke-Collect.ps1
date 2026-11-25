@@ -18,18 +18,24 @@ $ErrorActionPreference = 'Stop'
 
     Canonical shape (top-level keys the rules query):
         subscriptions[], tags[]
-        networking { virtualNetworks[{name,peeringCount,ddosEnabled}], subnets[{ipUtilizationPct}],
-                     azureFirewalls[], firewallPolicyRuleGroups[{policyName,priority,ruleCollectionCount,ruleCount,parseError}],
+        networking { virtualNetworks[{id,name,location,peeringCount,ddosEnabled,encryptionEnabled}],
+                     subnets[{ipUtilizationPct}],
+                     azureFirewalls[{sku,tier,zoneCount,hasPolicy,threatIntelMode}],  (AB#9300 phase 4)
+                     firewallPolicyRuleGroups[{policyName,priority,ruleCollectionCount,ruleCount,parseError}],
                      nsgPublicInbound[], privateDnsZones[], vpnGateways[],
                      privateEndpoints[{targetResourceId,targetProvider,targetType}],
                      applicationGateways[{sku,tier,provisioningState,wafEnabled,listenerCount,
-                                           backendPoolCount}],
+                                           backendPoolCount,zoneCount,autoscaleMin,autoscaleMax,
+                                           probeCount,sslPolicyType,sslPolicyName,
+                                           sslMinProtocol}],   (AB#9300 phase 4; sslCertificates never)
                      bastionHosts[{sku,provisioningState,vnet}],
                      networkConnections[{connectionType,connectionStatus}],
                      expressRouteCircuits[{sku,circuitProvisioningState,serviceProviderProvisioningState,
                                             serviceProviderName,peeringLocation,bandwidthInMbps}],
                      frontDoors[{sku,provisioningState,enabledState,endpointCount}],
-                     loadBalancers[{sku,frontendIpCount,backendPoolCount,hasPublicFrontend}],
+                     loadBalancers[{sku,tier,frontendIpCount,backendPoolCount,hasPublicFrontend,
+                                     probeCount,ruleCount,outboundRuleCount,
+                                     minFrontendZoneCount}],   (AB#9300 phase 4)
                      natGateways[{sku,idleTimeoutInMinutes,publicIpCount,subnetCount}],
                      networkInterfaces[{nsgAttached,privateIpCount}], networkWatchers[{provisioningState}],
                      publicDnsZones[{zoneType,recordSetCount}],
@@ -50,11 +56,21 @@ $ErrorActionPreference = 'Stop'
                      networkManagers[{provisioningState,scopeSubscriptionCount,scopeAccesses}],
                      firewallPolicies[{sku,provisioningState,threatIntelMode,
                                         ruleCollectionGroupCount}],
-                     networkFunctions[{provisioningState,vendorProvisioningState,serviceKey}] }
+                     networkFunctions[{provisioningState,vendorProvisioningState,serviceKey}],
+                     publicIPAddresses[{id,name,resourceGroup,location,skuName,skuTier,zoneCount,
+                                         ddosProtectionMode,allocationMethod,attached}],
+                     flowLogs[{id,enabled,targetResourceId,retentionEnabled,retentionDays,
+                                trafficAnalytics}] }
                      (AB#7091, Story AB#7059, Feature AB#7069, Epic AB#7099 -- Networking
-                     coverage-gap close-out)
-        compute    { virtualMachines[{name,zoneRedundant,zoneEligible,licenseType,osType,
-                                       patchMode,assessmentMode}],                       (AB#7109)
+                     coverage-gap close-out; publicIPAddresses/flowLogs AB#9300 phase 4 -- never a
+                     workspace or storage id on a flow log)
+        compute    { virtualMachines[{name,location,zoneRedundant,zoneEligible,licenseType,osType,
+                                       patchMode,assessmentMode,                         (AB#7109)
+                                       inAvailabilitySet,unmanagedOsDisk,osDiskType,securityType,
+                                       encryptionAtHost,bootDiagnostics,identityType}],  (AB#9300 phase 4)
+                     virtualMachineScaleSets[{id,name,resourceGroup,location,zoneCount,
+                                               orchestrationMode,automaticRepairs,upgradeMode,
+                                               zoneBalance,capacity,encryptionAtHost}],  (AB#9300 phase 4)
                      avdHostPools[{id,location,hostPoolType,loadBalancerType,maxSessionLimit,
                                    startVMOnConnect,validationEnvironment,publicNetworkAccess,
                                    agentUpdateType,preferredAppGroupType}],
@@ -64,7 +80,10 @@ $ErrorActionPreference = 'Stop'
                      privateClouds[{availabilityStrategy,availabilityZone,clusterSize,
                                      expressRouteCircuitId,encryptionStatus}] }   (AB#6820)
         management { recoveryVaults[{backupItems[]}], deployments[],
-                     logAnalyticsWorkspaces[{retentionInDays}],
+                     logAnalyticsWorkspaces[{id,location,retentionInDays,skuName,dailyQuotaGb,
+                                              publicNetworkAccessForIngestion,
+                                              publicNetworkAccessForQuery,disableLocalAuth,
+                                              resourceContextAccess,replicationEnabled}],  (AB#9300 phase 4)
                      maintenanceConfigurations[{scope,recurEvery,startDateTime,duration,
                                                  timeZone,rebootSetting}],                (AB#7065)
                      advisorScores[{lastRefreshedScore}], automationAccounts[{sku}],
@@ -120,12 +139,15 @@ $ErrorActionPreference = 'Stop'
                       dataCollectionEndpoints[{publicNetworkAccess,configurationAccessEndpoint,immutableId}],
                       actionGroups[{enabled,groupShortName,emailReceiverCount,smsReceiverCount,webhookReceiverCount}],
                       autoscaleSettings[{enabled,targetResourceUri,profileCount}],
-                      metricAlertRules[{enabled,severity,autoMitigate,scopeCount,actionGroupCount}],
+                      metricAlertRules[{enabled,severity,autoMitigate,scopeCount,actionGroupCount,
+                                         targetResourceType}],                    (AB#9300 phase 4)
                       scheduledQueryRules[{enabled,severity,autoMitigate,kind,scopeCount}],
-                      activityLogAlertRules[{enabled,scopeCount,actionGroupCount}],
+                      activityLogAlertRules[{enabled,scopeCount,actionGroupCount,
+                                              category}],   (AB#9300 phase 4; null when no condition names one)
                       smartDetectorAlertRules[{state,severity,frequency,actionGroupCount}],
                       appInsights[{applicationType,flowType,retentionInDays,samplingPercentage,
-                                    ingestionMode,publicNetworkAccessForIngestion,publicNetworkAccessForQuery}],
+                                    ingestionMode,publicNetworkAccessForIngestion,publicNetworkAccessForQuery,
+                                    workspaceBased,disableLocalAuth}],            (AB#9300 phase 4)
                       workbooks[{kind,category,sourceId,version}],
                       privateLinkScopes[{accessMode,ingestionAccessMode,privateEndpointConnectionCount,
                                           scopedResourceCount}],
@@ -141,19 +163,57 @@ $ErrorActionPreference = 'Stop'
                       filters `KIND -eq 'standard'`), so they combine into one
                       `appInsightsAvailabilityTests` query carrying `kind` per row rather than two
                       separate ARG round-trips over the same rows)
-        domains     { storage{storageAccounts[{networkDefaultDeny}]},
-                      databases{sqlServers[],sqlDatabases[],sqlDefenderPricing[{pricingTier}]},
-                      web{webApps[{vnetIntegrated,customDomainBound}]},
-                      containers{aksClusters[{networkPolicyEnabled,aadIntegrated,allPoolsZoned}],
+        domains     { storage{storageAccounts[{id,location,kind,networkDefaultDeny,sharedKeyAccess,
+                                                 keySource,infrastructureEncryption,
+                                                 publicNetworkAccess,allowCrossTenantReplication,
+                                                 defaultToOAuth}],                       (AB#9300 phase 4)
+                                managedDisks[{zoneCount,networkAccessPolicy,publicNetworkAccess,
+                                               encryptionType}]},                         (AB#9300 phase 4)
+                      databases{sqlServers[{id,location,minimalTlsVersion,entraOnlyAuth,identityType,
+                                             cmkEnabled}],
+                                sqlDatabases[{id,location,backupRedundancy,secondaryType,
+                                               haReplicaCount}],
+                                sqlDefenderPricing[{pricingTier}],
+                                cosmosDbAccounts[{regionCount,zoneRedundantRegionCount,
+                                                   automaticFailover,backupType,multiRegionWrites,
+                                                   minimalTlsVersion,vnetFilterEnabled,ipRuleCount,
+                                                   cmkEnabled}],
+                                postgreSqlFlexibleServers[{tier,haMode,geoBackup,
+                                                            backupRetentionDays,encryptionType,
+                                                            entraAuth,passwordAuth}],
+                                mySqlFlexibleServers[{haMode,geoBackup,backupRetentionDays,
+                                                       encryptionType,storageAutoGrow}],
+                                redisCaches[{sku,skuFamily,skuCapacity,zoneCount,
+                                              zonalAllocationPolicy,replicasPerPrimary,
+                                              minimumTlsVersion,nonSslPortEnabled,
+                                              accessKeyAuthDisabled,aadEnabled,
+                                              highAvailability}],
+                                sqlManagedInstances[{zoneRedundant,backupRedundancy,entraOnlyAuth,
+                                                      minimalTlsVersion,cmkEnabled}]},     (AB#9300 phase 4)
+                      web{webApps[{id,location,kind,vnetIntegrated,customDomainBound,
+                                    publicNetworkAccess,identityType,clientCertEnabled}],
+                          appServicePlans[{zoneRedundant,instanceCount,tier}]},         (AB#9300 phase 4)
+                      containers{aksClusters[{id,location,networkPolicyEnabled,aadIntegrated,allPoolsZoned,
+                                               tier,systemPoolMinNodes,allPoolsAutoscale,
+                                               disableLocalAccounts,upgradeChannel,
+                                               nodeOsUpgradeChannel,authorizedIpRangeCount,
+                                               defenderEnabled,workloadIdentity,azureRbac}],
                                  containerRegistries[],
-                                 openShiftClusters[{provisioningState}], containerApps[{provisioningState,environmentId}],
-                                 containerAppEnvironments[{provisioningState}],
+                                 openShiftClusters[{provisioningState}],
+                                 containerApps[{provisioningState,environmentId,minReplicas,
+                                                 externalIngress,allowInsecure,identityType}],
+                                 containerAppEnvironments[{provisioningState,zoneRedundant,internal,
+                                                            vnetIntegrated,publicNetworkAccess}],
                                  containerGroups[{osType,restartPolicy}]},   (AB#7110 -- 4 ordinary
-                                 ARG-indexed Containers types)
+                                 ARG-indexed Containers types; AB#9300 phase 4 scalars)
                       security{keyVaults[]},
                       ai{cognitiveAccounts[{identityType,cmkEnabled}],
-                         mlWorkspaces[{workspaceKind,publicAccess,identityType}],          (AB#6818)
-                         searchServices[{sku}]},                                           (AB#6818)
+                         mlWorkspaces[{workspaceKind,publicAccess,identityType,cmkStatus,
+                                        hbiWorkspace,v1LegacyMode}],                       (AB#6818,
+                                        AB#9300 phase 4)
+                         searchServices[{sku,identityType,cmkEnforcement,ipRuleCount,
+                                          semanticSearch,partitionCount}]},                (AB#6818,
+                                          AB#9300 phase 4)
                       security{keyVaults[],
                                attestationProviders[{status,trustModel,publicNetworkAccess}], (AB#7089)
                                appComplianceReports[{triggerType}],                        (AB#7110)
@@ -217,13 +277,26 @@ $ErrorActionPreference = 'Stop'
                              (arcSites/azureLocalVirtualMachineInstances are ALWAYS present as
                              keys but only ever populated when the caller passes
                              -IncludeAzureLocalArm -- AB#6803, Feature AB#6747)
-                      integration{eventHubNamespaces[{autoInflateEnabled}], apiManagement[],
-                                  serviceBusNamespaces[{publicAccess}]},
+                      integration{eventHubNamespaces[{id,location,autoInflateEnabled,skuName,capacity,
+                                                       maxThroughputUnits,geoReplicaCount,
+                                                       disableLocalAuth,minimumTlsVersion,
+                                                       cmkKeySource,doubleEncryption}],
+                                  apiManagement[{id,location,zoneCount,capacity,additionalRegionCount,
+                                                  publicNetworkAccess,identityType}],
+                                  serviceBusNamespaces[{id,location,publicAccess,tier,capacity,
+                                                         zoneRedundant,geoReplicaCount,
+                                                         disableLocalAuth,minimumTlsVersion,
+                                                         cmkKeySource}],
+                                  eventGrid[{id,name,type,publicNetworkAccess,inboundIpRuleCount,
+                                              minimumTlsVersion,disableLocalAuth,zoneRedundant,
+                                              identityType}]},                    (AB#9300 phase 4)
                       iot{iotHubs[{disableLocalAuth}],
                           dpsInstances[{publicAccess,allocationPolicy,linkedHubCount}],
                           digitalTwinsInstances[{publicAccess,privateEndpointConnectionCount,identityType}]},
                       analytics{synapseWorkspaces[{managedVnetEnabled}], purviewAccounts[],
-                                databricksWorkspaces[{sku,managedResourceGroupId}],
+                                databricksWorkspaces[{sku,managedResourceGroupId,vnetInjected,
+                                                       noPublicIp,publicNetworkAccess,
+                                                       requiredNsgRules}],        (AB#9300 phase 4)
                                 dataExplorerClusters[{sku,state}],
                                 streamAnalyticsJobs[{sku,jobState}],
                                 analysisServicesServers[{sku,provisioningState,state}],
@@ -356,6 +429,35 @@ $ErrorActionPreference = 'Stop'
         these exact resource types via `type in~ (...)`/`type startswith` KQL, which the
         coverage doc's literal-substring audit script does not recognize as covering them.
         Verified by direct inspection of this file, not re-wired.
+
+    AB#9300 phase 4 (batch 1) -- automatable properties for the assessment rules. Collection
+    only: no rule file reads these yet. Every property path below was checked against the ARM
+    template reference for its type before being added, and every dataset is built TWICE -- the
+    KQL in `$q` below and the shaping in ConvertFrom-ScoutInventory.ps1 -- field for field, with
+    tests/Collect.SinglePassInversion.Tests.ps1 and tests/CollectorCollapse.Tests.ps1 holding the
+    two together. Rules this batch makes automatable: zones / HA / failover (cosmos regions,
+    flexible-server HA, SQL MI zoneRedundant, Redis, App Service plans, AKS system pools,
+    Application Gateway, load balancer frontends, APIM, Service Bus / Event Hubs, Container Apps,
+    managed disks, VMs, VM scale sets, public IPs), backup and geo-redundancy, authentication
+    (Entra-only SQL, local-auth off, shared-key off), TLS floors, customer-managed keys,
+    exposure (public network access, ingress, IP rule counts) and Monitor coverage.
+    Two bugs fixed on the way: classic `microsoft.cache/redis` carries its SKU at
+    properties.sku.name (the top-level `sku` is absent, so `redisCaches[].sku` was always empty
+    for it), and `azureFirewalls[].sku` is only AZFW_VNet / AZFW_Hub -- the Standard / Premium /
+    Basic tier is `tier`. Four datasets are new: networking.publicIPAddresses,
+    networking.flowLogs, compute.virtualMachineScaleSets, domains.integration.eventGrid.
+    What this batch NEVER projects (the secret-bearing or identifying properties beside each
+    field): Redis `redisConfiguration` (storage connection strings; only the single key
+    `aad-enabled` is read), Application Gateway `sslCertificates`, Container Apps
+    `configuration.secrets`, the Container Apps environment `logAnalyticsConfiguration.sharedKey`,
+    Event Hubs / Service Bus `encryption.keyVaultProperties`, SQL administrator sid / tenantId /
+    login, an unmanaged VM disk's `vhd.uri`, a flow log's workspace / storage ids, and the IP
+    ranges behind every `*IpRuleCount` / `authorizedIpRangeCount`. Booleans stand in for the
+    values they would otherwise expose (`unmanagedOsDisk`, `vnetInjected`, `workspaceBased`,
+    `cmkEnabled`, `hasPolicy`). A count over a child array is `array_length`; a count that has to
+    inspect each element (`zoneRedundantRegionCount`, `minFrontendZoneCount`, activity-log
+    `category`) uses mv-apply over the array swapped for a one-element placeholder when it is
+    absent or empty, so the parent resource can never vanish (AB#6845).
 
     Deliberately NOT collected here, confirmed absent/out of scope after
     checking the ARM template references before writing this note:
@@ -529,7 +631,10 @@ resources
 | where type =~ "microsoft.network/virtualnetworks"
 | extend peeringCount = array_length(properties.virtualNetworkPeerings)
 | extend ddosEnabled  = tobool(properties.enableDdosProtection)
-| project name, resourceGroup, subscriptionId, peeringCount, ddosEnabled
+// id/location (AB#9300 phase 4) so a rule can name the network; encryptionEnabled is the documented
+// VNet-encryption flag (properties.encryption.enabled), tobool so a VNet that never set it stays null.
+| extend encryptionEnabled = tobool(properties.encryption.enabled)
+| project id, name, resourceGroup, subscriptionId, location, peeringCount, ddosEnabled, encryptionEnabled
 '@
         subnets = @'
 resources
@@ -541,9 +646,16 @@ resources
 | project vnet = name, subnet = tostring(subnet.name), prefix, total, used,
           ipUtilizationPct = iff(total > 0, round(todouble(used) / total * 100, 1), todouble(0))
 '@
+        # AB#9300 phase 4: properties.sku.name is only AZFW_VNet/AZFW_Hub, so the Standard/Premium/Basic
+        # tier a rule needs is properties.sku.tier. zoneCount comes from the top-level `zones` column.
+        # hasPolicy is a bool only (the policy id itself is never projected).
         azureFirewalls = @'
 resources | where type =~ "microsoft.network/azurefirewalls"
-| project name, resourceGroup, subscriptionId, sku = tostring(properties.sku.name)
+| project name, resourceGroup, subscriptionId, sku = tostring(properties.sku.name),
+          tier = tostring(properties.sku.tier),
+          zoneCount = array_length(zones),
+          hasPolicy = isnotempty(tostring(properties.firewallPolicy.id)),
+          threatIntelMode = tostring(properties.threatIntelMode)
 '@
         # AB#400: firewall policy rule-collection groups. The nested rule-collection/rule
         # array is intentionally left as a dynamic column here (`ruleCollections`) rather
@@ -606,7 +718,16 @@ resources | where type =~ "microsoft.network/applicationgateways"
                        and (coalesce(tobool(properties.webApplicationFirewallConfiguration.enabled), false)
                             or isnotempty(tostring(properties.firewallPolicy.id))),
           listenerCount = array_length(properties.httpListeners),
-          backendPoolCount = array_length(properties.backendAddressPools)
+          backendPoolCount = array_length(properties.backendAddressPools),
+          // AB#9300 phase 4 (zones / autoscale / probes / TLS policy). sslCertificates is NEVER
+          // projected (it carries certificate data); only the policy that governs TLS is.
+          zoneCount = array_length(zones),
+          autoscaleMin = toint(properties.autoscaleConfiguration.minCapacity),
+          autoscaleMax = toint(properties.autoscaleConfiguration.maxCapacity),
+          probeCount = array_length(properties.probes),
+          sslPolicyType = tostring(properties.sslPolicy.policyType),
+          sslPolicyName = tostring(properties.sslPolicy.policyName),
+          sslMinProtocol = tostring(properties.sslPolicy.minProtocolVersion)
 '@
         # AB#6928: the owning VNet parsed from the ipConfiguration subnet id
         # (/subscriptions/../virtualNetworks/<vnet>/subnets/<subnet> -- segment index 8).
@@ -649,13 +770,29 @@ resources | where type =~ "microsoft.network/frontdoors"
         # AB#6928: hasPublicFrontend serialises the frontend config array and looks for the
         # publicIPAddress relationship key -- a scalar bool, no mv-expand, so a purely internal
         # LB keeps its parent row (AB#6845 class avoided by construction).
+        #
+        # AB#9300 phase 4: minFrontendZoneCount is the WEAKEST frontend's zone count (a rule that wants
+        # "every frontend is zone-redundant" tests it > 1). The frontend array is swapped for a
+        # one-element placeholder when absent/empty so mv-apply can never drop the load balancer
+        # (the vanishing-parent class, AB#6845); the placeholder has no zones, so it reads 0.
         loadBalancers = @'
 resources | where type =~ "microsoft.network/loadbalancers"
-| project id, name, resourceGroup, subscriptionId, location,
-          sku = tostring(sku.name),
-          frontendIpCount = array_length(properties.frontendIPConfigurations),
-          backendPoolCount = array_length(properties.backendAddressPools),
-          hasPublicFrontend = tostring(properties.frontendIPConfigurations) contains "publicIPAddress"
+| extend sku = tostring(sku.name),
+         tier = tostring(sku.tier),
+         frontendIpCount = array_length(properties.frontendIPConfigurations),
+         backendPoolCount = array_length(properties.backendAddressPools),
+         hasPublicFrontend = tostring(properties.frontendIPConfigurations) contains "publicIPAddress",
+         probeCount = array_length(properties.probes),
+         ruleCount = array_length(properties.loadBalancingRules),
+         outboundRuleCount = array_length(properties.outboundRules)
+// mv-expand + summarize, not mv-apply (Resource Graph rejects mv-apply; live-verified AB#9300).
+| extend frontendArr = iff(coalesce(toint(array_length(properties.frontendIPConfigurations)), 0) > 0, properties.frontendIPConfigurations, dynamic([{}]))
+| mv-expand frontend = frontendArr
+| summarize minFrontendZoneCount = min(coalesce(toint(array_length(frontend.zones)), 0))
+    by id, name, resourceGroup, subscriptionId, location, sku, tier, frontendIpCount, backendPoolCount,
+       hasPublicFrontend, probeCount, ruleCount, outboundRuleCount
+| project id, name, resourceGroup, subscriptionId, location, sku, tier, frontendIpCount, backendPoolCount,
+          hasPublicFrontend, probeCount, ruleCount, outboundRuleCount, minFrontendZoneCount
 '@
         natGateways = @'
 resources | where type =~ "microsoft.network/natgateways"
@@ -810,6 +947,34 @@ resources | where type =~ "microsoft.hybridnetwork/networkfunctions"
           vendorProvisioningState = tostring(properties.vendorProvisioningState),
           serviceKey = tostring(properties.serviceKey)
 '@
+        # ---- AB#9300 phase 4 -- ordinary ARG-indexed Networking types that had no dataset at all.
+        # publicIPAddresses: every public IP, not just the orphaned ones `costCleanup.orphanedPips`
+        # keeps. `attached` is true when the address is bound to an IP configuration (NIC, load
+        # balancer frontend, firewall, gateway); an address bound only to a NAT gateway carries
+        # properties.natGateway instead and reads attached = false here.
+        publicIPAddresses = @'
+resources | where type =~ "microsoft.network/publicipaddresses"
+| project id, name, resourceGroup, location,
+          skuName = tostring(sku.name),
+          skuTier = tostring(sku.tier),
+          zoneCount = array_length(zones),
+          ddosProtectionMode = tostring(properties.ddosSettings.protectionMode),
+          allocationMethod = tostring(properties.publicIPAllocationMethod),
+          attached = isnotempty(tostring(properties.ipConfiguration.id))
+'@
+        # Flow logs are child resources of a Network Watcher. targetResourceId is lower-cased so a
+        # rule can join it to an NSG/VNet id without caring about ARM's mixed casing. Neither the
+        # storage account nor the Log Analytics workspace the log writes to is projected -- only
+        # whether the log is on, how long it keeps data, and whether Traffic Analytics is enabled.
+        flowLogs = @'
+resources | where type =~ "microsoft.network/networkwatchers/flowlogs"
+| project id,
+          enabled = tobool(properties.enabled),
+          targetResourceId = tolower(tostring(properties.targetResourceId)),
+          retentionEnabled = tobool(properties.retentionPolicy.enabled),
+          retentionDays = toint(properties.retentionPolicy.days),
+          trafficAnalytics = tobool(properties.flowAnalyticsConfiguration.networkWatcherFlowAnalyticsConfiguration.enabled)
+'@
         virtualMachines = @'
 resources
 | where type =~ "microsoft.compute/virtualmachines"
@@ -848,11 +1013,34 @@ resources
 | extend linAssessMode = tostring(properties.osProfile.linuxConfiguration.patchSettings.assessmentMode)
 | extend patchMode = iff(isnotempty(winPatchMode), winPatchMode, linPatchMode)
 | extend assessmentMode = iff(isnotempty(winAssessMode), winAssessMode, linAssessMode)
-| project id, name, resourceGroup, subscriptionId, zoneRedundant, zoneEligible,
+// AB#9300 phase 4 (resilience / security posture). unmanagedOsDisk is a BOOL ONLY: an unmanaged
+// disk's vhd.uri names the backing storage account and is never projected.
+| project id, name, resourceGroup, subscriptionId, location, zoneRedundant, zoneEligible,
           size = tostring(properties.hardwareProfile.vmSize),
           licenseType = tostring(properties.licenseType),
           osType = tostring(properties.storageProfile.osDisk.osType),
-          patchMode, assessmentMode
+          patchMode, assessmentMode,
+          inAvailabilitySet = isnotempty(tostring(properties.availabilitySet.id)),
+          unmanagedOsDisk = isnotempty(tostring(properties.storageProfile.osDisk.vhd.uri)),
+          osDiskType = tostring(properties.storageProfile.osDisk.managedDisk.storageAccountType),
+          securityType = tostring(properties.securityProfile.securityType),
+          encryptionAtHost = tobool(properties.securityProfile.encryptionAtHost),
+          bootDiagnostics = tobool(properties.diagnosticsProfile.bootDiagnostics.enabled),
+          identityType = tostring(identity.type)
+'@
+        # AB#9300 phase 4: Virtual Machine Scale Sets had no dataset. orchestrationMode is Flexible/
+        # Uniform; zoneBalance only applies to a multi-zone scale set; encryptionAtHost is read off
+        # the VM profile the scale set stamps onto every instance.
+        virtualMachineScaleSets = @'
+resources | where type =~ "microsoft.compute/virtualmachinescalesets"
+| project id, name, resourceGroup, location,
+          zoneCount = array_length(zones),
+          orchestrationMode = tostring(properties.orchestrationMode),
+          automaticRepairs = tobool(properties.automaticRepairsPolicy.enabled),
+          upgradeMode = tostring(properties.upgradePolicy.mode),
+          zoneBalance = tobool(properties.zoneBalance),
+          capacity = toint(sku.capacity),
+          encryptionAtHost = tobool(properties.virtualMachineProfile.securityProfile.encryptionAtHost)
 '@
         orphanedDisks = @'
 resources | where type =~ "microsoft.compute/disks" and properties.diskState =~ "Unattached"
@@ -949,7 +1137,16 @@ resources | where type =~ "microsoft.storage/storageaccounts"
 // properties.networkAcls is on the storage account resource itself (not a
 // sub-resource), so it's safe to project directly — CAF-STO-05 (AB#5057).
 | extend networkDefaultDeny = tostring(properties.networkAcls.defaultAction) =~ "Deny"
-| project id, name, resourceGroup, sku = tostring(sku.name), publicAccess, httpsOnly, minTls, networkDefaultDeny
+// AB#9300 phase 4 (authentication / encryption / exposure). `kind` is a reserved Kusto keyword,
+// so it is read and written through the ['kind'] indexer.
+| project id, name, resourceGroup, location, ['kind'] = tostring(['kind']), sku = tostring(sku.name),
+          publicAccess, httpsOnly, minTls, networkDefaultDeny,
+          sharedKeyAccess = tobool(properties.allowSharedKeyAccess),
+          keySource = tostring(properties.encryption.keySource),
+          infrastructureEncryption = tobool(properties.encryption.requireInfrastructureEncryption),
+          publicNetworkAccess = tostring(properties.publicNetworkAccess),
+          allowCrossTenantReplication = tobool(properties.allowCrossTenantReplication),
+          defaultToOAuth = tobool(properties.defaultToOAuthAuthentication)
 '@
         # ---- Storage plumbing (AB#7110, Story AB#7059, Feature AB#7069, Epic AB#7099) -----------
         # Five ordinary ARG-indexed Storage-adjacent types the Storage(8) coverage-doc table listed
@@ -1023,12 +1220,23 @@ resources
         sqlDatabases = @'
 resources | where type =~ "microsoft.sql/servers/databases"
 | extend zoneRedundant = tobool(properties.zoneRedundant)
-| project name, resourceGroup, zoneRedundant, tier = tostring(sku.tier)
+// AB#9300 phase 4: id/location, and the backup-redundancy / replica fields a resilience rule needs.
+| project id, name, resourceGroup, location, zoneRedundant, tier = tostring(sku.tier),
+          backupRedundancy = tostring(properties.requestedBackupStorageRedundancy),
+          secondaryType = tostring(properties.secondaryType),
+          haReplicaCount = toint(properties.highAvailabilityReplicaCount)
 '@
         sqlServers = @'
 resources | where type =~ "microsoft.sql/servers"
 | extend publicNetworkAccess = tostring(properties.publicNetworkAccess)
-| project name, resourceGroup, publicNetworkAccess
+// AB#9300 phase 4. entraOnlyAuth is the one boolean read from properties.administrators; the
+// administrator's sid / tenantId / login are never projected. cmkEnabled is a bool only (the key
+// uri itself is not).
+| project id, name, resourceGroup, location, publicNetworkAccess,
+          minimalTlsVersion = tostring(properties.minimalTlsVersion),
+          entraOnlyAuth = tobool(properties.administrators.azureADOnlyAuthentication),
+          identityType = tostring(identity.type),
+          cmkEnabled = isnotempty(tostring(properties.keyId))
 '@
         # AB#5068: Microsoft.Security/pricings ("SqlServers" plan) is the subscription-scoped
         # Defender for SQL / Advanced Threat Protection toggle and IS indexed by Resource
@@ -1053,8 +1261,30 @@ resources | where type =~ "microsoft.documentdb/databaseaccounts"
 | extend accountKind = tostring(['kind'])
 | extend publicNetworkAccess = tostring(properties.publicNetworkAccess)
 | extend disableLocalAuth = tobool(properties.disableLocalAuth)
+// AB#9300 phase 4 (regions / zones / failover / network / CMK). zoneRedundantRegionCount counts
+// the locations whose isZoneRedundant flag is true (a location with no flag counts as not
+// redundant). The locations array is swapped for a one-element placeholder when absent/empty so
+// mv-apply can never drop the account row (AB#6845). ipRuleCount is a COUNT -- the IP ranges
+// themselves, and keyVaultKeyUri, are never projected.
+| extend regionCount = array_length(properties.locations),
+         automaticFailover = tobool(properties.enableAutomaticFailover),
+         backupType = tostring(properties.backupPolicy.type),
+         multiRegionWrites = tobool(properties.enableMultipleWriteLocations),
+         minimalTlsVersion = tostring(properties.minimalTlsVersion),
+         vnetFilterEnabled = tobool(properties.isVirtualNetworkFilterEnabled),
+         ipRuleCount = array_length(properties.ipRules),
+         cmkEnabled = isnotempty(tostring(properties.keyVaultKeyUri))
+// mv-expand + summarize, not mv-apply (Resource Graph rejects mv-apply; live-verified AB#9300).
+| extend locationArr = iff(coalesce(toint(array_length(properties.locations)), 0) > 0, properties.locations, dynamic([{}]))
+| mv-expand loc = locationArr
+| summarize zoneRedundantRegionCount = countif(coalesce(tobool(loc.isZoneRedundant), false))
+    by id, name, resourceGroup, subscriptionId, location, accountKind, publicNetworkAccess, disableLocalAuth,
+       regionCount, automaticFailover, backupType, multiRegionWrites, minimalTlsVersion, vnetFilterEnabled,
+       ipRuleCount, cmkEnabled
 | project id, name, resourceGroup, subscriptionId, location, ['kind'] = accountKind,
-          publicNetworkAccess, disableLocalAuth
+          publicNetworkAccess, disableLocalAuth,
+          regionCount, zoneRedundantRegionCount, automaticFailover, backupType, multiRegionWrites,
+          minimalTlsVersion, vnetFilterEnabled, ipRuleCount, cmkEnabled
 '@
         mariaDbServers = @'
 resources | where type =~ "microsoft.dbformariadb/servers"
@@ -1070,32 +1300,71 @@ resources | where type =~ "microsoft.dbformysql/servers"
 | project id, name, resourceGroup, subscriptionId, location, sku = tostring(sku.name),
           sslEnforcement, publicNetworkAccess
 '@
+        # AB#9300 phase 4 (HA / backup / encryption). highAvailability.mode is Disabled / SameZone /
+        # ZoneRedundant; geoRedundantBackup, storage.autoGrow and the authConfig switches are
+        # Enabled/Disabled enums, kept as strings.
         mySqlFlexibleServers = @'
 resources | where type =~ "microsoft.dbformysql/flexibleservers"
 | extend version = tostring(properties.version)
 | extend publicNetworkAccess = tostring(properties.network.publicNetworkAccess)
 | project id, name, resourceGroup, subscriptionId, location, sku = tostring(sku.name),
-          version, publicNetworkAccess
+          version, publicNetworkAccess,
+          haMode = tostring(properties.highAvailability.mode),
+          geoBackup = tostring(properties.backup.geoRedundantBackup),
+          backupRetentionDays = toint(properties.backup.backupRetentionDays),
+          encryptionType = tostring(properties.dataEncryption.type),
+          storageAutoGrow = tostring(properties.storage.autoGrow)
 '@
         postgreSqlFlexibleServers = @'
 resources | where type =~ "microsoft.dbforpostgresql/flexibleservers"
 | extend version = tostring(properties.version)
 | extend publicNetworkAccess = tostring(properties.network.publicNetworkAccess)
 | project id, name, resourceGroup, subscriptionId, location, sku = tostring(sku.name),
-          version, publicNetworkAccess
+          version, publicNetworkAccess,
+          tier = tostring(sku.tier),
+          haMode = tostring(properties.highAvailability.mode),
+          geoBackup = tostring(properties.backup.geoRedundantBackup),
+          backupRetentionDays = toint(properties.backup.backupRetentionDays),
+          encryptionType = tostring(properties.dataEncryption.type),
+          entraAuth = tostring(properties.authConfig.activeDirectoryAuth),
+          passwordAuth = tostring(properties.authConfig.passwordAuth)
 '@
+        # AB#9300 phase 4. Classic Cache for Redis (microsoft.cache/redis) keeps its SKU under
+        # properties.sku (the top-level `sku` column is ABSENT), so `sku` read from the top level was
+        # always empty for it; Redis Enterprise (microsoft.cache/redisenterprise) keeps it in the
+        # top-level `sku` column. skuFamily/skuCapacity exist only on the classic properties.sku.
+        # NEVER read properties.redisConfiguration as a whole: it holds the rdb/aof storage
+        # CONNECTION STRINGS. The single key aad-enabled is extracted by name and nothing else.
         redisCaches = @'
 resources | where type in~ ("microsoft.cache/redis", "microsoft.cache/redisenterprise")
 | extend publicNetworkAccess = tostring(properties.publicNetworkAccess)
-| project id, name, type, resourceGroup, subscriptionId, location, sku = tostring(sku.name),
-          publicNetworkAccess
+| extend skuName = iff(type =~ "microsoft.cache/redis", tostring(properties.sku.name), tostring(sku.name))
+| project id, name, type, resourceGroup, subscriptionId, location, sku = skuName,
+          skuFamily = tostring(properties.sku.family),
+          skuCapacity = toint(properties.sku.capacity),
+          publicNetworkAccess,
+          zoneCount = array_length(zones),
+          zonalAllocationPolicy = tostring(properties.zonalAllocationPolicy),
+          replicasPerPrimary = coalesce(toint(properties.replicasPerMaster), toint(properties.replicasPerPrimary)),
+          minimumTlsVersion = tostring(properties.minimumTlsVersion),
+          nonSslPortEnabled = tobool(properties.enableNonSslPort),
+          accessKeyAuthDisabled = tobool(properties.disableAccessKeyAuthentication),
+          aadEnabled = tobool(properties.redisConfiguration['aad-enabled']),
+          highAvailability = tostring(properties.highAvailability)
 '@
         sqlManagedInstances = @'
 resources | where type =~ "microsoft.sql/managedinstances"
 | extend publicDataEndpointEnabled = tobool(properties.publicDataEndpointEnabled)
 | extend vCores = toint(sku.capacity)
+// AB#9300 phase 4. entraOnlyAuth is the one boolean read from properties.administrators; the
+// administrator's sid / tenantId / login are never projected.
 | project id, name, resourceGroup, subscriptionId, location, sku = tostring(sku.name),
-          publicDataEndpointEnabled, vCores
+          publicDataEndpointEnabled, vCores,
+          zoneRedundant = tobool(properties.zoneRedundant),
+          backupRedundancy = tostring(properties.requestedBackupStorageRedundancy),
+          entraOnlyAuth = tobool(properties.administrators.azureADOnlyAuthentication),
+          minimalTlsVersion = tostring(properties.minimalTlsVersion),
+          cmkEnabled = isnotempty(tostring(properties.keyId))
 '@
         sqlManagedInstanceDatabases = @'
 resources | where type =~ "microsoft.sql/managedinstances/databases"
@@ -1149,7 +1418,13 @@ resources | where type =~ "microsoft.web/sites"
 // tradeoff as the VM zoneEligible heuristic below.
 | extend vnetIntegrated = isnotempty(tostring(properties.virtualNetworkSubnetId))
 | extend customDomainBound = array_length(properties.hostNameSslStates) > 1
-| project name, resourceGroup, httpsOnly, minTls, vnetIntegrated, customDomainBound
+// AB#9300 phase 4: id/location/kind (app vs function app vs Linux, from the ['kind'] indexer --
+// `kind` is a reserved Kusto keyword), exposure and identity.
+| project id, name, resourceGroup, location, ['kind'] = tostring(['kind']), httpsOnly, minTls,
+          vnetIntegrated, customDomainBound,
+          publicNetworkAccess = tostring(properties.publicNetworkAccess),
+          identityType = tostring(identity.type),
+          clientCertEnabled = tobool(properties.clientCertEnabled)
 '@
         # ---- Web plumbing (AB#7110, Story AB#7059, Feature AB#7069, Epic AB#7099) ---------------
         # Twelve ordinary ARG-indexed Web/App-Service-adjacent types the Web(12) coverage-doc table
@@ -1174,7 +1449,11 @@ resources | where type =~ "microsoft.web/hostingenvironments"
         appServicePlans = @'
 resources | where type =~ "microsoft.web/serverfarms"
 | extend reserved = tobool(properties.reserved)
-| project id, name, resourceGroup, subscriptionId, location, sku = tostring(sku.name), reserved
+// AB#9300 phase 4: zone redundancy and instance count (the plan's sku.capacity) / tier.
+| project id, name, resourceGroup, subscriptionId, location, sku = tostring(sku.name), reserved,
+          zoneRedundant = tobool(properties.zoneRedundant),
+          instanceCount = toint(sku.capacity),
+          tier = tostring(sku.tier)
 '@
         communicationServices = @'
 resources
@@ -1232,14 +1511,38 @@ resources | where type =~ "microsoft.containerservice/managedclusters"
 | extend rbacEnabled = tobool(properties.enableRBAC)
 | extend networkPolicyEnabled = isnotempty(tostring(properties.networkProfile.networkPolicy))
 | extend aadIntegrated = isnotnull(properties.aadProfile)
+// AB#9300 phase 4: cluster-level scalars, carried through the summarize by listing them in its
+// `by` clause. authorizedIpRangeCount is a COUNT -- the ranges themselves are never projected.
+| extend tier = tostring(sku.tier)
+| extend disableLocalAccounts = tobool(properties.disableLocalAccounts)
+| extend upgradeChannel = tostring(properties.autoUpgradeProfile.upgradeChannel)
+| extend nodeOsUpgradeChannel = tostring(properties.autoUpgradeProfile.nodeOSUpgradeChannel)
+| extend authorizedIpRangeCount = array_length(properties.apiServerAccessProfile.authorizedIPRanges)
+| extend defenderEnabled = tobool(properties.securityProfile.defender.securityMonitoring.enabled)
+| extend workloadIdentity = tobool(properties.securityProfile.workloadIdentity.enabled)
+| extend azureRbac = tobool(properties.aadProfile.enableAzureRBAC)
 // agentPoolProfiles is an array, so per-pool zone spread needs mv-expand +
 // summarize back to one row per cluster — CAF-CON-05 (AB#5057).
+// systemPoolMinNodes is the smallest node count a SYSTEM pool is allowed to fall to: minCount
+// when the pool autoscales, otherwise its fixed count. A pool with no autoscale flag is treated
+// as fixed-size. min() ignores nulls, so a cluster with no system pool reads null.
 | mv-expand pool = properties.agentPoolProfiles
 | extend poolZoned = array_length(pool.availabilityZones) > 0
-| summarize totalPools = count(), zonedPools = countif(poolZoned)
-    by name, resourceGroup, k8sVersion, privateCluster, rbacEnabled, networkPolicyEnabled, aadIntegrated
+| extend poolAutoscale = coalesce(tobool(pool.enableAutoScaling), false)
+| extend isSystemPool = tostring(pool.mode) =~ "System"
+// `count` is a reserved word in Kusto: pool.count is a parse error, pool['count'] is not
+// (live-verified AB#9300). minif ignores non-system pools, so no system pool reads null.
+| extend poolMinNodes = iff(poolAutoscale, toint(pool.minCount), toint(pool['count']))
+| summarize totalPools = count(), zonedPools = countif(poolZoned), autoscalePools = countif(poolAutoscale),
+            systemPoolMinNodes = minif(poolMinNodes, isSystemPool)
+    by id, name, resourceGroup, location, k8sVersion, privateCluster, rbacEnabled, networkPolicyEnabled, aadIntegrated,
+       tier, disableLocalAccounts, upgradeChannel, nodeOsUpgradeChannel, authorizedIpRangeCount,
+       defenderEnabled, workloadIdentity, azureRbac
 | extend allPoolsZoned = zonedPools == totalPools
-| project name, resourceGroup, k8sVersion, privateCluster, rbacEnabled, networkPolicyEnabled, aadIntegrated, allPoolsZoned
+| extend allPoolsAutoscale = autoscalePools == totalPools
+| project id, name, resourceGroup, location, k8sVersion, privateCluster, rbacEnabled, networkPolicyEnabled, aadIntegrated,
+          allPoolsZoned, tier, systemPoolMinNodes, allPoolsAutoscale, disableLocalAccounts, upgradeChannel,
+          nodeOsUpgradeChannel, authorizedIpRangeCount, defenderEnabled, workloadIdentity, azureRbac
 '@
         containerRegistries = @'
 resources | where type =~ "microsoft.containerregistry/registries"
@@ -1254,16 +1557,28 @@ resources | where type =~ "microsoft.redhatopenshift/openshiftclusters"
 | project id, name, resourceGroup, subscriptionId, location,
           provisioningState = tostring(properties.provisioningState)
 '@
+        # AB#9300 phase 4. configuration.secrets is NEVER projected (it holds secret values); only
+        # the ingress exposure switches and the scale floor are.
         containerApps = @'
 resources | where type =~ "microsoft.app/containerapps"
 | project id, name, resourceGroup, subscriptionId, location,
           provisioningState = tostring(properties.provisioningState),
-          environmentId = tostring(properties.environmentId)
+          environmentId = tostring(properties.environmentId),
+          minReplicas = toint(properties.template.scale.minReplicas),
+          externalIngress = tobool(properties.configuration.ingress.external),
+          allowInsecure = tobool(properties.configuration.ingress.allowInsecure),
+          identityType = tostring(identity.type)
 '@
+        # AB#9300 phase 4. properties.appLogsConfiguration.logAnalyticsConfiguration.sharedKey is NEVER
+        # projected. ['internal'] is bracket-quoted so the alias can never collide with a keyword.
         containerAppEnvironments = @'
 resources | where type =~ "microsoft.app/managedenvironments"
 | project id, name, resourceGroup, subscriptionId, location,
-          provisioningState = tostring(properties.provisioningState)
+          provisioningState = tostring(properties.provisioningState),
+          zoneRedundant = tobool(properties.zoneRedundant),
+          ['internal'] = tobool(properties.vnetConfiguration.internal),
+          vnetIntegrated = isnotempty(tostring(properties.vnetConfiguration.infrastructureSubnetId)),
+          publicNetworkAccess = tostring(properties.publicNetworkAccess)
 '@
         containerGroups = @'
 resources | where type =~ "microsoft.containerinstance/containergroups"
@@ -1434,7 +1749,11 @@ resources | where type =~ "microsoft.compute/snapshots"
         managedDisks = @'
 resources | where type =~ "microsoft.compute/disks"
 | project id, name, resourceGroup, subscriptionId, location, sku = tostring(sku.name),
-          diskState = tostring(properties.diskState), sizeGb = toint(properties.diskSizeGB)
+          diskState = tostring(properties.diskState), sizeGb = toint(properties.diskSizeGB),
+          zoneCount = array_length(zones),
+          networkAccessPolicy = tostring(properties.networkAccessPolicy),
+          publicNetworkAccess = tostring(properties.publicNetworkAccess),
+          encryptionType = tostring(properties.encryption.type)
 '@
         # ---- Migration domain (AB#6830/AB#6831/AB#6832) ---------------------------------------
         # The SMART assessment scores migration readiness and cannot run on an estate where none
@@ -1566,17 +1885,57 @@ resources | where type =~ "microsoft.eventhub/namespaces"
 | extend publicAccess = tostring(properties.publicNetworkAccess)
 // The ARM property is isAutoInflateEnabled, not autoInflateEnabled — CAF-INT-05 (AB#5057).
 | extend autoInflateEnabled = tobool(properties.isAutoInflateEnabled)
-| project name, resourceGroup, zoneRedundant, publicAccess, autoInflateEnabled
+// AB#9300 phase 4 (capacity / geo-replication / auth / encryption). geoReplicaCount is a COUNT of
+// the geoDataReplication locations; encryption.keyVaultProperties is NEVER projected -- only the
+// key source and whether infrastructure (double) encryption is required.
+| project id, name, resourceGroup, location, zoneRedundant, publicAccess, autoInflateEnabled,
+          skuName = tostring(sku.name),
+          capacity = toint(sku.capacity),
+          maxThroughputUnits = toint(properties.maximumThroughputUnits),
+          geoReplicaCount = array_length(properties.geoDataReplication.locations),
+          disableLocalAuth = tobool(properties.disableLocalAuth),
+          minimumTlsVersion = tostring(properties.minimumTlsVersion),
+          cmkKeySource = tostring(properties.encryption.keySource),
+          doubleEncryption = tobool(properties.encryption.requireInfrastructureEncryption)
 '@
+        # AB#9300 phase 4: zoneCount is the top-level `zones` array (a Premium instance spread over
+        # availability zones); additionalRegionCount is a COUNT of the extra gateway regions.
         apiManagement = @'
 resources | where type =~ "microsoft.apimanagement/service"
 | extend virtualNetworkType = tostring(properties.virtualNetworkType)
-| project name, resourceGroup, sku = tostring(sku.name), virtualNetworkType
+| project id, name, resourceGroup, location, sku = tostring(sku.name), virtualNetworkType,
+          zoneCount = array_length(zones),
+          capacity = toint(sku.capacity),
+          additionalRegionCount = array_length(properties.additionalLocations),
+          publicNetworkAccess = tostring(properties.publicNetworkAccess),
+          identityType = tostring(identity.type)
 '@
         serviceBusNamespaces = @'
 resources | where type =~ "microsoft.servicebus/namespaces"
 | extend publicAccess = tostring(properties.publicNetworkAccess)
-| project name, resourceGroup, publicAccess
+// AB#9300 phase 4. encryption.keyVaultProperties is NEVER projected; only the key source is.
+| project id, name, resourceGroup, location, publicAccess,
+          tier = tostring(sku.tier),
+          capacity = toint(sku.capacity),
+          zoneRedundant = tobool(properties.zoneRedundant),
+          geoReplicaCount = array_length(properties.geoDataReplication.locations),
+          disableLocalAuth = tobool(properties.disableLocalAuth),
+          minimumTlsVersion = tostring(properties.minimumTlsVersion),
+          cmkKeySource = tostring(properties.encryption.keySource)
+'@
+        # AB#9300 phase 4: Event Grid topics, domains and namespaces had no dataset. disableLocalAuth
+        # applies to topics/domains and zoneRedundant (isZoneRedundant) to namespaces, so each is
+        # null on the other types. inboundIpRuleCount is a COUNT -- the IP masks are never projected.
+        eventGrid = @'
+resources
+| where type in~ ("microsoft.eventgrid/topics", "microsoft.eventgrid/domains", "microsoft.eventgrid/namespaces")
+| project id, name, type,
+          publicNetworkAccess = tostring(properties.publicNetworkAccess),
+          inboundIpRuleCount = array_length(properties.inboundIpRules),
+          minimumTlsVersion = tostring(properties.minimumTlsVersionAllowed),
+          disableLocalAuth = tobool(properties.disableLocalAuth),
+          zoneRedundant = tobool(properties.isZoneRedundant),
+          identityType = tostring(identity.type)
 '@
         iotHubs = @'
 resources | where type =~ "microsoft.devices/iothubs"
@@ -1663,9 +2022,14 @@ resources | where type =~ "microsoft.purview/accounts"
         # verification standard as the rest of this file.
         databricksWorkspaces = @'
 resources | where type =~ "microsoft.databricks/workspaces"
+// AB#9300 phase 4. vnetInjected is a BOOL ONLY (the customer VNet id itself is not projected).
 | project id, name, resourceGroup, subscriptionId, location,
           sku = tostring(sku.name),
-          managedResourceGroupId = tostring(properties.managedResourceGroupId)
+          managedResourceGroupId = tostring(properties.managedResourceGroupId),
+          vnetInjected = isnotempty(tostring(properties.parameters.customVirtualNetworkId.value)),
+          noPublicIp = tobool(properties.parameters.enableNoPublicIp.value),
+          publicNetworkAccess = tostring(properties.publicNetworkAccess),
+          requiredNsgRules = tostring(properties.requiredNsgRules)
 '@
         dataExplorerClusters = @'
 resources | where type =~ "microsoft.kusto/clusters"
@@ -1886,7 +2250,16 @@ resources
         logAnalyticsWorkspaces = @'
 resources | where type =~ "microsoft.operationalinsights/workspaces"
 | extend retentionInDays = toint(properties.retentionInDays)
-| project name, resourceGroup, retentionInDays
+// AB#9300 phase 4. A workspace's pricing tier lives in properties.sku.name (the top-level `sku`
+// column is not where it is carried). dailyQuotaGb is -1 when no cap is set.
+| project id, name, resourceGroup, location, retentionInDays,
+          skuName = tostring(properties.sku.name),
+          dailyQuotaGb = todouble(properties.workspaceCapping.dailyQuotaGb),
+          publicNetworkAccessForIngestion = tostring(properties.publicNetworkAccessForIngestion),
+          publicNetworkAccessForQuery = tostring(properties.publicNetworkAccessForQuery),
+          disableLocalAuth = tobool(properties.features.disableLocalAuth),
+          resourceContextAccess = tobool(properties.features.enableLogAccessUsingOnlyResourcePermissions),
+          replicationEnabled = tobool(properties.replication.enabled)
 '@
         # ---- Azure Update Manager (AB#7065, Story AB#7065, Feature AB#7069, Epic AB#7099) -------
         # microsoft.maintenance/maintenanceconfigurations IS Resource Graph indexed (confirmed
@@ -1921,14 +2294,24 @@ resources | where type =~ "microsoft.machinelearningservices/workspaces"
 | extend publicAccess = tostring(properties.publicNetworkAccess)
 | extend identityType = tostring(identity.type)
 | extend isolationMode = tostring(properties.managedNetwork.isolationMode)
-| project id, name, resourceGroup, location, workspaceKind, publicAccess, identityType, isolationMode
+// AB#9300 phase 4: customer-managed-key status and the two workspace-mode flags.
+| project id, name, resourceGroup, location, workspaceKind, publicAccess, identityType, isolationMode,
+          cmkStatus = tostring(properties.encryption.status),
+          hbiWorkspace = tobool(properties.hbiWorkspace),
+          v1LegacyMode = tobool(properties.v1LegacyMode)
 '@
         searchServices = @'
 resources | where type =~ "microsoft.search/searchservices"
 | extend publicAccess = tostring(properties.publicNetworkAccess)
 | extend disableLocalAuth = tobool(properties.disableLocalAuth)
 | extend replicaCount = toint(properties.replicaCount)
-| project id, name, resourceGroup, location, sku = tostring(sku.name), publicAccess, disableLocalAuth, replicaCount
+// AB#9300 phase 4. ipRuleCount is a COUNT -- the IP rules themselves are never projected.
+| project id, name, resourceGroup, location, sku = tostring(sku.name), publicAccess, disableLocalAuth, replicaCount,
+          identityType = tostring(identity.type),
+          cmkEnforcement = tostring(properties.encryptionWithCmk.enforcement),
+          ipRuleCount = array_length(properties.networkRuleSet.ipRules),
+          semanticSearch = tostring(properties.semanticSearch),
+          partitionCount = toint(properties.partitionCount)
 '@
         # ---- AI + Machine Learning coverage-gap close-out (AB#7086, folds in AB#7071) ----------
         # All three resource types below are confirmed ARG-indexed via the ARM template reference
@@ -1990,9 +2373,12 @@ desktopvirtualizationresources | where type =~ "microsoft.desktopvirtualization/
 resources | where type =~ "microsoft.desktopvirtualization/scalingplans"
 | extend hostPoolRefCount = array_length(properties.hostPoolReferences)
 // The host pools this plan actually scales (scalingPlanEnabled), lower-cased for the join.
-| mv-apply hostPoolReference = properties.hostPoolReferences on (
-    where tobool(hostPoolReference.scalingPlanEnabled)
-    | summarize enabledHostPools = make_set(bag_pack("id", tolower(tostring(hostPoolReference.hostPoolArmPath)))))
+// mv-expand + summarize, not mv-apply (Resource Graph rejects mv-apply; live-verified AB#9300).
+| extend refArr = iff(coalesce(toint(array_length(properties.hostPoolReferences)), 0) > 0, properties.hostPoolReferences, dynamic([{}]))
+| mv-expand hostPoolReference = refArr
+| extend enabledHostPoolId = iff(coalesce(tobool(hostPoolReference.scalingPlanEnabled), false), tolower(tostring(hostPoolReference.hostPoolArmPath)), "")
+| summarize enabledHostPools = make_set_if(bag_pack("id", enabledHostPoolId), isnotempty(enabledHostPoolId))
+    by name, resourceGroup, hostPoolRefCount
 | project name, resourceGroup, hostPoolRefCount, enabledHostPools
 '@
         avdWorkspaces = @'
@@ -2179,7 +2565,12 @@ resources
           samplingPercentage = tostring(properties.SamplingPercentage),
           ingestionMode = tostring(properties.IngestionMode),
           publicNetworkAccessForIngestion = tostring(properties.publicNetworkAccessForIngestion),
-          publicNetworkAccessForQuery = tostring(properties.publicNetworkAccessForQuery)
+          publicNetworkAccessForQuery = tostring(properties.publicNetworkAccessForQuery),
+          // AB#9300 phase 4. These two properties are PascalCase in the ARM payload (Resource Graph
+          // keeps the case, and KQL property access is case-sensitive). workspaceBased is a BOOL
+          // ONLY -- the workspace resource id itself is not projected.
+          workspaceBased = isnotempty(tostring(properties.WorkspaceResourceId)),
+          disableLocalAuth = tobool(properties.DisableLocalAuth)
 '@
         workbooks = @'
 resources
@@ -2274,7 +2665,8 @@ resources
           severity = toint(properties.severity),
           autoMitigate = tobool(properties.autoMitigate),
           scopeCount = array_length(properties.scopes),
-          actionGroupCount = array_length(properties.actions)
+          actionGroupCount = array_length(properties.actions),
+          targetResourceType = tostring(properties.targetResourceType)
 '@
         scheduledQueryRules = @'
 resources
@@ -2286,13 +2678,25 @@ resources
           ['kind'] = tostring(properties.kind),
           scopeCount = array_length(properties.scopes)
 '@
+        # AB#9300 phase 4. `category` is the value an alert's condition pins the activity-log
+        # category to (Administrative / ServiceHealth / ResourceHealth / Security / ...): the `equals`
+        # of the allOf[] entry whose field is "category". It is null when no entry names one. The
+        # condition array is swapped for a one-element placeholder when absent/empty so mv-apply can
+        # never drop the rule row (AB#6845).
         activityLogAlertRules = @'
 resources
 | where type =~ "microsoft.insights/activitylogalerts"
-| project id, name, resourceGroup, subscriptionId,
-          enabled = tobool(properties.enabled),
-          scopeCount = array_length(properties.scopes),
-          actionGroupCount = array_length(properties.actions.actionGroups)
+| extend enabled = tobool(properties.enabled),
+         scopeCount = array_length(properties.scopes),
+         actionGroupCount = array_length(properties.actions.actionGroups)
+// Resource Graph has no mv-apply (it is rejected as a parse error), so the condition list is
+// expanded and summarised back to one row per rule. The empty/absent list is swapped for a
+// one-element placeholder so the row is never dropped (AB#6845, AB#9300; live-verified).
+| extend conditionArr = iff(coalesce(toint(array_length(properties.condition.allOf)), 0) > 0, properties.condition.allOf, dynamic([{}]))
+| mv-expand cond = conditionArr
+| extend conditionCategory = iff(tostring(cond.field) =~ "category", tostring(cond.equals), "")
+| summarize category = max(conditionCategory) by id, name, resourceGroup, subscriptionId, enabled, scopeCount, actionGroupCount
+| project id, name, resourceGroup, subscriptionId, enabled, scopeCount, actionGroupCount, category
 '@
         smartDetectorAlertRules = @'
 resources
@@ -2346,7 +2750,15 @@ resources
         networkManagers     = @('Networking')
         firewallPolicies    = @('Networking', 'Security')
         networkFunctions    = @('Networking')
+        # AB#9300 phase 4 -- Networking types that had no dataset. A public IP is also a cost
+        # (orphaned address) and a security (DDoS protection) review subject, the same reasoning
+        # orphanedPips is tagged Compute/Cost/Management; flow logs are network telemetry, so
+        # Monitor needs them as well as Networking and Security.
+        publicIPAddresses   = @('Networking', 'Security', 'Cost', 'Management')
+        flowLogs            = @('Networking', 'Security', 'Monitor')
         virtualMachines     = @('Compute')
+        # AB#9300 phase 4 -- Virtual Machine Scale Sets had no dataset.
+        virtualMachineScaleSets = @('Compute')
         # caf.billing (CAF-BIL-02/03) and waf.cost both need these under Management
         # and Compute/Cost respectively.
         orphanedDisks       = @('Compute', 'Cost', 'Management')
@@ -2407,6 +2819,8 @@ resources
         eventHubNamespaces  = @('Integration')
         apiManagement       = @('Integration')
         serviceBusNamespaces = @('Integration')
+        # AB#9300 phase 4 -- Event Grid topics, domains and namespaces had no dataset.
+        eventGrid           = @('Integration')
         iotHubs             = @('IoT')
         dpsInstances        = @('IoT')
         digitalTwinsInstances = @('IoT')
@@ -3543,6 +3957,10 @@ resources
             networkManagers          = $r.networkManagers
             firewallPolicies         = $r.firewallPolicies
             networkFunctions         = $r.networkFunctions
+            # AB#9300 phase 4 -- every public IP (not just the orphaned ones costCleanup keeps) and
+            # every Network Watcher flow log.
+            publicIPAddresses        = $r.publicIPAddresses
+            flowLogs                 = $r.flowLogs
         }
         # avdHostPools/avdSessionHosts/avdScalingPlans (AB#6819) and privateClouds (AB#6820) sit
         # under `compute`, not `domains`, alongside virtualMachines -- the existing pattern for
@@ -3561,6 +3979,8 @@ resources
             vmImageTemplates    = $r.vmImageTemplates
             quantumWorkspaces   = $r.quantumWorkspaces
             nutanixNodes        = $r.nutanixNodes
+            # AB#9300 phase 4 -- Virtual Machine Scale Sets.
+            virtualMachineScaleSets = $r.virtualMachineScaleSets
         }
         management    = [pscustomobject]@{
             # AB#6895: was hardcoded @(), so no run in the product's history ever reported a
@@ -3798,6 +4218,8 @@ resources
             integration  = [pscustomobject]@{
                 eventHubNamespaces = $r.eventHubNamespaces; apiManagement = $r.apiManagement
                 serviceBusNamespaces = $r.serviceBusNamespaces
+                # AB#9300 phase 4 -- Event Grid topics, domains and namespaces.
+                eventGrid = $r.eventGrid
             }
             iot          = [pscustomobject]@{
                 iotHubs = $r.iotHubs; dpsInstances = $r.dpsInstances

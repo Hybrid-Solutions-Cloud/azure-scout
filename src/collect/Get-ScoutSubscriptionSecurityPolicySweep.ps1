@@ -122,7 +122,10 @@ function Get-ScoutSubscriptionSecurityPolicySweep {
 
                 $transientFailure = $message -match '(?i)\bHTTP\s*(429|500|502|503|504)\b|InternalServerError|BadGateway|ServiceUnavailable|GatewayTimeout|TooManyRequests|HttpClient\.Timeout|timed out|TaskCanceled|operation (?:was|has been) canceled'
                 if ($transientFailure -and $attempt -lt $MaxAttempts) {
-                    Start-Sleep -Milliseconds (200 * $attempt)
+                    # Seconds, not milliseconds: a server-side 5xx from Defender did not clear in the
+                    # 0.6 s the old 200/400 ms back-off allowed, and the subscription went Partial
+                    # (AB#9300). 2, 4, 8, 16 s (capped at 20) gives a transient fault time to clear.
+                    Start-Sleep -Seconds ([Math]::Min(20, [Math]::Pow(2, $attempt)))
                     continue
                 }
 
@@ -692,7 +695,7 @@ function Get-ScoutSubscriptionSecurityPolicySweep {
             $queries.DefenderAlerts = Invoke-ScoutSweepDataset `
                 -Dataset 'DefenderAlerts' `
                 -SubscriptionName $subscriptionName `
-                -MaxAttempts 3 `
+                -MaxAttempts 5 `
                 -ProviderRegistrationIsUnavailable `
                 -Operation {
                     if ($prefetchedCalls.ContainsKey("$subscriptionId|DefenderAlerts")) { @($prefetchedCalls["$subscriptionId|DefenderAlerts"]) }
@@ -702,7 +705,7 @@ function Get-ScoutSubscriptionSecurityPolicySweep {
             $queries.DefenderAssessments = Invoke-ScoutSweepDataset `
                 -Dataset 'DefenderAssessments' `
                 -SubscriptionName $subscriptionName `
-                -MaxAttempts 3 `
+                -MaxAttempts 5 `
                 -ProviderRegistrationIsUnavailable `
                 -Operation {
                     if ($prefetchedAssessments.ContainsKey($subscriptionId)) {

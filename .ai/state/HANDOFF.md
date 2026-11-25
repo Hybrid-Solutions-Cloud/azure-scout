@@ -1,5 +1,17 @@
 # Handoff
 
+## Session 2026-11-25 (continued) — phase 4 batch 1 (3.18.15)
+
+3.18.14 released and five-tenant tested (all Completed, 65 assessments per tenant, 0 Error findings, 71 min). That run
+and a 3.18.13 run showed: diagnostic coverage NotAssessed in combined runs (SourceOperations dropped by
+Start-ScoutGraphExtraction -- fixed), Defender 5xx retried too fast (fixed), duplicate compliance ids (fixed). Phase 4:
+one agent added ~150 collection fields + 4 datasets (spec from a research agent; ARM paths verified on Learn); I ran the
+typed pack live on one tenant -- Azure rejected 5 queries (mv-apply unsupported, `count` reserved), rewritten and
+re-verified, guarded by Collect.ResourceGraphKqlDialect.Tests. Three agents then automated rules (WARA, technology
+reviews, CASA) and built WAF: Service Guides (waf.serviceguides.yaml). Live dev run on one tenant: diagnostics measured,
+IaC check working, 0 errors. Next: REST/child-sweep settings (SQL failover groups, auditing; blob/file soft delete; App
+Service config; Front Door routes; EH geo-DR), then phase 5 (non-Azure).
+
 ## Session 2026-11-25 (continued) — run every known assessment: phases 2 and 3 (3.18.14)
 
 3.18.13 released and installed (verify needed one retry while the Gallery caught up). Phases 2 and 3

@@ -153,6 +153,7 @@ param($ManagementGroup, $Subscriptions) return $Subscriptions }
                 extendedLocation = $null; managedBy = $null; tags = $null
                 properties = [pscustomobject]@{
                     enableDdosProtection   = $false
+                    encryption             = [pscustomobject]@{ enabled = $true }
                     virtualNetworkPeerings = @([pscustomobject]@{
                             name       = 'peer1'
                             properties = [pscustomobject]@{
@@ -185,10 +186,137 @@ param($ManagementGroup, $Subscriptions) return $Subscriptions }
                 id = '/subscriptions/aaa/resourceGroups/rg-app/providers/microsoft.compute/disks/disk-orphan'
                 name = 'disk-orphan'; type = 'microsoft.compute/disks'; location = 'eastus'
                 resourceGroup = 'rg-app'; subscriptionId = 'aaa'; tenantId = 'ten'
-                kind = $null; plan = $null; identity = $null; zones = $null
+                kind = $null; plan = $null; identity = $null; zones = @('1')
                 extendedLocation = $null; managedBy = $null; tags = $null
                 sku = [pscustomobject]@{ name = 'Premium_LRS' }
-                properties = [pscustomobject]@{ diskState = 'Unattached'; diskSizeGB = 128 }
+                properties = [pscustomobject]@{
+                    diskState = 'Unattached'; diskSizeGB = 128
+                    networkAccessPolicy = 'DenyAll'; publicNetworkAccess = 'Disabled'
+                    encryption = [pscustomobject]@{ type = 'EncryptionAtRestWithPlatformKey' }
+                }
+            }
+            # AB#9300 phase 4 -- one row per dataset whose KQL gained fields (or is new), so the
+            # equivalence below holds the shaper to what the KQL projects, field for field.
+            [pscustomobject]@{
+                id = '/subscriptions/aaa/resourceGroups/rg-net/providers/microsoft.network/azurefirewalls/fw1'
+                name = 'fw1'; type = 'microsoft.network/azurefirewalls'; location = 'eastus'
+                resourceGroup = 'rg-net'; subscriptionId = 'aaa'; tenantId = 'ten'
+                kind = $null; sku = $null; plan = $null; identity = $null; zones = @('1', '2', '3')
+                extendedLocation = $null; managedBy = $null; tags = $null
+                properties = [pscustomobject]@{
+                    sku             = [pscustomobject]@{ name = 'AZFW_VNet'; tier = 'Premium' }
+                    firewallPolicy  = [pscustomobject]@{ id = '/subscriptions/aaa/resourceGroups/rg-net/providers/Microsoft.Network/firewallPolicies/pol1' }
+                    threatIntelMode = 'Alert'
+                }
+            }
+            [pscustomobject]@{
+                id = '/subscriptions/aaa/resourceGroups/rg-net/providers/microsoft.network/publicipaddresses/pip1'
+                name = 'pip1'; type = 'microsoft.network/publicipaddresses'; location = 'eastus'
+                resourceGroup = 'rg-net'; subscriptionId = 'aaa'; tenantId = 'ten'
+                kind = $null; plan = $null; identity = $null; zones = @('1', '2', '3')
+                extendedLocation = $null; managedBy = $null; tags = $null
+                sku = [pscustomobject]@{ name = 'Standard'; tier = 'Regional' }
+                properties = [pscustomobject]@{
+                    publicIPAllocationMethod = 'Static'
+                    ddosSettings             = [pscustomobject]@{ protectionMode = 'VirtualNetworkInherited' }
+                    ipConfiguration          = [pscustomobject]@{ id = '/subscriptions/aaa/resourceGroups/rg-net/providers/Microsoft.Network/networkInterfaces/nic1/ipConfigurations/ipc1' }
+                }
+            }
+            [pscustomobject]@{
+                id = '/subscriptions/aaa/resourceGroups/rg-app/providers/microsoft.cache/redis/redis-classic'
+                name = 'redis-classic'; type = 'microsoft.cache/redis'; location = 'eastus'
+                resourceGroup = 'rg-app'; subscriptionId = 'aaa'; tenantId = 'ten'
+                kind = $null; sku = $null; plan = $null; identity = $null; zones = @('1')
+                extendedLocation = $null; managedBy = $null; tags = $null
+                properties = [pscustomobject]@{
+                    sku                            = [pscustomobject]@{ name = 'Premium'; family = 'P'; capacity = 1 }
+                    publicNetworkAccess            = 'Disabled'
+                    zonalAllocationPolicy          = 'Automatic'
+                    replicasPerMaster              = 2
+                    minimumTlsVersion              = '1.2'
+                    enableNonSslPort               = $false
+                    disableAccessKeyAuthentication = $true
+                    redisConfiguration             = [pscustomobject]@{
+                        'aad-enabled'                   = 'true'
+                        'rdb-storage-connection-string' = 'SENTINEL-NOT-FOR-THE-PAYLOAD'
+                    }
+                }
+            }
+            [pscustomobject]@{
+                id = '/subscriptions/aaa/resourceGroups/rg-app/providers/microsoft.cache/redisenterprise/redis-ent'
+                name = 'redis-ent'; type = 'microsoft.cache/redisenterprise'; location = 'eastus'
+                resourceGroup = 'rg-app'; subscriptionId = 'aaa'; tenantId = 'ten'
+                kind = $null; plan = $null; identity = $null; zones = @('1', '2')
+                extendedLocation = $null; managedBy = $null; tags = $null
+                sku = [pscustomobject]@{ name = 'Enterprise_E10'; capacity = 2 }
+                properties = [pscustomobject]@{
+                    highAvailability = 'Enabled'; minimumTlsVersion = '1.2'; publicNetworkAccess = 'Disabled'
+                }
+            }
+            [pscustomobject]@{
+                id = '/subscriptions/aaa/resourceGroups/rg-app/providers/microsoft.documentdb/databaseaccounts/cosmos1'
+                name = 'cosmos1'; type = 'microsoft.documentdb/databaseaccounts'; location = 'eastus'
+                resourceGroup = 'rg-app'; subscriptionId = 'aaa'; tenantId = 'ten'
+                kind = 'GlobalDocumentDB'; sku = $null; plan = $null; identity = $null; zones = $null
+                extendedLocation = $null; managedBy = $null; tags = $null
+                properties = [pscustomobject]@{
+                    publicNetworkAccess            = 'Disabled'
+                    disableLocalAuth               = $true
+                    locations                      = @(
+                        [pscustomobject]@{ locationName = 'East US'; isZoneRedundant = $true }
+                        [pscustomobject]@{ locationName = 'West US'; isZoneRedundant = $false }
+                        [pscustomobject]@{ locationName = 'North Europe' }
+                    )
+                    enableAutomaticFailover        = $true
+                    backupPolicy                   = [pscustomobject]@{ type = 'Continuous' }
+                    enableMultipleWriteLocations   = $false
+                    minimalTlsVersion              = 'Tls12'
+                    isVirtualNetworkFilterEnabled  = $true
+                    ipRules                        = @([pscustomobject]@{ ipAddressOrRange = '203.0.113.7' }, [pscustomobject]@{ ipAddressOrRange = '198.51.100.0/24' })
+                    keyVaultKeyUri                 = 'https://kv-example.vault.azure.net/keys/cmk'
+                }
+            }
+            [pscustomobject]@{
+                id = '/subscriptions/aaa/resourceGroups/rg-app/providers/microsoft.containerservice/managedclusters/aks1'
+                name = 'aks1'; type = 'microsoft.containerservice/managedclusters'; location = 'eastus'
+                resourceGroup = 'rg-app'; subscriptionId = 'aaa'; tenantId = 'ten'
+                kind = $null; plan = $null; identity = $null; zones = $null
+                extendedLocation = $null; managedBy = $null; tags = $null
+                sku = [pscustomobject]@{ name = 'Base'; tier = 'Standard' }
+                properties = [pscustomobject]@{
+                    kubernetesVersion    = '1.30.1'
+                    enableRBAC           = $true
+                    disableLocalAccounts = $true
+                    apiServerAccessProfile = [pscustomobject]@{ enablePrivateCluster = $true; authorizedIPRanges = @('10.0.0.0/24', '10.1.0.0/24') }
+                    networkProfile       = [pscustomobject]@{ networkPolicy = 'azure' }
+                    aadProfile           = [pscustomobject]@{ managed = $true; enableAzureRBAC = $true }
+                    autoUpgradeProfile   = [pscustomobject]@{ upgradeChannel = 'stable'; nodeOSUpgradeChannel = 'NodeImage' }
+                    securityProfile      = [pscustomobject]@{
+                        defender         = [pscustomobject]@{ securityMonitoring = [pscustomobject]@{ enabled = $true } }
+                        workloadIdentity = [pscustomobject]@{ enabled = $true }
+                    }
+                    agentPoolProfiles    = @(
+                        [pscustomobject]@{ name = 'system'; mode = 'System'; enableAutoScaling = $true; minCount = 2; maxCount = 5; count = 3; availabilityZones = @('1', '2', '3') }
+                        [pscustomobject]@{ name = 'user'; mode = 'User'; enableAutoScaling = $false; count = 4; availabilityZones = @('1') }
+                        [pscustomobject]@{ name = 'sys2'; mode = 'System'; count = 1; availabilityZones = $null }
+                    )
+                }
+            }
+            [pscustomobject]@{
+                id = '/subscriptions/aaa/resourceGroups/rg-app/providers/microsoft.compute/virtualmachines/vm1'
+                name = 'vm1'; type = 'microsoft.compute/virtualmachines'; location = 'eastus'
+                resourceGroup = 'rg-app'; subscriptionId = 'aaa'; tenantId = 'ten'
+                kind = $null; sku = $null; plan = $null; zones = @('1')
+                extendedLocation = $null; managedBy = $null; tags = $null
+                identity = [pscustomobject]@{ type = 'SystemAssigned' }
+                properties = [pscustomobject]@{
+                    hardwareProfile   = [pscustomobject]@{ vmSize = 'Standard_D2s_v5' }
+                    licenseType       = 'Windows_Server'
+                    storageProfile    = [pscustomobject]@{ osDisk = [pscustomobject]@{ osType = 'Windows'; managedDisk = [pscustomobject]@{ storageAccountType = 'Premium_LRS' } } }
+                    osProfile         = [pscustomobject]@{ windowsConfiguration = [pscustomobject]@{ patchSettings = [pscustomobject]@{ patchMode = 'AutomaticByPlatform'; assessmentMode = 'AutomaticByPlatform' } } }
+                    securityProfile   = [pscustomobject]@{ securityType = 'TrustedLaunch'; encryptionAtHost = $true }
+                    diagnosticsProfile = [pscustomobject]@{ bootDiagnostics = [pscustomobject]@{ enabled = $true } }
+                }
             }
         )
     }
@@ -209,8 +337,67 @@ param($ManagementGroup, $Subscriptions) return $Subscriptions }
             return @([pscustomobject]@{ name = 'rg-net'; subscriptionId = 'aaa' })
         }
         if ($Query -match 'peeringCount') {
-            return @([pscustomobject]@{ name = 'vnet1'; resourceGroup = 'rg-net'; subscriptionId = 'aaa'
-                    peeringCount = 1; ddosEnabled = $false })
+            # id/location/encryptionEnabled are the AB#9300 phase 4 additions.
+            return @([pscustomobject]@{ id = '/subscriptions/aaa/resourceGroups/rg-net/providers/microsoft.network/virtualnetworks/vnet1'
+                    name = 'vnet1'; resourceGroup = 'rg-net'; subscriptionId = 'aaa'; location = 'eastus'
+                    peeringCount = 1; ddosEnabled = $false; encryptionEnabled = $true })
+        }
+        # ---- AB#9300 phase 4: the typed answers for the rows added to Get-FixtureResourceRows. ----
+        # Each is what the KQL in Invoke-Collect.ps1 projects for that row, written out by hand
+        # (never derived from the shaper), so a field the shaper drops or renames fails the
+        # equivalence instead of passing against itself.
+        if ($Query -match 'microsoft\.network/azurefirewalls') {
+            return @([pscustomobject]@{ name = 'fw1'; resourceGroup = 'rg-net'; subscriptionId = 'aaa'
+                    sku = 'AZFW_VNet'; tier = 'Premium'; zoneCount = 3; hasPolicy = $true; threatIntelMode = 'Alert' })
+        }
+        # Must be matched on ddosProtectionMode: `orphanedPips` also names publicipaddresses, but
+        # only the all-addresses dataset projects the DDoS mode (and `skuTier` is shared with
+        # sqlElasticPools, so it cannot be the marker).
+        if ($Query -match 'ddosProtectionMode') {
+            return @([pscustomobject]@{ id = '/subscriptions/aaa/resourceGroups/rg-net/providers/microsoft.network/publicipaddresses/pip1'
+                    name = 'pip1'; resourceGroup = 'rg-net'; location = 'eastus'; skuName = 'Standard'; skuTier = 'Regional'
+                    zoneCount = 3; ddosProtectionMode = 'VirtualNetworkInherited'; allocationMethod = 'Static'; attached = $true })
+        }
+        if ($Query -match 'microsoft\.cache/redis') {
+            return @(
+                [pscustomobject]@{ id = '/subscriptions/aaa/resourceGroups/rg-app/providers/microsoft.cache/redis/redis-classic'
+                    name = 'redis-classic'; type = 'microsoft.cache/redis'; resourceGroup = 'rg-app'; subscriptionId = 'aaa'; location = 'eastus'
+                    sku = 'Premium'; skuFamily = 'P'; skuCapacity = 1; publicNetworkAccess = 'Disabled'
+                    zoneCount = 1; zonalAllocationPolicy = 'Automatic'; replicasPerPrimary = 2; minimumTlsVersion = '1.2'
+                    nonSslPortEnabled = $false; accessKeyAuthDisabled = $true; aadEnabled = $true; highAvailability = '' }
+                [pscustomobject]@{ id = '/subscriptions/aaa/resourceGroups/rg-app/providers/microsoft.cache/redisenterprise/redis-ent'
+                    name = 'redis-ent'; type = 'microsoft.cache/redisenterprise'; resourceGroup = 'rg-app'; subscriptionId = 'aaa'; location = 'eastus'
+                    sku = 'Enterprise_E10'; skuFamily = ''; skuCapacity = $null; publicNetworkAccess = 'Disabled'
+                    zoneCount = 2; zonalAllocationPolicy = ''; replicasPerPrimary = $null; minimumTlsVersion = '1.2'
+                    nonSslPortEnabled = $null; accessKeyAuthDisabled = $null; aadEnabled = $null; highAvailability = 'Enabled' }
+            )
+        }
+        if ($Query -match 'microsoft\.documentdb/databaseaccounts') {
+            return @([pscustomobject]@{ id = '/subscriptions/aaa/resourceGroups/rg-app/providers/microsoft.documentdb/databaseaccounts/cosmos1'
+                    name = 'cosmos1'; resourceGroup = 'rg-app'; subscriptionId = 'aaa'; location = 'eastus'; kind = 'GlobalDocumentDB'
+                    publicNetworkAccess = 'Disabled'; disableLocalAuth = $true; regionCount = 3; zoneRedundantRegionCount = 1
+                    automaticFailover = $true; backupType = 'Continuous'; multiRegionWrites = $false; minimalTlsVersion = 'Tls12'
+                    vnetFilterEnabled = $true; ipRuleCount = 2; cmkEnabled = $true })
+        }
+        if ($Query -match 'microsoft\.containerservice/managedclusters') {
+            # Pools: system (autoscale, min 2), user (fixed 4), sys2 (a SYSTEM pool with no autoscale
+            # flag and a fixed count of 1). systemPoolMinNodes = min(2, 1) = 1; two of three pools
+            # are zoned; one of three autoscales.
+            return @([pscustomobject]@{ id = '/subscriptions/aaa/resourceGroups/rg-app/providers/microsoft.containerservice/managedclusters/aks1'
+                    name = 'aks1'; resourceGroup = 'rg-app'; location = 'eastus'; k8sVersion = '1.30.1'
+                    privateCluster = $true; rbacEnabled = $true; networkPolicyEnabled = $true; aadIntegrated = $true
+                    allPoolsZoned = $false; tier = 'Standard'; systemPoolMinNodes = 1; allPoolsAutoscale = $false
+                    disableLocalAccounts = $true; upgradeChannel = 'stable'; nodeOsUpgradeChannel = 'NodeImage'
+                    authorizedIpRangeCount = 2; defenderEnabled = $true; workloadIdentity = $true; azureRbac = $true })
+        }
+        if ($Query -match 'type =~ "microsoft\.compute/virtualmachines"') {
+            return @([pscustomobject]@{ id = '/subscriptions/aaa/resourceGroups/rg-app/providers/microsoft.compute/virtualmachines/vm1'
+                    name = 'vm1'; resourceGroup = 'rg-app'; subscriptionId = 'aaa'; location = 'eastus'
+                    zoneRedundant = $true; zoneEligible = $true; size = 'Standard_D2s_v5'; licenseType = 'Windows_Server'
+                    osType = 'Windows'; patchMode = 'AutomaticByPlatform'; assessmentMode = 'AutomaticByPlatform'
+                    inAvailabilitySet = $false; unmanagedOsDisk = $false; osDiskType = 'Premium_LRS'
+                    securityType = 'TrustedLaunch'; encryptionAtHost = $true; bootDiagnostics = $true
+                    identityType = 'SystemAssigned' })
         }
         # AB#6928 vnetPeerings -- the per-peering mv-expand projection for peer1 above. Must be
         # checked ON the remoteVirtualNetwork marker: the parent virtualNetworks query also
@@ -245,7 +432,9 @@ param($ManagementGroup, $Subscriptions) return $Subscriptions }
         if ($Query -match 'diskState' -and $Query -notmatch 'Unattached') {
             return @([pscustomobject]@{ id = '/subscriptions/aaa/resourceGroups/rg-app/providers/Microsoft.Compute/disks/disk-orphan'
                     name = 'disk-orphan'; resourceGroup = 'rg-app'; subscriptionId = 'aaa'; location = 'eastus'
-                    sku = 'Premium_LRS'; diskState = 'Unattached'; sizeGb = 128 })
+                    sku = 'Premium_LRS'; diskState = 'Unattached'; sizeGb = 128
+                    zoneCount = 1; networkAccessPolicy = 'DenyAll'; publicNetworkAccess = 'Disabled'
+                    encryptionType = 'EncryptionAtRestWithPlatformKey' })
         }
         if ($Query -match 'diskState') {
             return @([pscustomobject]@{ name = 'disk-orphan'; resourceGroup = 'rg-app'; location = 'eastus'
