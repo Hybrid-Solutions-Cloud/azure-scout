@@ -13,6 +13,7 @@ scores, a prioritised gap list, and evidence for every finding.
 | Page | What it answers |
 |---|---|
 | [Assessment platform](./assessment.md) | Architecture, the collect → ingest → assess → report flow, run modes, the registry, and scoring |
+| [Questionnaire answers](./questionnaire-answers.md) | Answering the questions no Azure API can answer (CSV, the React report, or `-AssessmentAnswers`), so questionnaire-heavy assessments produce a full score |
 | [Analysis features](./analysis-features.md) | Cross-run drift, cost anomaly detection, IaC gap detection, IoT deep coverage |
 | [Configuration and report tiers](./configuration.md) | Saving/loading config, the three live outputs, and held legacy renderers |
 | [Prerequisites](./assessment-prerequisites.md) | What assessment mode needs beyond a normal inventory run |
@@ -21,15 +22,16 @@ scores, a prioritised gap list, and evidence for every finding.
 ## What can be assessed
 
 The full list lives on one generated page — **[Assessment Catalogue](../reference/assessment-catalogue.md)**
-— covering all 46 assessments grouped into CAF design areas, WAF pillars, per-service slices,
+— covering all 47 assessments grouped into CAF design areas, WAF pillars, per-service slices,
 and specialised reviews, with the rule files and rule counts behind each.
 
 ## Read this before quoting a score
 
 A rule is either **automated** — decided by collected data — or **manual**, meaning no data
-Azure exposes can settle it and a human must confirm it. **225 of Scout's 395 rules (57%) are
-manual.** They are excluded from every score rather than counted as failures, and reported
-separately.
+Azure exposes can settle it and a human must confirm it. **305 of Scout's 527 rules (58%) are
+manual.** Unanswered, they are excluded from every score rather than counted as failures, and
+reported separately. Answered (see [Questionnaire answers](./questionnaire-answers.md)), they are
+scored and marked as answered.
 
 That ratio varies enormously by assessment, and it changes what the output *is*. Some
 assessments return a grade; others return a worklist. The catalogue publishes the split per

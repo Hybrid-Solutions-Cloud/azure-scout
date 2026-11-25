@@ -114,7 +114,10 @@ function Get-ScoutArmResourceCrossCheck {
                     }
                 }
                 if ($null -ne $failure) { break }
-                foreach ($item in @($page.value)) { if ($null -ne $item) { $items.Add($item) } }
+                # A response with no `value` (an empty or non-list body) is an empty page, not a
+                # strict-mode failure that sinks the whole raw inventory.
+                $pageItems = if ($null -ne $page -and $page.PSObject.Properties['value']) { @($page.value) } else { @() }
+                foreach ($item in $pageItems) { if ($null -ne $item) { $items.Add($item) } }
                 $next = if ($page.PSObject.Properties['nextLink']) { [string]$page.nextLink } else { '' }
                 $uri = if ([string]::IsNullOrWhiteSpace($next)) { $null } else { $next }
             }

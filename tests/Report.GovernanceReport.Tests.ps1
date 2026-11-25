@@ -169,8 +169,8 @@ Describe 'Export-GovernanceReport -- zero-governance-data tenant (the false-pass
         $script:Payload3 = Get-GovPayload -Html (Get-Content $script:ReportPath3 -Raw)
     }
 
-    It 'still renders all seven expected domain names, every one Not assessed' {
-        $script:Payload3.Domains.Count | Should -Be 7
+    It 'still renders all eight expected domain names (seven risk categories and the governance process), every one Not assessed' {
+        $script:Payload3.Domains.Count | Should -Be 8
         $script:Payload3.Domains | ForEach-Object { $_.NotAssessed | Should -BeTrue }
     }
 
@@ -187,5 +187,36 @@ Describe 'Export-GovernanceReport -- zero-governance-data tenant (the false-pass
 Describe 'Export-GovernanceReport -- non-fatal on failure (mirrors Export-EChartsDashboard.ps1''s pattern)' {
     It 'never throws back into the caller even when Findings is $null' {
         { Export-GovernanceReport -Findings $null -Collect $null -OutputPath $script:OutDir } | Should -Not -Throw
+    }
+}
+
+Describe 'Export-GovernanceReport -- the Governance Process area beside the seven risk categories' {
+    BeforeAll {
+        # caf.govern.proc.yaml adds an eighth, all-manual area. The renderer builds its domain list
+        # from the scored Areas, so it must carry that area through (as "Not assessed") rather than
+        # dropping it or counting it as a risk category.
+        $procFindings = @($script:Findings) + @(
+            (New-GovFinding -Id 'CGOV-PROC-01' -Area 'Governance Process' -Status 'Manual' -Manual $true)
+            (New-GovFinding -Id 'CGOV-PROC-02' -Area 'Governance Process' -Status 'Manual' -Manual $true)
+        )
+        $procScored = Get-Score -Findings $procFindings
+        $procPath = Export-GovernanceReport -Findings $procScored -Collect $script:Collect -OutputPath $script:OutDir
+        $script:ProcPayload = Get-GovPayload -Html (Get-Content $procPath -Raw)
+    }
+
+    It 'renders the Governance Process area as a domain' {
+        $script:ProcPayload.Domains.Count | Should -Be 8
+        ($script:ProcPayload.Domains.Area) | Should -Contain 'Governance Process'
+    }
+
+    It 'marks the all-manual Governance Process area NotAssessed with no score' {
+        $proc = $script:ProcPayload.Domains | Where-Object Area -eq 'Governance Process'
+        $proc.NotAssessed | Should -BeTrue
+        ($null -eq $proc.Score) | Should -BeTrue
+        $proc.Manual | Should -Be 2
+    }
+
+    It 'does not let the unscored area change the overall headline score' {
+        $script:ProcPayload.OverallScore | Should -Be $script:Payload2.OverallScore
     }
 }

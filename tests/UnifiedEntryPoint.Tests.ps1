@@ -546,14 +546,24 @@ Describe 'Wizard — grouped assessment checklist (AB#7188)' {
         ($flattened | Sort-Object) | Should -Be ($keys | Sort-Object)
     }
 
-    It 'orders the headings CAF, WAF, Specialized, deep-dives' {
+    It 'orders the headings CAF, WAF, Workload, Specialized, deep-dives' {
         $groups = & $script:Module { Group-AZSCWizardAssessment -Names @('CAF: Azure Landing Zone') }
         @($groups.Keys) | Should -Be @(
             'Cloud Adoption Framework (CAF)',
             'Well-Architected Framework (WAF)',
+            'Workload reviews',
             'Specialized reviews',
             'Service category deep-dives'
         )
+    }
+
+    It 'files workload reviews together, whatever their prefix (AB#9300)' {
+        $groups = & $script:Module {
+            Group-AZSCWizardAssessment -Names @('Workload: AVD', 'Workload: AVS', 'Assess: AI Workload', 'Assess: AVD Workload', 'Assess: Compliance', 'Assess: Compute')
+        }
+        ($groups['Workload reviews'] | Sort-Object) | Should -Be @('Assess: AI Workload', 'Assess: AVD Workload', 'Workload: AVD', 'Workload: AVS')
+        $groups['Specialized reviews'] | Should -Be @('Assess: Compliance')
+        $groups['Service category deep-dives'] | Should -Be @('Assess: Compute')
     }
 
     It 'sorts each prefix family into its own group' {
@@ -657,7 +667,9 @@ Describe 'Wizard — combined run contract' {
     It 'returns Both with React and JsonEvidence selected' {
         $result = & $script:Module {
             $script:WizardResponses = [System.Collections.Generic.Queue[string]]::new()
-            @('', '3', '', '', '', '', '3', '', '', '', '', '', '', '') |
+            # The empty answer after the assessment checklist skips the questionnaire answer-file
+            # prompt (CAF: Azure Landing Zone has manual questions, so the wizard asks).
+            @('', '3', '', '', '', '', '', '3', '', '', '', '', '', '', '') |
                 ForEach-Object { $script:WizardResponses.Enqueue($_) }
             Mock -CommandName Read-Host -MockWith { $script:WizardResponses.Dequeue() }
 

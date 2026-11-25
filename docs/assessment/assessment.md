@@ -382,7 +382,7 @@ and per-design-area assessments into real scored entries. They group as:
   filters what gets *scored*, which is why they carry the prefix. The old unprefixed name
   still resolves, with a warning telling you what to change.
 - **7 specialised and workload** — `Workload: AVS`, `Workload: AVS Landing Zone`, `Microsoft: CASA`,
-  `Microsoft: DevOps Capability`, `Microsoft: FinOps Review`, `Microsoft: SMART Migration` and
+  `Microsoft: DevOps Capability`, `Microsoft: FinOps Review`, `CAF: Migrate readiness` (formerly `Microsoft: SMART Migration`) and
   `Assess: Compliance`.
 
 A few legacy sub-bundles still sit inside those groups — `Scout: Governance Baseline`,
@@ -402,7 +402,7 @@ proceeds against the new entry and prints a warning naming the replacement.
 | `LandingZone` | `CAF: Azure Landing Zone` |
 | `CASA` | `Microsoft: CASA` |
 | `DevOps Capability Assessment` | `Microsoft: DevOps Capability` |
-| `SMART` | `Microsoft: SMART Migration` |
+| `SMART`, `Microsoft: SMART Migration` | `CAF: Migrate readiness` (Microsoft deletes SMART in January 2027; the assessment is now CAF Plan + Migrate) |
 | `FinOps Review` | `Microsoft: FinOps Review` |
 | `Cost` | `Scout: Cost Optimization` |
 | `CrossResource` | `Scout: Cross-Resource` |
@@ -420,7 +420,7 @@ to any count written in prose here — it is generated from the registry and can
 entry that runs and silently returns zero findings reads as "nothing wrong" rather than
 "nothing was checked", so it is left off the menu rather than shown. You can still run one
 directly with `-Assessment <Name>` — the filter is a menu courtesy, not an authorization
-check. `Microsoft: SMART Migration` is gated separately, on whether the estate actually has migration data to score.
+check. `CAF: Migrate readiness` is gated separately, on whether the estate actually has migration data to score.
 :::
 
 ## Scoring
@@ -429,6 +429,7 @@ check. `Microsoft: SMART Migration` is gated separately, on whether the estate a
 - Framework scores are the rule-count-weighted roll-up of area/pillar scores.
 - `Unknown`/`Error` are surfaced, never silently dropped — a broken rule cannot inflate a score.
 - The **`Manual`** status intentionally hands the un-automatable checks to a human, with the collected evidence already attached.
+- A manual question **is scored once someone answers it**. Every run writes `assessment-questions.csv`; fill in the `Answer` column (Yes / Partial / No / N/A), or answer in the React report and download the answers, then run again with `-AssessmentAnswers`. Answered items are marked **Answered** (`Source = Answer`) so a reader can always tell a person's answer from Azure evidence. See [Questionnaire Answers](questionnaire-answers.md).
 
 
 ## Permissions

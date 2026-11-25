@@ -55,9 +55,12 @@ $ErrorActionPreference = 'Stop'
                      coverage-gap close-out)
         compute    { virtualMachines[{name,zoneRedundant,zoneEligible,licenseType,osType,
                                        patchMode,assessmentMode}],                       (AB#7109)
-                     avdHostPools[{hostPoolType,loadBalancerType,maxSessionLimit}],
-                     avdSessionHosts[{hostPoolName,status,agentVersion}],
-                     avdScalingPlans[{hostPoolRefCount}] }                              (AB#6819)
+                     avdHostPools[{id,location,hostPoolType,loadBalancerType,maxSessionLimit,
+                                   startVMOnConnect,validationEnvironment,publicNetworkAccess,
+                                   agentUpdateType,preferredAppGroupType}],
+                     avdSessionHosts[{hostPoolName,status,agentVersion,resourceId,updateState}],
+                     avdScalingPlans[{hostPoolRefCount,enabledHostPools[{id}]}],
+                     avdWorkspaces[{id,location,publicNetworkAccess}] }  (AB#6819, AB#9300)
                      privateClouds[{availabilityStrategy,availabilityZone,clusterSize,
                                      expressRouteCircuitId,encryptionStatus}] }   (AB#6820)
         management { recoveryVaults[{backupItems[]}], deployments[],
@@ -112,7 +115,7 @@ $ErrorActionPreference = 'Stop'
                      AZSC/Management/PolicyDefinition|PolicySetDefinition envelopes the
                      TenantWideDefinitionsOnly sweep already collects -- AB#7066)
         costCleanup { orphanedDisks[], orphanedPips[] }
-        opsPosture  { diagnosticCoverage[{type,coveragePct}] }
+        opsPosture  { diagnosticCoverage[{type,total,withDiag,coveragePct}], diagnosticCoverageMeasured }
         monitor     { dataCollectionRules[{dataCollectionEndpointId,hasLogAnalyticsDestination,dataFlowCount,immutableId}],
                       dataCollectionEndpoints[{publicNetworkAccess,configurationAccessEndpoint,immutableId}],
                       actionGroups[{enabled,groupShortName,emailReceiverCount,smsReceiverCount,webhookReceiverCount}],
@@ -859,11 +862,15 @@ resources | where type =~ "microsoft.compute/disks" and properties.diskState =~ 
 resources | where type =~ "microsoft.network/publicipaddresses" and isnull(properties.ipConfiguration)
 | project name, resourceGroup, location, sku = tostring(sku.name)
 '@
+        # Diagnostic settings are not in any Resource Graph table, so this query cannot measure
+        # coverage: it used to test `properties.diagnosticSettings`, which no resource has, and
+        # reported 0% for every type. It now returns no rows; the inventory path measures coverage
+        # from the ResourceDiagnosticSettings ARM sweep instead (see ConvertFrom-ScoutInventory).
         diagnosticCoverage = @'
 resources
-| extend hasDiag = iff(isnotnull(properties.diagnosticSettings), true, false)
-| summarize total = count(), withDiag = countif(hasDiag) by type
-| extend coveragePct = iff(total > 0, round(todouble(withDiag)/total*100,1), todouble(0))
+| where type =~ "azurescout/diagnostic-coverage-not-in-resource-graph"
+| summarize total = count(), withDiag = toint(0) by type
+| extend coveragePct = todouble(0)
 | project type, total, withDiag, coveragePct
 '@
         deployments = @'
@@ -1471,7 +1478,11 @@ resources | where type =~ "microsoft.cognitiveservices/accounts"
 // BYOK/CMK marker used across RPs (matches EventHub/Synapse) — CAF-AI-05.
 | extend identityType = tostring(identity.type)
 | extend cmkEnabled = tostring(properties.encryption.keySource) =~ "Microsoft.KeyVault"
-| project name, resourceGroup, accountKind, publicAccess, identityType, cmkEnabled
+// id/location/disableLocalAuth: CAF-AI-04's percentage needs a key (it counted id, which was
+// never projected, so it was always Unknown); APPP-02/05 list regions; the AI rules check local
+// (key) auth is off (AB#9300).
+| extend disableLocalAuth = tobool(properties.disableLocalAuth)
+| project id, name, resourceGroup, location, accountKind, publicAccess, identityType, cmkEnabled, disableLocalAuth
 '@
         arcServers = @'
 resources | where type =~ "microsoft.hybridcompute/machines"
@@ -1909,11 +1920,15 @@ resources | where type =~ "microsoft.machinelearningservices/workspaces"
 | extend workspaceKind = tostring(['kind'])
 | extend publicAccess = tostring(properties.publicNetworkAccess)
 | extend identityType = tostring(identity.type)
-| project name, resourceGroup, workspaceKind, publicAccess, identityType
+| extend isolationMode = tostring(properties.managedNetwork.isolationMode)
+| project id, name, resourceGroup, location, workspaceKind, publicAccess, identityType, isolationMode
 '@
         searchServices = @'
 resources | where type =~ "microsoft.search/searchservices"
-| project name, resourceGroup, sku = tostring(sku.name)
+| extend publicAccess = tostring(properties.publicNetworkAccess)
+| extend disableLocalAuth = tobool(properties.disableLocalAuth)
+| extend replicaCount = toint(properties.replicaCount)
+| project id, name, resourceGroup, location, sku = tostring(sku.name), publicAccess, disableLocalAuth, replicaCount
 '@
         # ---- AI + Machine Learning coverage-gap close-out (AB#7086, folds in AB#7071) ----------
         # All three resource types below are confirmed ARG-indexed via the ARM template reference
@@ -1950,7 +1965,14 @@ resources | where type =~ "microsoft.desktopvirtualization/hostpools"
 | extend hostPoolType = tostring(properties.hostPoolType)
 | extend loadBalancerType = tostring(properties.loadBalancerType)
 | extend maxSessionLimit = toint(properties.maxSessionLimit)
-| project name, resourceGroup, hostPoolType, loadBalancerType, maxSessionLimit
+// General-AVD workload review (WAF-AVDAZ, AB#9300). registrationInfo.token is never projected.
+| extend startVMOnConnect = tobool(properties.startVMOnConnect)
+| extend validationEnvironment = tobool(properties.validationEnvironment)
+| extend publicNetworkAccess = tostring(properties.publicNetworkAccess)
+| extend agentUpdateType = tostring(properties.agentUpdate.type)
+| extend preferredAppGroupType = tostring(properties.preferredAppGroupType)
+| project id, name, resourceGroup, location, hostPoolType, loadBalancerType, maxSessionLimit,
+    startVMOnConnect, validationEnvironment, publicNetworkAccess, agentUpdateType, preferredAppGroupType
 '@
         # Session hosts, advisor scores, backup policies and Edge orders live outside the resources
         # table (Resource Graph table reference); querying resources always returned nothing.
@@ -1959,12 +1981,24 @@ desktopvirtualizationresources | where type =~ "microsoft.desktopvirtualization/
 | extend hostPoolName = tostring(split(id, "/sessionHosts/")[0])
 | extend status = tostring(properties.status)
 | extend agentVersion = tostring(properties.agentVersion)
-| project name, hostPoolName, status, agentVersion
+// resourceId (the session host's VM) is the key the WAF-AVDAZ rules join virtualMachines on.
+| extend resourceId = tostring(properties.resourceId)
+| extend updateState = tostring(properties.updateState)
+| project name, hostPoolName, status, agentVersion, resourceId, updateState
 '@
         avdScalingPlans = @'
 resources | where type =~ "microsoft.desktopvirtualization/scalingplans"
 | extend hostPoolRefCount = array_length(properties.hostPoolReferences)
-| project name, resourceGroup, hostPoolRefCount
+// The host pools this plan actually scales (scalingPlanEnabled), lower-cased for the join.
+| mv-apply hostPoolReference = properties.hostPoolReferences on (
+    where tobool(hostPoolReference.scalingPlanEnabled)
+    | summarize enabledHostPools = make_set(bag_pack("id", tolower(tostring(hostPoolReference.hostPoolArmPath)))))
+| project name, resourceGroup, hostPoolRefCount, enabledHostPools
+'@
+        avdWorkspaces = @'
+resources | where type =~ "microsoft.desktopvirtualization/workspaces"
+| extend publicNetworkAccess = tostring(properties.publicNetworkAccess)
+| project id, name, resourceGroup, location, publicNetworkAccess
 '@
         # NOTE: logicalNetworks (microsoft.azurestackhci/logicalnetworks) is declared once,
         # above, under the AB#6803 Azure Local block — that projection is a superset (adds
@@ -2407,6 +2441,7 @@ resources
         avdHostPools        = @('Compute', 'Hybrid')
         avdSessionHosts     = @('Compute', 'Hybrid')
         avdScalingPlans     = @('Compute', 'Hybrid')
+        avdWorkspaces       = @('Compute', 'Hybrid')
         # NOTE: logicalNetworks is already declared once above (Hybrid, line ~827) -- not
         # re-declared here, see the AB#6803 collector-declaration comment for why.
         # avs.workload (WAF-AVS-*) and caf.avslandingzone (AVS-*) both read this -- AB#6820.
@@ -2729,9 +2764,14 @@ resources
             # call behind `-not $DefinitionsOnly`). The four -DefinitionsOnly envelopes
             # (management groups, custom roles, policy/policy-set definitions) are still
             # collected either way; this only adds calls, never removes any.
+            # Diagnostic settings are an ARM extension resource that Resource Graph never indexes,
+            # so the only way to measure coverage is the per-resource ResourceDiagnosticSettings
+            # sweep (one GET per resource of the ~20 types it visits). Without it CAF-MGT-01/05
+            # and WAF-OE-01 have nothing true to score (AB#9300).
+            $rawArgs.IncludeArmChildResources = $true
+            $rawArgs.ArmChildDataset = @('ResourceDiagnosticSettings')
             if ($IncludeAzureLocalArm) {
-                $rawArgs.IncludeArmChildResources = $true
-                $rawArgs.ArmChildDataset = @('AzureLocalVirtualMachineInstances')
+                $rawArgs.ArmChildDataset = @('ResourceDiagnosticSettings', 'AzureLocalVirtualMachineInstances')
                 $rawArgs.TenantWideDefinitionsOnly = $false
             }
             $rawInventory = Get-ScoutRawInventory @rawArgs
@@ -2860,7 +2900,8 @@ resources
         try {
             $invResources = if ($rawInventory.PSObject.Properties['Resources']) { $rawInventory.Resources } else { @() }
             $invContainers = if ($rawInventory.PSObject.Properties['ResourceContainers']) { $rawInventory.ResourceContainers } else { @() }
-            $inventoryShaped = ConvertFrom-ScoutInventory -Resources $invResources -ResourceContainers $invContainers
+            $invOperations = if ($rawInventory.PSObject.Properties['SourceOperations']) { $rawInventory.SourceOperations } else { @() }
+            $inventoryShaped = ConvertFrom-ScoutInventory -Resources $invResources -ResourceContainers $invContainers -SourceOperations $invOperations
             Write-Verbose "Invoke-Collect: shaping $($inventoryShaped.Keys.Count) queries from one collection pass (AB#5543/AB#5648); only 'sqlDefenderPricing' still goes to Resource Graph."
         }
         catch {
@@ -2951,6 +2992,8 @@ resources
     # `Collect.ShapedDatasetsReachTheResult.Tests.ps1` now fails if any shaped dataset is left
     # without a `$q` entry and without an explicit copy here, so the next one cannot go unnoticed.
     $r['recoveryVaults'] = if ($inventoryShaped.ContainsKey('recoveryVaults')) { @($inventoryShaped['recoveryVaults']) } else { @() }
+    # True only when the diagnostic-settings ARM sweep ran (there is no typed query for it).
+    $r['diagnosticCoverageMeasured'] = [bool]($inventoryShaped.ContainsKey('diagnosticCoverageMeasured') -and $inventoryShaped['diagnosticCoverageMeasured'])
 
     # ---- firewall policy rule-collection group parsing (AB#400) ----
     # properties.ruleCollections is a nested dynamic array (rule collections -> rules)
@@ -2999,7 +3042,8 @@ resources
     # rather than a genuinely empty estate — surface a diagnostic hint instead of
     # silently handing an empty dataset to the assess/report layers.
     $totalRows = 0
-    foreach ($k in $r.Keys) { $totalRows += @($r[$k]).Count }
+    # Only datasets count: a scalar flag such as diagnosticCoverageMeasured is not a returned row.
+    foreach ($k in $r.Keys) { if ($r[$k] -is [bool]) { continue }; $totalRows += @($r[$k]).Count }
     if ($totalRows -eq 0) {
         $scopeHint = if ($ManagementGroupId) { "management group '$ManagementGroupId'" } else { 'the current subscription/tenant context' }
         Write-Warning ("Invoke-Collect: no resources were returned for any collected query, scoped to {0}. This usually means (1) the signed-in identity is missing the Reader role at that scope, (2) the wrong tenant/subscription is selected in the current Az context, (3) -ManagementGroupId points at an empty or inaccessible management group, or (4) -Categories filtered out every query that would otherwise have run — verify RBAC and scope before treating this as a genuinely empty estate." -f $scopeHint)
@@ -3503,6 +3547,7 @@ resources
             avdHostPools    = $r.avdHostPools
             avdSessionHosts = $r.avdSessionHosts
             avdScalingPlans = $r.avdScalingPlans
+            avdWorkspaces   = $r.avdWorkspaces
             privateClouds   = $r.privateClouds
             # AB#7088 (folds in AB#7071) -- Compute coverage-gap close-out.
             computeFleets       = $r.computeFleets
@@ -3586,7 +3631,12 @@ resources
             pimEligibility = @(); classicAdministrators = @()
         }
         costCleanup   = [pscustomobject]@{ orphanedDisks = $r.orphanedDisks; orphanedPips = $r.orphanedPips }
-        opsPosture    = [pscustomobject]@{ diagnosticCoverage = $r.diagnosticCoverage }
+        # diagnosticCoverageMeasured is false when no diagnostic-settings sweep ran (the typed-query
+        # path, or a raw pass without it); the coverage rules gate on it and report NotAssessed.
+        opsPosture    = [pscustomobject]@{
+            diagnosticCoverage         = $r.diagnosticCoverage
+            diagnosticCoverageMeasured = [bool]$r['diagnosticCoverageMeasured']
+        }
         # AB#7064 (Story AB#7059, Feature AB#7069, Epic AB#7099) -- Monitor-native resources sit
         # under their own top-level key rather than being folded into `management`/`opsPosture`,
         # which already carry unrelated meanings (deployments/backup vs derived diagnostic-coverage

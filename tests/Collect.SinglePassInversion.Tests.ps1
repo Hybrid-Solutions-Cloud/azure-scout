@@ -233,15 +233,10 @@ param($ManagementGroup, $Subscriptions) return $Subscriptions }
                     name = 'kv1'; resourceGroup = 'rg-app'; softDelete = $true; purgeProtection = $false })
         }
         if ($Query -match 'coveragePct') {
-            # `summarize total = count(), withDiag = countif(hasDiag) by type` over the three
-            # fixture resources. None of them carries properties.diagnosticSettings, so
-            # withDiag is 0 and coveragePct is 0.0 for each type. Order matches the shaping
-            # path's Group-Object order (first appearance in the row set).
-            return @(
-                [pscustomobject]@{ type = 'microsoft.network/virtualnetworks'; total = 1; withDiag = 0; coveragePct = [double] 0 }
-                [pscustomobject]@{ type = 'microsoft.keyvault/vaults'; total = 1; withDiag = 0; coveragePct = [double] 0 }
-                [pscustomobject]@{ type = 'microsoft.compute/disks'; total = 1; withDiag = 0; coveragePct = [double] 0 }
-            )
+            # Diagnostic settings are not in any Resource Graph table, so the typed query now
+            # matches nothing (AB#9300); the inventory path measures coverage only from the
+            # diagnostic-settings ARM sweep, which this fixture has none of. Both paths: no rows.
+            return @()
         }
         # managedDisks (AB#6835) and orphanedDisks BOTH mention diskState, so this branch must come
         # first and match on the filter that distinguishes them -- orphanedDisks is the one that

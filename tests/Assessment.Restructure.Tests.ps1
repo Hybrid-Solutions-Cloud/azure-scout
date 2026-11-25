@@ -51,6 +51,10 @@ BeforeAll {
     # Every entry here is a decision. Adding one means editing this list.
     $script:ScoutInternalFrameworks = @(
         'SMART'
+        # smart.migration.yaml was re-based on CAF Plan + CAF Migrate when Microsoft retired SMART
+        # (January 2027). It spans plan, prepare, execute, optimise and decommission, so no single
+        # CAF design area names it -- same reasoning as the SMART entry above.
+        'CAF Migrate'
         'XR'
         'WAF-AI'
         'WAF-AVD'

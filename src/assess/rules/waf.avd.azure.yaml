@@ -1,0 +1,282 @@
+# waf.avd.azure.yaml — Azure Virtual Desktop workload assessment, AVD in Azure (AB#9300)
+#
+# The companion to waf.avd.yaml, which scores AVD deployed on Azure Local only. This file scores
+# AVD running in Azure, the scope of Microsoft's "Azure Well-Architected Azure Virtual Desktop
+# workload" assessment (learn.microsoft.com/assessments/1ef67c4e-b8d1-4193-b850-d192089ae33d).
+#
+# Written ONLY against docs/frameworks/waf-avd-azure-workload-checklist.md. Microsoft does not
+# publish that assessment's question text, and its WAF AVD design-area pages now redirect to AVD
+# product documentation, so every item is Scout's reading of the live AVD guidance named per row.
+#
+# Every automated rule is gated on AVD data being present, so an estate without AVD reports these
+# Not assessed rather than passed or failed. Joins to virtual machines use the session host's
+# `resourceId`, so session hosts on Azure Local (which are not Azure VMs) drop out of those rules
+# instead of being mis-scored.
+area: "AVD workload (Azure)"
+framework: WAF-AVD
+frameworkversion: "Azure Well-Architected AVD workload assessment (questions unpublished) + Azure Virtual Desktop guidance on Microsoft Learn, docs/frameworks/waf-avd-azure-workload-checklist.md, retrieved 2026-11-24 (30 items, AVD in Azure)"
+weight: 1.0
+verifiedAgainst: "docs/frameworks/waf-avd-azure-workload-checklist.md (Scout enumeration of learn.microsoft.com/azure/virtual-desktop/*), verified 2026-11-24"
+rules:
+  # ---- Reliability (WAF-AVDAZ-RE) -----------------------------------------------------------
+  - id: WAF-AVDAZ-RE-01
+    title: "WAF-AVDAZ-RE-01. Session-host VMs are deployed in availability zones"
+    severity: high
+    join:
+      left: "$.compute.avdSessionHosts[*]"
+      leftKey: "resourceId"
+      right: "$.compute.virtualMachines[?(@.zoneEligible == true && @.zoneRedundant == false)]"
+      rightKey: "id"
+      mode: leftMatched
+      leftLabel: "session host"
+      rightLabel: "virtual machine with no zone, in a region that has zones"
+    assert: { type: countEquals, value: 0, gate: "$.compute.avdSessionHosts[*]" }
+    remediation: "WAF-AVDAZ-RE-01. The session hosts listed run on VMs with no availability zone in a region that supports zones. Spread session hosts across zones so one datacenter failure does not take the host pool down."
+    manual: false
+  - id: WAF-AVDAZ-RE-02
+    title: "WAF-AVDAZ-RE-02. Session hosts are healthy"
+    severity: high
+    # Shutdown is deliberately not a failure: autoscale shuts hosts down on purpose.
+    query: "$.compute.avdSessionHosts[?(@.status == 'Unavailable' || @.status == 'NoHeartbeat' || @.status == 'UpgradeFailed' || @.status == 'NeedsAssistance' || @.status == 'FSLogixNotHealthy' || @.status == 'DomainTrustRelationshipLost')]"
+    assert: { type: countEquals, value: 0, gate: "$.compute.avdSessionHosts[*]" }
+    remediation: "WAF-AVDAZ-RE-02. The session hosts listed report an unhealthy status. Investigate with Azure Virtual Desktop Insights and fix or replace them."
+    manual: false
+  - id: WAF-AVDAZ-RE-03
+    title: "WAF-AVDAZ-RE-03. FSLogix profile storage is zone- or geo-redundant"
+    severity: high
+    query: "$.domains.storage.storageAccounts[*]"
+    assert: { type: manual }
+    remediation: "WAF-AVDAZ-RE-03. Nothing in ARM links a storage account to AVD, so the storage accounts are listed as evidence. Confirm the accounts or Azure NetApp Files volumes holding FSLogix profiles use ZRS or GZRS."
+    manual: true
+  - id: WAF-AVDAZ-RE-04
+    title: "WAF-AVDAZ-RE-04. Profile shares are backed up"
+    severity: medium
+    query: "$.management.backupProtectedItems[*]"
+    assert: { type: manual }
+    remediation: "WAF-AVDAZ-RE-04. Confirm the Azure Files shares that hold user profiles are protected by Azure Backup (protected items are attached as evidence)."
+    manual: true
+  - id: WAF-AVDAZ-RE-05
+    title: "WAF-AVDAZ-RE-05. The golden image is kept in a Compute Gallery and replicated to the recovery region"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AVDAZ-RE-05. Confirm session-host images are versioned in an Azure Compute Gallery with a replica in the region you would recover to."
+    manual: true
+  - id: WAF-AVDAZ-RE-06
+    title: "WAF-AVDAZ-RE-06. A business continuity model is defined and recovery is tested"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AVDAZ-RE-06. Confirm the recovery approach (active-active or active-passive host pools), that profile and Office containers are stored separately, and that failover has been tested."
+    manual: true
+
+  # ---- Security (WAF-AVDAZ-SE) --------------------------------------------------------------
+  - id: WAF-AVDAZ-SE-01
+    title: "WAF-AVDAZ-SE-01. Host pool public network access is restricted"
+    severity: medium
+    query: "$.compute.avdHostPools[?(@.publicNetworkAccess == 'Enabled' || @.publicNetworkAccess == '')]"
+    assert: { type: countEquals, value: 0, gate: "$.compute.avdHostPools[*]" }
+    remediation: "WAF-AVDAZ-SE-01. The host pools listed allow public network access for both clients and session hosts. Use Private Link and set public access to Disabled, or limit it to clients or session hosts only."
+    manual: false
+  - id: WAF-AVDAZ-SE-02
+    title: "WAF-AVDAZ-SE-02. Workspace public network access is disabled"
+    severity: medium
+    query: "$.compute.avdWorkspaces[?(@.publicNetworkAccess != 'Disabled')]"
+    assert: { type: countEquals, value: 0, gate: "$.compute.avdWorkspaces[*]" }
+    remediation: "WAF-AVDAZ-SE-02. The workspaces listed allow public network access. Disable it and reach the feed through a private endpoint."
+    manual: false
+  - id: WAF-AVDAZ-SE-03
+    title: "WAF-AVDAZ-SE-03. Host pools have a private endpoint"
+    severity: medium
+    join:
+      left: "$.compute.avdHostPools[*]"
+      leftKey: "id"
+      right: "$.networking.privateEndpoints[*]"
+      rightKey: "targetResourceId"
+      mode: leftOnly
+      leftLabel: "host pool"
+      rightLabel: "private endpoint"
+    assert: { type: countEquals, value: 0, gate: "$.compute.avdHostPools[*]" }
+    remediation: "WAF-AVDAZ-SE-03. The host pools listed have no private endpoint. Add one so session-host and client connections stay on the private network."
+    manual: false
+  - id: WAF-AVDAZ-SE-04
+    title: "WAF-AVDAZ-SE-04. Workspaces have a private endpoint"
+    severity: medium
+    join:
+      left: "$.compute.avdWorkspaces[*]"
+      leftKey: "id"
+      right: "$.networking.privateEndpoints[*]"
+      rightKey: "targetResourceId"
+      mode: leftOnly
+      leftLabel: "workspace"
+      rightLabel: "private endpoint"
+    assert: { type: countEquals, value: 0, gate: "$.compute.avdWorkspaces[*]" }
+    remediation: "WAF-AVDAZ-SE-04. The workspaces listed have no private endpoint for the feed. Add one if clients should reach AVD privately."
+    manual: false
+  - id: WAF-AVDAZ-SE-05
+    title: "WAF-AVDAZ-SE-05. Microsoft Defender for Servers is enabled"
+    severity: high
+    query: "$.security.defenderPlans[?(@.name == 'VirtualMachines' && @.properties.pricingTier != 'Standard')]"
+    assert: { type: countEquals, value: 0, gate: "$.compute.avdHostPools[*]" }
+    remediation: "WAF-AVDAZ-SE-05. Defender for Servers is not on the Standard tier in the subscriptions listed. Enable it for subscriptions that host session hosts. (Checked per subscription, not per host pool.)"
+    manual: false
+  - id: WAF-AVDAZ-SE-06
+    title: "WAF-AVDAZ-SE-06. Multifactor authentication and Conditional Access are required for AVD"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AVDAZ-SE-06. Confirm a Conditional Access policy requires MFA for the Azure Virtual Desktop app. Conditional Access is read from Microsoft Graph, not this assessment's collection."
+    manual: true
+  - id: WAF-AVDAZ-SE-07
+    title: "WAF-AVDAZ-SE-07. Session hosts use Trusted Launch or Confidential VMs, with encryption at host"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AVDAZ-SE-07. Confirm session hosts are Trusted Launch (Secure Boot and vTPM) or Confidential VMs, and that disks use encryption at host or customer-managed keys."
+    manual: true
+  - id: WAF-AVDAZ-SE-08
+    title: "WAF-AVDAZ-SE-08. Session hosts accept no direct RDP or public inbound traffic"
+    severity: high
+    query: "$.networking.nsgPublicInbound[*]"
+    assert: { type: manual }
+    remediation: "WAF-AVDAZ-SE-08. AVD needs no inbound ports. The NSG rules open to the internet are listed (estate-wide); confirm none apply to session-host subnets, and use just-in-time access for administration."
+    manual: true
+  - id: WAF-AVDAZ-SE-09
+    title: "WAF-AVDAZ-SE-09. Session hosts are assessed for updates automatically"
+    severity: high
+    join:
+      left: "$.compute.avdSessionHosts[*]"
+      leftKey: "resourceId"
+      right: "$.compute.virtualMachines[?(@.assessmentMode != 'AutomaticByPlatform')]"
+      rightKey: "id"
+      mode: leftMatched
+      leftLabel: "session host"
+      rightLabel: "virtual machine without periodic update assessment"
+    assert: { type: countEquals, value: 0, gate: "$.compute.avdSessionHosts[*]" }
+    remediation: "WAF-AVDAZ-SE-09. The session hosts listed are not on periodic update assessment. Turn it on in Azure Update Manager, and patch the golden image as well as running hosts."
+    manual: false
+  - id: WAF-AVDAZ-SE-10
+    title: "WAF-AVDAZ-SE-10. Session hosts are hardened in the guest"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AVDAZ-SE-10. Confirm endpoint protection with FSLogix exclusions, Credential Guard, application control, idle and disconnect limits, screen lock, and no local administrator rights for users. These are Intune or Group Policy settings, not ARM."
+    manual: true
+  - id: WAF-AVDAZ-SE-11
+    title: "WAF-AVDAZ-SE-11. Device redirection is restricted"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AVDAZ-SE-11. Confirm drive, clipboard, USB and printer redirection are limited to what users need, through the host pool's RDP properties or Intune."
+    manual: true
+
+  # ---- Cost optimization (WAF-AVDAZ-CO) -----------------------------------------------------
+  - id: WAF-AVDAZ-CO-01
+    title: "WAF-AVDAZ-CO-01. Every pooled host pool has an enabled scaling plan"
+    severity: medium
+    join:
+      left: "$.compute.avdHostPools[?(@.hostPoolType == 'Pooled')]"
+      leftKey: "id"
+      right: "$.compute.avdScalingPlans[*].enabledHostPools[*]"
+      rightKey: "id"
+      mode: leftOnly
+      leftLabel: "pooled host pool"
+      rightLabel: "enabled scaling-plan assignment"
+    assert: { type: countEquals, value: 0, gate: "$.compute.avdHostPools[*]" }
+    remediation: "WAF-AVDAZ-CO-01. The pooled host pools listed are not scaled by any enabled scaling plan. Assign an autoscale plan so idle session hosts are deallocated."
+    manual: false
+  - id: WAF-AVDAZ-CO-02
+    title: "WAF-AVDAZ-CO-02. Personal host pools use Start VM on Connect"
+    severity: medium
+    query: "$.compute.avdHostPools[?(@.hostPoolType == 'Personal' && @.startVMOnConnect != true)]"
+    assert: { type: countEquals, value: 0, gate: "$.compute.avdHostPools[?(@.hostPoolType == 'Personal')]" }
+    remediation: "WAF-AVDAZ-CO-02. The personal host pools listed do not start VMs on connect. Enable it so personal desktops can stay deallocated until their user connects."
+    manual: false
+  - id: WAF-AVDAZ-CO-03
+    title: "WAF-AVDAZ-CO-03. Windows licence benefit is applied to session hosts"
+    severity: medium
+    join:
+      left: "$.compute.avdSessionHosts[*]"
+      leftKey: "resourceId"
+      right: "$.compute.virtualMachines[?(@.osType == 'Windows' && @.licenseType == '')]"
+      rightKey: "id"
+      mode: leftMatched
+      leftLabel: "session host"
+      rightLabel: "Windows VM with no licence type"
+    assert: { type: countEquals, value: 0, gate: "$.compute.avdSessionHosts[*]" }
+    remediation: "WAF-AVDAZ-CO-03. The session hosts listed have no licence type set. Eligible Windows 10/11 licences let you set Windows_Client and avoid paying for the Windows licence in the VM price."
+    manual: false
+  - id: WAF-AVDAZ-CO-04
+    title: "WAF-AVDAZ-CO-04. Pooled host pools set a deliberate maximum session limit"
+    severity: low
+    query: "$.compute.avdHostPools[?(@.hostPoolType == 'Pooled' && @.maxSessionLimit >= 999999)]"
+    assert: { type: countEquals, value: 0, gate: "$.compute.avdHostPools[?(@.hostPoolType == 'Pooled')]" }
+    remediation: "WAF-AVDAZ-CO-04. The pooled host pools listed keep the default (effectively unlimited) session limit. Set it from tested sessions-per-host so autoscale capacity is predictable."
+    manual: false
+  - id: WAF-AVDAZ-CO-05
+    title: "WAF-AVDAZ-CO-05. Session-host sizes and profile storage tier match measured demand"
+    severity: low
+    query: "$.compute.virtualMachines[*]"
+    assert: { type: manual }
+    remediation: "WAF-AVDAZ-CO-05. Confirm session-host VM sizes and the FSLogix storage tier were chosen from measured user density and workload, and are reviewed against Advisor rightsizing."
+    manual: true
+
+  # ---- Operational excellence (WAF-AVDAZ-OE) ------------------------------------------------
+  - id: WAF-AVDAZ-OE-01
+    title: "WAF-AVDAZ-OE-01. A validation host pool exists for service updates"
+    severity: medium
+    query: "$.compute.avdHostPools[?(@.validationEnvironment == true)]"
+    assert: { type: countGreaterThan, value: 0, gate: "$.compute.avdHostPools[*]" }
+    remediation: "WAF-AVDAZ-OE-01. No host pool is marked as a validation environment. Mark a small pool as validation so AVD service updates reach it before production."
+    manual: false
+  - id: WAF-AVDAZ-OE-02
+    title: "WAF-AVDAZ-OE-02. Agent updates are scheduled"
+    severity: low
+    query: "$.compute.avdHostPools[?(@.agentUpdateType != 'Scheduled')]"
+    assert: { type: countEquals, value: 0, gate: "$.compute.avdHostPools[*]" }
+    remediation: "WAF-AVDAZ-OE-02. The host pools listed take agent updates at any time. Configure Scheduled Agent Updates so they land in a maintenance window."
+    manual: false
+  - id: WAF-AVDAZ-OE-03
+    title: "WAF-AVDAZ-OE-03. Host pools, workspaces and session hosts send diagnostics to Log Analytics"
+    severity: high
+    query: "$.monitor.dataCollectionRules[*]"
+    assert: { type: manual }
+    remediation: "WAF-AVDAZ-OE-03. Confirm host pool and workspace diagnostic settings go to Log Analytics (AVD Insights) and session hosts run the Azure Monitor agent with a data collection rule. AVD resources are not in the diagnostic-settings sweep yet; data collection rules are attached."
+    manual: true
+  - id: WAF-AVDAZ-OE-04
+    title: "WAF-AVDAZ-OE-04. No session-host component update has failed"
+    severity: medium
+    query: "$.compute.avdSessionHosts[?(@.updateState == 'Failed')]"
+    assert: { type: countEquals, value: 0, gate: "$.compute.avdSessionHosts[*]" }
+    remediation: "WAF-AVDAZ-OE-04. The session hosts listed failed a component update. Check the agent and side-by-side stack and redeploy the host if needed."
+    manual: false
+  - id: WAF-AVDAZ-OE-05
+    title: "WAF-AVDAZ-OE-05. Service Health and metric alerts cover AVD"
+    severity: medium
+    query: "$.monitor.activityLogAlertRules[*]"
+    assert: { type: manual }
+    remediation: "WAF-AVDAZ-OE-05. Activity-log alert rules are attached (estate-wide). Confirm Service Health alerts cover Azure Virtual Desktop in your regions and that host-pool health has metric or log alerts."
+    manual: true
+
+  # ---- Performance efficiency (WAF-AVDAZ-PE) ------------------------------------------------
+  - id: WAF-AVDAZ-PE-01
+    title: "WAF-AVDAZ-PE-01. Session-host OS disks are Premium SSD"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AVDAZ-PE-01. Microsoft recommends Premium SSD for production session hosts. Confirm OS disk types (the VM inventory report lists them)."
+    manual: true
+  - id: WAF-AVDAZ-PE-02
+    title: "WAF-AVDAZ-PE-02. Profile storage is in the same region as session hosts and sized for the user count"
+    severity: medium
+    query: "$.compute.avdHostPools[*]"
+    assert: { type: manual }
+    remediation: "WAF-AVDAZ-PE-02. Confirm FSLogix storage is in the host pool's region and its IOPS and throughput were sized from user count, and that the load-balancing algorithm was chosen deliberately."
+    manual: true
+  - id: WAF-AVDAZ-PE-03
+    title: "WAF-AVDAZ-PE-03. RDP Shortpath (UDP) is used"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AVDAZ-PE-03. Confirm RDP Shortpath is enabled for managed or public networks so sessions use UDP rather than TCP reverse connect."
+    manual: true

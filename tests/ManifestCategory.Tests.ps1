@@ -29,7 +29,7 @@ Describe 'assessment manifests collect every category their automated rules cons
     It 'includes <Required> for <Assessment> because <Dataset> is scored' -ForEach @(
         @{ Assessment = 'Assess: Compute';            Required = 'Storage';    Dataset = 'storageAccounts' }
         @{ Assessment = 'Microsoft: FinOps Review';   Required = 'Compute';    Dataset = 'virtualMachines' }
-        @{ Assessment = 'Assess: Cloud Governance';   Required = 'Analytics';  Dataset = 'purviewAccounts' }
+        @{ Assessment = 'CAF: Govern';                Required = 'Analytics';  Dataset = 'purviewAccounts' }
         @{ Assessment = 'Assess: Management';         Required = 'Compute';    Dataset = 'virtualMachines backup denominator' }
         @{ Assessment = 'Assess: Monitor';            Required = 'Compute';    Dataset = 'virtualMachines backup denominator' }
         @{ Assessment = 'Scout: Update Manager';      Required = 'Compute';    Dataset = 'virtualMachines backup denominator' }

@@ -1,15 +1,109 @@
 area: "Resource Management"
 framework: "Cloud Governance"
 weight: 0.142857
-frameworkversion: "CAF Govern (learn.microsoft.com/azure/cloud-adoption-framework/govern), RM category per docs/frameworks/cloud-governance-question-set.md, verified 2026-08-01"
+# Per-category citations for this file:
+#   monitor-cloud-governance#configure-monitoring-for-resource-management-governance
+#   enforce-cloud-governance-policies#automate-resource-management-governance
+frameworkversion: "CAF Govern — 5-step process (team, assess risks, document, enforce, monitor) x 7 categories (RC, SC, CM, OP, DG, RM, AI); learn.microsoft.com/azure/cloud-adoption-framework/govern/; verified 2026-11-24"
 rules:
   - id: CGOV-RM-01
     title: "Policies on resource deployments — e.g. tag-enforcement policies — are monitored for compliance"
     severity: medium
     # collect.json's policyAssignments carries no field distinguishing "tag-enforcement"
     # policies specifically, so this evidences policy-assignment existence generally, the
-    # same existence-proxy limitation CAF-GOV-01/CGOV-SC-02 already document.
+    # same existence-proxy limitation CAF-GOV-01/CGOV-SC-02 already document. The specific
+    # deployment policies (allowed locations, resource-type restrictions, tag policies) are
+    # CGOV-RM-03/04/05.
     query: "$.governance.policyAssignments[*]"
     assert: { type: countGreaterThan, value: 0, gate: "$.governance.policyAssignmentsAvailable" }
     remediation: "Confirm tag-enforcement policies specifically (not just any policy assignment) are in place and monitored -- see $.tags on collected resources for actual tag coverage."
     manual: false
+
+  - id: CGOV-RM-02
+    title: "A resource-management hierarchy exists (management groups organise subscriptions beyond the tenant root)"
+    severity: high
+    # enforce-cloud-governance-policies#automate-resource-management-governance: "Create a resource
+    # management hierarchy. Use management groups to organize your subscriptions so that you can
+    # efficiently govern policies, access, and spending." Same query as CAF-RES-02 (the tenant root
+    # group alone is one row, so more than one means a hierarchy was built).
+    query: "$.governance.managementGroups[*]"
+    assert: { type: countGreaterThan, value: 1 }
+    remediation: "Build a management-group hierarchy (Platform / Landing zones / Sandbox / Decommissioned per the Azure landing zone archetype) and place subscriptions under it so policy and access inherit."
+    manual: false
+
+  - id: CGOV-RM-03
+    title: "Deployments are restricted to approved regions by an 'Allowed locations' policy"
+    severity: medium
+    # enforce-cloud-governance-policies#automate-resource-management-governance: "Restrict
+    # deployments to specific regions ... use the Allowed locations policy definition in Azure
+    # Policy." Built-in definitions, verified 2026-11-24: Allowed locations
+    # e56962a6-4747-49cd-b67b-bf8b01975c4c; Allowed locations for resource groups
+    # e765b5de-1225-4ba3-bd56-1ac6695af988. Direct assignments only -- an initiative that contains
+    # the definition is not unpacked, but is recognised when its display name says so.
+    query: "$.governance.policyAssignments[?(@.properties.policyDefinitionId =~ /(e56962a6-4747-49cd-b67b-bf8b01975c4c|e765b5de-1225-4ba3-bd56-1ac6695af988)/i || @.properties.displayName =~ /allowed locations/i)]"
+    assert: { type: exists, gate: "$.governance.policyAssignmentsAvailable" }
+    remediation: "Assign 'Allowed locations' (and 'Allowed locations for resource groups') at management-group scope with the regions your data-residency and latency requirements permit."
+    manual: false
+
+  - id: CGOV-RM-04
+    title: "Resource types that add unnecessary risk are restricted by a resource-type policy"
+    severity: medium
+    # enforce-cloud-governance-policies#automate-resource-management-governance: "Restrict which
+    # resources you can deploy. Disallow resource types to restrict deployments of services that add
+    # unnecessary risk." Built-ins, verified 2026-11-24: Not allowed resource types
+    # 6c112d4e-5bc7-47ae-a041-ea2d9dccd749 (block list, the form CAF Govern prefers) and Allowed
+    # resource types a08ec900-254a-4555-9bf5-e42af04b5c5c (allow list). The same evidence also backs
+    # CGOV-CM-07, which reads it through the cost lens; each CAF Govern category is scored on its
+    # own, so the overlap is deliberate.
+    query: "$.governance.policyAssignments[?(@.properties.policyDefinitionId =~ /(6c112d4e-5bc7-47ae-a041-ea2d9dccd749|a08ec900-254a-4555-9bf5-e42af04b5c5c)/i || @.properties.displayName =~ /allowed resource types/i)]"
+    assert: { type: exists, gate: "$.governance.policyAssignmentsAvailable" }
+    remediation: "Assign 'Not allowed resource types' with the services your governance policy prohibits. CAF Govern prefers a short block list over a long allow list."
+    manual: false
+
+  - id: CGOV-RM-05
+    title: "Tags are enforced by Azure Policy (a require-tag, add-tag, append-tag or inherit-tag policy is assigned)"
+    severity: medium
+    # Microsoft's example policy RM02 ("Tags must be enforced on all cloud resources using Azure
+    # Policy") and enforce-cloud-governance-policies#automate-resource-management-governance
+    # ("Enforce a tagging strategy ... manage tag governance"). Tag built-ins, verified 2026-11-24:
+    #   871b6d14-10aa-478d-b590-94f262ecfa99  Require a tag on resources
+    #   96670d01-0a4d-4649-9c89-2d3abc0a5025  Require a tag on resource groups
+    #   1e30110a-5ceb-460c-a204-c1c3969c6d62  Require a tag and its value on resources
+    #   8ce3da23-7156-49e4-b145-24f95f9dcb46  Require a tag and its value on resource groups
+    #   ea3f2387-9b95-492a-a190-fcdc54f7b070  Inherit a tag from the resource group if missing
+    #   cd3aa116-8754-49c9-a813-ad46512ece54  Inherit a tag from the resource group
+    #   40df99da-1232-49b1-a39a-6da8d878f469  Inherit a tag from the subscription if missing
+    #   b27a0cbd-a167-4dfa-ae64-4337be671140  Inherit a tag from the subscription
+    #   4f9dc7db-30c1-420c-b61a-e1d640128d26  Add a tag to resources
+    #   726aca4c-86e9-4b04-b0c5-073027359532  Add a tag to resource groups
+    # A custom or initiative assignment is recognised when its display name mentions tags.
+    query: "$.governance.policyAssignments[?(@.properties.policyDefinitionId =~ /(871b6d14-10aa-478d-b590-94f262ecfa99|96670d01-0a4d-4649-9c89-2d3abc0a5025|1e30110a-5ceb-460c-a204-c1c3969c6d62|8ce3da23-7156-49e4-b145-24f95f9dcb46|ea3f2387-9b95-492a-a190-fcdc54f7b070|cd3aa116-8754-49c9-a813-ad46512ece54|40df99da-1232-49b1-a39a-6da8d878f469|b27a0cbd-a167-4dfa-ae64-4337be671140|4f9dc7db-30c1-420c-b61a-e1d640128d26|726aca4c-86e9-4b04-b0c5-073027359532)/i || @.properties.displayName =~ /\\btags?\\b/i)]"
+    assert: { type: exists, gate: "$.governance.policyAssignmentsAvailable" }
+    remediation: "Assign tag policies (require or inherit the tags your tagging strategy names) at management-group scope, and monitor their compliance state."
+    manual: false
+
+  - id: CGOV-RM-06
+    title: "A tagging and naming strategy is defined and applied"
+    severity: medium
+    # enforce-cloud-governance-policies#1-define-an-approach-for-enforcing-cloud-governance-policies,
+    # item 6: "Define a tagging and naming strategy. Establish systematic guidelines for naming and
+    # tagging cloud resources." Whether the strategy EXISTS is a document, not a resource property;
+    # CGOV-RM-05 reads whether it is enforced. Overlaps CAF-GOV-07/CAF-RES-05 by design -- those score
+    # the Ready design area, this scores the Govern step. Collected tag names are attached as evidence.
+    query: "$.tags[*]"
+    assert: { type: manual }
+    remediation: "Document the mandatory tag keys, allowed values, owners and the resource naming pattern, publish it with the governance policies, and confirm teams may add tags of their own for local needs."
+    manual: true
+
+  - id: CGOV-RM-07
+    title: "Infrastructure as code is used to deploy resources (for example Bicep, per Microsoft's example policy RM01)"
+    severity: medium
+    # Microsoft's example policy RM01 ("Bicep must be used to deploy resources", monitored in the
+    # CI/CD pipeline) and enforce-cloud-governance-policies#automate-resource-management-governance
+    # ("Use infrastructure as code"). Deployment history under management.deployments shows that ARM
+    # deployments happen, not that they come from source-controlled Bicep, so it is attached as
+    # evidence only. Pipeline and repository enforcement is outside what Scout reads.
+    query: "$.management.deployments[*]"
+    assert: { type: manual }
+    remediation: "Confirm resources are deployed from source-controlled IaC through a pipeline, and that portal-created resources outside that path are detected and reconciled."
+    manual: true

@@ -1,7 +1,11 @@
 area: "Security"
 framework: "Cloud Governance"
 weight: 0.142857
-frameworkversion: "CAF Govern (learn.microsoft.com/azure/cloud-adoption-framework/govern), SC category per docs/frameworks/cloud-governance-question-set.md, verified 2026-08-01"
+# Per-category citations for this file:
+#   monitor-cloud-governance#configure-monitoring-for-security-governance
+#   enforce-cloud-governance-policies#automate-security-governance
+#   monitor-cloud-governance#azure-facilitation-configuring-cloud-governance-alerts
+frameworkversion: "CAF Govern — 5-step process (team, assess risks, document, enforce, monitor) x 7 categories (RC, SC, CM, OP, DG, RM, AI); learn.microsoft.com/azure/cloud-adoption-framework/govern/; verified 2026-11-24"
 rules:
   - id: CGOV-SC-01
     title: "Security recommendations are reviewed and secure score is monitored over time"
@@ -41,8 +45,65 @@ rules:
     # collect.json's identity domain, and independently corroborated by the AzGovViz
     # methodology evaluation (docs/design/azgovviz-methodology-evaluation.md, AB#6448), which
     # documents that AzGovViz's Entra service-principal/secret-expiry tracking is capability
-    # Scout does not have an equivalent collector for.
+    # Scout does not have an equivalent collector for. Microsoft's own example policies SC01 (MFA
+    # for all users, monitored through Conditional Access) and SC02 (monthly access reviews in
+    # ID Governance) are identity controls of the same kind -- tenant-level Entra settings, not
+    # ARM resources.
     query: null
     assert: { type: manual }
-    remediation: "Configure Microsoft Entra sign-in/audit log export, review identity secure score, and stand up an identity-governance dashboard -- none of this is currently observable from Scout's collected data."
+    remediation: "Configure Microsoft Entra sign-in/audit log export, review identity secure score, and stand up an identity-governance dashboard. Also confirm MFA is enforced for all users (Conditional Access) and that access reviews run on the cadence your policy states -- none of this is currently observable from Scout's collected data."
     manual: true
+
+  - id: CGOV-SC-04
+    title: "Microsoft Defender for Cloud paid plans are enabled so security alerts are generated"
+    severity: high
+    # monitor-cloud-governance#azure-facilitation-configuring-cloud-governance-alerts: "Security
+    # governance alerts. Configure security alerts ..." -- the alerts come from the Defender plans;
+    # a subscription on the Free tier for every plan produces no workload alerts. security.defenderPlans
+    # rows carry name + properties.pricingTier (the same shape caf.security.yaml reads).
+    # Gated on the plan data itself: when no plan row was collected at all (sweep failed, or the
+    # Security category was not requested) the answer is "not assessed", never a Fail.
+    query: "$.security.defenderPlans[?(@.properties.pricingTier == 'Standard')]"
+    assert: { type: exists, gate: "$.security.defenderPlans[*]" }
+    remediation: "Enable the Defender for Cloud plans that match the workloads you run (Servers, Storage, Databases, Containers, Key Vault, App Service) and route the resulting alerts to the team that owns security."
+    manual: false
+
+  - id: CGOV-SC-05
+    title: "Just-in-time privileged access is used (Privileged Identity Management eligible assignments exist)"
+    severity: medium
+    # enforce-cloud-governance-policies#automate-security-governance: "Enable just-in-time access
+    # to limit access to important resources" (Privileged Identity Management). Same dataset and
+    # gate as CAF-IDN rules: governance.pimEligibility needs an Entra ID P2 licence and a Graph
+    # application permission outside Scout's Reader baseline, and the ingestor currently sets
+    # governance.pimEligibilityAvailable = false -- so this reads NotAssessed (never a Fail and
+    # never a Pass) until that collection is wired.
+    query: "$.governance.pimEligibility[*]"
+    assert: { type: exists, gate: "$.governance.pimEligibilityAvailable" }
+    remediation: "Convert standing privileged role assignments to PIM eligible assignments with approval and time limits. Scout could not read PIM eligibility in this run (needs Entra ID P2 and a Graph permission), so confirm in the Entra admin centre."
+    manual: false
+
+  - id: CGOV-SC-06
+    title: "Defender for Cloud security alerts are reviewed, routed to an owner and resolved"
+    severity: medium
+    # Alert rows exist only when -IncludePolicyCompliance was requested (security.defenderAlerts
+    # comes from the same sweep as policyComplianceStates). Alerts existing says nothing about
+    # whether anyone reviewed them, so the rows are attached as evidence and the question stays
+    # manual.
+    query: "$.security.defenderAlerts[*]"
+    assert: { type: manual }
+    remediation: "Confirm Defender for Cloud alerts are routed (email, ticketing, or a SIEM) to a named owner and that open alerts are triaged within the timeline your governance policy sets."
+    manual: true
+
+  - id: CGOV-SC-07
+    title: "A security-standard initiative (Microsoft cloud security benchmark, CIS, NIST SP 800-53, ISO 27001) is assigned"
+    severity: medium
+    # enforce-cloud-governance-policies#automate-security-governance: "There are built-in policies
+    # for NIST SP 800 series, Center for Internet Security benchmarks, and the Microsoft cloud
+    # security benchmark." An initiative assignment is recognised by its definition id (a
+    # policySetDefinitions id) and its display name, which defaults to the initiative's name. The
+    # assignment says the standard is being audited; whether the tenant PASSES it is
+    # CGOV-RC-01/CGOV-SC-02 and the Compliance assessment.
+    query: "$.governance.policyAssignments[?(@.properties.policyDefinitionId =~ /policySetDefinitions/i && @.properties.displayName =~ /security benchmark|\\bCIS\\b|\\bNIST\\b|ISO ?27001/i)]"
+    assert: { type: exists, gate: "$.governance.policyAssignmentsAvailable" }
+    remediation: "Assign the Microsoft cloud security benchmark initiative (and CIS or NIST SP 800-53 where required) at management-group scope so security configuration is audited continuously. An initiative assigned under a custom display name is not recognised by this check."
+    manual: false

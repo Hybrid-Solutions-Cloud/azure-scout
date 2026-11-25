@@ -195,8 +195,10 @@
     # value (WAF-AI / WAF-AVD) rather than `WAF`, and docs/frameworks/waf-ai-workload-checklist.md
     # / waf-avd-workload-checklist.md for what each enumeration does and does not cover.
     'Assess: AI Workload' = @{
-        Description = 'AI workload review (Well-Architected Framework AI workload guidance) -- 34 items across 7 of 10 AI design areas; mostly manual, see docs/frameworks/waf-ai-workload-checklist.md'
-        Category    = 'AI'; Collect = @('AI'); Ingest = @()
+        Description = 'AI workload review (Well-Architected Framework AI workload guidance) -- all 10 AI design areas: 35 Microsoft-tabled items plus Scout-derived items for Data platform, Testing and evaluation, Workload personas and the AI architecture pattern (63 rules, mostly questionnaire items); see docs/frameworks/waf-ai-workload-checklist.md'
+        # Analytics, Databases, Storage, Identity, Networking, Monitor: the DATA/PERSONA items read
+        # Purview, data factories, Cosmos DB, storage, managed identities and role assignments.
+        Category    = 'AI'; Collect = @('AI', 'Analytics', 'Databases', 'Storage', 'Identity', 'Networking', 'Monitor', 'Security'); Ingest = @('Governance')
         Rules = @('waf.ai'); Frameworks = @('WAF: AI workload')
         Tags = @('waf', 'ai', 'workload-review'); Reporters = @('Html', 'Excel')
     }
@@ -208,6 +210,14 @@
         Category    = 'Compute'; Collect = @('Compute', 'Storage', 'Hybrid', 'Management', 'Monitor'); Ingest = @()
         Rules = @('waf.avd'); Frameworks = @('WAF: AVD workload (Azure Local)')
         Tags = @('waf', 'avd', 'azure-local', 'workload-review'); Reporters = @('Html', 'Excel')
+    }
+    'Workload: AVD' = @{
+        # AVD running in Azure -- the scope of Microsoft's "Azure Well-Architected Azure Virtual
+        # Desktop workload" assessment (AB#9300). See docs/frameworks/waf-avd-azure-workload-checklist.md.
+        Description = 'Azure Virtual Desktop workload review (AVD in Azure) -- 30 items across all 5 WAF pillars from Microsoft''s current AVD guidance; host pools, session hosts, scaling plans, workspaces, private endpoints and session-host VMs'
+        Category    = 'Compute'; Collect = @('Compute', 'Networking', 'Security', 'Storage', 'Management', 'Monitor'); Ingest = @()
+        Rules = @('waf.avd.azure'); Frameworks = @('WAF: AVD workload (Azure)')
+        Tags = @('waf', 'avd', 'workload-review'); Reporters = @('Html', 'Excel')
     }
 
     # ---- finer sub-bundles inside a category ----
@@ -273,10 +283,13 @@
     }
 
     # ---- cloud governance maturity report (Feature AB#6458, Story AB#6459, Epic AB#6454) ----
-    # The seven caf.govern.*.yaml rule files (Regulatory Compliance, Security, Cost
-    # Management, Operations, Data, Resource Management, AI) are CAF Govern's seven risk
-    # categories per docs/frameworks/cloud-governance-question-set.md (AB#6811) -- the
-    # methodology behind the interactive "Cloud Governance" assessment, distinct from
+    # Formerly 'Assess: Cloud Governance' (that name and 'Cloud Governance' still resolve).
+    # Microsoft deletes its interactive Cloud Governance assessment in January 2027, so this is
+    # built on the CAF Govern methodology directly (AB#9300). Eight caf.govern.*.yaml rule
+    # files: CAF Govern's seven risk categories (Regulatory Compliance, Security, Cost
+    # Management, Operations, Data, Resource Management, AI) plus the governance process
+    # (team, risk register, policies, audits), per docs/frameworks/cloud-governance-question-set.md,
+    # distinct from
     # caf.governance.yaml's Governance DESIGN AREA (already scored under 'CAF: Governance'
     # above). GovernanceReport is the consultant-grade deliverable: a 1-10 domain maturity
     # score per risk category (Get-GovernanceDomainScore.ps1, deliberately NOT the same
@@ -284,14 +297,14 @@
     # docs/design/governance-domain-maturity-scale.md), a radar chart, and a domain x status
     # heatmap, reusing the vendored offline ECharts library Export-EChartsDashboard.ps1
     # already carries rather than a second charting mechanism.
-    'Assess: Cloud Governance' = @{
-        Description = 'CAF Govern methodology -- 1-10 maturity score per risk category (regulatory compliance, security, cost, operations, data, resource management, AI), radar + heatmap report'
+    'CAF: Govern' = @{
+        Description = 'CAF Govern methodology -- 1-10 maturity score per risk category (regulatory compliance, security, cost, operations, data, resource management, AI) plus the governance process (team, risk register, policies, audits); radar + heatmap report. Replaces Microsoft''s Cloud Governance assessment, retired January 2027'
         Category    = 'Management'
-        Collect     = @('Management', 'Analytics')
+        Collect     = @('Management', 'Analytics', 'Monitor', 'Storage')
         Ingest      = @('Governance', 'AdvisorScores')
         Rules       = @('caf.govern.*')
         Frameworks  = @('CAF: Govern')
-        Tags        = @('caf', 'governance', 'maturity')
+        Tags        = @('caf', 'governance', 'govern', 'maturity')
         Reporters   = @('GovernanceReport', 'Html', 'Excel')
     }
 
@@ -302,14 +315,18 @@
     # (`requires:`), so a direct -Assessment SMART run on an empty estate reports Unknown rather
     # than a manufactured pass. Both halves are needed -- the menu gate is a courtesy, the rule
     # gate is the correctness guarantee.
-    'Microsoft: SMART Migration' = @{
-        Description  = 'Strategic Migration Assessment — migration readiness (see docs/frameworks/smart-question-set.md)'
+    #
+    # Formerly 'Microsoft: SMART Migration'. Microsoft deletes the Strategic Migration Assessment
+    # and Readiness Tool in January 2027, so this is now built on CAF Plan + CAF Migrate directly
+    # (AB#9300). The old name and 'SMART' still resolve (Resolve-ScoutAssessmentName.ps1).
+    'CAF: Migrate readiness' = @{
+        Description  = 'CAF migration readiness across plan, prepare, execute, optimise and decommission -- CAF Plan + CAF Migrate, 49 rules (see docs/frameworks/smart-question-set.md)'
         Category     = 'Migration'
-        Collect      = @('Migration', 'Management', 'Security', 'Compute')
+        Collect      = @('Migration', 'Management', 'Security', 'Compute', 'Networking', 'Monitor', 'DevOps', 'Identity', 'Hybrid')
         Ingest       = @('Governance')
         Rules        = @('smart.*')
-        Frameworks   = @('CAF: Migrate', 'SMART: readiness')
-        Tags         = @('caf', 'migration', 'smart')
+        Frameworks   = @('CAF: Plan', 'CAF: Migrate')
+        Tags         = @('caf', 'migration')
         RequiresData = @(
             '$.domains.migration.migrateProjects[*]'
             '$.domains.migration.discoverySites[*]'
@@ -375,12 +392,12 @@
     # degrade the same way when their gated data source is unavailable: `assert.gate` on the
     # affected rules reports NotAssessed, never a scored zero (Invoke-Rule.ps1, AB#6826).
     'Microsoft: FinOps Review' = @{
-        Description = 'FinOps Review -- scores against the FinOps Framework''s 22 published capabilities (docs/frameworks/finops-review-question-set.md). The assessment itself and its question numbering are INFERRED, not Microsoft-published -- Microsoft names the assessment and publishes the framework, but not the assessment''s own question text. Cost data sits behind the EA/MCA billing permission system, a different boundary than ARM Reader; when that gate blocks the pull, the affected findings report NotAssessed, never a scored zero.'
+        Description = 'FinOps Review -- scores against the FinOps Framework 2026 (FinOps Foundation 2026-03-20 update) as used by Microsoft''s FinOps Review (New): the 22 Microsoft Learn capabilities plus Executive Strategy Alignment, 23 rules (docs/frameworks/finops-review-question-set.md). The assessment itself and its question numbering are INFERRED, not Microsoft-published -- Microsoft names the assessment and publishes the framework, but not the assessment''s own question text. Cost data sits behind the EA/MCA billing permission system, a different boundary than ARM Reader; when that gate blocks the pull, the affected findings report NotAssessed, never a scored zero.'
         Category    = '*'
         Collect     = @('FinOps', 'Cost', 'Management', 'Compute')
         Ingest      = @('Governance', 'AdvisorScores', 'CostInventory')
         Rules       = @('finops.review')
-        Frameworks  = @('FinOps: 22 capabilities')
+        Frameworks  = @('FinOps Framework 2026: 22 capabilities + Executive Strategy Alignment')
         Tags        = @('finops', 'cost', 'inferred-enumeration')
         Reporters   = @('Html', 'Excel')
     }

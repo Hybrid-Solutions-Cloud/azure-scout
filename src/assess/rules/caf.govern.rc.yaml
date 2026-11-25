@@ -1,13 +1,18 @@
 area: "Regulatory Compliance"
 framework: "Cloud Governance"
-# Even weighting across the seven CAF Govern risk categories (AB#6459) -- CAF publishes
+# Even weighting across the CAF Govern risk categories (AB#6459) -- CAF publishes
 # no relative-importance ordering across Regulatory Compliance/Security/Cost/Operations/
-# Data/Resource Management/AI, so 1/7 each is the only defensible default. See
+# Data/Resource Management/AI, so an equal share each is the only defensible default. See
 # docs/design/governance-domain-maturity-scale.md.
 weight: 0.142857
 # Enumeration source and verification date -- see docs/frameworks/cloud-governance-question-set.md
-# (AB#6811), itself built from the CAF Govern documentation pages named there, verified 2026-08-01.
-frameworkversion: "CAF Govern (learn.microsoft.com/azure/cloud-adoption-framework/govern), RC category per docs/frameworks/cloud-governance-question-set.md, verified 2026-08-01"
+# (AB#6811), re-based on the CAF Govern methodology itself (the Microsoft "Cloud Governance"
+# assessment it was first built from is retired in January 2027).
+# Per-category citations for this file:
+#   monitor-cloud-governance#configure-monitoring-for-regulatory-compliance-governance
+#   enforce-cloud-governance-policies#automate-regulatory-compliance-governance
+#   monitor-cloud-governance#azure-facilitation-configuring-cloud-governance-alerts
+frameworkversion: "CAF Govern — 5-step process (team, assess risks, document, enforce, monitor) x 7 categories (RC, SC, CM, OP, DG, RM, AI); learn.microsoft.com/azure/cloud-adoption-framework/govern/; verified 2026-11-24"
 rules:
   - id: CGOV-RC-01
     title: "Policy compliance dashboards are used to get compliance data on assigned policies"
@@ -26,4 +31,50 @@ rules:
     query: null
     assert: { type: manual }
     remediation: "For each non-compliant resource, document why it is non-compliant (misconfiguration, exemption pending, policy too broad) rather than only tracking the compliance percentage."
+    manual: true
+
+  - id: CGOV-RC-03
+    title: "A built-in regulatory-compliance initiative (for example PCI DSS, HIPAA/HITRUST, ISO 27001, NIST, CMMC, FedRAMP) is assigned"
+    severity: medium
+    # enforce-cloud-governance-policies#automate-regulatory-compliance-governance: "Apply
+    # regulatory compliance policies. Use built-in regulatory compliance policies that align with
+    # compliance standards, such as HITRUST/HIPAA, ISO 27001, CMMC, FedRAMP, and PCI DSSv4."
+    #
+    # policyAssignments rows are raw ARM rows (name/id/type/properties). An initiative assignment's
+    # properties.policyDefinitionId points at a policySetDefinitions id, and an assignment's
+    # displayName defaults to the initiative's own display name, so the standard is recognised by
+    # name. The Microsoft cloud security benchmark is deliberately NOT in the list: it is a security
+    # baseline that Defender for Cloud assigns by default, and counting it here would make this rule
+    # pass on every tenant (it is scored under CGOV-SC-07 instead). A tenant that renamed the
+    # assignment will read as a Fail -- the remediation says so. The Compliance assessment
+    # ('Assess: Compliance') does the exact per-initiative scoring this rule cannot.
+    query: "$.governance.policyAssignments[?(@.properties.policyDefinitionId =~ /policySetDefinitions/i && @.properties.displayName =~ /\\bPCI\\b|HIPAA|HITRUST|ISO ?27001|\\bNIST\\b|\\bCIS\\b|CMMC|FedRAMP|SOC ?2|NZISM|Canada Federal|UK OFFICIAL|SWIFT|IRS ?1075|RMIT|Sovereignty|Regulatory Compliance/i)]"
+    assert: { type: exists, gate: "$.governance.policyAssignmentsAvailable" }
+    remediation: "Assign the built-in initiative for each regulation that applies to your data and operations (Azure Policy > Regulatory Compliance), at management-group scope. An initiative assigned under a custom display name is not recognised by this check -- confirm manually, or run 'Assess: Compliance' for the exact per-initiative view."
+    manual: false
+
+  - id: CGOV-RC-04
+    title: "Alerts are configured for regulatory noncompliance (Azure activity log / Azure Monitor alerts on policy compliance changes)"
+    severity: medium
+    # monitor-cloud-governance#azure-facilitation-configuring-cloud-governance-alerts:
+    # "Regulatory compliance governance alerts. Use Azure activity logs to generate alerts for
+    # noncompliance across Azure." collect.json's activityLogAlertRules rows carry enabled/scopeCount/
+    # actionGroupCount but not the alert CONDITION (category and operation), so a policy-compliance
+    # alert cannot be told apart from any other activity-log alert. The rows are attached as
+    # evidence for the reviewer.
+    query: "$.monitor.activityLogAlertRules[*]"
+    assert: { type: manual }
+    remediation: "Create an activity-log or Azure Monitor alert that fires on policy noncompliance events (see 'Get policy compliance data' > Azure Monitor logs), and route it to the team that owns compliance."
+    manual: true
+
+  - id: CGOV-RC-05
+    title: "Sensitive-data compliance is monitored and reported on a defined cadence in Microsoft Purview"
+    severity: medium
+    # Microsoft's example policies RC01 (Purview must be used to monitor sensitive data) and RC02
+    # (daily sensitive-data compliance reports from Purview), document-cloud-governance-policies#
+    # example-cloud-governance-policies. A deployed Purview account is attached as evidence, but the
+    # existence of an account says nothing about scans, classifications or report cadence.
+    query: "$.domains.analytics.purviewAccounts[*]"
+    assert: { type: manual }
+    remediation: "Confirm Microsoft Purview scans cover the sources that hold sensitive data and that compliance reports are generated at the cadence your policy states (the Microsoft example is daily)."
     manual: true

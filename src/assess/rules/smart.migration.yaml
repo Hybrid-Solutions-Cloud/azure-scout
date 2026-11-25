@@ -1,20 +1,39 @@
-area: "Migration readiness (SMART)"
-framework: SMART
-frameworkversion: "SMART enumeration in docs/frameworks/smart-question-set.md, verified 2026-07-31"
+area: "Migration readiness (CAF Plan + Migrate)"
+framework: "CAF Migrate"
+frameworkversion: "CAF Plan + CAF Migrate (learn.microsoft.com/azure/cloud-adoption-framework/plan/, /migrate/plan-migration), verified 2026-11-24"
 weight: 1.0
-verifiedAgainst: "docs/frameworks/smart-question-set.md (internal), CAF Migrate methodology, verified 2026-08-01"
+verifiedAgainst: "docs/frameworks/smart-question-set.md (Scout enumeration of the CAF Plan and CAF Migrate guidance), verified 2026-11-24"
 # Scores migration readiness against the enumeration in docs/frameworks/smart-question-set.md
-# (AB#6832). EVERY rule below cites a SMART-* item from that file, and that file states plainly
-# what it is: the published CAF Migrate content SMART assesses against, organised under SMART's
-# four stated subject areas. Microsoft does not publish SMART's own question text or numbering --
-# it is delivered only as an interactive assessment -- so the SMART-* identifiers are Scout's.
-# Read the enumeration's "Verification method" section before quoting any coverage figure.
+# (AB#6832). EVERY rule below cites a SMART-* item from that file.
+#
+# WHY THE SMART-* IDS SURVIVE THE RE-BASE. Microsoft retires the "Strategic Migration Assessment and
+# Readiness Tool" (SMART) in January 2027 and never published its question text or numbering -- the
+# identifiers were always Scout's. The rules are now written against the CAF Plan and CAF Migrate
+# articles SMART drew on, and the ids are kept so existing questionnaire answer files keep working.
+# The enumeration page states which CAF article and section each item comes from. Read its
+# "Verification method" section before quoting any coverage figure.
+#
+# SECTION LAYOUT (follows the CAF Migrate sequence):
+#   A business planning   B people and skills        C discovery, assessment and tooling
+#   D landing zone        E security                 F governance and recovery
+#   G workload assessment H migration plan           I prepare workloads
+#   J execute migration   K optimise and decommission
+#
+# MANUAL RULES. Most of this file is organisational (agreements, plans, sign-offs, test results)
+# and cannot be read from the control plane. Those rules are `manual: true`, carry the CAF source
+# in their remediation, and are answerable through the questionnaire even on an estate with no
+# migration data. A manual rule that DOES have supporting evidence in collect.json carries a query,
+# so the finding arrives pre-filled for the human who answers it. Absence of that evidence is
+# never scored: a missing Arc server or Data Box is not a failed control.
 #
 # WHY THIS FILE REFUSES TO SCORE AN EMPTY ESTATE. `requires` below names the datasets the
-# automatable rules read. When none of them returned rows, every rule in this set is reported
+# migration-tooling rules read. When none of them returned rows, every rule in this set is reported
 # Unknown rather than Pass -- because "0 unassessed migrate projects" and "no Azure Migrate project
 # exists" are the same number and opposite findings. The audit's DQ12 is about exactly this class
 # of manufactured answer.
+#
+# PRODUCT NAME. Microsoft's Azure Migrate documentation now calls the product "Azure Catalyst".
+# The ARM resource types are unchanged (microsoft.migrate/*), so the queries below still match.
 requires:
   - path: "$.domains.migration.migrateProjects[*]"
     description: "Azure Migrate projects (Migration/AzureMigrateProjects)"
@@ -23,87 +42,374 @@ requires:
   - path: "$.domains.migration.migrationServices[*]"
     description: "Database Migration Service, Data Box and Stack Edge (Migration/*)"
 rules:
-  # --- A: business planning (SMART-A1..A4) — organisational, cannot be read from ARM ------------
+  # --- A: business planning and strategy (CAF Plan) — organisational, cannot be read from ARM ----
   - id: SMART-A1
     title: "Business goals for the migration are defined and agreed with stakeholders"
     severity: medium
     query: null
     assert: { type: manual }
-    remediation: "SMART-A1. Confirm documented, stakeholder-agreed business goals for the migration. No control-plane signal can evidence this — see docs/frameworks/smart-question-set.md."
+    remediation: "SMART-A1. Confirm documented, stakeholder-agreed business goals for the migration. No control-plane signal can evidence this. Source: CAF plan/select-cloud-migration-strategy#determine-business-drivers-before-migration."
     manual: true
   - id: SMART-A2
     title: "Each workload has a business driver mapped to one of the 8 R's"
     severity: medium
     query: null
     assert: { type: manual }
-    remediation: "SMART-A2. Map every in-scope workload to Retire, Rehost, Replatform, Refactor, Rearchitect, Replace, Rebuild or Retain, and record why."
+    remediation: "SMART-A2. Map every in-scope workload to Retire, Rehost, Replatform, Refactor, Rearchitect, Replace, Rebuild or Retain, and record the business driver behind the choice. Source: CAF plan/select-cloud-migration-strategy#determine-business-drivers-before-migration."
+    manual: true
+  - id: SMART-A3
+    title: "A gap analysis exists between each workload's current and target state"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "SMART-A3. Record, per workload, the gap between its current state and the target state the chosen migration strategy implies. Source: CAF plan/select-cloud-migration-strategy#determine-business-drivers-before-migration."
     manual: true
   - id: SMART-A4
     title: "Migration waves are sequenced lowest-risk first"
     severity: low
     query: null
     assert: { type: manual }
-    remediation: "SMART-A4. Confirm pilot/dev-test workloads are scheduled ahead of production. Azure Migrate assessment groups can evidence the intended sequence; the decision itself is yours."
+    remediation: "SMART-A4. Confirm simpler, lower-risk and non-production workloads are scheduled ahead of production and critical systems. The Azure Migrate (Azure Catalyst) assessment groups can evidence the intended sequence; the decision itself is yours. Source: CAF migrate/plan-migration#determine-the-migration-sequence and migrate/migration-wave-planning."
+    manual: true
+  - id: SMART-A5
+    title: "The cloud operating model and responsibilities are defined"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "SMART-A5. Confirm who owns what after migration -- platform, workload, security and operations responsibilities -- and that the owners accept them. Source: CAF plan/prepare-organization-for-cloud#plan-your-cloud-responsibilities."
+    manual: true
+  - id: SMART-A6
+    title: "A cost estimate exists for the target Azure architecture"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "SMART-A6. Confirm a total-cost-of-ownership estimate was produced for the planned Azure architecture and agreed with the budget owner. Scout cannot read an estimate that lives outside Azure. Source: CAF plan/estimate-total-cost-of-ownership."
     manual: true
 
-  # --- B: people and skills (SMART-B1..B2) -----------------------------------------------------
+  # --- B: people and skills (CAF Plan, CAF Migrate) ---------------------------------------------
   - id: SMART-B1
     title: "The team's Azure and migration-tooling skills have been evaluated"
     severity: medium
     query: null
     assert: { type: manual }
-    remediation: "SMART-B1. Evaluate the team's experience with Azure services, Azure Migrate and cutover, and record the capability gaps found."
+    remediation: "SMART-B1. Evaluate the team's experience with Azure services, migration tools and cutover, and record the capability gaps found. Source: CAF migrate/plan-migration#assess-migration-readiness-and-skills."
+    manual: true
+  - id: SMART-B2
+    title: "External expertise is engaged where a capability gap was found"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "SMART-B2. Where SMART-B1 found a gap, confirm Microsoft or a Microsoft partner is engaged, or that training is scheduled before the affected wave. Source: CAF migrate/plan-migration#assess-migration-readiness-and-skills and plan/prepare-people-for-cloud."
     manual: true
 
-  # --- C: migration process and tooling (SMART-C1..C6) — the automatable core -------------------
+  # --- C: discovery, assessment and tooling — the automatable core ------------------------------
   - id: SMART-C1
     title: "An Azure Migrate project exists for the estate"
     severity: high
     query: "$.domains.migration.migrateProjects[*]"
     assert: { type: countGreaterThan, value: 0 }
-    remediation: "SMART-C1. No Azure Migrate project was found in scope. Create one before planning waves — assessments, discovery and dependency analysis all hang off it."
+    remediation: "SMART-C1. No Azure Migrate project was found in scope. Create one before planning waves -- assessments, discovery and dependency analysis all hang off it. Source: CAF plan/discover-existing-workload-inventory#discover-workload-inventory."
     manual: false
   - id: SMART-C2
     title: "Discovery is running — at least one discovery site is registered"
     severity: high
     query: "$.domains.migration.discoverySites[*]"
     assert: { type: countGreaterThan, value: 0 }
-    remediation: "SMART-C2. An Azure Migrate project with no discovery site has nothing to assess. Deploy the appliance and register a VMware, Hyper-V or physical-server site."
+    remediation: "SMART-C2. An Azure Migrate project with no discovery site has nothing to assess. Deploy the appliance and register a VMware, Hyper-V or physical-server site. Source: CAF plan/discover-existing-workload-inventory#discover-workload-inventory and the discovery tool table in plan/assess-workloads-for-cloud-migration."
     manual: false
   - id: SMART-C3
     title: "Assessments have been created, not just a project"
     severity: high
     query: "$.domains.migration.migrateProjects[?(@.type == 'microsoft.migrate/assessmentprojects')]"
     assert: { type: countGreaterThan, value: 0 }
-    remediation: "SMART-C3. No assessment project was found. Right-sizing, cost and readiness output all come from an assessment; a migrate project alone produces none of it."
+    remediation: "SMART-C3. No assessment project was found. Right-sizing, cost and readiness output all come from an assessment; a migrate project alone produces none of it. Source: CAF plan/assess-workloads-for-cloud-migration."
     manual: false
   - id: SMART-C4
     title: "Database workloads have a migration path"
     severity: medium
     query: "$.domains.migration.migrationServices[?(@.type == 'microsoft.datamigration/services' || @.type == 'microsoft.datamigration/sqlmigrationservices')]"
     assert: { type: countGreaterThan, value: 0 }
-    remediation: "SMART-C4. No Database Migration Service instance was found. If databases are in scope, provision one — or record that databases are migrating by another route (backup/restore, replication, or a managed-service cutover)."
+    remediation: "SMART-C4. No Database Migration Service instance was found. If databases are in scope, provision one -- or record that databases are migrating by another route (backup/restore, native replication, or a managed-service cutover). Source: CAF plan/assess-workloads-for-cloud-migration#assess-databases and migrate/execute-migration."
     manual: false
+  - id: SMART-C5
+    title: "Bulk data transfer is planned where the volume needs it (Data Box / Stack Edge)"
+    severity: low
+    query: "$.domains.migration.migrationServices[?(@.type == 'microsoft.databox/jobs' || @.type == 'microsoft.databoxedge/databoxedgedevices')]"
+    assert: { type: manual }
+    remediation: "SMART-C5. Any Data Box or Stack Edge device found is listed as evidence. Having none is not a failure -- Data Box is for large offline transfers only. Confirm the data migration path was chosen deliberately: CAF prefers ExpressRoute, then VPN, then Data Box for large volumes, then the public internet for non-sensitive data only. Source: CAF migrate/plan-migration#choose-your-data-migration-path."
+    manual: true
   - id: SMART-C6
-    title: "Migrate projects are not left open to the public network"
-    severity: medium
+    title: "Azure Migrate project public network access has been reviewed"
+    severity: low
     query: "$.domains.migration.migrateProjects[?(@.publicNetworkAccess == 'Enabled')]"
-    assert: { type: countEquals, value: 0 }
-    remediation: "SMART-C6. Each listed Azure Migrate project accepts traffic over its public interface. If private endpoints were the intent, set publicNetworkAccess to Disabled — appliance registration and assessment both work over Private Link."
+    assert: { type: manual }
+    remediation: "SMART-C6. Each listed project accepts traffic over its public interface. Review it rather than treating it as a failure: Azure Migrate supports Private Link, but the project may still need to allow traffic from all networks while the appliance registers or reports in some topologies. Disable public access once private connectivity works end to end. No current CAF article sets this as a requirement; the product guide is https://learn.microsoft.com/azure/migrate/how-to-use-azure-migrate-with-private-endpoints."
+    manual: true
+  - id: SMART-C7
+    title: "A private migration path exists — an ExpressRoute circuit or a VPN gateway"
+    severity: medium
+    query: "$.networking['vpnGateways','expressRouteCircuits'][*]"
+    assert: { type: countGreaterThan, value: 0 }
+    remediation: "SMART-C7. No ExpressRoute circuit or virtual network gateway was found in scope. CAF directs migration traffic over ExpressRoute when available, then a VPN gateway, and reserves the public internet for non-sensitive data. Establish a private path before the first wave, or record that the data moves offline by Data Box. Source: CAF migrate/plan-migration#choose-your-data-migration-path."
     manual: false
 
-  # --- D/F: landing zone and governance readiness of the TARGET ---------------------------------
+  # --- D: landing zone readiness of the TARGET (CAF Ready, prerequisite of migrate/plan-migration)
+  - id: SMART-D1
+    title: "An Azure landing zone exists before workloads are migrated into it"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "SMART-D1. Confirm the landing zone is deployed before the first wave. Run the CAF: Azure Landing Zone assessment for the evidence; this rule only records that you did. Source: CAF migrate/plan-migration prerequisites (CAF Ready)."
+    manual: true
   - id: SMART-D2
     title: "Target subscriptions sit under a management group hierarchy"
     severity: medium
     query: "$.governance.managementGroups[*]"
     assert: { type: countGreaterThan, value: 0 }
-    remediation: "SMART-D2. No management group was returned. Either the hierarchy does not exist — migrate workloads into a landing zone that has one — or the identity running Scout lacks Management Group Reader, in which case this rule cannot answer and the grant should be added."
+    remediation: "SMART-D2. No management group was returned. Either the hierarchy does not exist -- migrate workloads into a landing zone that has one -- or the identity running Scout lacks Management Group Reader, in which case this rule cannot answer and the grant should be added. Source: CAF plan/migration-adoption-plan and migrate/prepare-workloads-cloud#deploy-all-workload-resources."
     manual: false
+  - id: SMART-D3
+    title: "Workload environments are separated across subscriptions"
+    severity: medium
+    query: "$.subscriptions[*]"
+    assert: { type: countGreaterThan, value: 1 }
+    remediation: "SMART-D3. Only one subscription is in scope. CAF directs separate subscriptions for development, test and production, for isolation, cost tracking and governance. Scout counts the subscriptions it scanned; it does not read which environment each one hosts, so a scan scoped to a single subscription fails this rule by construction -- widen the scope before acting on it. Source: CAF migrate/prepare-workloads-cloud#deploy-all-workload-resources."
+    manual: false
+  - id: SMART-D4
+    title: "Role-based access control is assigned in the target scope"
+    severity: medium
+    query: "$.governance.roleAssignments[*]"
+    assert: { type: exists, gate: "$.governance.roleAssignmentsAvailable" }
+    remediation: "SMART-D4. No role assignment was returned for the target scope. Assign environment-specific roles to each workload subscription before migrated workloads arrive. This is an existence check only; it does not judge whether the assignments are least-privilege. Source: CAF migrate/prepare-workloads-cloud#deploy-all-workload-resources."
+    manual: false
+  - id: SMART-D5
+    title: "A cost management budget exists for the target scope"
+    severity: medium
+    query: "$.governance.budgets[*]"
+    assert: { type: countGreaterThan, value: 0, gate: "$.governance.budgetsAvailable" }
+    remediation: "SMART-D5. No Cost Management budget was found. Create a budget with threshold alerts for each workload subscription so migration spend is tracked from the first wave. Source: CAF migrate/prepare-workloads-cloud#deploy-all-workload-resources and migrate/optimize-workloads-after-migration#validate-cost-monitoring."
+    manual: false
+
+  # --- E: security of the TARGET -----------------------------------------------------------------
+  - id: SMART-E1
+    title: "Migrated servers land under Defender for Cloud coverage"
+    severity: high
+    query: "$.security.defenderPlans[?(@.properties.pricingTier == 'Standard')]"
+    assert: { type: exists }
+    remediation: "SMART-E1. No Defender for Cloud plan is on the Standard tier. Enable the plans that cover the workload types migrating (at least Defender for Servers) so arriving workloads are protected, and replace host-based antivirus with it. Source: CAF migrate/prepare-workloads-cloud#resolve-compatibility-issues and migrate/optimize-workloads-after-migration."
+    manual: false
+  - id: SMART-E2
+    title: "Target resources use private connectivity where required"
+    severity: medium
+    query: "$.networking.privateEndpoints[*]"
+    assert: { type: exists }
+    remediation: "SMART-E2. No private endpoint was found in scope. Add private endpoints for the PaaS data services the migrated workloads use, instead of leaving them on public endpoints. This is an existence check; the cross-resource xr.* rules score per-resource coverage. Source: CAF migrate/plan-migration#choose-your-data-migration-path."
+    manual: false
+
+  # --- F: governance and recovery of the TARGET --------------------------------------------------
   - id: SMART-F1
     title: "Policy is applied to the target scope before workloads arrive"
     severity: medium
     query: "$.governance.policyAssignments[*]"
     assert: { type: countGreaterThan, value: 0, gate: "$.governance.policyAssignmentsAvailable" }
-    remediation: "SMART-F1. No policy assignment was found in the target scope. Assign the landing zone's policy set before migrating, so arriving workloads are governed from day one rather than remediated later."
+    remediation: "SMART-F1. No policy assignment was found in the target scope. Assign the landing zone's policy set before migrating, so arriving workloads are governed from day one rather than remediated later. Source: CAF migrate/prepare-workloads-cloud#deploy-all-workload-resources and plan/prepare-organization-for-cloud#plan-your-cloud-responsibilities."
     manual: false
+  - id: SMART-F2
+    title: "Every virtual machine has a backup protected item"
+    severity: high
+    join:
+      left: "$.compute.virtualMachines[*]"
+      leftKey: "id"
+      right: "$.management.backupProtectedItems[*]"
+      rightKey: "sourceResourceId"
+      mode: leftOnly
+      leftLabel: "virtual machine"
+      rightLabel: "backup protected item"
+    assert: { type: countEquals, value: 0 }
+    remediation: "SMART-F2. Each listed virtual machine has no protected item in any Recovery Services or Backup vault in scope. Add it to a backup policy, or record an explicit exception if the workload is genuinely stateless, then test a restore against the workload's RTO and RPO. Same evidence as XR-BKP-01. Source: CAF migrate/optimize-workloads-after-migration#validate-critical-configurations."
+    manual: false
+
+  # --- G: workload assessment (CAF Plan: assess workloads) — organisational -----------------------
+  - id: SMART-G1
+    title: "A workload inventory exists with business details for each workload"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "SMART-G1. Confirm the inventory records, per workload, the business unit, owner, criticality and environment (production, test or development), not only the technical components. Source: CAF plan/discover-existing-workload-inventory and plan/migration-adoption-plan#details-on-each-workload."
+    manual: true
+  - id: SMART-G2
+    title: "Internal and external dependencies are mapped and validated with workload owners"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "SMART-G2. Confirm dependencies were mapped with tooling and then validated with the workload owners, and that the map is the basis of the migration groups. Undocumented dependencies are the commonest cause of cutover outage. Source: CAF plan/assess-workloads-for-cloud-migration#map-internal-and-external-dependencies."
+    manual: true
+  - id: SMART-G3
+    title: "Regulatory and compliance requirements are identified for each workload"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "SMART-G3. Confirm the applicable standards (for example HIPAA, ISO 27001, SOX) are recorded per workload, and that they were checked against region selection and service availability. Source: CAF plan/assess-workloads-for-cloud-migration#assess-compliance-and-operational-requirements."
+    manual: true
+  - id: SMART-G4
+    title: "SLAs, RPOs and RTOs are documented for each workload"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "SMART-G4. Document the availability SLA, recovery point objective and recovery time objective per workload; backup, replication and failover design depend on them. Source: CAF plan/assess-workloads-for-cloud-migration#assess-compliance-and-operational-requirements and manage/protect#define-reliability-requirements."
+    manual: true
+  - id: SMART-G5
+    title: "Application code has been assessed for Azure compatibility"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "SMART-G5. Confirm application code was assessed (for example with GitHub Copilot app modernization for .NET and Java, or a third-party tool for other languages) and that framework and SDK versions are supported on the target service. Source: CAF plan/assess-workloads-for-cloud-migration#assess-application-code."
+    manual: true
+  - id: SMART-G6
+    title: "A risk register exists with mitigations, owners and status"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "SMART-G6. Confirm a risk register covers technical, operational and organisational risks, each with a mitigation, an owner and a resolution date. Source: CAF plan/assess-workloads-for-cloud-migration#create-and-maintain-a-risk-register and govern/assess-cloud-risks."
+    manual: true
+  - id: SMART-G7
+    title: "No workload depends on an operating system that is out of support"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "SMART-G7. Scout does not collect the guest operating-system version, so it cannot detect end-of-support systems. Read the readiness column of the Azure Migrate (Azure Catalyst) assessment, and upgrade or isolate anything unsupported in the test environment before production cutover. Source: CAF plan/assess-workloads-for-cloud-migration#assess-workload-components and migrate/prepare-workloads-cloud#resolve-compatibility-issues."
+    manual: true
+
+  # --- H: migration plan and approval (CAF Migrate: plan) — organisational -----------------------
+  - id: SMART-H1
+    title: "A migration method is chosen for each workload"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "SMART-H1. Confirm each workload has a chosen method -- downtime migration for workloads that tolerate planned outages, near-zero-downtime migration for critical ones -- and a documented acceptable downtime window. Source: CAF migrate/plan-migration#choose-the-migration-method-for-each-workload."
+    manual: true
+  - id: SMART-H2
+    title: "The migration schedule avoids critical business events"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "SMART-H2. Confirm each migration has start and end dates with buffer time, and that none falls in a period such as financial close, a product launch or a holiday peak. Source: CAF migrate/plan-migration#create-a-detailed-migration-schedule."
+    manual: true
+  - id: SMART-H3
+    title: "A rollback plan is defined and has been tested"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "SMART-H3. Confirm rollback criteria and workload-specific rollback steps are written down, and that the procedure was rehearsed in a staging environment before it was needed. Source: CAF migrate/plan-migration#define-rollback-plan."
+    manual: true
+  - id: SMART-H4
+    title: "Stakeholders have signed off the migration plan and the rollback authority"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "SMART-H4. Confirm written approval of the plan, the tested rollback procedure, the schedule and the success criteria, with named decision authority for go/no-go. Source: CAF migrate/plan-migration#engage-stakeholders-on-migration-plan."
+    manual: true
+
+  # --- I: prepare workloads (CAF Migrate: prepare) ---------------------------------------------
+  - id: SMART-I1
+    title: "Managed identities are in use instead of hard-coded accounts"
+    severity: low
+    query: "$.domains.identity.managedIdentities[*]"
+    assert: { type: exists }
+    remediation: "SMART-I1. No user-assigned managed identity was found. Replace hard-coded service accounts and credentials with managed identities as workloads are prepared. Scout collects user-assigned identities only; system-assigned identities on individual resources are not read, so confirm before treating this as a failure. Source: CAF migrate/prepare-workloads-cloud#resolve-compatibility-issues."
+    manual: false
+  - id: SMART-I2
+    title: "Network Watcher is available to validate connectivity"
+    severity: low
+    query: "$.networking.networkWatchers[?(@.provisioningState == 'Succeeded')]"
+    assert: { type: exists }
+    remediation: "SMART-I2. No Network Watcher instance in a Succeeded state was found. Enable Network Watcher in each region the workloads will run in, so connection troubleshooting can validate connectivity between tiers and to external dependencies. Scout reports whether any instance exists; it does not check every target region. Source: CAF migrate/prepare-workloads-cloud#validate-network-connectivity."
+    manual: false
+  - id: SMART-I3
+    title: "Azure Load Testing is available to validate performance"
+    severity: low
+    query: "$.devops.loadTesting[*]"
+    assert: { type: exists }
+    remediation: "SMART-I3. No Azure Load Testing resource was found. CAF names it for measuring response time and throughput against the source baseline before cutover. Another load-testing tool is an acceptable alternative; this is an existence check and not proof that tests ran. Source: CAF migrate/prepare-workloads-cloud#conduct-functional-and-performance-testing."
+    manual: false
+  - id: SMART-I4
+    title: "Functional, performance and user acceptance testing passed in the test environment"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "SMART-I4. Confirm functional, integration and regression tests passed, performance was compared with the source baseline, and business users signed off acceptance, before the production cutover. Source: CAF migrate/prepare-workloads-cloud#validate-workload-functionality."
+    manual: true
+  - id: SMART-I5
+    title: "Infrastructure is defined as code and held in version control"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "SMART-I5. Confirm the proven test environment is captured as Bicep, Terraform or ARM templates, parameterised per environment, stored in Git, and deployable end to end from nothing. Source: CAF migrate/prepare-workloads-cloud#create-reusable-infrastructure."
+    manual: true
+
+  # --- J: execute migration (CAF Migrate: execute) — organisational -----------------------------
+  - id: SMART-J1
+    title: "A change freeze is in force on the source systems during the migration window"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "SMART-J1. Confirm release pipelines are blocked for the source environment during the window, emergency-change criteria are documented, and unauthorised changes are monitored. Source: CAF migrate/execute-migration#implement-a-change-freeze."
+    manual: true
+  - id: SMART-J2
+    title: "Data integrity is validated after cutover"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "SMART-J2. Confirm the plan compares source and target data after the final synchronisation -- row counts for a quick check, checksums or hashes for deeper validation, and file counts, sizes and timestamps for file data -- before traffic is redirected. Source: CAF migrate/execute-migration#execute-cutover."
+    manual: true
+  - id: SMART-J3
+    title: "The source environment is kept as a fallback through the stabilisation period"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "SMART-J3. Confirm the source stays available, with the ability to revert DNS and restore previous configuration, until the workload is validated in production. Source: CAF migrate/execute-migration#maintain-fallback-option."
+    manual: true
+  - id: SMART-J4
+    title: "Stabilisation support is staffed and the CMDB is updated"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "SMART-J4. Confirm enhanced support with shorter SLAs than normal operations is assigned for the stabilisation period, and that the configuration management database and inventory reflect the new Azure hosting. Source: CAF migrate/execute-migration#support-workload-during-stabilization."
+    manual: true
+
+  # --- K: optimise and decommission (CAF Migrate: optimise, decommission) -----------------------
+  - id: SMART-K1
+    title: "Alert rules exist to monitor migrated workloads"
+    severity: medium
+    query: "$.monitor['metricAlertRules','scheduledQueryRules','activityLogAlertRules'][?(@.enabled == true)]"
+    assert: { type: exists }
+    remediation: "SMART-K1. No enabled metric, log-search or activity-log alert rule was found. Create alerts for the migrated workloads and confirm they trigger under the expected conditions, because workload behaviour shifts after migration. This is an existence check across the three rule types. Source: CAF migrate/optimize-workloads-after-migration#validate-workload-monitoring."
+    manual: false
+  - id: SMART-K2
+    title: "Azure Hybrid Benefit is applied to eligible Windows Server virtual machines"
+    severity: low
+    query: "$.compute.virtualMachines[?(@.osType == 'Windows' && @.licenseType == '')]"
+    assert: { type: countEquals, value: 0 }
+    remediation: "SMART-K2. Each listed Windows virtual machine has no license type set, so it may be paying for a Windows Server licence the organisation already owns. Where Software Assurance or a subscription licence covers it, set licenseType to Windows_Server. Scout cannot see your entitlements, so confirm eligibility before claiming. Source: CAF plan/assess-workloads-for-cloud-migration (record software licensing information) and migrate/decommission-source-workload#azure-tools-and-resources."
+    manual: false
+  - id: SMART-K3
+    title: "On-premises dependencies that cannot migrate are brought under Azure Arc"
+    severity: low
+    query: "$.domains.hybrid.arcServers[*]"
+    assert: { type: manual }
+    remediation: "SMART-K3. Any Arc-enabled server found is listed as evidence. Having none is not a failure. Confirm every component that must stay on-premises is documented, with its reason, and that it is monitored through Azure Arc or an equivalent. Source: CAF migrate/plan-migration#address-split-environment-operations and migrate/optimize-workloads-after-migration#optimize-hybrid-and-multicloud-dependencies."
+    manual: true
+  - id: SMART-K4
+    title: "Decommissioning of source workloads has formal stakeholder approval"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "SMART-K4. Confirm business and technical owners approved decommissioning in writing, with success criteria, a timeline and a grace period for rollback. Source: CAF migrate/decommission-source-workload#obtain-stakeholder-approval-before-decommissioning."
+    manual: true
+  - id: SMART-K5
+    title: "Data that stays behind is classified and archived to meet retention obligations"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "SMART-K5. Confirm unmigrated data under regulatory retention or legal hold was identified and archived, with a tested retrieval procedure, before the source was retired. Source: CAF migrate/decommission-source-workload#preserve-data-for-compliance-and-recovery-needs."
+    manual: true

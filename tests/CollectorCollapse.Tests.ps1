@@ -194,15 +194,35 @@ Describe 'ConvertFrom-ScoutInventory — KQL semantics are preserved' {
         $shaped['deployments'][0].name | Should -Be 'rg1'
     }
 
-    It 'summarises diagnostic coverage per resource type' {
+    It 'summarises diagnostic coverage per resource type from the diagnostic-settings sweep (AB#9300)' {
+        # Diagnostic settings are an ARM extension resource that no Resource Graph row carries.
+        # Coverage = resources whose diagnostic-settings GET succeeded (checked), and of those the
+        # ones that returned at least one setting row (covered). A failed GET is not counted.
+        $base = '/subscriptions/sub1/resourceGroups/rg1/providers/microsoft.storage/storageaccounts'
+        $operations = @(
+            [pscustomobject]@{ Dataset = 'ResourceDiagnosticSettings'; Status = 'Success'; Uri = "https://management.azure.com$base/a/providers/Microsoft.Insights/diagnosticSettings?api-version=2021-05-01-preview" }
+            [pscustomobject]@{ Dataset = 'ResourceDiagnosticSettings'; Status = 'Empty'; Uri = "https://management.azure.com$base/b/providers/Microsoft.Insights/diagnosticSettings?api-version=2021-05-01-preview" }
+            [pscustomobject]@{ Dataset = 'ResourceDiagnosticSettings'; Status = 'Failed'; Uri = "https://management.azure.com$base/c/providers/Microsoft.Insights/diagnosticSettings?api-version=2021-05-01-preview" }
+        )
         $shaped = ConvertFrom-ScoutInventory -Resources @(
-            New-Resource -Type 'microsoft.storage/storageaccounts' -Name 'a' -Properties @{ diagnosticSettings = [pscustomobject]@{ x = 1 } }
-            New-Resource -Type 'microsoft.storage/storageaccounts' -Name 'b' -Properties @{}
-        ) -ResourceContainers @()
+            New-Resource -Type 'microsoft.storage/storageaccounts' -Name 'a'
+            New-Resource -Type 'microsoft.storage/storageaccounts' -Name 'b'
+            New-Resource -Type 'microsoft.storage/storageaccounts' -Name 'c'
+            [pscustomobject]@{ id = "$base/a/providers/microsoft.insights/diagnosticSettings/toLaw"; type = 'AZSC/ARMChild/ResourceDiagnosticSettings'; PARENTID = "$base/a"; PARENTTYPE = 'microsoft.storage/storageaccounts' }
+        ) -ResourceContainers @() -SourceOperations $operations
+        $shaped['diagnosticCoverageMeasured'] | Should -BeTrue
         $row = $shaped['diagnosticCoverage'] | Where-Object type -EQ 'microsoft.storage/storageaccounts'
-        $row.total | Should -Be 2
+        $row.total | Should -Be 2 -Because 'the account whose GET failed was not measured'
         $row.withDiag | Should -Be 1
         $row.coveragePct | Should -Be 50
+    }
+
+    It 'reports diagnostic coverage as not measured when no sweep ran, instead of 0%' {
+        $shaped = ConvertFrom-ScoutInventory -Resources @(
+            New-Resource -Type 'microsoft.storage/storageaccounts' -Name 'a' -Properties @{ diagnosticSettings = [pscustomobject]@{ x = 1 } }
+        ) -ResourceContainers @()
+        $shaped['diagnosticCoverageMeasured'] | Should -BeFalse
+        @($shaped['diagnosticCoverage']).Count | Should -Be 0 -Because 'properties.diagnosticSettings is not a real ARM property and must not be counted'
     }
 
     It 'never produces sqlDefenderPricing — that query reads SecurityResources, which inventory does not collect' {

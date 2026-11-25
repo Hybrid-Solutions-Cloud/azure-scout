@@ -348,6 +348,37 @@ function Start-AZSCWizard {
         $chosen = Read-AZSCWizardChecklist -Title 'Assessments to run' -Groups $assessmentGroups -DefaultSelected @('CAF: Azure Landing Zone')
         if ($null -eq $chosen) { return $null }
         $answers.Assessment = $chosen
+
+        # Questionnaire answers. Many assessments (CASA, DevOps Capability, FinOps Review, SMART,
+        # the AI workload review, ...) include questions no Azure API can answer. Without answers
+        # those items show as Manual and are left out of the score. Offer the answer file only
+        # when a chosen assessment actually has such questions, and say how many.
+        $questionCount = 0
+        if ($assessmentManifest) {
+            try { $questionCount = @(Get-ScoutAssessmentQuestion -Assessment @($chosen) -Manifest $assessmentManifest).Count }
+            catch { Write-Verbose "Start-AZSCWizard: could not count questionnaire items: $_" }
+        }
+        if ($questionCount -gt 0) {
+            Write-Host ''
+            Write-Host ("  The selected assessments include {0} question(s) only a person can answer." -f $questionCount) -ForegroundColor White
+            Write-Host '  Every run writes them to assessment-questions.csv in the report folder; fill in the' -ForegroundColor DarkGray
+            Write-Host '  Answer column (Yes / Partial / No / N/A) and give that file here next time.' -ForegroundColor DarkGray
+            while ($true) {
+                $answerFile = Read-AZSCWizardText -Prompt '  Answer file (CSV or JSON; Enter to skip)' -Default ''
+                if (-not $answerFile) { break }
+                $answerFile = $answerFile.Trim().Trim('"').Trim("'")
+                if (Test-Path -LiteralPath $answerFile -PathType Leaf) {
+                    try {
+                        $loaded = Import-ScoutAssessmentAnswer -Path $answerFile
+                        Write-Host ("  Loaded {0} answer(s)." -f $loaded.Count) -ForegroundColor Green
+                        $answers.AssessmentAnswers = (Resolve-Path -LiteralPath $answerFile).ProviderPath
+                        break
+                    }
+                    catch { Write-Host "  That file could not be read: $($_.Exception.Message)" -ForegroundColor Yellow }
+                }
+                else { Write-Host "  No file at '$answerFile'. Try again, or press Enter to skip." -ForegroundColor Yellow }
+            }
+        }
     }
 
     # ── Step 4: output ───────────────────────────────────────────────────────
@@ -579,16 +610,22 @@ function Group-AZSCWizardAssessment {
     $groups = [ordered]@{
         'Cloud Adoption Framework (CAF)'   = [System.Collections.Generic.List[string]]::new()
         'Well-Architected Framework (WAF)' = [System.Collections.Generic.List[string]]::new()
+        'Workload reviews'                 = [System.Collections.Generic.List[string]]::new()
         'Specialized reviews'              = [System.Collections.Generic.List[string]]::new()
         'Service category deep-dives'      = [System.Collections.Generic.List[string]]::new()
     }
     foreach ($name in @($Names)) {
         if ([string]::IsNullOrWhiteSpace($name)) { continue }
+        # Workload reviews (AI, AVD, AVS ...) are Microsoft per-workload Well-Architected reviews,
+        # not service-category slices, whatever their registry prefix (AB#9300).
         $heading = switch -Wildcard ($name) {
-            'CAF:*'    { 'Cloud Adoption Framework (CAF)'; break }
-            'WAF:*'    { 'Well-Architected Framework (WAF)'; break }
-            'Assess:*' { 'Service category deep-dives'; break }
-            default    { 'Specialized reviews' }
+            'CAF:*'             { 'Cloud Adoption Framework (CAF)'; break }
+            'WAF:*'             { 'Well-Architected Framework (WAF)'; break }
+            'Workload:*'        { 'Workload reviews'; break }
+            'Assess:*Workload'  { 'Workload reviews'; break }
+            'Assess: Compliance' { 'Specialized reviews'; break }
+            'Assess:*'          { 'Service category deep-dives'; break }
+            default             { 'Specialized reviews' }
         }
         $groups[$heading].Add($name)
     }

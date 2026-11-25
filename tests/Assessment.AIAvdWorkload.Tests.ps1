@@ -162,9 +162,9 @@ Describe 'waf.ai.yaml rule set (AB#6818)' {
         $script:ruleSet = Get-RuleSet -Patterns @('waf.ai')
     }
 
-    It 'loads all 34 enumerated WAF-AI-* items with no duplicate ids' {
-        $script:ruleSet.Rules.Count | Should -Be 34
-        ($script:ruleSet.Rules.id | Sort-Object -Unique).Count | Should -Be 34
+    It 'loads all 63 enumerated WAF-AI-* items (all ten design areas, AB#9300) with no duplicate ids' {
+        $script:ruleSet.Rules.Count | Should -Be 63
+        ($script:ruleSet.Rules.id | Sort-Object -Unique).Count | Should -Be 63
     }
 
     It 'declares framework WAF-AI, not WAF, because it is a workload review spanning multiple design areas' {
@@ -369,10 +369,12 @@ Describe 'manifests/assessments.psd1 — AI/AVD workload entries (AB#6818/AB#681
         $script:Manifest = Import-PowerShellDataFile (Join-Path -Path $root -ChildPath 'manifests/assessments.psd1')
     }
 
-    It 'has an AI Workload entry collecting only AI and scoring waf.ai' {
+    It 'has an AI Workload entry collecting the categories its rules read, and scoring waf.ai' {
         $entry = $script:Manifest['Assess: AI Workload']
         $entry | Should -Not -BeNullOrEmpty
-        $entry.Collect | Should -Be @('AI')
+        # The data-platform and persona items (AB#9300) read Purview, data factories, Cosmos DB,
+        # storage, managed identities and role assignments as well as the AI services.
+        foreach ($category in 'AI', 'Analytics', 'Databases', 'Storage', 'Identity') { $entry.Collect | Should -Contain $category }
         $entry.Rules | Should -Be @('waf.ai')
     }
 

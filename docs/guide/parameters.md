@@ -121,6 +121,7 @@ run-mode examples: [Assessment guide](../assessment/assessment.md#run-modes).
 | `-PermissionAudit` | Switch — runs `Test-ScoutPermission` for the requested `-Assessment` set and returns before any collection happens. |
 | `-CollectOnly` | Switch — stop after Collect; returns the path to `collect.json`. |
 | `-FromCollect` | Path to an existing `collect.json` — skips Collect/Ingest and assesses/reports from it directly. Runs fully offline, so it does **not** trigger a sign-in. |
+| `-AssessmentAnswers` | Path to a CSV or JSON answer file for the assessments' **questionnaire items** — the questions no Azure API can answer. Every assessment run writes `assessment-questions.csv` into its report folder; fill in `Answer` (Yes / Partial / No / N/A) and pass it here. Answered items are scored and marked **Answered**; a rule Scout evaluates from Azure data is never overridden. Combine with `-FromCollect` to re-score without scanning again. `Export-ScoutAssessmentQuestion -Assessment <names> -Path <csv>` writes the questionnaire without a scan. See [Questionnaire Answers](../assessment/questionnaire-answers.md). |
 | `-ManagementGroup` | Scopes the Resource Graph `Collect` layer (and the opt-in `AzGovViz` ingest, if selected instead of the native `Governance` default) for assessments that need it (`CAF: Azure Landing Zone`, `Management`, `Identity`, `Scout: Governance Baseline`, `Policy`). |
 
 ::: warning Former assessment command removed

@@ -1,7 +1,9 @@
 # waf.ai.yaml — AI workload assessment (AB#6818, Feature AB#6748, Epic AB#6454)
 #
-# Written ONLY against docs/frameworks/waf-ai-workload-checklist.md (34 items across 7 of the
-# 10 AI-workload design areas Microsoft publishes a "Recommendations" table for). Every rule
+# Written ONLY against docs/frameworks/waf-ai-workload-checklist.md: the 35 items in the seven
+# AI-workload design areas Microsoft publishes a "Recommendations" table for, plus Scout-derived
+# items for the three areas that have no table (Data platform, Testing and evaluation, Workload
+# personas) and the AI architecture pattern page (AB#9300, verified 2026-11-24). Every rule
 # below cites a WAF-AI-<AREA>-NN id from that file in its `title` and `remediation`. Do not add
 # a rule here that cites an id not in that enumeration, and do not re-date this file's
 # `frameworkversion` without re-running the enumeration's verification procedure first
@@ -44,9 +46,9 @@
 # manual, with the comparison data attached as evidence rather than the rule being skipped.
 area: "AI workload"
 framework: WAF-AI
-frameworkversion: "WAF AI workload guidance, docs/frameworks/waf-ai-workload-checklist.md, extracted 2026-08-01 (7 of 10 AI-workload design areas enumerated, 34 items)"
+frameworkversion: "WAF AI workload guidance (learn.microsoft.com/azure/well-architected/ai/), docs/frameworks/waf-ai-workload-checklist.md, verified 2026-11-24 (all 10 design areas: 35 Microsoft-tabled items plus Scout-derived items for Data platform, Testing and evaluation, Workload personas and the AI architecture pattern)"
 weight: 1.0
-verifiedAgainst: "docs/frameworks/waf-ai-workload-checklist.md (internal enumeration of learn.microsoft.com/azure/well-architected/ai/*), verified 2026-08-01"
+verifiedAgainst: "docs/frameworks/waf-ai-workload-checklist.md (internal enumeration of learn.microsoft.com/azure/well-architected/ai/*), verified 2026-11-24"
 rules:
   # ---- Application design (WAF-AI-APPD) ---------------------------------------------------
   - id: WAF-AI-APPD-01
@@ -323,3 +325,223 @@ rules:
     assert: { type: manual }
     remediation: "WAF-AI-RAI-04. Confirm auditability, RBAC and circuit-breaker safeguards are implemented for any agentic AI components. Identity/RBAC data (Conditional Access, per-resource role assignments) is not modeled in domains.* for this rule set; confirm manually."
     manual: true
+
+  # ---- Grounding data design: Microsoft's 5th recommendation, added after 2026-08-01 ----------
+  - id: WAF-AI-GROUND-05
+    title: "WAF-AI-GROUND-05. Update the index so the model never answers from stale data"
+    severity: medium
+    query: "$.domains.ai.searchServices[*]"
+    assert: { type: manual }
+    remediation: "WAF-AI-GROUND-05. Confirm indexes are refreshed side by side (index aliases or a rebuild-then-swap) so inferencing never runs against stale or half-built grounding data. Index lifecycle is data plane; the search services above are where it applies."
+    manual: true
+
+  # ---- Data platform (WAF-AI-DATA) -- no Microsoft table; Scout-derived from the article -------
+  # Source: https://learn.microsoft.com/azure/well-architected/ai/data-platform
+  - id: WAF-AI-DATA-01
+    title: "WAF-AI-DATA-01. A separate vector store is justified, or the source store's built-in vector search serves the workload"
+    severity: low
+    query: "$.domains.databases.cosmosDbAccounts[*]"
+    assert: { type: manual }
+    remediation: "WAF-AI-DATA-01. Confirm a dedicated grounding store is needed; Cosmos DB and Azure SQL offer built-in vector search that can avoid another copy of the data."
+    manual: true
+  - id: WAF-AI-DATA-02
+    title: "WAF-AI-DATA-02. The aggregation store handles multiple formats and data versioning"
+    severity: low
+    query: "$.domains.analytics.databricksWorkspaces[*]"
+    assert: { type: manual }
+    remediation: "WAF-AI-DATA-02. Confirm the data lake or lakehouse feeding AI (ADLS Gen2, Fabric, Databricks Delta) supports the formats in use and versions the data used for training and grounding."
+    manual: true
+  - id: WAF-AI-DATA-03
+    title: "WAF-AI-DATA-03. Data lifecycle management is configured on AI data stores"
+    severity: medium
+    query: "$.domains.storage.storageAccounts[*]"
+    assert: { type: manual }
+    remediation: "WAF-AI-DATA-03. Confirm lifecycle policies (tiering, expiry) apply to the stores holding training and grounding data. Storage lifecycle policies are not part of the assessment collection."
+    manual: true
+  - id: WAF-AI-DATA-04
+    title: "WAF-AI-DATA-04. Data governance and cataloguing are in place for AI data (Microsoft Purview)"
+    severity: medium
+    # Existence check, framed like GROUND-02: a Fail means "no Purview account found -- confirm how
+    # AI data is catalogued", not "this is definitely wrong". Gated on AI services being present.
+    query: "$.domains.analytics.purviewAccounts[*]"
+    assert: { type: countGreaterThan, value: 0, gate: "$.domains.ai.cognitiveAccounts[*]" }
+    remediation: "WAF-AI-DATA-04. No Microsoft Purview account was found. Confirm AI training and grounding data is catalogued, classified and lineage-tracked (Purview, or Unity Catalog for Databricks)."
+    manual: false
+  - id: WAF-AI-DATA-05
+    title: "WAF-AI-DATA-05. Data pipelines are not reachable from the public internet"
+    severity: medium
+    query: "$.domains.analytics.dataFactories[?(@.publicNetworkAccess == 'Enabled')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.analytics.dataFactories[*]" }
+    remediation: "WAF-AI-DATA-05. The data factories listed allow public network access. Use private endpoints and managed identity for the pipelines that prepare AI data. (Estate-wide: Scout cannot tell which factories feed AI.)"
+    manual: false
+  - id: WAF-AI-DATA-06
+    title: "WAF-AI-DATA-06. Data residency and sovereignty requirements are met"
+    severity: medium
+    query: "$.domains.ai.cognitiveAccounts[*]"
+    assert: { type: manual }
+    remediation: "WAF-AI-DATA-06. The AI accounts above carry their region. Confirm region, customer-managed keys and (where required) confidential compute meet the workload's residency obligations."
+    manual: true
+  - id: WAF-AI-DATA-07
+    title: "WAF-AI-DATA-07. Search indexes run on an SLA tier with at least two replicas"
+    severity: high
+    # The free tier has no SLA; Microsoft's SLA needs 2 replicas for read and 3 for read/write.
+    query: "$.domains.ai.searchServices[?(@.sku == 'free' || @.replicaCount < 2)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.ai.searchServices[*]" }
+    remediation: "WAF-AI-DATA-07. The search services listed are on the free tier or have fewer than two replicas. Use a billable tier with at least two replicas (three for read/write workloads) for production grounding."
+    manual: false
+  - id: WAF-AI-DATA-08
+    title: "WAF-AI-DATA-08. Search indexes are private and use Entra ID authentication"
+    severity: high
+    query: "$.domains.ai.searchServices[?(@.publicAccess != 'disabled' && @.publicAccess != 'Disabled')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.ai.searchServices[*]" }
+    remediation: "WAF-AI-DATA-08. The search services listed accept public network traffic. Disable public network access, use private endpoints, and prefer Entra ID (role-based) authentication over API keys."
+    manual: false
+  - id: WAF-AI-DATA-09
+    title: "WAF-AI-DATA-09. Grounding results are security-trimmed per user"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AI-DATA-09. Confirm document-level security trimming so a user is never grounded on content they could not read directly. Data plane; not visible in ARM."
+    manual: true
+  - id: WAF-AI-DATA-10
+    title: "WAF-AI-DATA-10. A feature store holds reusable training features (if the workload trains models)"
+    severity: low
+    query: "$.domains.ai.mlWorkspaces[?(@.workspaceKind == 'FeatureStore')]"
+    assert: { type: manual }
+    remediation: "WAF-AI-DATA-10. Feature stores found are listed. If the workload trains models, confirm features are managed in a feature store rather than recomputed per pipeline."
+    manual: true
+  - id: WAF-AI-DATA-11
+    title: "WAF-AI-DATA-11. Development and production data environments are separated"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AI-DATA-11. Confirm development uses separate (or masked) data from production, and decide model-deployment versus code-deployment promotion deliberately."
+    manual: true
+
+  # ---- Testing and evaluation (WAF-AI-TEST) -- no Microsoft table; Scout-derived -------------
+  # Source: https://learn.microsoft.com/azure/well-architected/ai/test
+  - id: WAF-AI-TEST-01
+    title: "WAF-AI-TEST-01. Quality metrics are baselined and used as release gates"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AI-TEST-01. Confirm more than one quality metric (for example groundedness, relevance, fairness) is baselined and a regression blocks release."
+    manual: true
+  - id: WAF-AI-TEST-02
+    title: "WAF-AI-TEST-02. A representative golden evaluation dataset is maintained"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AI-TEST-02. Confirm a curated, versioned golden dataset covers the workload's real questions and edge cases, and is refreshed as usage changes."
+    manual: true
+  - id: WAF-AI-TEST-03
+    title: "WAF-AI-TEST-03. Agentic workflows are validated end to end"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AI-TEST-03. Confirm agents are tested for intent resolution, tool-call accuracy and task adherence, including behaviour when a tool fails."
+    manual: true
+  - id: WAF-AI-TEST-04
+    title: "WAF-AI-TEST-04. Jailbreak, red-team and content-safety tests run on prompts and grounding data"
+    severity: high
+    query: "$.domains.ai.cognitiveAccounts[?(@.accountKind == 'ContentSafety')]"
+    assert: { type: manual }
+    remediation: "WAF-AI-TEST-04. Content Safety accounts found are listed. Confirm adversarial (jailbreak, prompt-injection) and red-team testing runs before each release."
+    manual: true
+  - id: WAF-AI-TEST-05
+    title: "WAF-AI-TEST-05. Inference endpoints are tested for function, load and failure"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AI-TEST-05. Confirm load tests at expected tokens per minute and failure tests (HTTP 429 throttling, timeouts, circuit breaking) against the inference endpoint."
+    manual: true
+  - id: WAF-AI-TEST-06
+    title: "WAF-AI-TEST-06. The grounding pipeline is tested (schema, freshness, index load, access control)"
+    severity: medium
+    query: "$.domains.ai.searchServices[*]"
+    assert: { type: manual }
+    remediation: "WAF-AI-TEST-06. Confirm ingestion is tested for schema compatibility, data freshness, index load and access-control trimming."
+    manual: true
+  - id: WAF-AI-TEST-07
+    title: "WAF-AI-TEST-07. Training, evaluation and test datasets are kept separate, with leakage checks"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AI-TEST-07. Confirm dataset splits are fixed and checked for leakage, so evaluation scores reflect unseen data."
+    manual: true
+  - id: WAF-AI-TEST-08
+    title: "WAF-AI-TEST-08. Model decay is detected automatically"
+    severity: medium
+    query: "$.domains.ai.mlWorkspaces[*]"
+    assert: { type: manual }
+    remediation: "WAF-AI-TEST-08. Confirm model monitoring (data drift, prediction drift, user feedback) raises an alert when quality degrades."
+    manual: true
+
+  # ---- Workload personas (WAF-AI-PERSONA) -- no Microsoft table; Scout-derived ---------------
+  # Source: https://learn.microsoft.com/azure/well-architected/ai/personas
+  - id: WAF-AI-PERSONA-01
+    title: "WAF-AI-PERSONA-01. Workload personas are defined with their processes, skills and component access"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AI-PERSONA-01. Confirm the five to ten personas that build, run and use the workload are documented with what each needs to access."
+    manual: true
+  - id: WAF-AI-PERSONA-02
+    title: "WAF-AI-PERSONA-02. Personas map to least-privilege roles per environment"
+    severity: medium
+    query: "$.governance.roleAssignments[*]"
+    assert: { type: manual }
+    remediation: "WAF-AI-PERSONA-02. The role assignments above are the evidence. Confirm each persona gets least-privilege access, separately in development, staging and production."
+    manual: true
+  - id: WAF-AI-PERSONA-03
+    title: "WAF-AI-PERSONA-03. Agents have their own identities, just-in-time permissions and an audit trail to a responsible person"
+    severity: high
+    query: "$.domains.identity.managedIdentities[*]"
+    assert: { type: manual }
+    remediation: "WAF-AI-PERSONA-03. Confirm each agent runs under its own identity, gets elevated permissions only when needed, and every action is traceable to an accountable human."
+    manual: true
+  - id: WAF-AI-PERSONA-04
+    title: "WAF-AI-PERSONA-04. Persona skill gaps are identified and the design adjusted"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AI-PERSONA-04. Confirm skill gaps are known and addressed, either by upskilling or by choosing more managed services."
+    manual: true
+
+  # ---- AI architecture pattern (WAF-AI-ARCH) -- Scout-derived ------------------------------
+  # Source: https://learn.microsoft.com/azure/well-architected/ai/architecture-pattern
+  - id: WAF-AI-ARCH-01
+    title: "WAF-AI-ARCH-01. Machine learning workspaces are not publicly reachable"
+    severity: high
+    query: "$.domains.ai.mlWorkspaces[?(@.publicAccess == 'Enabled')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.ai.mlWorkspaces[*]" }
+    remediation: "WAF-AI-ARCH-01. The workspaces listed allow public network access. Only the intelligence API should be exposed; disable public access and use private endpoints for the training platform."
+    manual: false
+  - id: WAF-AI-ARCH-02
+    title: "WAF-AI-ARCH-02. The training platform is network-isolated (managed virtual network)"
+    severity: medium
+    query: "$.domains.ai.mlWorkspaces[?(@.isolationMode != 'AllowOnlyApprovedOutbound' && @.isolationMode != 'AllowInternetOutbound')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.ai.mlWorkspaces[*]" }
+    remediation: "WAF-AI-ARCH-02. The workspaces listed have no managed virtual network. Enable managed network isolation, preferably 'Allow only approved outbound'."
+    manual: false
+  - id: WAF-AI-ARCH-03
+    title: "WAF-AI-ARCH-03. High-risk agent actions need human approval"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AI-ARCH-03. Confirm tool actions with real-world impact (payments, deletions, external messages) require a person to approve them."
+    manual: true
+  - id: WAF-AI-ARCH-04
+    title: "WAF-AI-ARCH-04. The model registry is a governance gate before production"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AI-ARCH-04. Confirm models reach production only through a registry that records checksums, lineage and a responsible-AI review."
+    manual: true
+  - id: WAF-AI-ARCH-05
+    title: "WAF-AI-ARCH-05. AI service accounts require Entra ID authentication (local keys disabled)"
+    severity: high
+    query: "$.domains.ai.cognitiveAccounts[?(@.disableLocalAuth != true)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.ai.cognitiveAccounts[*]" }
+    remediation: "WAF-AI-ARCH-05. The AI accounts listed still accept API keys. Set disableLocalAuth to true and use managed identities with role-based access."
+    manual: false

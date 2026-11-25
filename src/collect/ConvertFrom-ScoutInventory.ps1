@@ -254,7 +254,11 @@ function ConvertFrom-ScoutInventory {
         [Parameter()] [AllowNull()] [object[]] $Resources,
 
         # The `ResourceContainers` array from Start-AZSCGraphExtraction (subscriptions + RGs).
-        [Parameter()] [AllowNull()] [object[]] $ResourceContainers
+        [Parameter()] [AllowNull()] [object[]] $ResourceContainers,
+
+        # SourceOperations from Get-ScoutRawInventory. Only the ResourceDiagnosticSettings GETs are
+        # read: they say which resources' diagnostic settings were actually checked.
+        [Parameter()] [AllowNull()] [object[]] $SourceOperations
     )
 
     # `resources` and `networkresources` overlap for several network types; shaping both without
@@ -1032,17 +1036,48 @@ function ConvertFrom-ScoutInventory {
             }
     )
 
-    # ---- ops posture: summarize total/withDiag by type ----
+    # ---- ops posture: diagnostic-settings coverage by resource type ----
+    # Diagnostic settings are ARM extension resources: Resource Graph indexes them in no table, and
+    # `properties.diagnosticSettings` exists on no resource. The old shaping counted that property,
+    # so every type read 0% in every tenant and CAF-MGT-01/05 and WAF-OE-01 failed everywhere
+    # (AB#9300). Coverage now comes from the ResourceDiagnosticSettings ARM sweep: a resource
+    # counts as CHECKED when its GET succeeded (Success = has settings, Empty = has none), and as
+    # COVERED when at least one setting row came back for it. Resources whose GET failed or that
+    # the sweep does not visit are not counted at all -- unmeasured is not 0%. With no sweep in
+    # the run, diagnosticCoverageMeasured is false and the rules that read coverage gate to
+    # NotAssessed instead of failing.
+    $diagnosticOperations = @(@($SourceOperations) | Where-Object {
+            $null -ne $_ -and $_.PSObject.Properties['Dataset'] -and [string]$_.Dataset -eq 'ResourceDiagnosticSettings'
+        })
+    $result['diagnosticCoverageMeasured'] = $diagnosticOperations.Count -gt 0
+    $typeById = @{}
+    foreach ($row in $rows) {
+        $rowId = [string](Get-ScoutProp $row 'id')
+        if ($rowId) { $typeById[$rowId.ToLowerInvariant()] = ([string](Get-ScoutProp $row 'type')).ToLowerInvariant() }
+    }
+    $checkedParents = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+    foreach ($operation in $diagnosticOperations) {
+        if ([string]$operation.Status -notin 'Success', 'Empty') { continue }
+        $uri = [string]$operation.Uri
+        $marker = $uri.IndexOf('/providers/Microsoft.Insights/diagnosticSettings', [StringComparison]::OrdinalIgnoreCase)
+        if ($marker -le 0) { continue }
+        $parentPath = $uri.Substring(0, $marker)
+        $schemeEnd = $parentPath.IndexOf('/subscriptions/', [StringComparison]::OrdinalIgnoreCase)
+        if ($schemeEnd -gt 0) { $parentPath = $parentPath.Substring($schemeEnd) }
+        [void]$checkedParents.Add($parentPath)
+    }
+    $coveredParents = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+    foreach ($row in @(Select-ByType 'AZSC/ARMChild/ResourceDiagnosticSettings')) {
+        $parentId = [string](Get-ScoutProp $row 'PARENTID')
+        if ($parentId) { [void]$coveredParents.Add($parentId) }
+    }
     $result['diagnosticCoverage'] = @(
-        # The reference KQL runs against the `resources` table. Synthetic AZSC envelopes are
-        # internal transport rows appended after that query (governance, ARM children, and other
-        # non-ARG sources); counting them as Azure resources creates extra zero-percent resource
-        # types that the typed-query path can never return.
-        $rows |
-            Where-Object { [string] (Get-ScoutProp $_ 'type') -notlike 'AZSC/*' } |
-            Group-Object { [string] (Get-ScoutProp $_ 'type') } | ForEach-Object {
+        @($checkedParents) | Group-Object {
+            $known = $typeById[$_.ToLowerInvariant()]
+            if ($known) { $known } else { 'unknown' }
+        } | Where-Object { $_.Name -ne 'unknown' } | Sort-Object Name | ForEach-Object {
             $total = $_.Count
-            $withDiag = @($_.Group | Where-Object { $null -ne (Get-ScoutProp $_ 'properties.diagnosticSettings') }).Count
+            $withDiag = @($_.Group | Where-Object { $coveredParents.Contains($_) }).Count
             [pscustomobject]@{
                 type        = $_.Name
                 total       = $total
@@ -1051,7 +1086,6 @@ function ConvertFrom-ScoutInventory {
             }
         }
     )
-
     # ---- per-domain scalars ----
     $result['storageAccounts'] = @(
         Select-ByType 'microsoft.storage/storageaccounts' | ForEach-Object {
@@ -1356,12 +1390,15 @@ function ConvertFrom-ScoutInventory {
     $result['cognitiveAccounts'] = @(
         Select-ByType 'microsoft.cognitiveservices/accounts' | ForEach-Object {
             [pscustomobject]@{
+                id            = [string] (Get-ScoutProp $_ 'id')
                 name          = [string] (Get-ScoutProp $_ 'name')
                 resourceGroup = [string] (Get-ScoutProp $_ 'resourceGroup')
+                location      = [string] (Get-ScoutProp $_ 'location')
                 accountKind   = [string] (Get-ScoutProp $_ 'kind')
                 publicAccess  = [string] (Get-ScoutProp $_ 'properties.publicNetworkAccess')
                 identityType  = [string] (Get-ScoutProp $_ 'identity.type')
                 cmkEnabled    = ([string] (Get-ScoutProp $_ 'properties.encryption.keySource')) -ieq 'Microsoft.KeyVault'
+                disableLocalAuth = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.disableLocalAuth')
             }
         }
     )
@@ -1831,21 +1868,30 @@ function ConvertFrom-ScoutInventory {
     $result['mlWorkspaces'] = @(
         Select-ByType 'microsoft.machinelearningservices/workspaces' | ForEach-Object {
             [pscustomobject]@{
+                id            = [string] (Get-ScoutProp $_ 'id')
                 name          = [string] (Get-ScoutProp $_ 'name')
                 resourceGroup = [string] (Get-ScoutProp $_ 'resourceGroup')
+                location      = [string] (Get-ScoutProp $_ 'location')
                 workspaceKind = [string] (Get-ScoutProp $_ 'kind')
                 publicAccess  = [string] (Get-ScoutProp $_ 'properties.publicNetworkAccess')
                 identityType  = [string] (Get-ScoutProp $_ 'identity.type')
+                isolationMode = [string] (Get-ScoutProp $_ 'properties.managedNetwork.isolationMode')
             }
         }
     )
 
     $result['searchServices'] = @(
         Select-ByType 'microsoft.search/searchservices' | ForEach-Object {
+            $replicaRaw = Get-ScoutProp $_ 'properties.replicaCount'
             [pscustomobject]@{
+                id            = [string] (Get-ScoutProp $_ 'id')
                 name          = [string] (Get-ScoutProp $_ 'name')
                 resourceGroup = [string] (Get-ScoutProp $_ 'resourceGroup')
+                location      = [string] (Get-ScoutProp $_ 'location')
                 sku           = [string] (Get-ScoutProp $_ 'sku.name')
+                publicAccess  = [string] (Get-ScoutProp $_ 'properties.publicNetworkAccess')
+                disableLocalAuth = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.disableLocalAuth')
+                replicaCount  = if ($null -eq $replicaRaw -or [string]::IsNullOrWhiteSpace([string]$replicaRaw)) { $null } else { [int] $replicaRaw }
             }
         }
     )
@@ -1894,11 +1940,18 @@ function ConvertFrom-ScoutInventory {
         Select-ByType 'microsoft.desktopvirtualization/hostpools' | ForEach-Object {
             $maxSessionRaw = Get-ScoutProp $_ 'properties.maxSessionLimit'
             [pscustomobject]@{
+                id               = [string] (Get-ScoutProp $_ 'id')
                 name             = [string] (Get-ScoutProp $_ 'name')
                 resourceGroup    = [string] (Get-ScoutProp $_ 'resourceGroup')
+                location         = [string] (Get-ScoutProp $_ 'location')
                 hostPoolType     = [string] (Get-ScoutProp $_ 'properties.hostPoolType')
                 loadBalancerType = [string] (Get-ScoutProp $_ 'properties.loadBalancerType')
                 maxSessionLimit  = if ($null -eq $maxSessionRaw) { $null } else { [int] $maxSessionRaw }
+                startVMOnConnect      = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.startVMOnConnect')
+                validationEnvironment = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.validationEnvironment')
+                publicNetworkAccess   = [string] (Get-ScoutProp $_ 'properties.publicNetworkAccess')
+                agentUpdateType       = [string] (Get-ScoutProp $_ 'properties.agentUpdate.type')
+                preferredAppGroupType = [string] (Get-ScoutProp $_ 'properties.preferredAppGroupType')
             }
         }
     )
@@ -1913,6 +1966,8 @@ function ConvertFrom-ScoutInventory {
                 hostPoolName = ($id -split '/sessionHosts/')[0]
                 status       = [string] (Get-ScoutProp $_ 'properties.status')
                 agentVersion = [string] (Get-ScoutProp $_ 'properties.agentVersion')
+                resourceId   = [string] (Get-ScoutProp $_ 'properties.resourceId')
+                updateState  = [string] (Get-ScoutProp $_ 'properties.updateState')
             }
         }
     )
@@ -1923,6 +1978,23 @@ function ConvertFrom-ScoutInventory {
                 name             = [string] (Get-ScoutProp $_ 'name')
                 resourceGroup    = [string] (Get-ScoutProp $_ 'resourceGroup')
                 hostPoolRefCount = Measure-ScoutArray (Get-ScoutProp $_ 'properties.hostPoolReferences')
+                # Host pools this plan actually scales (scalingPlanEnabled), lower-cased like the KQL.
+                enabledHostPools = @(@(Get-ScoutProp $_ 'properties.hostPoolReferences') | Where-Object {
+                        $null -ne $_ -and (ConvertTo-ScoutBool (Get-ScoutProp $_ 'scalingPlanEnabled')) -eq $true
+                    } | ForEach-Object { ([string] (Get-ScoutProp $_ 'hostPoolArmPath')).ToLowerInvariant() } |
+                    Where-Object { $_ } | Select-Object -Unique | ForEach-Object { [pscustomobject]@{ id = $_ } })
+            }
+        }
+    )
+
+    $result['avdWorkspaces'] = @(
+        Select-ByType 'microsoft.desktopvirtualization/workspaces' | ForEach-Object {
+            [pscustomobject]@{
+                id                  = [string] (Get-ScoutProp $_ 'id')
+                name                = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup       = [string] (Get-ScoutProp $_ 'resourceGroup')
+                location            = [string] (Get-ScoutProp $_ 'location')
+                publicNetworkAccess = [string] (Get-ScoutProp $_ 'properties.publicNetworkAccess')
             }
         }
     )

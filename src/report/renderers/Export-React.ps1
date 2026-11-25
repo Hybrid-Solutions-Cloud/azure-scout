@@ -725,14 +725,18 @@ function Export-React {
         'scout-cross-resource'            = 'https://learn.microsoft.com/azure/cloud-adoption-framework/ready/landing-zone/design-areas'
         'devops-capability-assessment'    = 'https://learn.microsoft.com/azure/devops/'
         'microsoft-devops-capability'     = 'https://learn.microsoft.com/azure/devops/'
-        'finops-review'                   = 'https://learn.microsoft.com/azure/cost-management-billing/finops/overview-finops'
-        'microsoft-finops-review'         = 'https://learn.microsoft.com/azure/cost-management-billing/finops/overview-finops'
+        'finops-review'                   = 'https://learn.microsoft.com/cloud-computing/finops/framework/finops-framework'
+        'microsoft-finops-review'         = 'https://learn.microsoft.com/cloud-computing/finops/framework/finops-framework'
         'governance'                      = 'https://learn.microsoft.com/azure/cloud-adoption-framework/ready/landing-zone/design-area/governance'
         'scout-governance-baseline'       = 'https://learn.microsoft.com/azure/cloud-adoption-framework/ready/landing-zone/design-area/governance'
         'monitoring'                      = 'https://learn.microsoft.com/azure/azure-monitor/overview'
         'scout-monitoring-baseline'       = 'https://learn.microsoft.com/azure/azure-monitor/overview'
-        'smart'                           = 'https://learn.microsoft.com/azure/migrate/migrate-services-overview'
-        'microsoft-smart-migration'       = 'https://learn.microsoft.com/azure/migrate/migrate-services-overview'
+        # SMART is deleted by Microsoft in January 2027; the assessment is now CAF Plan + Migrate.
+        'smart'                           = 'https://learn.microsoft.com/azure/cloud-adoption-framework/migrate/plan-migration'
+        'microsoft-smart-migration'       = 'https://learn.microsoft.com/azure/cloud-adoption-framework/migrate/plan-migration'
+        'caf-migrate-readiness'           = 'https://learn.microsoft.com/azure/cloud-adoption-framework/migrate/plan-migration'
+        'caf-govern'                      = 'https://learn.microsoft.com/azure/cloud-adoption-framework/govern/'
+        'assess-cloud-governance'         = 'https://learn.microsoft.com/azure/cloud-adoption-framework/govern/'
         'updatemanager'                   = 'https://learn.microsoft.com/azure/update-manager/overview'
         'scout-update-manager'            = 'https://learn.microsoft.com/azure/update-manager/overview'
     }
@@ -751,12 +755,13 @@ function Export-React {
         @{ p = '^CAF-ANL'; u = 'https://learn.microsoft.com/azure/cloud-adoption-framework/scenarios/data-management/' }
         @{ p = '^CAF-AI'; u = 'https://learn.microsoft.com/azure/ai-services/' }
         @{ p = '^WAF-AI'; u = 'https://learn.microsoft.com/azure/well-architected/ai/' }
+        @{ p = '^WAF-AVDAZ'; u = 'https://learn.microsoft.com/azure/virtual-desktop/security-recommendations' }
         @{ p = '^WAF-AVD'; u = 'https://learn.microsoft.com/azure/architecture/landing-zones/azure-virtual-desktop/design-guide' }
         @{ p = '^WAF-AZLOCAL'; u = 'https://learn.microsoft.com/azure/azure-local/' }
         @{ p = '^DEVOPS-'; u = 'https://learn.microsoft.com/azure/devops/' }
-        @{ p = '^FINOPS-'; u = 'https://learn.microsoft.com/azure/cost-management-billing/finops/overview-finops' }
+        @{ p = '^FINOPS-'; u = 'https://learn.microsoft.com/cloud-computing/finops/framework/finops-framework' }
         @{ p = '^CGOV-'; u = 'https://learn.microsoft.com/azure/cloud-adoption-framework/govern/' }
-        @{ p = '^SMART-'; u = 'https://learn.microsoft.com/azure/migrate/migrate-services-overview' }
+        @{ p = '^SMART-'; u = 'https://learn.microsoft.com/azure/cloud-adoption-framework/migrate/plan-migration' }
         @{ p = '^CASA-'; u = 'https://learn.microsoft.com/security/' }
         @{ p = 'nsg rule|unrestricted.*inbound|inbound exposure'; u = 'https://learn.microsoft.com/azure/virtual-network/network-security-groups-overview' }
         @{ p = 'private endpoint'; u = 'https://learn.microsoft.com/azure/private-link/private-endpoint-overview' }
@@ -1032,6 +1037,16 @@ function Export-React {
                 evidenceCount = (Get-ReactSafeProp $f @('EvidenceCount'))
                 evidenceTruncated = [bool](Get-ReactSafeProp $f @('EvidenceTruncated'))
                 evidence      = $evidenceOut
+                # Questionnaire answers: the rule id the answer file keys on (id above is
+                # assessment-qualified), whether the item is a question only a person can answer,
+                # and where its status came from (Data / Answer / Unanswered).
+                ruleId        = $f.Id
+                manual        = [bool](Get-ReactSafeProp $f @('Manual'))
+                source        = (Get-ReactSafeProp $f @('Source'))
+                answer        = (Get-ReactSafeProp $f @('Answer'))
+                answerNote    = (Get-ReactSafeProp $f @('AnswerNote'))
+                answeredBy    = (Get-ReactSafeProp $f @('AnsweredBy'))
+                answeredAt    = (Get-ReactSafeProp $f @('AnsweredAt'))
             })
         }
         # Fails first, weighted by severity; unknown/missing severity sorts LAST -- mirrors

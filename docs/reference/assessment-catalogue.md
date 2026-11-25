@@ -4,9 +4,9 @@ description: Every CAF, WAF and specialised assessment Azure Scout performs, wit
 
 # Assessment Catalogue
 
-Azure Scout ships **46 assessments** backed by **44 rule files** holding
-**393 rules**, of which **171 are evaluated automatically** and
-**222 require manual confirmation**.
+Azure Scout ships **47 assessments** backed by **46 rule files** holding
+**527 rules**, of which **222 are evaluated automatically** and
+**305 require manual confirmation**.
 
 Run one, several, or all of them:
 
@@ -22,27 +22,29 @@ Regenerate it with `scripts/Build-AssessmentCatalog.ps1`. Rows and counts come f
 fails the build if the committed page and a fresh regeneration disagree. Do not hand-edit it.
 :::
 
-**26 of the 46 assessments ingest governance data** and therefore need ARM `Reader`
+**27 of the 47 assessments ingest governance data** and therefore need ARM `Reader`
 at the **tenant-root management group** to resolve fully; below that scope they degrade to an
 explicit `Unknown` rather than a false zero. They are marked **Gov** in the tables below.
 See [Auth & permissions per scan type](../assessment/assessment-permissions.md).
 
-::: warning Manual rules are not failures
+::: warning Manual rules are questions, not failures
 A manual rule is one no collected data can decide — a process control, or a source Azure
-does not expose. Manual rules are excluded from every score rather than counted as failures,
-and they are reported separately. An assessment whose rules are largely manual produces a
-worklist, not a grade.
+does not expose. Unanswered, it is excluded from the score rather than counted as a failure.
+Answered, it is scored: every run writes `assessment-questions.csv`, and `-AssessmentAnswers`
+feeds the answers back. See [Questionnaire Answers](../assessment/questionnaire-answers.md).
 :::
 
-## Cloud Adoption Framework (9)
+## Cloud Adoption Framework (11)
 
 | Assessment | What it covers | Rules | Automated | Manual | Gov | Rule files |
 |---|---|--:|--:|--:|:-:|---|
 | **CAF: Azure billing and Microsoft Entra tenant** | CAF landing zone design area — Azure billing and Microsoft Entra ID tenant setup | 6 | 0 | 6 | **Gov** | `caf.billing` |
 | **CAF: Azure Landing Zone** | CAF/WAF landing zone audit (all areas) | 93 | 58 | 35 | **Gov** | `caf.billing`<br>`caf.identity`<br>`caf.network`<br>`caf.resourceorg`<br>`caf.security`<br>`caf.management`<br>`caf.governance`<br>`caf.platformauto`<br>`waf.cost`<br>`waf.operational`<br>`waf.performance`<br>`waf.reliability`<br>`waf.security`<br>`xr.crossresource` |
+| **CAF: Govern** | CAF Govern methodology -- 1-10 maturity score per risk category (regulatory compliance, security, cost, operations, data, resource management, AI) plus the governance process (team, risk register, policies, audits); radar + heatmap report. Replaces Microsoft's Cloud Governance assessment, retired January 2027 | 54 | 26 | 28 | **Gov** | `caf.govern.ai`<br>`caf.govern.cm`<br>`caf.govern.dg`<br>`caf.govern.op`<br>`caf.govern.proc`<br>`caf.govern.rc`<br>`caf.govern.rm`<br>`caf.govern.sc` |
 | **CAF: Governance** | CAF landing zone design area — Governance (policy & compliance) | 7 | 4 | 3 | **Gov** | `caf.governance` |
 | **CAF: Identity and access management** | CAF landing zone design area — Identity and access management | 7 | 4 | 3 | **Gov** | `caf.identity` |
 | **CAF: Management** | CAF landing zone design area — Management (monitoring, operations baseline) | 6 | 5 | 1 | **Gov** | `caf.management` |
+| **CAF: Migrate readiness** | CAF migration readiness across plan, prepare, execute, optimise and decommission -- CAF Plan + CAF Migrate, 49 rules (see docs/frameworks/smart-question-set.md) | 49 | 18 | 31 | **Gov** | `smart.migration` |
 | **CAF: Network topology and connectivity** | CAF landing zone design area — Network topology and connectivity | 7 | 6 | 1 | **Gov** | `caf.network` |
 | **CAF: Platform automation and DevOps** | CAF landing zone design area — Platform automation and DevOps | 6 | 2 | 4 | **Gov** | `caf.platformauto` |
 | **CAF: Resource organization** | CAF landing zone design area — Resource organization (management groups, subscriptions, tags) | 6 | 4 | 2 | **Gov** | `caf.resourceorg` |
@@ -60,15 +62,14 @@ worklist, not a grade.
 | **WAF: Reliability** | Well-Architected Framework — Reliability pillar only | 7 | 3 | 4 | **Gov** | `waf.reliability` |
 | **WAF: Security** | Well-Architected Framework — Security pillar only | 7 | 5 | 2 | **Gov** | `waf.security` |
 
-## Service category slices (19)
+## Service category slices (18)
 
 | Assessment | What it covers | Rules | Automated | Manual | Gov | Rule files |
 |---|---|--:|--:|--:|:-:|---|
 | **Assess: AI** | AI/Cognitive private access and responsible-AI posture | 5 | 4 | 1 |  | `caf.ai` |
-| **Assess: AI Workload** | AI workload review (Well-Architected Framework AI workload guidance) -- 34 items across 7 of 10 AI design areas; mostly manual, see docs/frameworks/waf-ai-workload-checklist.md | 34 | 2 | 32 |  | `waf.ai` |
+| **Assess: AI Workload** | AI workload review (Well-Architected Framework AI workload guidance) -- all 10 AI design areas: 35 Microsoft-tabled items plus Scout-derived items for Data platform, Testing and evaluation, Workload personas and the AI architecture pattern (63 rules, mostly questionnaire items); see docs/frameworks/waf-ai-workload-checklist.md | 63 | 9 | 54 | **Gov** | `waf.ai` |
 | **Assess: Analytics** | Analytics data governance and network isolation | 5 | 3 | 2 |  | `caf.analytics` |
 | **Assess: AVD Workload** | AVD-on-Azure-Local workload review (Well-Architected Framework) -- 20 items across all 5 pillars; scoped to AVD deployed on Azure Local, not general Azure Virtual Desktop | 20 | 6 | 14 |  | `waf.avd` |
-| **Assess: Cloud Governance** | CAF Govern methodology -- 1-10 maturity score per risk category (regulatory compliance, security, cost, operations, data, resource management, AI), radar + heatmap report | 18 | 8 | 10 | **Gov** | `caf.govern.ai`<br>`caf.govern.cm`<br>`caf.govern.dg`<br>`caf.govern.op`<br>`caf.govern.rc`<br>`caf.govern.rm`<br>`caf.govern.sc` |
 | **Assess: Compliance** | Regulatory compliance — scores every Azure Policy regulatory-compliance initiative assigned in the scanned scope (MCSB, CIS, ISO 27001, NIST, PCI-DSS, ...) from compliance state Azure already evaluated | — | — | — |  | `compliance.initiative` |
 | **Assess: Compute** | VM resilience, zones, backup, right-size, orphans | 22 | 13 | 9 |  | `waf.reliability`<br>`waf.cost`<br>`waf.performance` |
 | **Assess: Containers** | AKS private clusters, RBAC, registry hardening | 8 | 7 | 1 |  | `caf.containers` |
@@ -90,13 +91,13 @@ worklist, not a grade.
 |---|---|--:|--:|--:|:-:|---|
 | **Microsoft: CASA** | Cloud Adoption Security Assessment — cloud security maturity aligned to the CAF Secure methodology (question text is Scout's own inference from the published CAF Secure checklist, not Microsoft's numbered CASA questions; see docs/frameworks/casa-question-set.md) | 31 | 7 | 24 | **Gov** | `casa.security` |
 | **Microsoft: DevOps Capability** | DevOps Capability Assessment -- scores against the Microsoft DevOps Resource Center's five practice phases (docs/frameworks/devops-capability-question-set.md). The assessment itself and its question numbering are INFERRED, not Microsoft-published. A DIFFERENT, narrower assessment than "CAF: Platform automation and DevOps" (the landing-zone design area) -- the two overlap in subject but are not the same enumeration. Azure DevOps access is opt-in (-IncludeDevOps) and sits behind its own auth boundary; when it was not granted, the affected findings report NotAssessed, never a scored zero. | 18 | 9 | 9 | **Gov** | `devops.capability` |
-| **Microsoft: FinOps Review** | FinOps Review -- scores against the FinOps Framework's 22 published capabilities (docs/frameworks/finops-review-question-set.md). The assessment itself and its question numbering are INFERRED, not Microsoft-published -- Microsoft names the assessment and publishes the framework, but not the assessment's own question text. Cost data sits behind the EA/MCA billing permission system, a different boundary than ARM Reader; when that gate blocks the pull, the affected findings report NotAssessed, never a scored zero. | 22 | 7 | 15 | **Gov** | `finops.review` |
-| **Microsoft: SMART Migration** | Strategic Migration Assessment — migration readiness (see docs/frameworks/smart-question-set.md) | 11 | 7 | 4 | **Gov** | `smart.migration` |
+| **Microsoft: FinOps Review** | FinOps Review -- scores against the FinOps Framework 2026 (FinOps Foundation 2026-03-20 update) as used by Microsoft's FinOps Review (New): the 22 Microsoft Learn capabilities plus Executive Strategy Alignment, 23 rules (docs/frameworks/finops-review-question-set.md). The assessment itself and its question numbering are INFERRED, not Microsoft-published -- Microsoft names the assessment and publishes the framework, but not the assessment's own question text. Cost data sits behind the EA/MCA billing permission system, a different boundary than ARM Reader; when that gate blocks the pull, the affected findings report NotAssessed, never a scored zero. | 23 | 7 | 16 | **Gov** | `finops.review` |
 | **Scout: Cost Optimization** | Cost / TCO data pull | 9 | 6 | 3 |  | `waf.cost` |
 | **Scout: Cross-Resource** | Findings that require two collected datasets correlated | 6 | 6 | 0 |  | `xr.crossresource` |
 | **Scout: Governance Baseline** | Management sub-bundle — policy assignments, locks, budgets | 7 | 4 | 3 | **Gov** | `caf.governance` |
 | **Scout: Monitoring Baseline** | Monitor sub-bundle (subset of "Assess: Monitor") — diagnostic settings coverage only | 6 | 3 | 3 |  | `waf.operational` |
 | **Scout: Update Manager** | Management sub-bundle (subset of "Assess: Management") — patch/update compliance only | 6 | 5 | 1 |  | `caf.management` |
+| **Workload: AVD** | Azure Virtual Desktop workload review (AVD in Azure) -- 30 items across all 5 WAF pillars from Microsoft's current AVD guidance; host pools, session hosts, scaling plans, workspaces, private endpoints and session-host VMs | 30 | 15 | 15 |  | `waf.avd.azure` |
 | **Workload: AVS** | Azure VMware Solution workload — Reliability, Security, and Governance coverage (no published WAF pillar service guide exists for AVS; see docs/frameworks/waf-avs-workload-checklist.md) | 26 | 8 | 18 | **Gov** | `avs.workload` |
 | **Workload: AVS Landing Zone** | Azure VMware Solution Landing Zone Assessment Review — platform readiness (see docs/frameworks/avs-landing-zone-question-set.md) | 25 | 9 | 16 | **Gov** | `caf.avslandingzone` |
 
@@ -113,13 +114,14 @@ Each file declares one framework area. An assessment selects files by glob.
 | `caf.billing` | 6 | 0 | 6 |
 | `caf.containers` | 8 | 7 | 1 |
 | `caf.databases` | 7 | 3 | 4 |
-| `caf.govern.ai` | 2 | 0 | 2 |
-| `caf.govern.cm` | 4 | 2 | 2 |
-| `caf.govern.dg` | 2 | 1 | 1 |
-| `caf.govern.op` | 4 | 2 | 2 |
-| `caf.govern.rc` | 2 | 1 | 1 |
-| `caf.govern.rm` | 1 | 1 | 0 |
-| `caf.govern.sc` | 3 | 1 | 2 |
+| `caf.govern.ai` | 4 | 2 | 2 |
+| `caf.govern.cm` | 8 | 5 | 3 |
+| `caf.govern.dg` | 6 | 4 | 2 |
+| `caf.govern.op` | 6 | 4 | 2 |
+| `caf.govern.proc` | 11 | 0 | 11 |
+| `caf.govern.rc` | 5 | 2 | 3 |
+| `caf.govern.rm` | 7 | 5 | 2 |
+| `caf.govern.sc` | 7 | 4 | 3 |
 | `caf.governance` | 7 | 4 | 3 |
 | `caf.hybrid` | 6 | 4 | 2 |
 | `caf.identity` | 7 | 4 | 3 |
@@ -135,10 +137,11 @@ Each file declares one framework area. An assessment selects files by glob.
 | `casa.security` | 31 | 7 | 24 |
 | `compliance.initiative` | 0 | 0 | 0 |
 | `devops.capability` | 18 | 9 | 9 |
-| `finops.review` | 22 | 7 | 15 |
-| `smart.migration` | 11 | 7 | 4 |
-| `waf.ai` | 34 | 2 | 32 |
+| `finops.review` | 23 | 7 | 16 |
+| `smart.migration` | 49 | 18 | 31 |
+| `waf.ai` | 63 | 9 | 54 |
 | `waf.avd` | 20 | 6 | 14 |
+| `waf.avd.azure` | 30 | 15 | 15 |
 | `waf.azurelocal.cost` | 6 | 2 | 4 |
 | `waf.azurelocal.operational` | 6 | 4 | 2 |
 | `waf.azurelocal.performance` | 6 | 0 | 6 |
@@ -151,6 +154,6 @@ Each file declares one framework area. An assessment selects files by glob.
 | `waf.security` | 7 | 5 | 2 |
 | `xr.crossresource` | 6 | 6 | 0 |
 
-**Total — 44 files, 393 rules, 171 automated, 222 manual.**
+**Total — 46 files, 527 rules, 222 automated, 305 manual.**
 
 

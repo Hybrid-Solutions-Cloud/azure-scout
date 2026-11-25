@@ -151,7 +151,12 @@ parallel record.
 
 | File | Framework | Enumerates |
 |---|---|---|
-| `smart-question-set.md` | SMART | The published CAF Migrate content SMART assesses readiness against — the reference implementation of this standard |
+| `smart-question-set.md` | CAF Migrate | CAF Plan + CAF Migrate migration readiness (formerly Microsoft's SMART, deleted January 2027), 49 items — the reference implementation of this standard |
+| `cloud-governance-question-set.md` | CAF Govern | CAF Govern's seven risk categories plus the governance process, 54 items (replaces Microsoft's Cloud Governance assessment, deleted January 2027) |
+| `finops-review-question-set.md` | FinOps | FinOps Framework 2026 as used by Microsoft's FinOps Review (New), 23 items |
+| `waf-ai-workload-checklist.md` | WAF-AI | All ten AI workload design areas plus the AI architecture pattern, 63 items |
+| `waf-avd-azure-workload-checklist.md` | WAF-AVD | Azure Virtual Desktop in Azure, 30 items across the five pillars |
+| `waf-avd-workload-checklist.md` | WAF-AVD | Azure Virtual Desktop on Azure Local, 20 items |
 | `waf-pillar-checklists.md` | WAF | All five WAF pillar design-review checklists, 59 items total, Microsoft's own item codes (`RE:01` etc.) |
 | `caf-landing-zone-design-areas.md` | CAF | All eight CAF landing-zone design areas (393 items total); Network topology and connectivity (135 items, 11 of ~14 pages) still has ~3-4 unfetched child pages recorded as a residual gap |
 

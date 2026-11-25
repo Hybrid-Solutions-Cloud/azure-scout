@@ -32,7 +32,7 @@ BeforeAll {
         @{ Old = 'LandingZone';                  New = 'CAF: Azure Landing Zone' }
         @{ Old = 'CASA';                         New = 'Microsoft: CASA' }
         @{ Old = 'DevOps Capability Assessment'; New = 'Microsoft: DevOps Capability' }
-        @{ Old = 'SMART';                        New = 'Microsoft: SMART Migration' }
+        @{ Old = 'SMART';                        New = 'CAF: Migrate readiness' }
         @{ Old = 'FinOps Review';                New = 'Microsoft: FinOps Review' }
         @{ Old = 'Cost';                         New = 'Scout: Cost Optimization' }
         @{ Old = 'CrossResource';                New = 'Scout: Cross-Resource' }
@@ -50,7 +50,7 @@ Describe 'v3.8.0 rename -- every old key resolves to its new key' {
         @{ Old = 'LandingZone';                  New = 'CAF: Azure Landing Zone' }
         @{ Old = 'CASA';                         New = 'Microsoft: CASA' }
         @{ Old = 'DevOps Capability Assessment'; New = 'Microsoft: DevOps Capability' }
-        @{ Old = 'SMART';                        New = 'Microsoft: SMART Migration' }
+        @{ Old = 'SMART';                        New = 'CAF: Migrate readiness' }
         @{ Old = 'FinOps Review';                New = 'Microsoft: FinOps Review' }
         @{ Old = 'Cost';                         New = 'Scout: Cost Optimization' }
         @{ Old = 'CrossResource';                New = 'Scout: Cross-Resource' }

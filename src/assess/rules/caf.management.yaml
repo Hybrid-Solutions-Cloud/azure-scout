@@ -9,7 +9,8 @@ rules:
     title: "Diagnostic settings coverage above threshold"
     severity: medium
     query: "$.opsPosture.diagnosticCoverage[?(@.coveragePct >= 80)]"
-    assert: { type: exists }
+    # Gated: coverage is only known when the diagnostic-settings ARM sweep ran (AB#9300).
+    assert: { type: exists, gate: "$.opsPosture.diagnosticCoverageMeasured" }
     remediation: "Route diagnostics to a central Log Analytics workspace for at least 80% of resource types."
     manual: false
 
@@ -41,7 +42,7 @@ rules:
     title: "No resource type left with zero diagnostic coverage"
     severity: high
     query: "$.opsPosture.diagnosticCoverage[?(@.coveragePct == 0)]"
-    assert: { type: countEquals, value: 0 }
+    assert: { type: countEquals, value: 0, gate: "$.opsPosture.diagnosticCoverageMeasured" }
     remediation: "Every in-scope resource type should have at least partial diagnostic-settings coverage; a 0% type is a monitoring blind spot, not just below-threshold."
     manual: false
 
