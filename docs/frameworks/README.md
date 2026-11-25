@@ -175,6 +175,13 @@ parallel record.
 | `genaiops-maturity-question-set.md` | GENAIOPS | GenAIOps maturity, 7 dimensions x 4 levels, 30 items (Scout-derived) |
 | `platform-engineering-question-set.md` | PLATFORM-ENG | Platform Engineering Capability Model, 36 items (Scout-derived questions) |
 | `analytics-journey-question-set.md` | ANALYTICS-JOURNEY | Analytics Journey Tracker, 52 items in 7 areas (Scout-derived) |
+| `power-platform-well-architected-checklist.md` | PP-WAF | Power Platform Well-Architected, 5 pillars, 49 items (Microsoft checklist codes) |
+| `power-platform-solution-question-set.md` | PP-SOLUTION | Power Platform Solution Assessment, 37 items (Scout-derived) |
+| `power-platform-adoption-question-set.md` | PP-ADOPTION | Power Platform Adoption Assessment, 41 items (Scout-derived) |
+| `m365-copilot-data-security-question-set.md` | M365-COPILOT-DATASEC | Microsoft 365 Copilot data security readiness, 40 items (Scout-derived) |
+| `sustainability-manager-well-architected-question-set.md` | MSM-WAF | Dynamics 365 Sustainability (formerly Sustainability Manager), 47 items (Scout-derived) |
+| `cloud-for-financial-services-question-set.md` | MCFS-WAF | Microsoft for Financial Services (formerly Cloud for Financial Services), 40 items (Scout-derived) |
+| `windows-11-readiness-question-set.md` | WIN11-READINESS | Windows 11 migration readiness, 34 items (Scout-derived) |
 | `app-modernization-question-set.md` | APPMOD | App and Data Modernization Readiness, 62 items in 9 areas (Scout-derived) |
 | `waf-pillar-checklists.md` | WAF | All five WAF pillar design-review checklists, 59 items total, Microsoft's own item codes (`RE:01` etc.) |
 | `caf-landing-zone-design-areas.md` | CAF | All eight CAF landing-zone design areas (393 items total); Network topology and connectivity (135 items, 11 of ~14 pages) still has ~3-4 unfetched child pages recorded as a residual gap |

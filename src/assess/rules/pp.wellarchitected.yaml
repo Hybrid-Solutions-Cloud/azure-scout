@@ -1,0 +1,373 @@
+# pp.wellarchitected.yaml — Power Platform Well-Architected assessment (AB#9300, phase 5)
+#
+# Scores Microsoft's "Power Platform Well-Architected" assessment
+# (learn.microsoft.com/assessments/689fd8d9-1000-4cbb-8096-a6c8f3294fc7): the five pillars Reliability,
+# Security, Operational Excellence, Performance Efficiency and Experience Optimization.
+#
+# Written ONLY against docs/frameworks/power-platform-well-architected-checklist.md. The PPWAF-*
+# identifiers carry Microsoft's own checklist codes (PPWAF-RE-01 is Microsoft's RE:01, PPWAF-SE-04 is
+# SE:04, and so on), but the assessment's question text is not published: each item here is Scout's
+# yes/no paraphrase of the published checklist recommendation, not a Microsoft question.
+#
+# SCOUT DOES NOT READ POWER PLATFORM DATA YET. Every rule below is manual: true with query: null, so
+# the answers come from the questionnaire (docs/assessment/questionnaire-answers.md), never from an
+# Azure scan. None of this is evaluable from collect.json. In particular Entra Conditional Access is not
+# in collect.json (only domains.identity.externalIdentitiesPolicy is; see the header of
+# src/collect/Invoke-Collect.ps1), so even SE-05 cannot use an evidence query. Until answered these
+# items show as Manual and are left out of the score; answered items are scored and marked Answered.
+# The "What an automated version would need" section of the docs page names the Power Platform admin
+# APIs that would answer the most items.
+area: "Power Platform Well-Architected"
+framework: PP-WAF
+frameworkversion: "Power Platform Well-Architected checklists (Reliability RE:01-08, Security SE:01-10, Operational Excellence OE:01-11, Performance Efficiency PE:01-10, Experience Optimization XO:01-10) on Microsoft Learn, docs/frameworks/power-platform-well-architected-checklist.md, verified 2026-11-25"
+weight: 1.0
+verifiedAgainst: "docs/frameworks/power-platform-well-architected-checklist.md (Scout enumeration of learn.microsoft.com/power-platform/well-architected/*/checklist, 49 items across five pillars), verified 2026-11-25. Assessment question text is not published; the questions are Scout-derived from the checklist."
+rules:
+  # ---- Reliability (PPWAF-RE) ------------------------------------------------------
+  - id: PPWAF-RE-01
+    title: "PPWAF-RE-01. The workload design is aligned to business objectives and kept free of unnecessary complexity"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PPWAF-RE-01 (Microsoft checklist item RE:01). Organisational -- Confirm the design contains only what the business objectives need, and that redundant apps, flows, connections and environments were challenged during design. Guidance: learn.microsoft.com/power-platform/well-architected/reliability/simplify."
+    manual: true
+  - id: PPWAF-RE-02
+    title: "PPWAF-RE-02. User and system flows are identified and rated by criticality"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "PPWAF-RE-02 (Microsoft checklist item RE:02). Organisational -- Confirm the user and system flows (for example an approval process or a scheduled integration) are listed and rated on a criticality scale drawn from business requirements, so recovery and testing effort follows the rating. Guidance: learn.microsoft.com/power-platform/well-architected/reliability/identify-flows."
+    manual: true
+  - id: PPWAF-RE-03
+    title: "PPWAF-RE-03. Failure mode analysis has been performed on the solution components"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PPWAF-RE-03 (Microsoft checklist item RE:03). Organisational -- Confirm a failure mode analysis assessed the risk and effect of each component failing (connectors, Dataverse, gateways, child flows) and how the workload responds and recovers. Guidance: learn.microsoft.com/power-platform/well-architected/reliability/failure-mode-analysis."
+    manual: true
+  - id: PPWAF-RE-04
+    title: "PPWAF-RE-04. Reliability and recovery targets are defined for components, flows and the solution, and a health model describes healthy, degraded and unhealthy states"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "PPWAF-RE-04 (Microsoft checklist item RE:04). Organisational -- Confirm availability and recovery targets exist, are agreed with the business, and feed a health model. Guidance: learn.microsoft.com/power-platform/well-architected/reliability/metrics."
+    manual: true
+  - id: PPWAF-RE-05
+    title: "PPWAF-RE-05. Error handling and transient fault handling are built into apps, flows and integrations"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "PPWAF-RE-05 (Microsoft checklist item RE:05). Organisational -- Confirm flows and apps handle component failures and transient errors, for example with retry policies, scoped error branches and graceful degradation, rather than failing silently. Guidance: learn.microsoft.com/power-platform/well-architected/reliability/handle-transient-faults."
+    manual: true
+  - id: PPWAF-RE-06
+    title: "PPWAF-RE-06. Resiliency and availability scenarios are tested, including simulated malfunction and load"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PPWAF-RE-06 (Microsoft checklist item RE:06). Organisational -- Confirm failure scenarios and load are tested in test and, where appropriate, production, to prove graceful degradation works. Guidance: learn.microsoft.com/power-platform/well-architected/reliability/testing-strategy."
+    manual: true
+  - id: PPWAF-RE-07
+    title: "PPWAF-RE-07. Business continuity and disaster recovery plans are structured, documented, tested and aligned to the recovery targets"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "PPWAF-RE-07 (Microsoft checklist item RE:07). Organisational -- Confirm a documented, tested BCDR plan covers every component and the system as a whole and matches the recovery targets. Guidance: learn.microsoft.com/power-platform/well-architected/reliability/disaster-recovery."
+    manual: true
+  - id: PPWAF-RE-08
+    title: "PPWAF-RE-08. The workload's health indicators are measured and published"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PPWAF-RE-08 (Microsoft checklist item RE:08). Organisational -- Confirm uptime and reliability data is captured continuously across the workload, its components and its key flows, and made visible to the owners. Guidance: learn.microsoft.com/power-platform/well-architected/reliability/monitoring-alerting-strategy."
+    manual: true
+  # ---- Security (PPWAF-SE) ------------------------------------------------------
+  - id: PPWAF-SE-01
+    title: "PPWAF-SE-01. A security baseline aligned to compliance requirements, industry standards and platform recommendations is established and regularly measured against"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "PPWAF-SE-01 (Microsoft checklist item SE:01). Organisational -- Confirm a written baseline exists and the workload and its operations are measured against it on a schedule. Guidance: learn.microsoft.com/power-platform/well-architected/security/establish-baseline."
+    manual: true
+  - id: PPWAF-SE-02
+    title: "PPWAF-SE-02. A secure development lifecycle with a hardened, mostly automated and auditable supply chain is maintained, and threat modelling informs design"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PPWAF-SE-02 (Microsoft checklist item SE:02). Organisational -- Confirm solution build and release run through an auditable pipeline and that threat modelling is part of design. Guidance: learn.microsoft.com/power-platform/well-architected/security/secure-development-lifecycle."
+    manual: true
+  - id: PPWAF-SE-03
+    title: "PPWAF-SE-03. Sensitivity and information-type labels are applied to workload data and to the systems that process it"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "PPWAF-SE-03 (Microsoft checklist item SE:03). Organisational -- Confirm data is classified and the classification drives design, implementation and security priorities. Guidance: learn.microsoft.com/power-platform/well-architected/security/data-classification."
+    manual: true
+  - id: PPWAF-SE-04
+    title: "PPWAF-SE-04. Intentional segmentation and perimeters exist across environments, roles and responsibilities, workload identities and resource organisation"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "PPWAF-SE-04 (Microsoft checklist item SE:04). Organisational -- Confirm the workload is segmented deliberately, for example separate environments, data policies and security roles per workload and stage. Guidance: learn.microsoft.com/power-platform/well-architected/security/segmentation."
+    manual: true
+  - id: PPWAF-SE-05
+    title: "PPWAF-SE-05. Identity and access management is strict, conditional and auditable for all users, team members and system components"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "PPWAF-SE-05 (Microsoft checklist item SE:05). Organisational -- Confirm access is limited to what is necessary, uses modern authentication, applies conditional access, and that non-identity-based access is restricted and audited. Guidance: learn.microsoft.com/power-platform/well-architected/security/identity-access."
+    manual: true
+  - id: PPWAF-SE-06
+    title: "PPWAF-SE-06. Data is encrypted with modern industry-standard methods, with scope aligned to data classification and platform-native methods preferred"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PPWAF-SE-06 (Microsoft checklist item SE:06). Organisational -- Confirm encryption at rest and in transit meets the data classification, and note any customer-managed key requirement. Guidance: learn.microsoft.com/power-platform/well-architected/security/encryption."
+    manual: true
+  - id: PPWAF-SE-07
+    title: "PPWAF-SE-07. Application secrets are stored hardened, access is restricted and audited, and rotation is regular and can be done in an emergency"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "PPWAF-SE-07 (Microsoft checklist item SE:07). Organisational -- Confirm secrets (connection credentials, API keys, client secrets) are not held in apps or flows in clear text and have a tested rotation process. Guidance: learn.microsoft.com/power-platform/well-architected/security/application-secrets."
+    manual: true
+  - id: PPWAF-SE-08
+    title: "PPWAF-SE-08. A holistic monitoring strategy with modern threat detection alerts reliably into existing security operations processes"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "PPWAF-SE-08 (Microsoft checklist item SE:08). Organisational -- Confirm Power Platform activity and threat signals reach the security operations team and trigger triage. Guidance: learn.microsoft.com/power-platform/well-architected/security/monitor-threats."
+    manual: true
+  - id: PPWAF-SE-09
+    title: "PPWAF-SE-09. A comprehensive security testing regimen prevents issues, validates threat prevention and tests threat detection"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PPWAF-SE-09 (Microsoft checklist item SE:09). Organisational -- Confirm security testing covers prevention, validation of controls and detection, not only functional testing. Guidance: learn.microsoft.com/power-platform/well-architected/security/testing."
+    manual: true
+  - id: PPWAF-SE-10
+    title: "PPWAF-SE-10. Incident response procedures are defined and tested, covering localized issues through disaster recovery, with clear owners"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "PPWAF-SE-10 (Microsoft checklist item SE:10). Organisational -- Confirm procedures exist for the range of incidents, name who runs each, and have been exercised. Guidance: learn.microsoft.com/power-platform/well-architected/security/incident-response."
+    manual: true
+  # ---- Operational Excellence (PPWAF-OE) ------------------------------------------------------
+  - id: PPWAF-OE-01
+    title: "PPWAF-OE-01. Team specialisations are integrated into a fusion practice with clear decision making, responsibilities, continuous improvement and a blameless culture"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PPWAF-OE-01 (Microsoft checklist item OE:01). Organisational -- Confirm makers, pro developers, admins and business owners have clear roles and a blameless, continuous-learning way of working. Guidance: learn.microsoft.com/power-platform/well-architected/operational-excellence/fusion-culture."
+    manual: true
+  - id: PPWAF-OE-02
+    title: "PPWAF-OE-02. Routine, as-needed and emergency operational tasks are formalised through documentation, checklists or automation"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PPWAF-OE-02 (Microsoft checklist item OE:02). Organisational -- Confirm operational tasks are written down or automated so results are consistent and predictable. Guidance: learn.microsoft.com/power-platform/well-architected/operational-excellence/formalize-operations-tasks."
+    manual: true
+  - id: PPWAF-OE-03
+    title: "PPWAF-OE-03. Ideation and planning follow a formal process with a common prioritised backlog and sufficiently detailed specifications"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PPWAF-OE-03 (Microsoft checklist item OE:03). Organisational -- Confirm work enters through one prioritised backlog with specifications, and that the planning process is improved from outcomes. Guidance: learn.microsoft.com/power-platform/well-architected/operational-excellence/formalize-development-practices."
+    manual: true
+  - id: PPWAF-OE-04
+    title: "PPWAF-OE-04. Development and quality assurance practices are optimised and standardised across tooling, source control, design patterns, documentation and style guides"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PPWAF-OE-04 (Microsoft checklist item OE:04). Organisational -- Confirm the team follows standard practices for build and test and that they are consistent across components. Guidance: learn.microsoft.com/power-platform/well-architected/operational-excellence/tools-processes."
+    manual: true
+  - id: PPWAF-OE-05
+    title: "PPWAF-OE-05. A workload supply chain drives changes through predictable, automated pipelines that test and promote across environments"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "PPWAF-OE-05 (Microsoft checklist item OE:05). Organisational -- Confirm changes move from development to production through automated pipelines (for example Power Platform pipelines) rather than manual export and import. Guidance: learn.microsoft.com/power-platform/well-architected/operational-excellence/workload-supply-chain."
+    manual: true
+  - id: PPWAF-OE-06
+    title: "PPWAF-OE-06. A monitoring system captures and exposes operational telemetry, metrics and logs to validate design choices"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "PPWAF-OE-06 (Microsoft checklist item OE:06). Organisational -- Confirm telemetry from apps, flows and agents is captured (for example through Application Insights or the admin centre Monitor area) and used in design decisions. Guidance: learn.microsoft.com/power-platform/well-architected/operational-excellence/observability."
+    manual: true
+  - id: PPWAF-OE-07
+    title: "PPWAF-OE-07. An emergency operations practice exists with health signals, actionable alerts and defined human responsibilities including on-call, incident management, emergency access and postmortems"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "PPWAF-OE-07 (Microsoft checklist item OE:07). Organisational -- Confirm alerts are actionable and that on-call, incident management, emergency access and postmortems are defined. Guidance: learn.microsoft.com/power-platform/well-architected/operational-excellence/emergency-response."
+    manual: true
+  - id: PPWAF-OE-08
+    title: "PPWAF-OE-08. Procedural tasks that do not benefit from human judgement are automated, preferring off-the-shelf automation, and automation is treated as a workload component"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PPWAF-OE-08 (Microsoft checklist item OE:08). Organisational -- Confirm repetitive operational tasks are automated and that the automation itself is governed against the Well-Architected pillars. Guidance: learn.microsoft.com/power-platform/well-architected/operational-excellence/automate-tasks."
+    manual: true
+  - id: PPWAF-OE-09
+    title: "PPWAF-OE-09. Automation for lifecycle, governance and compliance guardrails is designed up front using platform features, not retrofitted"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PPWAF-OE-09 (Microsoft checklist item OE:09). Organisational -- Confirm guardrails (data policies, environment rules, approvals) were planned from the start and use platform features. Guidance: learn.microsoft.com/power-platform/well-architected/operational-excellence/enable-automation."
+    manual: true
+  - id: PPWAF-OE-10
+    title: "PPWAF-OE-10. Safe deployment practices are defined: small, incremental, quality-gated releases that cover routine and emergency (hotfix) deployments"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "PPWAF-OE-10 (Microsoft checklist item OE:10). Organisational -- Confirm releases are small and gated by quality checks, and that a hotfix path exists. Guidance: learn.microsoft.com/power-platform/well-architected/operational-excellence/safe-deployments."
+    manual: true
+  - id: PPWAF-OE-11
+    title: "PPWAF-OE-11. A deployment failure mitigation strategy provides rapid recovery through rollback, feature disablement or native deployment-pattern capabilities"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PPWAF-OE-11 (Microsoft checklist item OE:11). Organisational -- Confirm there is a tested way to back out or disable a failed release. Guidance: learn.microsoft.com/power-platform/well-architected/operational-excellence/mitigation-strategy."
+    manual: true
+  # ---- Performance Efficiency (PPWAF-PE) ------------------------------------------------------
+  - id: PPWAF-PE-01
+    title: "PPWAF-PE-01. Numerical performance targets tied to workload requirements are defined for all workload flows"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "PPWAF-PE-01 (Microsoft checklist item PE:01). Organisational -- Confirm each flow has a measurable target (for example response time or throughput) taken from business requirements. Guidance: learn.microsoft.com/power-platform/well-architected/performance-efficiency/performance-targets."
+    manual: true
+  - id: PPWAF-PE-02
+    title: "PPWAF-PE-02. Performance planning is done ahead of predicted changes in usage such as seasonal peaks, product updates, campaigns, events or regulatory changes"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PPWAF-PE-02 (Microsoft checklist item PE:02). Organisational -- Confirm known demand changes trigger a capacity and performance review before they arrive. Guidance: learn.microsoft.com/power-platform/well-architected/performance-efficiency/performance-planning."
+    manual: true
+  - id: PPWAF-PE-03
+    title: "PPWAF-PE-03. Services and product features are selected to meet performance targets and expected capacity changes, weighing platform features against custom builds"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PPWAF-PE-03 (Microsoft checklist item PE:03). Organisational -- Confirm the choice of Power Platform components and any custom code was weighed against performance targets. Guidance: learn.microsoft.com/power-platform/well-architected/performance-efficiency/select-services."
+    manual: true
+  - id: PPWAF-PE-04
+    title: "PPWAF-PE-04. Automatic, continuous and meaningful performance metrics and logs are collected at application, platform, data and operating system levels"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PPWAF-PE-04 (Microsoft checklist item PE:04). Organisational -- Confirm performance data is collected continuously from every layer the workload depends on. Guidance: learn.microsoft.com/power-platform/well-architected/performance-efficiency/collect-performance-data."
+    manual: true
+  - id: PPWAF-PE-05
+    title: "PPWAF-PE-05. Performance is tested regularly in an environment that matches production and compared with targets and benchmarks"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PPWAF-PE-05 (Microsoft checklist item PE:05). Organisational -- Confirm performance tests run in a production-like environment and results are compared with the targets. Guidance: learn.microsoft.com/power-platform/well-architected/performance-efficiency/performance-test."
+    manual: true
+  - id: PPWAF-PE-06
+    title: "PPWAF-PE-06. Logic is performant and offloads responsibilities to the platform, used only when necessary and for its intended purpose"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PPWAF-PE-06 (Microsoft checklist item PE:06). Organisational -- Confirm formulas, flows and custom code were reviewed for efficiency and use platform capabilities rather than reimplementing them. Guidance: learn.microsoft.com/power-platform/well-architected/performance-efficiency/optimize-code."
+    manual: true
+  - id: PPWAF-PE-07
+    title: "PPWAF-PE-07. The performance of critical flows is prioritised when allocating resources and optimisation effort"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PPWAF-PE-07 (Microsoft checklist item PE:07). Organisational -- Confirm the flows that support the most important processes and users get optimisation priority. Guidance: learn.microsoft.com/power-platform/well-architected/performance-efficiency/prioritize-critical-flows."
+    manual: true
+  - id: PPWAF-PE-08
+    title: "PPWAF-PE-08. Data usage is optimised so data stores fit their intended and actual use in the workload"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PPWAF-PE-08 (Microsoft checklist item PE:08). Organisational -- Confirm data stores, table design, queries and data volumes were reviewed against how the workload uses them. Guidance: learn.microsoft.com/power-platform/well-architected/performance-efficiency/optimize-data-performance."
+    manual: true
+  - id: PPWAF-PE-09
+    title: "PPWAF-PE-09. A plan for live performance issues gives clear communication lines and responsibilities, captures lessons and returns to normal faster next time"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PPWAF-PE-09 (Microsoft checklist item PE:09). Organisational -- Confirm there is a defined response for live performance incidents and that lessons feed back into the workload. Guidance: learn.microsoft.com/power-platform/well-architected/performance-efficiency/respond-live-performance-issues."
+    manual: true
+  - id: PPWAF-PE-10
+    title: "PPWAF-PE-10. Performance is optimised continuously, focusing on components whose performance deteriorates over time such as databases and networking"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "PPWAF-PE-10 (Microsoft checklist item PE:10). Organisational -- Confirm trends are reviewed and degrading components are acted on before users notice. Guidance: learn.microsoft.com/power-platform/well-architected/performance-efficiency/continuous-performance-optimize."
+    manual: true
+  # ---- Experience Optimization (PPWAF-XO) ------------------------------------------------------
+  - id: PPWAF-XO-01
+    title: "PPWAF-XO-01. The workload is designed to meet users' expectations and requirements and provides a positive, useful experience"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PPWAF-XO-01 (Microsoft checklist item XO:01). Organisational -- Confirm users were involved in defining requirements and that their needs are evidenced, for example through research or feedback. Guidance: learn.microsoft.com/power-platform/well-architected/experience-optimization/user-centered-design."
+    manual: true
+  - id: PPWAF-XO-02
+    title: "PPWAF-XO-02. Established standards, conventions, guidelines and common design patterns are followed, with consistent design elements, terminology and interactions"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "PPWAF-XO-02 (Microsoft checklist item XO:02). Organisational -- Confirm there is a design standard and the workload follows it. Guidance: learn.microsoft.com/power-platform/well-architected/experience-optimization/design-standards."
+    manual: true
+  - id: PPWAF-XO-03
+    title: "PPWAF-XO-03. A consistent information architecture is implemented, with consistent navigation, contextual clues, visual indicators and user-friendly labels"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "PPWAF-XO-03 (Microsoft checklist item XO:03). Organisational -- Confirm navigation and labelling are consistent and help users find things. Guidance: learn.microsoft.com/power-platform/well-architected/experience-optimization/information-architecture."
+    manual: true
+  - id: PPWAF-XO-04
+    title: "PPWAF-XO-04. Ease of use is prioritised, minimising user effort, maximising task efficiency and streamlining complex processes"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PPWAF-XO-04 (Microsoft checklist item XO:04). Organisational -- Confirm common tasks were measured or reviewed for effort and simplified where possible. Guidance: learn.microsoft.com/power-platform/well-architected/experience-optimization/usability."
+    manual: true
+  - id: PPWAF-XO-05
+    title: "PPWAF-XO-05. Notifications and messages give meaningful, useful and simple guidance, feedback on actions and next steps"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "PPWAF-XO-05 (Microsoft checklist item XO:05). Organisational -- Confirm messages tell users what happened and what to do next. Guidance: learn.microsoft.com/power-platform/well-architected/experience-optimization/feedback-guidance."
+    manual: true
+  - id: PPWAF-XO-06
+    title: "PPWAF-XO-06. Layouts are optimised for different contexts and devices and remain usable across screen sizes and resolutions"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PPWAF-XO-06 (Microsoft checklist item XO:06). Organisational -- Confirm the workload was checked on the devices and screen sizes its users actually use. Guidance: learn.microsoft.com/power-platform/well-architected/experience-optimization/layout."
+    manual: true
+  - id: PPWAF-XO-07
+    title: "PPWAF-XO-07. User perception and aesthetics are optimised with visually appealing, engaging experiences"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "PPWAF-XO-07 (Microsoft checklist item XO:07). Organisational -- Confirm visual design has been reviewed with users, for example branding, spacing and consistency. Guidance: learn.microsoft.com/power-platform/well-architected/experience-optimization/visual-design."
+    manual: true
+  - id: PPWAF-XO-08
+    title: "PPWAF-XO-08. Interaction design best practices help users complete tasks and keep context"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "PPWAF-XO-08 (Microsoft checklist item XO:08). Organisational -- Confirm interactions guide users through tasks and preserve context, for example progress indicators and sensible defaults. Guidance: learn.microsoft.com/power-platform/well-architected/experience-optimization/interaction-design."
+    manual: true
+  - id: PPWAF-XO-09
+    title: "PPWAF-XO-09. Interface content is task-focused, professional in tone and gives clear direction"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "PPWAF-XO-09 (Microsoft checklist item XO:09). Organisational -- Confirm labels, instructions and error text are clear, task-focused and professionally written. Guidance: learn.microsoft.com/power-platform/well-architected/experience-optimization/user-interface-content."
+    manual: true
+  - id: PPWAF-XO-10
+    title: "PPWAF-XO-10. Conversations are designed around users' needs and the AI's objectives, with clear capabilities, natural interactions and fallback mechanisms"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PPWAF-XO-10 (Microsoft checklist item XO:10). Organisational -- Confirm any agent or AI experience says what it can do, behaves naturally and recovers gracefully when it cannot help. Not applicable if the workload has no conversational AI. Guidance: learn.microsoft.com/power-platform/well-architected/experience-optimization/conversation-design."
+    manual: true

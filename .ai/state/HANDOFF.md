@@ -1,5 +1,14 @@
 # Handoff
 
+## Session 2026-11-25 (continued) — phase 5: non-Azure assessments (3.18.17)
+
+Two agents built seven questionnaire assessments for Power Platform, Microsoft 365 Copilot data security, Dynamics 365
+Sustainability, Microsoft for Financial Services and Windows 11 (all manual; collect.json has no Entra Conditional
+Access/PIM/sign-in data to attach as evidence). Every environment assessment in Microsoft's catalog now has a Scout
+equivalent (docs/reference/microsoft-assessment-coverage.md). Remaining work to automate them is listed per framework
+page (Power Platform API, Graph sensitivity labels / SharePoint settings / Conditional Access, Intune endpoint
+analytics) -- each needs new permissions, so it should be opt-in like -IncludeDevOps.
+
 ## Session 2026-11-25 (continued) — phase 4 batch 2 (3.18.16)
 
 3.18.15 released and five-tenant tested: all Completed, 66 assessments each, 0 errors; drift warning gone, Defender

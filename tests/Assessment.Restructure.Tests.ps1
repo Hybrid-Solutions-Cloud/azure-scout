@@ -63,6 +63,9 @@ BeforeAll {
         'WARA', 'ADVISOR', 'WAF-SVC'
         'WAF-SAAS', 'AI-READINESS', 'GENAI-TECH', 'GENAIOPS'
         'PLATFORM-ENG', 'ANALYTICS-JOURNEY', 'APPMOD'
+        # Phase 5: Microsoft assessments for products other than Azure (questionnaire-led).
+        'PP-WAF', 'PP-SOLUTION', 'PP-ADOPTION'
+        'M365-COPILOT-DATASEC', 'MSM-WAF', 'MCFS-WAF', 'WIN11-READINESS'
         'XR'
         'WAF-AI'
         'WAF-AVD'

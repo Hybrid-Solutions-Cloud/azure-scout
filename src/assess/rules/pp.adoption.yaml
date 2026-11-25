@@ -1,0 +1,313 @@
+# pp.adoption.yaml — Power Platform Adoption Assessment (AB#9300, phase 5)
+#
+# Scores Microsoft's "Power Platform Adoption Assessment"
+# (learn.microsoft.com/assessments/3c62fd23-9d36-491c-8941-26d5553365f8), an evaluation of an
+# organisation's current use of Power Platform. Microsoft's own adoption guidance
+# (learn.microsoft.com/power-platform/guidance/adoption/take-assessment) says it assesses three areas:
+# Strategy, vision and business value; Administration, governance and support; and Nurture and
+# adoption. The three groups below use those names (SV, AG, NA).
+#
+# Written ONLY against docs/frameworks/power-platform-adoption-question-set.md. Microsoft does not
+# publish the assessment's question text or numbering, so every PPADOPT-* item is Scout's own reading
+# of the Power Platform adoption guidance and Center of Excellence guidance, and the identifiers are
+# Scout's. Say so wherever the output is quoted.
+#
+# SCOUT DOES NOT READ POWER PLATFORM DATA YET. Every rule below is manual: true with query: null, so
+# the answers come from the questionnaire (docs/assessment/questionnaire-answers.md). No rule queries
+# collect.json. Until answered these items show as Manual and are left out of the score.
+area: "Power Platform Adoption"
+framework: PP-ADOPTION
+frameworkversion: "Power Platform Adoption Assessment (questions unpublished) read against Power Platform adoption guidance and Center of Excellence guidance on Microsoft Learn, docs/frameworks/power-platform-adoption-question-set.md, verified 2026-11-25"
+weight: 1.0
+verifiedAgainst: "docs/frameworks/power-platform-adoption-question-set.md (Scout enumeration of learn.microsoft.com/power-platform/guidance/adoption, 41 items across Microsoft's three named areas), verified 2026-11-25. Assessment question text is not published; the questions are Scout-derived."
+rules:
+  # ---- Strategy, vision and business value (PPADOPT-SV) ------------------------------------------------------
+  - id: PPADOPT-SV-01
+    title: "PPADOPT-SV-01. An adoption vision is documented in a way that addresses both business and technical stakeholders"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "PPADOPT-SV-01. Organisational -- Confirm a written Power Platform adoption vision exists and both business and IT stakeholders have seen and agreed it. Scout-derived from: learn.microsoft.com/power-platform/guidance/adoption/vision; learn.microsoft.com/power-platform/guidance/adoption/strategy-best-practices."
+    manual: true
+  - id: PPADOPT-SV-02
+    title: "PPADOPT-SV-02. Measurable objectives, key results and key initiatives are defined for adoption"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "PPADOPT-SV-02. Organisational -- Confirm adoption has objectives and measurable key results with named initiatives behind them. Scout-derived from: learn.microsoft.com/power-platform/guidance/adoption/vision."
+    manual: true
+  - id: PPADOPT-SV-03
+    title: "PPADOPT-SV-03. The adoption strategy is aligned with the organisation's business goals and objectives"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PPADOPT-SV-03. Organisational -- Confirm the strategy is traceable to named organisational goals, not set by the platform team alone. Scout-derived from: learn.microsoft.com/power-platform/guidance/adoption/common-vision."
+    manual: true
+  - id: PPADOPT-SV-04
+    title: "PPADOPT-SV-04. How business value is measured and communicated is defined, and aligned with organisational objectives and key results"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "PPADOPT-SV-04. Organisational -- Confirm there is an agreed way to measure tangible and intangible value and that results are reported to leadership. Scout-derived from: learn.microsoft.com/power-platform/guidance/adoption/business-value."
+    manual: true
+  - id: PPADOPT-SV-05
+    title: "PPADOPT-SV-05. An executive sponsor is secured and leadership is bought in"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "PPADOPT-SV-05. Organisational -- Confirm a named executive sponsor actively supports adoption and has leadership backing. Scout-derived from: learn.microsoft.com/power-platform/guidance/adoption/executive-sponsorship; learn.microsoft.com/power-platform/guidance/adoption/strategy-best-practices."
+    manual: true
+  - id: PPADOPT-SV-06
+    title: "PPADOPT-SV-06. A Center of Excellence is established to make use scalable, sustainable and secure"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "PPADOPT-SV-06. Organisational -- Confirm a CoE (or an equivalent central team) exists with a mandate, members and a budget, for example using the CoE Starter Kit. Scout-derived from: learn.microsoft.com/power-platform/guidance/adoption/coe; learn.microsoft.com/power-platform/guidance/coe/overview."
+    manual: true
+  - id: PPADOPT-SV-07
+    title: "PPADOPT-SV-07. Roles and responsibilities are defined for Power Platform admins, environment admins, makers and other stakeholders"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "PPADOPT-SV-07. Organisational -- Confirm each role is defined, assigned and understood, including who approves what. Scout-derived from: learn.microsoft.com/power-platform/guidance/adoption/roles; learn.microsoft.com/power-platform/guidance/adoption/govern-at-scale."
+    manual: true
+  - id: PPADOPT-SV-08
+    title: "PPADOPT-SV-08. A delivery model is evaluated and chosen (centralised, decentralised or hybrid)"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PPADOPT-SV-08. Organisational -- Confirm the organisation decided how teams are structured to deliver solutions and why. Scout-derived from: learn.microsoft.com/power-platform/guidance/adoption/delivery-models; learn.microsoft.com/power-platform/guidance/adoption/plan-overview."
+    manual: true
+  - id: PPADOPT-SV-09
+    title: "PPADOPT-SV-09. A licence assignment strategy ensures return on investment, user adoption and optimised cost"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PPADOPT-SV-09. Organisational -- Confirm there is a strategy for who gets which licence and how it is reviewed. Scout-derived from: learn.microsoft.com/power-platform/guidance/adoption/license-assignment-strategies; learn.microsoft.com/power-platform/guidance/adoption/plan-overview."
+    manual: true
+  - id: PPADOPT-SV-10
+    title: "PPADOPT-SV-10. Application modernisation opportunities are identified and assessed for Power Platform"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PPADOPT-SV-10. Organisational -- Confirm candidate applications for modernisation have been identified, with benefits and approach considered. Scout-derived from: learn.microsoft.com/power-platform/guidance/adoption/application-modernization; learn.microsoft.com/power-platform/guidance/adoption/plan-overview."
+    manual: true
+  - id: PPADOPT-SV-11
+    title: "PPADOPT-SV-11. Adoption maturity is assessed and a target stage is set"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PPADOPT-SV-11. Organisational -- Confirm the organisation knows its stage on the adoption maturity model (initial, repeatable, defined, capable, efficient) and the stage it is aiming for. Scout-derived from: learn.microsoft.com/power-platform/guidance/adoption/govern-at-scale; learn.microsoft.com/power-platform/guidance/adoption/maturity-model."
+    manual: true
+  # ---- Administration, governance and support (PPADOPT-AG) ------------------------------------------------------
+  - id: PPADOPT-AG-01
+    title: "PPADOPT-AG-01. A dedicated Power Platform admin is designated to oversee operations, compliance and performance"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "PPADOPT-AG-01. Organisational -- Confirm named administrators hold the Power Platform administrator responsibility with enough time and authority. Scout-derived from: learn.microsoft.com/power-platform/guidance/adoption/pp-admin; learn.microsoft.com/power-platform/guidance/adoption/admin-best-practices."
+    manual: true
+  - id: PPADOPT-AG-02
+    title: "PPADOPT-AG-02. A governance framework with objectives, policies, roles and a delivery model is defined and reviewed"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "PPADOPT-AG-02. Organisational -- Confirm governance objectives (security, compliance, efficiency, scalability) and policies exist and are reviewed on a schedule. Scout-derived from: learn.microsoft.com/power-platform/guidance/adoption/govern-at-scale."
+    manual: true
+  - id: PPADOPT-AG-03
+    title: "PPADOPT-AG-03. A tenant environment strategy defines how environments are created, managed and decommissioned"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "PPADOPT-AG-03. Organisational -- Confirm there is a written strategy for environment types, who may create them, and how they are retired. Scout-derived from: learn.microsoft.com/power-platform/guidance/adoption/environment-strategy."
+    manual: true
+  - id: PPADOPT-AG-04
+    title: "PPADOPT-AG-04. Environment groups and rules are used to apply governance to environments in bulk"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PPADOPT-AG-04. Organisational -- Confirm environments are organised into groups with rules for security, licensing and compliance, rather than set one by one. Scout-derived from: learn.microsoft.com/power-platform/guidance/adoption/govern-at-scale; learn.microsoft.com/power-platform/guidance/adoption/environment-strategy."
+    manual: true
+  - id: PPADOPT-AG-05
+    title: "PPADOPT-AG-05. A data policy strategy classifies connectors and is communicated to makers"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "PPADOPT-AG-05. Organisational -- Confirm tenant-level data policies exist, connectors are classified business, non-business or blocked, and makers can see the policies and how to request exceptions. Scout-derived from: learn.microsoft.com/power-platform/guidance/adoption/dlp-strategy."
+    manual: true
+  - id: PPADOPT-AG-06
+    title: "PPADOPT-AG-06. The default environment is governed and secured"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "PPADOPT-AG-06. Organisational -- Confirm the default environment has restricted sharing, data policies and a plan for the personal productivity solutions in it. Scout-derived from: learn.microsoft.com/power-platform/guidance/adoption/manage-default-environment; learn.microsoft.com/power-platform/guidance/adoption/secure-default-environment."
+    manual: true
+  - id: PPADOPT-AG-07
+    title: "PPADOPT-AG-07. Managed environments are used for production and critical workloads"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PPADOPT-AG-07. Organisational -- Confirm production and business-critical environments are managed environments and the capabilities they unlock are used. Scout-derived from: learn.microsoft.com/power-platform/guidance/adoption/govern-at-scale; learn.microsoft.com/power-platform/guidance/adoption/secure-overview."
+    manual: true
+  - id: PPADOPT-AG-08
+    title: "PPADOPT-AG-08. Security posture is assessed and improved, using the admin centre security score and recommendations"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "PPADOPT-AG-08. Organisational -- Confirm the security posture is assessed on a schedule and recommended actions are tracked to closure. Scout-derived from: learn.microsoft.com/power-platform/guidance/adoption/assess-security-posture; learn.microsoft.com/power-platform/guidance/adoption/security-posture-management."
+    manual: true
+  - id: PPADOPT-AG-09
+    title: "PPADOPT-AG-09. Maker, user and guest access is controlled with conditional access and multifactor authentication"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "PPADOPT-AG-09. Organisational -- Confirm Entra conditional access policies cover Power Platform and guest access is managed. Scout-derived from: learn.microsoft.com/power-platform/guidance/adoption/conditional-access; learn.microsoft.com/power-platform/guidance/adoption/secure-overview."
+    manual: true
+  - id: PPADOPT-AG-10
+    title: "PPADOPT-AG-10. Threat detection and activity logging for Power Platform are enabled and monitored"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PPADOPT-AG-10. Organisational -- Confirm Power Platform activity is logged to the audit log and threat detection signals are reviewed or sent to the SIEM. Scout-derived from: learn.microsoft.com/power-platform/guidance/adoption/threat-detection; learn.microsoft.com/power-platform/guidance/adoption/observability."
+    manual: true
+  - id: PPADOPT-AG-11
+    title: "PPADOPT-AG-11. Compliance and data protection requirements are identified and met"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PPADOPT-AG-11. Organisational -- Confirm regulatory and data-residency requirements for the platform are known and evidence exists that they are met. Scout-derived from: learn.microsoft.com/power-platform/guidance/adoption/compliance; learn.microsoft.com/power-platform/guidance/adoption/data-protection."
+    manual: true
+  - id: PPADOPT-AG-12
+    title: "PPADOPT-AG-12. Reactive governance controls respond to non-compliant resources and incidents as they arise"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PPADOPT-AG-12. Organisational -- Confirm there is a process for handling policy violations, orphaned or risky resources and inactive environments. Scout-derived from: learn.microsoft.com/power-platform/guidance/adoption/reactive-governance."
+    manual: true
+  - id: PPADOPT-AG-13
+    title: "PPADOPT-AG-13. New environment, connector and access requests follow a formal, ideally automated, approval process"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PPADOPT-AG-13. Organisational -- Confirm makers have a defined route to request environments and connectors, with approvers named and decisions recorded. Scout-derived from: learn.microsoft.com/power-platform/guidance/adoption/govern-at-scale."
+    manual: true
+  - id: PPADOPT-AG-14
+    title: "PPADOPT-AG-14. Application lifecycle management practices are established"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "PPADOPT-AG-14. Organisational -- Confirm ALM practices (environments, solutions, source control, pipelines) are standardised across teams, not left to each maker. Scout-derived from: learn.microsoft.com/power-platform/guidance/adoption/alm."
+    manual: true
+  - id: PPADOPT-AG-15
+    title: "PPADOPT-AG-15. Usage and adoption insights are monitored and reported"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PPADOPT-AG-15. Organisational -- Confirm active users, maker activity, app and flow usage and platform health are tracked and reviewed. Scout-derived from: learn.microsoft.com/power-platform/guidance/adoption/observability; learn.microsoft.com/power-platform/guidance/adoption/resource-usage."
+    manual: true
+  - id: PPADOPT-AG-16
+    title: "PPADOPT-AG-16. Licence and capacity consumption are monitored"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PPADOPT-AG-16. Organisational -- Confirm licence assignment and storage and request capacity are tracked against entitlements. Scout-derived from: learn.microsoft.com/power-platform/guidance/adoption/cds-usage; learn.microsoft.com/power-platform/guidance/adoption/observability."
+    manual: true
+  - id: PPADOPT-AG-17
+    title: "PPADOPT-AG-17. A support strategy defines how users and makers get help"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PPADOPT-AG-17. Organisational -- Confirm there is a documented support model with tiers, owners and channels. Scout-derived from: learn.microsoft.com/power-platform/guidance/adoption/support-strategy; learn.microsoft.com/power-platform/guidance/adoption/operate-overview."
+    manual: true
+  - id: PPADOPT-AG-18
+    title: "PPADOPT-AG-18. Mission-critical workloads are identified and have a disaster recovery plan, and data retention and mobility are addressed"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "PPADOPT-AG-18. Organisational -- Confirm critical workloads are named, a disaster recovery plan exists and has been tested, and retention and recovery of data are covered. Scout-derived from: learn.microsoft.com/power-platform/guidance/adoption/plan-mission-critical; learn.microsoft.com/power-platform/guidance/adoption/plan-disaster-recovery; learn.microsoft.com/power-platform/guidance/adoption/data-retention."
+    manual: true
+  - id: PPADOPT-AG-19
+    title: "PPADOPT-AG-19. Admin centre recommendations are reviewed regularly and acted on"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PPADOPT-AG-19. Organisational -- Confirm someone reviews the recommended actions in the admin centre, or through the Power Platform for Admins V2 connector, and records decisions. Scout-derived from: learn.microsoft.com/power-platform/guidance/adoption/govern-at-scale; learn.microsoft.com/power-platform/guidance/adoption/observability."
+    manual: true
+  # ---- Nurture and adoption (PPADOPT-NA) ------------------------------------------------------
+  - id: PPADOPT-NA-01
+    title: "PPADOPT-NA-01. A training and upskilling strategy exists for makers and users"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "PPADOPT-NA-01. Organisational -- Confirm there is a plan, with owners and a calendar, for training makers, users and admins. Scout-derived from: learn.microsoft.com/power-platform/guidance/adoption/training-strategy; learn.microsoft.com/power-platform/guidance/adoption/ready-overview."
+    manual: true
+  - id: PPADOPT-NA-02
+    title: "PPADOPT-NA-02. Internal training events are hosted to build Power Platform skills"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PPADOPT-NA-02. Organisational -- Confirm the organisation runs events such as app-in-a-day style workshops or hackathons and tracks attendance and outcomes. Scout-derived from: learn.microsoft.com/power-platform/guidance/adoption/in-a-day; learn.microsoft.com/power-platform/guidance/adoption/ready-overview."
+    manual: true
+  - id: PPADOPT-NA-03
+    title: "PPADOPT-NA-03. Tools to support the maker community are set up, such as a wiki, a SharePoint hub or chat channels"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PPADOPT-NA-03. Organisational -- Confirm makers have a central place for policies, training, templates and help, and that it is current. Scout-derived from: learn.microsoft.com/power-platform/guidance/adoption/wiki-community."
+    manual: true
+  - id: PPADOPT-NA-04
+    title: "PPADOPT-NA-04. Reusable templates and components are shared across the organisation"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PPADOPT-NA-04. Organisational -- Confirm makers can find and reuse approved templates and components rather than rebuilding them. Scout-derived from: learn.microsoft.com/power-platform/guidance/adoption/reusable."
+    manual: true
+  - id: PPADOPT-NA-05
+    title: "PPADOPT-NA-05. High-value use cases are envisioned and prioritised through workshops with stakeholders"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PPADOPT-NA-05. Organisational -- Confirm use cases are collected in a structured way and prioritised by value and feasibility. Scout-derived from: learn.microsoft.com/power-platform/guidance/adoption/solution-envisioning."
+    manual: true
+  - id: PPADOPT-NA-06
+    title: "PPADOPT-NA-06. Community purpose and goals are defined"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PPADOPT-NA-06. Organisational -- Confirm the maker community has a stated purpose, goals and an owner. Scout-derived from: learn.microsoft.com/power-platform/guidance/adoption/community-goals."
+    manual: true
+  - id: PPADOPT-NA-07
+    title: "PPADOPT-NA-07. New makers are onboarded through a defined process"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PPADOPT-NA-07. Organisational -- Confirm new makers receive a welcome, access to training, an introduction to governance rules and a route to help. Scout-derived from: learn.microsoft.com/power-platform/guidance/adoption/onboard-makers."
+    manual: true
+  - id: PPADOPT-NA-08
+    title: "PPADOPT-NA-08. Success stories are shared to build momentum"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "PPADOPT-NA-08. Organisational -- Confirm there is a regular forum, such as show and tell, where makers present solutions and results. Scout-derived from: learn.microsoft.com/power-platform/guidance/adoption/show-and-tell."
+    manual: true
+  - id: PPADOPT-NA-09
+    title: "PPADOPT-NA-09. Makers are nurtured and educated, with feedback gathered from them and from users"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PPADOPT-NA-09. Organisational -- Confirm there is a way to collect and act on feedback from makers and users, for example surveys, and to recognise contributors. Scout-derived from: learn.microsoft.com/power-platform/guidance/adoption/nurture-best-practices; learn.microsoft.com/power-platform/guidance/adoption/govern-at-scale."
+    manual: true
+  - id: PPADOPT-NA-10
+    title: "PPADOPT-NA-10. Resistance to change is managed and common adoption anti-patterns are avoided"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PPADOPT-NA-10. Organisational -- Confirm resistance is actively addressed through communication and involvement, and that known anti-patterns are watched for. Scout-derived from: learn.microsoft.com/power-platform/guidance/adoption/manage-resistance; learn.microsoft.com/power-platform/guidance/adoption/operate-overview."
+    manual: true
+  - id: PPADOPT-NA-11
+    title: "PPADOPT-NA-11. Makers are told the governance rules, policies and guardrails before they build"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PPADOPT-NA-11. Organisational -- Confirm makers are made aware of tenant guardrails, data policies and environment rules, and that the information is easy to find. Scout-derived from: learn.microsoft.com/power-platform/guidance/adoption/govern-at-scale; learn.microsoft.com/power-platform/guidance/adoption/dlp-strategy."
+    manual: true

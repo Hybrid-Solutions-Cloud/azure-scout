@@ -1,0 +1,310 @@
+# m365.copilot.datasecurity.yaml -- Data Security for Copilot for Microsoft 365 (AB#9300 phase 5)
+#
+# Scout's readiness review for Microsoft's "Data Security for Copilot for Microsoft 365" assessment
+# (learn.microsoft.com/assessments/dde5dcfc-77d3-4f71-aa3f-cc98fa893e99). Microsoft does not publish that
+# assessment's questions, so every item is SCOUT-DERIVED from Microsoft's current guidance for securing
+# Microsoft 365 Copilot data: the secure-and-govern blueprint (remediate oversharing, set up guardrails, meet
+# regulations), Zero Trust for Copilot, data protection and auditing for Copilot, SharePoint Advanced
+# Management and Microsoft Purview. The M365CP-* ids are Scout's own.
+#
+# Product status (checked 2026-11-25): "Copilot for Microsoft 365" is now Microsoft 365 Copilot (Microsoft
+# Copilot in the blueprint). Restricted SharePoint Search is retiring (new enablement blocked from
+# 2026-07-31), so M365CP-RO-05 asks how it is being retired and Restricted Content Discovery is the control
+# M365CP-RO-04 asks about.
+#
+# Scout does not read Microsoft 365, SharePoint, Purview or Intune data, and collect.json holds no
+# Conditional Access, label, sharing, audit or DLP data, so every rule is `manual: true` with `query: null`.
+# Answer them with -AssessmentAnswers. Written ONLY against
+# docs/frameworks/m365-copilot-data-security-question-set.md.
+area: "Microsoft 365 Copilot data security"
+framework: M365-COPILOT-DATASEC
+frameworkversion: "docs/frameworks/m365-copilot-data-security-question-set.md, extracted 2026-11-25 (Microsoft 365 Copilot data security guidance on Microsoft Learn (secure-and-govern blueprint, Zero Trust for Copilot, SharePoint Advanced Management), current as of the extraction date; no published version number); verified 2026-11-25"
+weight: 1.0
+verifiedAgainst: "docs/frameworks/m365-copilot-data-security-question-set.md, 40 Scout-derived items across 6 groups, verified 2026-11-25. The assessment's own question text and numbering are not published; the M365CP-* identifiers are Scout's own. Every item is a questionnaire item (manual: true, query: null): Scout does not read this product's data."
+rules:
+  # ---- RO -- Remediate oversharing (11 items) --------------------
+  - id: M365CP-RO-01
+    title: "M365CP-RO-01. Oversharing was assessed (Purview data risk assessment or equivalent) before Copilot licences were assigned"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "M365CP-RO-01. Organisational -- confirm a Microsoft Purview data risk assessment (DSPM for AI) or an equivalent review of SharePoint and OneDrive permissions was run, and its findings have an owner and a remediation plan."
+    manual: true
+  - id: M365CP-RO-02
+    title: "M365CP-RO-02. SharePoint data access governance reports are reviewed for broad exposure"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "M365CP-RO-02. Organisational -- confirm the data access governance reports (sites with too many users, content shared with Everyone except external users, Anyone and organisation-wide sharing links, sensitivity label snapshot) are generated and reviewed on a schedule."
+    manual: true
+  - id: M365CP-RO-03
+    title: "M365CP-RO-03. High-risk sites are identified from overlapping risk signals and each has a remediation owner"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "M365CP-RO-03. Organisational -- confirm sites that combine signals such as sensitive content with broad links, public sites with no owner, or large audiences with broken permission inheritance are listed and assigned for remediation."
+    manual: true
+  - id: M365CP-RO-04
+    title: "M365CP-RO-04. Restricted Content Discovery is applied to sites that need review before Copilot can surface them"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "M365CP-RO-04. Organisational -- confirm sites under permission review, or at high risk of oversharing, have Restricted Content Discovery on, and that the setting is removed once the review is complete."
+    manual: true
+  - id: M365CP-RO-05
+    title: "M365CP-RO-05. Restricted SharePoint Search, if used, is temporary and has an exit plan (the feature is retiring)"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "M365CP-RO-05. Organisational -- confirm any Restricted SharePoint Search allow list is treated as a short-term measure with a date to turn it off, and that Restricted Content Discovery and permission clean-up replace it. Microsoft has blocked new enablement from 2026-07-31."
+    manual: true
+  - id: M365CP-RO-06
+    title: "M365CP-RO-06. Site access reviews or attestations are run by site owners for overshared sites"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "M365CP-RO-06. Organisational -- confirm site access reviews are started from the data access governance reports, or site attestations are requested, so site owners confirm membership, permissions and sharing settings."
+    manual: true
+  - id: M365CP-RO-07
+    title: "M365CP-RO-07. Every site has owners, and inactive sites are detected and handled"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "M365CP-RO-07. Organisational -- confirm a site ownership policy sets a minimum number of owners and an inactive site policy notifies owners, so content without a responsible owner does not stay discoverable."
+    manual: true
+  - id: M365CP-RO-08
+    title: "M365CP-RO-08. Restricted access control limits the most sensitive sites and OneDrive locations to named security groups"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "M365CP-RO-08. Organisational -- confirm restricted access control is applied to sites that must be limited to a defined group, independent of how the site was originally shared."
+    manual: true
+  - id: M365CP-RO-09
+    title: "M365CP-RO-09. External sharing defaults and guest settings were reviewed when Copilot was introduced"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "M365CP-RO-09. Organisational -- confirm the tenant sharing level, Anyone links, guest resharing and external collaboration settings were reviewed, and that the secure guest sharing guidance is followed. Guest accounts are not licensed to use Copilot."
+    manual: true
+  - id: M365CP-RO-10
+    title: "M365CP-RO-10. Teams and project sites are protected at baseline, sensitive or highly sensitive level"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "M365CP-RO-10. Organisational -- confirm teams and projects are assigned a protection tier (baseline, sensitive, highly sensitive) and the sensitive tiers are configured, so the review is not left to the Copilot rollout."
+    manual: true
+  - id: M365CP-RO-11
+    title: "M365CP-RO-11. Stale and low-value content is reduced so Copilot does not ground on it"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "M365CP-RO-11. Organisational -- confirm retention and deletion policies, inactive site handling and clean-up remove content that is out of date or no longer needed, which also improves the relevance of Copilot answers."
+    manual: true
+  # ---- SL -- Sensitivity labels and information protection (6 items) --------------------
+  - id: M365CP-SL-01
+    title: "M365CP-SL-01. A classification taxonomy exists and sensitivity labels are created and published to users"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "M365CP-SL-01. Organisational -- confirm the organisation has a documented classification taxonomy mapped to published sensitivity labels, and that users are told when and how to apply them in Word, Excel, PowerPoint and Outlook."
+    manual: true
+  - id: M365CP-SL-02
+    title: "M365CP-SL-02. Sensitivity labels are enabled for Office files in SharePoint and OneDrive"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "M365CP-SL-02. Organisational -- confirm labels are enabled for Office files stored in SharePoint and OneDrive, so labelled content is recognised by Copilot and by the oversharing reports."
+    manual: true
+  - id: M365CP-SL-03
+    title: "M365CP-SL-03. Default labelling and mandatory labelling are decided deliberately"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "M365CP-SL-03. Organisational -- confirm a default label, mandatory labelling, or both were considered, with user training, so the baseline protection applies without inaccurate labelling."
+    manual: true
+  - id: M365CP-SL-04
+    title: "M365CP-SL-04. Container labels protect SharePoint sites and teams that hold sensitive data (Microsoft 365 E5 capability)"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "M365CP-SL-04. Organisational -- confirm site and team container labels are used where the data warrants it, with sharing and access settings that follow the label."
+    manual: true
+  - id: M365CP-SL-05
+    title: "M365CP-SL-05. Automatic labelling finds and labels sensitive content beyond what users label by hand (Microsoft 365 E5 capability)"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "M365CP-SL-05. Organisational -- confirm auto-labelling policies and sensitive information types are in use, and that activity explorer and content explorer are used to check the results."
+    manual: true
+  - id: M365CP-SL-06
+    title: "M365CP-SL-06. Encryption and usage rights are set with Copilot behaviour in mind (VIEW and EXTRACT)"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "M365CP-SL-06. Organisational -- confirm label encryption grants EXTRACT as well as VIEW where Copilot must summarise the content, and that the limits for user-defined permissions and Double Key Encryption (Copilot cannot access them) are understood."
+    manual: true
+  # ---- GR -- Guardrails: DLP, identity, devices and threat protection (9 items) --------------------
+  - id: M365CP-GR-01
+    title: "M365CP-GR-01. A DLP policy for the Copilot location keeps labelled files and emails out of Copilot processing"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "M365CP-GR-01. Organisational -- confirm a Microsoft Purview DLP policy on the Microsoft Copilot, Copilot Chat and Copilot Cowork location excludes items with the chosen sensitivity labels from Copilot responses. This control needs Microsoft 365 E5 licensing."
+    manual: true
+  - id: M365CP-GR-02
+    title: "M365CP-GR-02. A DLP policy blocks sensitive information types in prompts and is enforced, not left in simulation"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "M365CP-GR-02. Organisational -- confirm a prompt-protection DLP policy exists and was moved from the default simulation mode to enforcement, with incident reports going to the security team."
+    manual: true
+  - id: M365CP-GR-03
+    title: "M365CP-GR-03. Sensitive prompts are prevented from being sent to external web search"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "M365CP-GR-03. Organisational -- confirm a DLP rule uses the action that prevents Copilot from performing web searches when a prompt contains the chosen sensitive information types."
+    manual: true
+  - id: M365CP-GR-04
+    title: "M365CP-GR-04. Insider risk management covers risky AI usage"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "M365CP-GR-04. Organisational -- confirm an Insider Risk Management policy (for example a risky AI usage template) is enabled and its alerts are triaged."
+    manual: true
+  - id: M365CP-GR-05
+    title: "M365CP-GR-05. Conditional Access requires MFA for all users and administrators and blocks legacy authentication, including Microsoft 365 services"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "M365CP-GR-05. Organisational -- confirm Conditional Access policies require multifactor authentication for administrators and all users, block legacy authentication, and include Microsoft 365 services and other SaaS apps in scope."
+    manual: true
+  - id: M365CP-GR-06
+    title: "M365CP-GR-06. Risk-based access, Privileged Identity Management and access reviews are in place (Entra ID P2 capability)"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "M365CP-GR-06. Organisational -- confirm sign-in and user risk policies, Privileged Identity Management for privileged roles, and access reviews for groups and applications are configured."
+    manual: true
+  - id: M365CP-GR-07
+    title: "M365CP-GR-07. Devices are enrolled and compliant, and app protection policies cover Copilot-capable apps"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "M365CP-GR-07. Organisational -- confirm devices are enrolled in Intune, compliance policies exist and compliant devices are required for access, and Intune app protection policies stop Copilot output being copied to unmanaged apps."
+    manual: true
+  - id: M365CP-GR-08
+    title: "M365CP-GR-08. Threat protection for email, endpoints and identities is deployed and feeds a SIEM"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "M365CP-GR-08. Organisational -- confirm Microsoft Defender for Office 365 and Defender for Endpoint (and Defender XDR where licensed) are deployed, with signals sent to Microsoft Sentinel or the organisation SIEM."
+    manual: true
+  - id: M365CP-GR-09
+    title: "M365CP-GR-09. Endpoint and browser data protection limits sensitive data going to unsanctioned AI apps"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "M365CP-GR-09. Organisational -- confirm Endpoint DLP, browser data security or network data security policies block pasting or uploading sensitive information to AI apps outside the sanctioned set."
+    manual: true
+  # ---- AU -- Audit, retention and investigation (5 items) --------------------
+  - id: M365CP-AU-01
+    title: "M365CP-AU-01. Microsoft Purview Audit is on and Copilot interactions are being logged"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "M365CP-AU-01. Organisational -- confirm audit logging is enabled and Copilot interaction records (who, when, which files and sites were referenced) are available to security and compliance teams."
+    manual: true
+  - id: M365CP-AU-02
+    title: "M365CP-AU-02. Retention policies cover Copilot interactions"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "M365CP-AU-02. Organisational -- confirm a Microsoft Purview retention policy for Copilot interactions is set, matching the organisation legal and records requirements, and the stored prompts and responses are deleted on schedule."
+    manual: true
+  - id: M365CP-AU-03
+    title: "M365CP-AU-03. eDiscovery and Communication Compliance cover Copilot interaction data"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "M365CP-AU-03. Organisational -- confirm investigators can search Copilot prompts and responses with eDiscovery, and that Communication Compliance is configured for the Copilot interaction location where the organisation requires it."
+    manual: true
+  - id: M365CP-AU-04
+    title: "M365CP-AU-04. Retention for cloud attachments preserves versions of files Copilot referenced"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "M365CP-AU-04. Organisational -- confirm the retention policy for cloud attachments is applied where the organisation must be able to show which version of a file Copilot used."
+    manual: true
+  - id: M365CP-AU-05
+    title: "M365CP-AU-05. DSPM for AI recommendations are reviewed regularly, especially when users are added"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "M365CP-AU-05. Organisational -- confirm the Microsoft Purview DSPM for AI recommendations and Apps and Agents report are reviewed on a schedule and after each wave of new Copilot users."
+    manual: true
+  # ---- RG -- Regulations and operating model (5 items) --------------------
+  - id: M365CP-RG-01
+    title: "M365CP-RG-01. Compliance Manager assessments cover the AI regulations that apply"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "M365CP-RG-01. Organisational -- confirm Microsoft Purview Compliance Manager assessments exist for the AI regulations and standards that apply to the organisation, and the improvement actions have owners."
+    manual: true
+  - id: M365CP-RG-02
+    title: "M365CP-RG-02. Audit and legal requirements for AI interaction records are defined"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "M365CP-RG-02. Organisational -- confirm legal, audit and records teams have stated what AI interaction data must be kept, for how long, and who may search it."
+    manual: true
+  - id: M365CP-RG-03
+    title: "M365CP-RG-03. Protections are rolled out in phases before Copilot licences are assigned to each group of users"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "M365CP-RG-03. Organisational -- confirm Copilot licences are assigned to a group of users only after the protections that cover them are in place, and the rollout continues in parallel with protection work."
+    manual: true
+  - id: M365CP-RG-04
+    title: "M365CP-RG-04. Owners and responsibilities are defined across SharePoint, Purview, identity and security teams"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "M365CP-RG-04. Organisational -- confirm named owners exist for oversharing remediation, labelling, DLP, identity and audit, and that they meet during the Copilot rollout."
+    manual: true
+  - id: M365CP-RG-05
+    title: "M365CP-RG-05. Users and site owners are trained on Copilot and on sharing responsibly"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "M365CP-RG-05. Organisational -- confirm users are told that Copilot returns only what they can already access, site owners are trained on permissions and access reviews, and users know how to apply labels."
+    manual: true
+  # ---- AG -- Agents (4 items) --------------------
+  - id: M365CP-AG-01
+    title: "M365CP-AG-01. The SharePoint and Dataverse content agents use as knowledge is labelled and not overshared"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "M365CP-AG-01. Organisational -- confirm the knowledge sources of agents in Microsoft 365 Copilot are reviewed for oversharing and labelled, so sensitive information is not used as a knowledge source."
+    manual: true
+  - id: M365CP-AG-02
+    title: "M365CP-AG-02. Sensitive information in Dataverse is discovered with Purview"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "M365CP-AG-02. Organisational -- confirm Microsoft Purview Unified Catalog scans Dataverse so sensitive data an agent could use as grounding is known."
+    manual: true
+  - id: M365CP-AG-03
+    title: "M365CP-AG-03. Agent creation and agent access to SharePoint and OneDrive are monitored"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "M365CP-AG-03. Organisational -- confirm the SharePoint reports on agents and agent access are reviewed, and that who can create agents is controlled."
+    manual: true
+  - id: M365CP-AG-04
+    title: "M365CP-AG-04. Agent interactions are protected, retained and governed like Copilot interactions"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "M365CP-AG-04. Organisational -- confirm label inheritance, risky interaction detection and retention apply to interactions with agents so they can be investigated later."
+    manual: true

@@ -64,18 +64,22 @@ each was built on, and the old names still work.
 | Cloud Governance | `CAF: Govern` (CAF Govern) |
 | Cloud Journey Tracker, Cloud Adoption Strategy Evaluator, Developer Velocity Assessment | Not carried forward: Microsoft retired them without a replacement methodology |
 
-## Not yet in Scout
+## Microsoft products other than Azure
 
-These Microsoft assessments are for products other than Azure, so they need data sources Scout
-does not read yet (the Power Platform admin API and Microsoft Graph):
+Scout runs these as questionnaires: it does not read Power Platform, Microsoft 365, Dataverse or
+client-device data yet, so every item is answered with
+[questionnaire answers](../assessment/questionnaire-answers.md). Each framework page names the
+Microsoft APIs an automated version would need.
 
-- Power Platform Well-Architected
-- Power Platform Solution Assessment
-- Power Platform Adoption Assessment
-- Microsoft Sustainability Manager \| Well-Architected Assessment
-- Microsoft Cloud for Financial Services \| Well-Architected for Industry
-- Windows 11 Pro Migration Readiness Assessment
-- Data Security for Copilot for Microsoft 365
+| Microsoft assessment | Scout assessment | Notes |
+|---|---|---|
+| Power Platform Well-Architected | `Microsoft: Power Platform Well-Architected` | Microsoft's checklist codes (RE:01 ...) |
+| Power Platform Solution Assessment | `Microsoft: Power Platform Solution` | |
+| Power Platform Adoption Assessment | `Microsoft: Power Platform Adoption` | |
+| Data Security for Copilot for Microsoft 365 | `Microsoft: M365 Copilot Data Security` | Product now Microsoft 365 Copilot |
+| Microsoft Sustainability Manager \| Well-Architected Assessment | `Microsoft: Sustainability Manager Well-Architected` | Product now Dynamics 365 Sustainability |
+| Microsoft Cloud for Financial Services \| Well-Architected for Industry | `Microsoft: Cloud for Financial Services Well-Architected` | Product now Microsoft for Financial Services |
+| Windows 11 Pro Migration Readiness Assessment | `Microsoft: Windows 11 Migration Readiness` | Windows 10 reached end of support on 2025-10-14 |
 
 The catalog's partner journeys (Microsoft Partner and industry readiness guides) and learner
 skill self-assessments are training material, not assessments of an environment, so Scout does
