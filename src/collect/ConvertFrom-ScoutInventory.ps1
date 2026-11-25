@@ -246,6 +246,65 @@ function Measure-ScoutArray {
     return @($Value).Count
 }
 
+function ConvertTo-ScoutInt {
+    <#
+    .SYNOPSIS
+        KQL toint() semantics: $null stays $null, and a value that is not a number reads $null
+        rather than throwing or becoming 0. A fractional value truncates toward zero, as toint does.
+
+    .NOTES
+        AB#9300 phase 4. Replaces the inline `if ($null -eq $raw) { $null } else { [int] $raw }`
+        the older shapers repeat, which throws on a non-numeric string; one Resource Graph row with
+        an unexpected value must not abort the whole shaping pass.
+    #>
+    param([AllowNull()] $Value)
+    if ($null -eq $Value) { return $null }
+    if ($Value -is [int]) { return $Value }
+    if ($Value -is [long] -or $Value -is [double] -or $Value -is [decimal] -or $Value -is [single]) {
+        return [int] [Math]::Truncate([double] $Value)
+    }
+    $text = [string] $Value
+    if ([string]::IsNullOrWhiteSpace($text)) { return $null }
+    $parsed = 0.0
+    if ([double]::TryParse($text, [System.Globalization.NumberStyles]::Float, [System.Globalization.CultureInfo]::InvariantCulture, [ref] $parsed)) {
+        return [int] [Math]::Truncate($parsed)
+    }
+    return $null
+}
+
+function ConvertTo-ScoutDouble {
+    <#
+    .SYNOPSIS
+        KQL todouble() semantics: $null stays $null; a value that is not a number reads $null.
+    #>
+    param([AllowNull()] $Value)
+    if ($null -eq $Value) { return $null }
+    if ($Value -is [double]) { return $Value }
+    if ($Value -is [int] -or $Value -is [long] -or $Value -is [decimal] -or $Value -is [single]) { return [double] $Value }
+    $text = [string] $Value
+    if ([string]::IsNullOrWhiteSpace($text)) { return $null }
+    $parsed = 0.0
+    if ([double]::TryParse($text, [System.Globalization.NumberStyles]::Float, [System.Globalization.CultureInfo]::InvariantCulture, [ref] $parsed)) {
+        return $parsed
+    }
+    return $null
+}
+
+function Get-ScoutMinValue {
+    <#
+    .SYNOPSIS
+        KQL min() semantics over a set of values: nulls are ignored, and the result is $null when
+        nothing non-null remains (never 0).
+    #>
+    param([AllowNull()] [object[]] $Values)
+    $minimum = $null
+    foreach ($candidate in @($Values)) {
+        if ($null -eq $candidate) { continue }
+        if ($null -eq $minimum -or $candidate -lt $minimum) { $minimum = $candidate }
+    }
+    return $minimum
+}
+
 function ConvertFrom-ScoutInventory {
     [CmdletBinding()]
     param(
@@ -360,11 +419,15 @@ function ConvertFrom-ScoutInventory {
     $result['virtualNetworks'] = @(
         $virtualNetworks | ForEach-Object {
             [pscustomobject]@{
-                name           = [string] (Get-ScoutProp $_ 'name')
-                resourceGroup  = [string] (Get-ScoutProp $_ 'resourceGroup')
-                subscriptionId = [string] (Get-ScoutProp $_ 'subscriptionId')
-                peeringCount   = Measure-ScoutArray (Get-ScoutProp $_ 'properties.virtualNetworkPeerings')
-                ddosEnabled    = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.enableDdosProtection')
+                id               = [string] (Get-ScoutProp $_ 'id')
+                name             = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup    = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId   = [string] (Get-ScoutProp $_ 'subscriptionId')
+                location         = [string] (Get-ScoutProp $_ 'location')
+                peeringCount     = Measure-ScoutArray (Get-ScoutProp $_ 'properties.virtualNetworkPeerings')
+                ddosEnabled      = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.enableDdosProtection')
+                # AB#9300 phase 4 -- mirrors Invoke-Collect.ps1's virtualNetworks KQL field for field.
+                encryptionEnabled = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.encryption.enabled')
             }
         }
     )
@@ -400,10 +463,16 @@ function ConvertFrom-ScoutInventory {
     $result['azureFirewalls'] = @(
         Select-ByType 'microsoft.network/azurefirewalls' | ForEach-Object {
             [pscustomobject]@{
-                name           = [string] (Get-ScoutProp $_ 'name')
-                resourceGroup  = [string] (Get-ScoutProp $_ 'resourceGroup')
-                subscriptionId = [string] (Get-ScoutProp $_ 'subscriptionId')
-                sku            = [string] (Get-ScoutProp $_ 'properties.sku.name')
+                name            = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup   = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId  = [string] (Get-ScoutProp $_ 'subscriptionId')
+                # properties.sku.name is only AZFW_VNet / AZFW_Hub; the tier a rule needs is
+                # properties.sku.tier (AB#9300 phase 4, mirrors the KQL field for field).
+                sku             = [string] (Get-ScoutProp $_ 'properties.sku.name')
+                tier            = [string] (Get-ScoutProp $_ 'properties.sku.tier')
+                zoneCount       = Measure-ScoutArray (Get-ScoutPropArray $_ 'zones')
+                hasPolicy       = -not [string]::IsNullOrEmpty([string] (Get-ScoutProp $_ 'properties.firewallPolicy.id'))
+                threatIntelMode = [string] (Get-ScoutProp $_ 'properties.threatIntelMode')
             }
         }
     )
@@ -513,6 +582,15 @@ function ConvertFrom-ScoutInventory {
                 wafEnabled        = [bool] (($tier -like '*WAF*') -and (($wafCfg -eq $true) -or -not [string]::IsNullOrEmpty($fwPolicyId)))
                 listenerCount     = Measure-ScoutArray (Get-ScoutPropArray $_ 'properties.httpListeners')
                 backendPoolCount  = Measure-ScoutArray (Get-ScoutPropArray $_ 'properties.backendAddressPools')
+                # AB#9300 phase 4 -- mirrors the KQL field for field. sslCertificates is NEVER read
+                # (certificate data); only the TLS policy that governs the listeners is.
+                zoneCount         = Measure-ScoutArray (Get-ScoutPropArray $_ 'zones')
+                autoscaleMin      = ConvertTo-ScoutInt (Get-ScoutProp $_ 'properties.autoscaleConfiguration.minCapacity')
+                autoscaleMax      = ConvertTo-ScoutInt (Get-ScoutProp $_ 'properties.autoscaleConfiguration.maxCapacity')
+                probeCount        = Measure-ScoutArray (Get-ScoutPropArray $_ 'properties.probes')
+                sslPolicyType     = [string] (Get-ScoutProp $_ 'properties.sslPolicy.policyType')
+                sslPolicyName     = [string] (Get-ScoutProp $_ 'properties.sslPolicy.policyName')
+                sslMinProtocol    = [string] (Get-ScoutProp $_ 'properties.sslPolicy.minProtocolVersion')
             }
         }
     )
@@ -602,23 +680,36 @@ function ConvertFrom-ScoutInventory {
             # relationship (the key only appears on ARM payloads when a public IP is bound),
             # mirroring the KQL serialized-contains probe.
             $hasPublicFrontend = $false
+            # AB#9300 phase 4 -- minFrontendZoneCount is the WEAKEST frontend's zone count, 0 when
+            # a frontend carries no zones or the load balancer has no frontend at all (the KQL
+            # swaps an absent/empty array for a one-element placeholder, which also reads 0).
+            $minFrontendZones = $null
             # Assign BEFORE @(): Get-ScoutPropArray comma-wraps its result, so an inline
             # @(Get-ScoutPropArray ...) collects the inner array as ONE element.
             $feConfigs = Get-ScoutPropArray $_ 'properties.frontendIPConfigurations'
             foreach ($fe in @($feConfigs)) {
                 if ($null -eq $fe) { continue }
-                if ($null -ne (Get-ScoutProp $fe 'properties.publicIPAddress')) { $hasPublicFrontend = $true; break }
+                if ($null -ne (Get-ScoutProp $fe 'properties.publicIPAddress')) { $hasPublicFrontend = $true }
+                $feZones = Measure-ScoutArray (Get-ScoutPropArray $fe 'zones')
+                $feZoneCount = if ($null -eq $feZones) { 0 } else { $feZones }
+                if ($null -eq $minFrontendZones -or $feZoneCount -lt $minFrontendZones) { $minFrontendZones = $feZoneCount }
             }
+            if ($null -eq $minFrontendZones) { $minFrontendZones = 0 }
             [pscustomobject]@{
-                id                = [string] (Get-ScoutProp $_ 'id')
-                name              = [string] (Get-ScoutProp $_ 'name')
-                resourceGroup     = [string] (Get-ScoutProp $_ 'resourceGroup')
-                subscriptionId    = [string] (Get-ScoutProp $_ 'subscriptionId')
-                location          = [string] (Get-ScoutProp $_ 'location')
-                sku               = [string] (Get-ScoutProp $_ 'sku.name')
-                frontendIpCount   = Measure-ScoutArray (Get-ScoutProp $_ 'properties.frontendIPConfigurations')
-                backendPoolCount  = Measure-ScoutArray (Get-ScoutPropArray $_ 'properties.backendAddressPools')
-                hasPublicFrontend = $hasPublicFrontend
+                id                  = [string] (Get-ScoutProp $_ 'id')
+                name                = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup       = [string] (Get-ScoutProp $_ 'resourceGroup')
+                subscriptionId      = [string] (Get-ScoutProp $_ 'subscriptionId')
+                location            = [string] (Get-ScoutProp $_ 'location')
+                sku                 = [string] (Get-ScoutProp $_ 'sku.name')
+                tier                = [string] (Get-ScoutProp $_ 'sku.tier')
+                frontendIpCount     = Measure-ScoutArray (Get-ScoutProp $_ 'properties.frontendIPConfigurations')
+                backendPoolCount    = Measure-ScoutArray (Get-ScoutPropArray $_ 'properties.backendAddressPools')
+                hasPublicFrontend   = $hasPublicFrontend
+                probeCount          = Measure-ScoutArray (Get-ScoutPropArray $_ 'properties.probes')
+                ruleCount           = Measure-ScoutArray (Get-ScoutPropArray $_ 'properties.loadBalancingRules')
+                outboundRuleCount   = Measure-ScoutArray (Get-ScoutPropArray $_ 'properties.outboundRules')
+                minFrontendZoneCount = $minFrontendZones
             }
         }
     )
@@ -888,6 +979,44 @@ function ConvertFrom-ScoutInventory {
         }
     )
 
+    # ---- AB#9300 phase 4 -- Networking types that had no dataset. Mirrors Invoke-Collect.ps1's
+    # `publicIPAddresses` / `flowLogs` KQL field for field.
+    # attached = the address is bound to an IP configuration (NIC, load balancer frontend,
+    # firewall, gateway). A NAT-gateway-only address carries properties.natGateway instead and
+    # reads attached = false, exactly as the KQL does.
+    $result['publicIPAddresses'] = @(
+        Select-ByType 'microsoft.network/publicipaddresses' | ForEach-Object {
+            [pscustomobject]@{
+                id                 = [string] (Get-ScoutProp $_ 'id')
+                name               = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup      = [string] (Get-ScoutProp $_ 'resourceGroup')
+                location           = [string] (Get-ScoutProp $_ 'location')
+                skuName            = [string] (Get-ScoutProp $_ 'sku.name')
+                skuTier            = [string] (Get-ScoutProp $_ 'sku.tier')
+                zoneCount          = Measure-ScoutArray (Get-ScoutPropArray $_ 'zones')
+                ddosProtectionMode = [string] (Get-ScoutProp $_ 'properties.ddosSettings.protectionMode')
+                allocationMethod   = [string] (Get-ScoutProp $_ 'properties.publicIPAllocationMethod')
+                attached           = -not [string]::IsNullOrEmpty([string] (Get-ScoutProp $_ 'properties.ipConfiguration.id'))
+            }
+        }
+    )
+
+    # Neither the storage account nor the Log Analytics workspace a flow log writes to is shaped
+    # (their ids are never read) -- only whether the log is on, its retention and whether Traffic
+    # Analytics is enabled. targetResourceId is lower-cased, like the KQL tolower().
+    $result['flowLogs'] = @(
+        Select-ByType 'microsoft.network/networkwatchers/flowlogs' | ForEach-Object {
+            [pscustomobject]@{
+                id               = [string] (Get-ScoutProp $_ 'id')
+                enabled          = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.enabled')
+                targetResourceId = ([string] (Get-ScoutProp $_ 'properties.targetResourceId')).ToLowerInvariant()
+                retentionEnabled = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.retentionPolicy.enabled')
+                retentionDays    = ConvertTo-ScoutInt (Get-ScoutProp $_ 'properties.retentionPolicy.days')
+                trafficAnalytics = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.flowAnalyticsConfiguration.networkWatcherFlowAnalyticsConfiguration.enabled')
+            }
+        }
+    )
+
     # ---- compute ----
     # Region list copied verbatim from the KQL zoneEligible projection.
     $zoneEligibleRegions = @(
@@ -907,6 +1036,7 @@ function ConvertFrom-ScoutInventory {
                 name           = [string] (Get-ScoutProp $_ 'name')
                 resourceGroup  = [string] (Get-ScoutProp $_ 'resourceGroup')
                 subscriptionId = [string] (Get-ScoutProp $_ 'subscriptionId')
+                location       = [string] (Get-ScoutProp $_ 'location')
                 zoneRedundant  = ($null -ne $zoneCount -and $zoneCount -gt 0)
                 zoneEligible   = $zoneEligibleRegions -contains ([string] (Get-ScoutProp $_ 'location')).ToLowerInvariant()
                 size           = [string] (Get-ScoutProp $_ 'properties.hardwareProfile.vmSize')
@@ -920,6 +1050,35 @@ function ConvertFrom-ScoutInventory {
                 # AB#7109 -- mirrors Invoke-Collect.ps1's virtualMachines KQL field for field.
                 patchMode      = [string] (Get-ScoutOsPatchSetting -Resource $_ -Field 'patchMode')
                 assessmentMode = [string] (Get-ScoutOsPatchSetting -Resource $_ -Field 'assessmentMode')
+                # AB#9300 phase 4 -- mirrors the KQL field for field. unmanagedOsDisk is a BOOL ONLY:
+                # an unmanaged disk's vhd.uri names the backing storage account and is never shaped.
+                inAvailabilitySet = -not [string]::IsNullOrEmpty([string] (Get-ScoutProp $_ 'properties.availabilitySet.id'))
+                unmanagedOsDisk   = -not [string]::IsNullOrEmpty([string] (Get-ScoutProp $_ 'properties.storageProfile.osDisk.vhd.uri'))
+                osDiskType        = [string] (Get-ScoutProp $_ 'properties.storageProfile.osDisk.managedDisk.storageAccountType')
+                securityType      = [string] (Get-ScoutProp $_ 'properties.securityProfile.securityType')
+                encryptionAtHost  = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.securityProfile.encryptionAtHost')
+                bootDiagnostics   = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.diagnosticsProfile.bootDiagnostics.enabled')
+                identityType      = [string] (Get-ScoutProp $_ 'identity.type')
+            }
+        }
+    )
+
+    # AB#9300 phase 4 -- Virtual Machine Scale Sets had no dataset. Mirrors Invoke-Collect.ps1's
+    # `virtualMachineScaleSets` KQL field for field.
+    $result['virtualMachineScaleSets'] = @(
+        Select-ByType 'microsoft.compute/virtualmachinescalesets' | ForEach-Object {
+            [pscustomobject]@{
+                id                = [string] (Get-ScoutProp $_ 'id')
+                name              = [string] (Get-ScoutProp $_ 'name')
+                resourceGroup     = [string] (Get-ScoutProp $_ 'resourceGroup')
+                location          = [string] (Get-ScoutProp $_ 'location')
+                zoneCount         = Measure-ScoutArray (Get-ScoutPropArray $_ 'zones')
+                orchestrationMode = [string] (Get-ScoutProp $_ 'properties.orchestrationMode')
+                automaticRepairs  = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.automaticRepairsPolicy.enabled')
+                upgradeMode       = [string] (Get-ScoutProp $_ 'properties.upgradePolicy.mode')
+                zoneBalance       = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.zoneBalance')
+                capacity          = ConvertTo-ScoutInt (Get-ScoutProp $_ 'sku.capacity')
+                encryptionAtHost  = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.virtualMachineProfile.securityProfile.encryptionAtHost')
             }
         }
     )
@@ -1121,6 +1280,15 @@ function ConvertFrom-ScoutInventory {
                 httpsOnly          = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.supportsHttpsTrafficOnly')
                 minTls             = [string] (Get-ScoutProp $_ 'properties.minimumTlsVersion')
                 networkDefaultDeny = ([string] (Get-ScoutProp $_ 'properties.networkAcls.defaultAction')) -ieq 'Deny'
+                # AB#9300 phase 4 -- mirrors the KQL field for field.
+                location           = [string] (Get-ScoutProp $_ 'location')
+                kind               = [string] (Get-ScoutProp $_ 'kind')
+                sharedKeyAccess    = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.allowSharedKeyAccess')
+                keySource          = [string] (Get-ScoutProp $_ 'properties.encryption.keySource')
+                infrastructureEncryption = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.encryption.requireInfrastructureEncryption')
+                publicNetworkAccess = [string] (Get-ScoutProp $_ 'properties.publicNetworkAccess')
+                allowCrossTenantReplication = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.allowCrossTenantReplication')
+                defaultToOAuth     = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.defaultToOAuthAuthentication')
             }
         }
     )
@@ -1128,10 +1296,16 @@ function ConvertFrom-ScoutInventory {
     $result['sqlDatabases'] = @(
         Select-ByType 'microsoft.sql/servers/databases' | ForEach-Object {
             [pscustomobject]@{
+                id            = [string] (Get-ScoutProp $_ 'id')
                 name          = [string] (Get-ScoutProp $_ 'name')
                 resourceGroup = [string] (Get-ScoutProp $_ 'resourceGroup')
+                location      = [string] (Get-ScoutProp $_ 'location')
                 zoneRedundant = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.zoneRedundant')
                 tier          = [string] (Get-ScoutProp $_ 'sku.tier')
+                # AB#9300 phase 4 -- mirrors the KQL field for field.
+                backupRedundancy = [string] (Get-ScoutProp $_ 'properties.requestedBackupStorageRedundancy')
+                secondaryType    = [string] (Get-ScoutProp $_ 'properties.secondaryType')
+                haReplicaCount   = ConvertTo-ScoutInt (Get-ScoutProp $_ 'properties.highAvailabilityReplicaCount')
             }
         }
     )
@@ -1139,9 +1313,18 @@ function ConvertFrom-ScoutInventory {
     $result['sqlServers'] = @(
         Select-ByType 'microsoft.sql/servers' | ForEach-Object {
             [pscustomobject]@{
+                id                  = [string] (Get-ScoutProp $_ 'id')
                 name                = [string] (Get-ScoutProp $_ 'name')
                 resourceGroup       = [string] (Get-ScoutProp $_ 'resourceGroup')
+                location            = [string] (Get-ScoutProp $_ 'location')
                 publicNetworkAccess = [string] (Get-ScoutProp $_ 'properties.publicNetworkAccess')
+                # AB#9300 phase 4 -- mirrors the KQL field for field. The administrator's sid /
+                # tenantId / login are never read; entraOnlyAuth is the one boolean taken from
+                # properties.administrators, and cmkEnabled is a bool only (never the key uri).
+                minimalTlsVersion   = [string] (Get-ScoutProp $_ 'properties.minimalTlsVersion')
+                entraOnlyAuth       = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.administrators.azureADOnlyAuthentication')
+                identityType        = [string] (Get-ScoutProp $_ 'identity.type')
+                cmkEnabled          = -not [string]::IsNullOrEmpty([string] (Get-ScoutProp $_ 'properties.keyId'))
             }
         }
     )
@@ -1150,12 +1333,19 @@ function ConvertFrom-ScoutInventory {
         Select-ByType 'microsoft.web/sites' | ForEach-Object {
             $sslStates = Measure-ScoutArray (Get-ScoutProp $_ 'properties.hostNameSslStates')
             [pscustomobject]@{
+                id                = [string] (Get-ScoutProp $_ 'id')
                 name              = [string] (Get-ScoutProp $_ 'name')
                 resourceGroup     = [string] (Get-ScoutProp $_ 'resourceGroup')
+                location          = [string] (Get-ScoutProp $_ 'location')
+                kind              = [string] (Get-ScoutProp $_ 'kind')
                 httpsOnly         = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.httpsOnly')
                 minTls            = [string] (Get-ScoutProp $_ 'properties.siteConfig.minTlsVersion')
                 vnetIntegrated    = -not [string]::IsNullOrEmpty([string] (Get-ScoutProp $_ 'properties.virtualNetworkSubnetId'))
                 customDomainBound = ($null -ne $sslStates -and $sslStates -gt 1)
+                # AB#9300 phase 4 -- mirrors the KQL field for field.
+                publicNetworkAccess = [string] (Get-ScoutProp $_ 'properties.publicNetworkAccess')
+                identityType        = [string] (Get-ScoutProp $_ 'identity.type')
+                clientCertEnabled   = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.clientCertEnabled')
             }
         }
     )
@@ -1169,15 +1359,43 @@ function ConvertFrom-ScoutInventory {
                     $zones = Measure-ScoutArray (Get-ScoutProp $_ 'availabilityZones')
                     $null -ne $zones -and $zones -gt 0
                 }).Count
+            # AB#9300 phase 4 -- mirrors the KQL summarize. A pool autoscales only when its flag is
+            # an explicit true (a missing flag is a fixed-size pool). systemPoolMinNodes is the
+            # smallest node count a SYSTEM pool may fall to: minCount when it autoscales, else its
+            # fixed count; null when the cluster has no system pool (min() ignores nulls).
+            $autoscalePools = 0
+            $systemPoolNodeFloors = [System.Collections.Generic.List[object]]::new()
+            foreach ($pool in $pools) {
+                if ($null -eq $pool) { continue }
+                $poolAutoscales = (ConvertTo-ScoutBool (Get-ScoutProp $pool 'enableAutoScaling')) -eq $true
+                if ($poolAutoscales) { $autoscalePools++ }
+                if (([string] (Get-ScoutProp $pool 'mode')) -ieq 'System') {
+                    $poolFloorRaw = if ($poolAutoscales) { Get-ScoutProp $pool 'minCount' } else { Get-ScoutProp $pool 'count' }
+                    $systemPoolNodeFloors.Add((ConvertTo-ScoutInt $poolFloorRaw))
+                }
+            }
             [pscustomobject]@{
+                id                   = [string] (Get-ScoutProp $_ 'id')
                 name                 = [string] (Get-ScoutProp $_ 'name')
                 resourceGroup        = [string] (Get-ScoutProp $_ 'resourceGroup')
+                location             = [string] (Get-ScoutProp $_ 'location')
                 k8sVersion           = [string] (Get-ScoutProp $_ 'properties.kubernetesVersion')
                 privateCluster       = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.apiServerAccessProfile.enablePrivateCluster')
                 rbacEnabled          = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.enableRBAC')
                 networkPolicyEnabled = -not [string]::IsNullOrEmpty([string] (Get-ScoutProp $_ 'properties.networkProfile.networkPolicy'))
                 aadIntegrated        = ($null -ne (Get-ScoutProp $_ 'properties.aadProfile'))
                 allPoolsZoned        = ($zonedPools -eq $totalPools)
+                tier                 = [string] (Get-ScoutProp $_ 'sku.tier')
+                systemPoolMinNodes   = Get-ScoutMinValue -Values ($systemPoolNodeFloors.ToArray())
+                allPoolsAutoscale    = ($autoscalePools -eq $totalPools)
+                disableLocalAccounts = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.disableLocalAccounts')
+                upgradeChannel       = [string] (Get-ScoutProp $_ 'properties.autoUpgradeProfile.upgradeChannel')
+                nodeOsUpgradeChannel = [string] (Get-ScoutProp $_ 'properties.autoUpgradeProfile.nodeOSUpgradeChannel')
+                # A COUNT -- the authorised IP ranges themselves are never shaped.
+                authorizedIpRangeCount = Measure-ScoutArray (Get-ScoutPropArray $_ 'properties.apiServerAccessProfile.authorizedIPRanges')
+                defenderEnabled      = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.securityProfile.defender.securityMonitoring.enabled')
+                workloadIdentity     = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.securityProfile.workloadIdentity.enabled')
+                azureRbac            = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.aadProfile.enableAzureRBAC')
             }
         }
     )
@@ -1218,6 +1436,12 @@ function ConvertFrom-ScoutInventory {
                 location          = [string] (Get-ScoutProp $_ 'location')
                 provisioningState = [string] (Get-ScoutProp $_ 'properties.provisioningState')
                 environmentId     = [string] (Get-ScoutProp $_ 'properties.environmentId')
+                # AB#9300 phase 4 -- mirrors the KQL field for field. configuration.secrets is
+                # NEVER read (it holds secret values); only the ingress switches and scale floor.
+                minReplicas       = ConvertTo-ScoutInt (Get-ScoutProp $_ 'properties.template.scale.minReplicas')
+                externalIngress   = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.configuration.ingress.external')
+                allowInsecure     = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.configuration.ingress.allowInsecure')
+                identityType      = [string] (Get-ScoutProp $_ 'identity.type')
             }
         }
     )
@@ -1231,6 +1455,12 @@ function ConvertFrom-ScoutInventory {
                 subscriptionId    = [string] (Get-ScoutProp $_ 'subscriptionId')
                 location          = [string] (Get-ScoutProp $_ 'location')
                 provisioningState = [string] (Get-ScoutProp $_ 'properties.provisioningState')
+                # AB#9300 phase 4 -- mirrors the KQL field for field. The Log Analytics sharedKey in
+                # appLogsConfiguration is NEVER read.
+                zoneRedundant       = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.zoneRedundant')
+                internal            = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.vnetConfiguration.internal')
+                vnetIntegrated      = -not [string]::IsNullOrEmpty([string] (Get-ScoutProp $_ 'properties.vnetConfiguration.infrastructureSubnetId'))
+                publicNetworkAccess = [string] (Get-ScoutProp $_ 'properties.publicNetworkAccess')
             }
         }
     )
@@ -1295,6 +1525,11 @@ function ConvertFrom-ScoutInventory {
                 sku            = [string] (Get-ScoutProp $_ 'sku.name')
                 diskState      = [string] (Get-ScoutProp $_ 'properties.diskState')
                 sizeGb         = if ($null -eq $sizeRaw) { $null } else { [int] $sizeRaw }
+                # AB#9300 phase 4 -- mirrors the KQL field for field.
+                zoneCount           = Measure-ScoutArray (Get-ScoutPropArray $_ 'zones')
+                networkAccessPolicy = [string] (Get-ScoutProp $_ 'properties.networkAccessPolicy')
+                publicNetworkAccess = [string] (Get-ScoutProp $_ 'properties.publicNetworkAccess')
+                encryptionType      = [string] (Get-ScoutProp $_ 'properties.encryption.type')
             }
         }
     )
@@ -1614,11 +1849,23 @@ function ConvertFrom-ScoutInventory {
     $result['eventHubNamespaces'] = @(
         Select-ByType 'microsoft.eventhub/namespaces' | ForEach-Object {
             [pscustomobject]@{
+                id                 = [string] (Get-ScoutProp $_ 'id')
                 name               = [string] (Get-ScoutProp $_ 'name')
                 resourceGroup      = [string] (Get-ScoutProp $_ 'resourceGroup')
+                location           = [string] (Get-ScoutProp $_ 'location')
                 zoneRedundant      = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.zoneRedundant')
                 publicAccess       = [string] (Get-ScoutProp $_ 'properties.publicNetworkAccess')
                 autoInflateEnabled = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.isAutoInflateEnabled')
+                # AB#9300 phase 4 -- mirrors the KQL field for field. encryption.keyVaultProperties
+                # is NEVER read; only the key source and the double-encryption flag.
+                skuName            = [string] (Get-ScoutProp $_ 'sku.name')
+                capacity           = ConvertTo-ScoutInt (Get-ScoutProp $_ 'sku.capacity')
+                maxThroughputUnits = ConvertTo-ScoutInt (Get-ScoutProp $_ 'properties.maximumThroughputUnits')
+                geoReplicaCount    = Measure-ScoutArray (Get-ScoutPropArray $_ 'properties.geoDataReplication.locations')
+                disableLocalAuth   = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.disableLocalAuth')
+                minimumTlsVersion  = [string] (Get-ScoutProp $_ 'properties.minimumTlsVersion')
+                cmkKeySource       = [string] (Get-ScoutProp $_ 'properties.encryption.keySource')
+                doubleEncryption   = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.encryption.requireInfrastructureEncryption')
             }
         }
     )
@@ -1626,10 +1873,18 @@ function ConvertFrom-ScoutInventory {
     $result['apiManagement'] = @(
         Select-ByType 'microsoft.apimanagement/service' | ForEach-Object {
             [pscustomobject]@{
+                id                 = [string] (Get-ScoutProp $_ 'id')
                 name               = [string] (Get-ScoutProp $_ 'name')
                 resourceGroup      = [string] (Get-ScoutProp $_ 'resourceGroup')
+                location           = [string] (Get-ScoutProp $_ 'location')
                 sku                = [string] (Get-ScoutProp $_ 'sku.name')
                 virtualNetworkType = [string] (Get-ScoutProp $_ 'properties.virtualNetworkType')
+                # AB#9300 phase 4 -- mirrors the KQL field for field.
+                zoneCount             = Measure-ScoutArray (Get-ScoutPropArray $_ 'zones')
+                capacity              = ConvertTo-ScoutInt (Get-ScoutProp $_ 'sku.capacity')
+                additionalRegionCount = Measure-ScoutArray (Get-ScoutPropArray $_ 'properties.additionalLocations')
+                publicNetworkAccess   = [string] (Get-ScoutProp $_ 'properties.publicNetworkAccess')
+                identityType          = [string] (Get-ScoutProp $_ 'identity.type')
             }
         }
     )
@@ -1637,9 +1892,40 @@ function ConvertFrom-ScoutInventory {
     $result['serviceBusNamespaces'] = @(
         Select-ByType 'microsoft.servicebus/namespaces' | ForEach-Object {
             [pscustomobject]@{
+                id            = [string] (Get-ScoutProp $_ 'id')
                 name          = [string] (Get-ScoutProp $_ 'name')
                 resourceGroup = [string] (Get-ScoutProp $_ 'resourceGroup')
+                location      = [string] (Get-ScoutProp $_ 'location')
                 publicAccess  = [string] (Get-ScoutProp $_ 'properties.publicNetworkAccess')
+                # AB#9300 phase 4 -- mirrors the KQL field for field. encryption.keyVaultProperties
+                # is NEVER read; only the key source.
+                tier              = [string] (Get-ScoutProp $_ 'sku.tier')
+                capacity          = ConvertTo-ScoutInt (Get-ScoutProp $_ 'sku.capacity')
+                zoneRedundant     = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.zoneRedundant')
+                geoReplicaCount   = Measure-ScoutArray (Get-ScoutPropArray $_ 'properties.geoDataReplication.locations')
+                disableLocalAuth  = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.disableLocalAuth')
+                minimumTlsVersion = [string] (Get-ScoutProp $_ 'properties.minimumTlsVersion')
+                cmkKeySource      = [string] (Get-ScoutProp $_ 'properties.encryption.keySource')
+            }
+        }
+    )
+
+    # AB#9300 phase 4 -- Event Grid topics, domains and namespaces had no dataset. Mirrors
+    # Invoke-Collect.ps1's `eventGrid` KQL field for field. disableLocalAuth applies to
+    # topics/domains and isZoneRedundant to namespaces, so each is null on the other types.
+    # inboundIpRuleCount is a COUNT -- the IP masks are never read.
+    $result['eventGrid'] = @(
+        Select-ByAnyType @('microsoft.eventgrid/topics', 'microsoft.eventgrid/domains', 'microsoft.eventgrid/namespaces') | ForEach-Object {
+            [pscustomobject]@{
+                id                  = [string] (Get-ScoutProp $_ 'id')
+                name                = [string] (Get-ScoutProp $_ 'name')
+                type                = [string] (Get-ScoutProp $_ 'type')
+                publicNetworkAccess = [string] (Get-ScoutProp $_ 'properties.publicNetworkAccess')
+                inboundIpRuleCount  = Measure-ScoutArray (Get-ScoutPropArray $_ 'properties.inboundIpRules')
+                minimumTlsVersion   = [string] (Get-ScoutProp $_ 'properties.minimumTlsVersionAllowed')
+                disableLocalAuth    = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.disableLocalAuth')
+                zoneRedundant       = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.isZoneRedundant')
+                identityType        = [string] (Get-ScoutProp $_ 'identity.type')
             }
         }
     )
@@ -1733,6 +2019,12 @@ function ConvertFrom-ScoutInventory {
                 location               = [string] (Get-ScoutProp $_ 'location')
                 sku                    = [string] (Get-ScoutProp $_ 'sku.name')
                 managedResourceGroupId = [string] (Get-ScoutProp $_ 'properties.managedResourceGroupId')
+                # AB#9300 phase 4 -- mirrors the KQL field for field. vnetInjected is a BOOL ONLY
+                # (the customer VNet id itself is never shaped).
+                vnetInjected           = -not [string]::IsNullOrEmpty([string] (Get-ScoutProp $_ 'properties.parameters.customVirtualNetworkId.value'))
+                noPublicIp             = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.parameters.enableNoPublicIp.value')
+                publicNetworkAccess    = [string] (Get-ScoutProp $_ 'properties.publicNetworkAccess')
+                requiredNsgRules       = [string] (Get-ScoutProp $_ 'properties.requiredNsgRules')
             }
         }
     )
@@ -1860,9 +2152,20 @@ function ConvertFrom-ScoutInventory {
         Select-ByType 'microsoft.operationalinsights/workspaces' | ForEach-Object {
             $retention = Get-ScoutProp $_ 'properties.retentionInDays'
             [pscustomobject]@{
+                id              = [string] (Get-ScoutProp $_ 'id')
                 name            = [string] (Get-ScoutProp $_ 'name')
                 resourceGroup   = [string] (Get-ScoutProp $_ 'resourceGroup')
+                location        = [string] (Get-ScoutProp $_ 'location')
                 retentionInDays = if ($null -eq $retention) { $null } else { [int] $retention }
+                # AB#9300 phase 4 -- mirrors the KQL field for field. The pricing tier lives in
+                # properties.sku.name (the top-level sku column is not where it is carried).
+                skuName         = [string] (Get-ScoutProp $_ 'properties.sku.name')
+                dailyQuotaGb    = ConvertTo-ScoutDouble (Get-ScoutProp $_ 'properties.workspaceCapping.dailyQuotaGb')
+                publicNetworkAccessForIngestion = [string] (Get-ScoutProp $_ 'properties.publicNetworkAccessForIngestion')
+                publicNetworkAccessForQuery     = [string] (Get-ScoutProp $_ 'properties.publicNetworkAccessForQuery')
+                disableLocalAuth      = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.features.disableLocalAuth')
+                resourceContextAccess = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.features.enableLogAccessUsingOnlyResourcePermissions')
+                replicationEnabled    = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.replication.enabled')
             }
         }
     )
@@ -1899,6 +2202,10 @@ function ConvertFrom-ScoutInventory {
                 publicAccess  = [string] (Get-ScoutProp $_ 'properties.publicNetworkAccess')
                 identityType  = [string] (Get-ScoutProp $_ 'identity.type')
                 isolationMode = [string] (Get-ScoutProp $_ 'properties.managedNetwork.isolationMode')
+                # AB#9300 phase 4 -- mirrors the KQL field for field.
+                cmkStatus     = [string] (Get-ScoutProp $_ 'properties.encryption.status')
+                hbiWorkspace  = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.hbiWorkspace')
+                v1LegacyMode  = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.v1LegacyMode')
             }
         }
     )
@@ -1915,6 +2222,13 @@ function ConvertFrom-ScoutInventory {
                 publicAccess  = [string] (Get-ScoutProp $_ 'properties.publicNetworkAccess')
                 disableLocalAuth = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.disableLocalAuth')
                 replicaCount  = if ($null -eq $replicaRaw -or [string]::IsNullOrWhiteSpace([string]$replicaRaw)) { $null } else { [int] $replicaRaw }
+                # AB#9300 phase 4 -- mirrors the KQL field for field. ipRuleCount is a COUNT; the IP
+                # rules themselves are never shaped.
+                identityType     = [string] (Get-ScoutProp $_ 'identity.type')
+                cmkEnforcement   = [string] (Get-ScoutProp $_ 'properties.encryptionWithCmk.enforcement')
+                ipRuleCount      = Measure-ScoutArray (Get-ScoutPropArray $_ 'properties.networkRuleSet.ipRules')
+                semanticSearch   = [string] (Get-ScoutProp $_ 'properties.semanticSearch')
+                partitionCount   = ConvertTo-ScoutInt (Get-ScoutProp $_ 'properties.partitionCount')
             }
         }
     )
@@ -2422,6 +2736,8 @@ function ConvertFrom-ScoutInventory {
                 autoMitigate     = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.autoMitigate')
                 scopeCount       = Measure-ScoutArray (Get-ScoutPropArray $_ 'properties.scopes')
                 actionGroupCount = Measure-ScoutArray (Get-ScoutPropArray $_ 'properties.actions')
+                # AB#9300 phase 4 -- mirrors the KQL field for field.
+                targetResourceType = [string] (Get-ScoutProp $_ 'properties.targetResourceType')
             }
         }
     )
@@ -2443,8 +2759,22 @@ function ConvertFrom-ScoutInventory {
         }
     )
 
+    # `category` is the `equals` of the properties.condition.allOf[] entry whose field is
+    # "category" (Administrative / ServiceHealth / ResourceHealth / Security / ...): $null when
+    # no entry names one, exactly as the KQL mv-apply reads it. An entry with no `equals` (a
+    # `containsAny` condition) does not count, like the KQL's isnotempty() filter.
     $result['activityLogAlertRules'] = @(
         Select-ByType 'microsoft.insights/activitylogalerts' | ForEach-Object {
+            $conditions = Get-ScoutPropArray $_ 'properties.condition.allOf'
+            $alertCategory = $null
+            foreach ($condition in @($conditions)) {
+                if ($null -eq $condition) { continue }
+                if (([string] (Get-ScoutProp $condition 'field')) -ine 'category') { continue }
+                $equalsValue = [string] (Get-ScoutProp $condition 'equals')
+                if ([string]::IsNullOrEmpty($equalsValue)) { continue }
+                $alertCategory = $equalsValue
+                break
+            }
             [pscustomobject]@{
                 id               = [string] (Get-ScoutProp $_ 'id')
                 name             = [string] (Get-ScoutProp $_ 'name')
@@ -2453,6 +2783,7 @@ function ConvertFrom-ScoutInventory {
                 enabled          = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.enabled')
                 scopeCount       = Measure-ScoutArray (Get-ScoutPropArray $_ 'properties.scopes')
                 actionGroupCount = Measure-ScoutArray (Get-ScoutPropArray $_ 'properties.actions.actionGroups')
+                category         = $alertCategory
             }
         }
     )
@@ -2488,6 +2819,11 @@ function ConvertFrom-ScoutInventory {
                 ingestionMode                   = [string] (Get-ScoutProp $_ 'properties.IngestionMode')
                 publicNetworkAccessForIngestion = [string] (Get-ScoutProp $_ 'properties.publicNetworkAccessForIngestion')
                 publicNetworkAccessForQuery     = [string] (Get-ScoutProp $_ 'properties.publicNetworkAccessForQuery')
+                # AB#9300 phase 4 -- mirrors the KQL field for field. Both properties are
+                # PascalCase in the ARM payload. workspaceBased is a BOOL ONLY (the workspace
+                # resource id itself is never shaped).
+                workspaceBased                  = -not [string]::IsNullOrEmpty([string] (Get-ScoutProp $_ 'properties.WorkspaceResourceId'))
+                disableLocalAuth                = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.DisableLocalAuth')
             }
         }
     )
@@ -2569,6 +2905,15 @@ function ConvertFrom-ScoutInventory {
 
     $result['cosmosDbAccounts'] = @(
         Select-ByType 'microsoft.documentdb/databaseaccounts' | ForEach-Object {
+            # AB#9300 phase 4 -- mirrors the KQL. zoneRedundantRegionCount counts the locations whose
+            # isZoneRedundant flag is true (a location with no flag counts as not redundant); an
+            # account with no locations array reads 0, like the KQL's one-element placeholder.
+            $locations = Get-ScoutPropArray $_ 'properties.locations'
+            $zoneRedundantRegions = 0
+            foreach ($cosmosLocation in @($locations)) {
+                if ($null -eq $cosmosLocation) { continue }
+                if ((ConvertTo-ScoutBool (Get-ScoutProp $cosmosLocation 'isZoneRedundant')) -eq $true) { $zoneRedundantRegions++ }
+            }
             [pscustomobject]@{
                 id                  = [string] (Get-ScoutProp $_ 'id')
                 name                = [string] (Get-ScoutProp $_ 'name')
@@ -2578,6 +2923,16 @@ function ConvertFrom-ScoutInventory {
                 kind                = [string] (Get-ScoutProp $_ 'kind')
                 publicNetworkAccess = [string] (Get-ScoutProp $_ 'properties.publicNetworkAccess')
                 disableLocalAuth    = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.disableLocalAuth')
+                regionCount              = Measure-ScoutArray $locations
+                zoneRedundantRegionCount = $zoneRedundantRegions
+                automaticFailover   = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.enableAutomaticFailover')
+                backupType          = [string] (Get-ScoutProp $_ 'properties.backupPolicy.type')
+                multiRegionWrites   = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.enableMultipleWriteLocations')
+                minimalTlsVersion   = [string] (Get-ScoutProp $_ 'properties.minimalTlsVersion')
+                vnetFilterEnabled   = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.isVirtualNetworkFilterEnabled')
+                # A COUNT -- the IP ranges and the key vault key uri are never shaped.
+                ipRuleCount         = Measure-ScoutArray (Get-ScoutPropArray $_ 'properties.ipRules')
+                cmkEnabled          = -not [string]::IsNullOrEmpty([string] (Get-ScoutProp $_ 'properties.keyVaultKeyUri'))
             }
         }
     )
@@ -2623,6 +2978,12 @@ function ConvertFrom-ScoutInventory {
                 sku                 = [string] (Get-ScoutProp $_ 'sku.name')
                 version             = [string] (Get-ScoutProp $_ 'properties.version')
                 publicNetworkAccess = [string] (Get-ScoutProp $_ 'properties.network.publicNetworkAccess')
+                # AB#9300 phase 4 -- mirrors the KQL field for field.
+                haMode              = [string] (Get-ScoutProp $_ 'properties.highAvailability.mode')
+                geoBackup           = [string] (Get-ScoutProp $_ 'properties.backup.geoRedundantBackup')
+                backupRetentionDays = ConvertTo-ScoutInt (Get-ScoutProp $_ 'properties.backup.backupRetentionDays')
+                encryptionType      = [string] (Get-ScoutProp $_ 'properties.dataEncryption.type')
+                storageAutoGrow     = [string] (Get-ScoutProp $_ 'properties.storage.autoGrow')
             }
         }
     )
@@ -2638,12 +2999,28 @@ function ConvertFrom-ScoutInventory {
                 sku                 = [string] (Get-ScoutProp $_ 'sku.name')
                 version             = [string] (Get-ScoutProp $_ 'properties.version')
                 publicNetworkAccess = [string] (Get-ScoutProp $_ 'properties.network.publicNetworkAccess')
+                # AB#9300 phase 4 -- mirrors the KQL field for field.
+                tier                = [string] (Get-ScoutProp $_ 'sku.tier')
+                haMode              = [string] (Get-ScoutProp $_ 'properties.highAvailability.mode')
+                geoBackup           = [string] (Get-ScoutProp $_ 'properties.backup.geoRedundantBackup')
+                backupRetentionDays = ConvertTo-ScoutInt (Get-ScoutProp $_ 'properties.backup.backupRetentionDays')
+                encryptionType      = [string] (Get-ScoutProp $_ 'properties.dataEncryption.type')
+                entraAuth           = [string] (Get-ScoutProp $_ 'properties.authConfig.activeDirectoryAuth')
+                passwordAuth        = [string] (Get-ScoutProp $_ 'properties.authConfig.passwordAuth')
             }
         }
     )
 
+    # AB#9300 phase 4 -- classic Cache for Redis (microsoft.cache/redis) keeps its SKU under
+    # properties.sku (the top-level `sku` is absent); Redis Enterprise keeps it in the top-level
+    # `sku`. skuFamily / skuCapacity exist only on the classic properties.sku. NEVER read
+    # properties.redisConfiguration as a whole: it holds the rdb/aof storage CONNECTION STRINGS.
+    # The single key aad-enabled is read by name and nothing else.
     $result['redisCaches'] = @(
         Select-ByAnyType @('microsoft.cache/redis', 'microsoft.cache/redisenterprise') | ForEach-Object {
+            $redisIsClassic = ([string] (Get-ScoutProp $_ 'type')) -ieq 'microsoft.cache/redis'
+            $redisReplicas = ConvertTo-ScoutInt (Get-ScoutProp $_ 'properties.replicasPerMaster')
+            if ($null -eq $redisReplicas) { $redisReplicas = ConvertTo-ScoutInt (Get-ScoutProp $_ 'properties.replicasPerPrimary') }
             [pscustomobject]@{
                 id                  = [string] (Get-ScoutProp $_ 'id')
                 name                = [string] (Get-ScoutProp $_ 'name')
@@ -2651,8 +3028,18 @@ function ConvertFrom-ScoutInventory {
                 resourceGroup       = [string] (Get-ScoutProp $_ 'resourceGroup')
                 subscriptionId      = [string] (Get-ScoutProp $_ 'subscriptionId')
                 location            = [string] (Get-ScoutProp $_ 'location')
-                sku                 = [string] (Get-ScoutProp $_ 'sku.name')
+                sku                 = if ($redisIsClassic) { [string] (Get-ScoutProp $_ 'properties.sku.name') } else { [string] (Get-ScoutProp $_ 'sku.name') }
+                skuFamily           = [string] (Get-ScoutProp $_ 'properties.sku.family')
+                skuCapacity         = ConvertTo-ScoutInt (Get-ScoutProp $_ 'properties.sku.capacity')
                 publicNetworkAccess = [string] (Get-ScoutProp $_ 'properties.publicNetworkAccess')
+                zoneCount           = Measure-ScoutArray (Get-ScoutPropArray $_ 'zones')
+                zonalAllocationPolicy = [string] (Get-ScoutProp $_ 'properties.zonalAllocationPolicy')
+                replicasPerPrimary  = $redisReplicas
+                minimumTlsVersion   = [string] (Get-ScoutProp $_ 'properties.minimumTlsVersion')
+                nonSslPortEnabled   = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.enableNonSslPort')
+                accessKeyAuthDisabled = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.disableAccessKeyAuthentication')
+                aadEnabled          = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.redisConfiguration.aad-enabled')
+                highAvailability    = [string] (Get-ScoutProp $_ 'properties.highAvailability')
             }
         }
     )
@@ -2669,6 +3056,14 @@ function ConvertFrom-ScoutInventory {
                 sku                         = [string] (Get-ScoutProp $_ 'sku.name')
                 publicDataEndpointEnabled   = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.publicDataEndpointEnabled')
                 vCores                      = if ($null -eq $vCoresRaw) { $null } else { [int] $vCoresRaw }
+                # AB#9300 phase 4 -- mirrors the KQL field for field. The administrator's sid /
+                # tenantId / login are never read; entraOnlyAuth is the one boolean taken from
+                # properties.administrators.
+                zoneRedundant               = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.zoneRedundant')
+                backupRedundancy            = [string] (Get-ScoutProp $_ 'properties.requestedBackupStorageRedundancy')
+                entraOnlyAuth               = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.administrators.azureADOnlyAuthentication')
+                minimalTlsVersion           = [string] (Get-ScoutProp $_ 'properties.minimalTlsVersion')
+                cmkEnabled                  = -not [string]::IsNullOrEmpty([string] (Get-ScoutProp $_ 'properties.keyId'))
             }
         }
     )
@@ -2799,6 +3194,10 @@ function ConvertFrom-ScoutInventory {
                 location       = [string] (Get-ScoutProp $_ 'location')
                 sku            = [string] (Get-ScoutProp $_ 'sku.name')
                 reserved       = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.reserved')
+                # AB#9300 phase 4 -- mirrors the KQL field for field.
+                zoneRedundant  = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.zoneRedundant')
+                instanceCount  = ConvertTo-ScoutInt (Get-ScoutProp $_ 'sku.capacity')
+                tier           = [string] (Get-ScoutProp $_ 'sku.tier')
             }
         }
     )

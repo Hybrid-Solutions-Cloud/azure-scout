@@ -1,0 +1,1830 @@
+# waf.serviceguides.yaml -- Well-Architected service guides (AB#9300)
+#
+# Microsoft publishes a Well-Architected "service guide" per Azure service, each with a table of
+# "Configuration recommendations" for every pillar. This file scores an estate against the ones whose
+# setting Scout can read: the rule queries Scout's own collect.json, gated on the resource type
+# existing, so an estate without a service reports that guide Not assessed rather than passed.
+#
+# Written ONLY against docs/frameworks/waf-service-guides-checklist.md. Microsoft does not number
+# these recommendations, so the WAF-SVC-<SERVICE>-NN ids are Scout's. Each rule lists the resources
+# that break the recommendation and passes at zero. Recommendations that no collected field can
+# answer stay manual, with the closest evidence attached where there is some.
+#
+# Conventions worth knowing before editing a query:
+#   * Newtonsoft JSONPath has no grouping parentheses and no defined && / || precedence, so every
+#     filter is all-AND or all-OR; an either/or on a string is written as one regex.
+#   * A property that is absent never matches == or !=, but null does match == null and < N, and a
+#     projected string is '' when absent. "Absent means bad" settings are therefore written as
+#     != true (booleans), < 1 (counts) or a regex that accepts the empty string (strings).
+#   * Joins compare keys lower-cased and trimmed, so ARM id casing never produces a false finding.
+#   * Zone items are limited to the regions Scout's VM zoneEligible list already treats as having
+#     availability zones, so a region without zones is not failed for lacking them.
+area: "Service guides"
+framework: WAF-SVC
+frameworkversion: "Azure Well-Architected Framework service guides (learn.microsoft.com/azure/well-architected/service-guides), docs/frameworks/waf-service-guides-checklist.md, retrieved 2026-11-25"
+weight: 1.0
+verifiedAgainst: "docs/frameworks/waf-service-guides-checklist.md (Scout enumeration of the Configuration recommendations tables of 20 service guides), verified 2026-11-25"
+rules:
+
+  # ---- Azure Kubernetes Service (WAF-SVC-AKS) -- https://learn.microsoft.com/azure/well-architected/service-guides/azure-kubernetes-service ----
+  # Reliability: `tier`
+  - id: WAF-SVC-AKS-01
+    title: "WAF-SVC-AKS-01. Clusters use the Standard or Premium tier, which carries the uptime SLA"
+    severity: high
+    query: "$.domains.containers.aksClusters[?(@.tier != 'Standard' && @.tier != 'Premium')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.containers.aksClusters[*]" }
+    remediation: "WAF-SVC-AKS-01. The clusters listed run on the Free tier, which has no financially backed uptime SLA. Move production clusters to the Standard or Premium tier."
+    manual: false
+  # Reliability: `allPoolsZoned`, in zone regions
+  - id: WAF-SVC-AKS-02
+    title: "WAF-SVC-AKS-02. Every node pool is spread across availability zones"
+    severity: high
+    query: "$.domains.containers.aksClusters[?(@.allPoolsZoned != true && @.location =~ /^(eastus|eastus2|westus2|westus3|centralus|southcentralus|northeurope|westeurope|uksouth|francecentral|germanywestcentral|switzerlandnorth|norwayeast|swedencentral|southeastasia|eastasia|australiaeast|japaneast|koreacentral|centralindia|canadacentral|brazilsouth|uaenorth|southafricanorth)$/i)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.containers.aksClusters[*]" }
+    remediation: "WAF-SVC-AKS-02. The clusters listed have at least one node pool that is not spread across availability zones in a region that has them. Node pool zones are set at creation, so add zoned pools and drain the old ones."
+    manual: false
+  # Security: `aadIntegrated`
+  - id: WAF-SVC-AKS-03
+    title: "WAF-SVC-AKS-03. Clusters authenticate users through Microsoft Entra ID"
+    severity: high
+    query: "$.domains.containers.aksClusters[?(@.aadIntegrated != true)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.containers.aksClusters[*]" }
+    remediation: "WAF-SVC-AKS-03. The clusters listed are not integrated with Microsoft Entra ID. Enable AKS-managed Entra integration so cluster access follows your identity controls."
+    manual: false
+  # Security: `disableLocalAccounts`
+  - id: WAF-SVC-AKS-04
+    title: "WAF-SVC-AKS-04. Local accounts are disabled so every access goes through Microsoft Entra ID"
+    severity: high
+    query: "$.domains.containers.aksClusters[?(@.disableLocalAccounts != true)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.containers.aksClusters[*]" }
+    remediation: "WAF-SVC-AKS-04. The clusters listed still allow the local admin accounts, which bypass Microsoft Entra ID. Disable local accounts once Entra integration works."
+    manual: false
+  # Security: `azureRbac`
+  - id: WAF-SVC-AKS-05
+    title: "WAF-SVC-AKS-05. Kubernetes authorization uses Azure RBAC"
+    severity: medium
+    query: "$.domains.containers.aksClusters[?(@.azureRbac != true)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.containers.aksClusters[*]" }
+    remediation: "WAF-SVC-AKS-05. The clusters listed authorize with Kubernetes RBAC alone. Turn on Azure RBAC for Kubernetes authorization so roles are managed with the rest of your Azure access."
+    manual: false
+  # Security: `privateCluster`, `authorizedIpRangeCount`
+  - id: WAF-SVC-AKS-06
+    title: "WAF-SVC-AKS-06. Public clusters limit the API server to authorized IP ranges"
+    severity: high
+    query: "$.domains.containers.aksClusters[?(@.privateCluster != true && @.authorizedIpRangeCount < 1)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.containers.aksClusters[*]" }
+    remediation: "WAF-SVC-AKS-06. The public clusters listed accept API server traffic from any address. Set authorized IP ranges (build agents, operations, node egress) or make the cluster private."
+    manual: false
+  # Security: `workloadIdentity`
+  - id: WAF-SVC-AKS-07
+    title: "WAF-SVC-AKS-07. Workloads use Microsoft Entra Workload ID"
+    severity: medium
+    query: "$.domains.containers.aksClusters[?(@.workloadIdentity != true)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.containers.aksClusters[*]" }
+    remediation: "WAF-SVC-AKS-07. The clusters listed have workload identity turned off, so pods that call Azure services need stored credentials. Enable workload identity and federate pod service accounts."
+    manual: false
+  # Security: `defenderEnabled`
+  - id: WAF-SVC-AKS-08
+    title: "WAF-SVC-AKS-08. Microsoft Defender for Containers is enabled"
+    severity: high
+    query: "$.domains.containers.aksClusters[?(@.defenderEnabled != true)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.containers.aksClusters[*]" }
+    remediation: "WAF-SVC-AKS-08. The clusters listed have the Defender security monitoring profile off. Enable Defender for Containers for runtime threat detection."
+    manual: false
+  # Security: `networkPolicyEnabled`
+  - id: WAF-SVC-AKS-09
+    title: "WAF-SVC-AKS-09. A network policy secures traffic between pods"
+    severity: medium
+    query: "$.domains.containers.aksClusters[?(@.networkPolicyEnabled != true)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.containers.aksClusters[*]" }
+    remediation: "WAF-SVC-AKS-09. The clusters listed have no network policy engine. Use Azure CNI powered by Cilium or Calico network policies to limit pod-to-pod traffic."
+    manual: false
+  # Operational excellence: `upgradeChannel`
+  - id: WAF-SVC-AKS-10
+    title: "WAF-SVC-AKS-10. Automatic cluster upgrades are enabled"
+    severity: medium
+    query: "$.domains.containers.aksClusters[?(@.upgradeChannel =~ /^(none)?$/i)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.containers.aksClusters[*]" }
+    remediation: "WAF-SVC-AKS-10. The clusters listed have the upgrade channel set to none, so Kubernetes upgrades are manual. Choose the patch, stable or rapid channel and plan maintenance windows."
+    manual: false
+  # Cost optimization: `allPoolsAutoscale`
+  - id: WAF-SVC-AKS-11
+    title: "WAF-SVC-AKS-11. The cluster autoscaler scales every node pool"
+    severity: low
+    query: "$.domains.containers.aksClusters[?(@.allPoolsAutoscale != true)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.containers.aksClusters[*]" }
+    remediation: "WAF-SVC-AKS-11. The clusters listed have node pools with a fixed node count. Enable the cluster autoscaler, or node auto-provisioning, so capacity follows demand. Clusters using node auto-provisioning can ignore this finding."
+    manual: false
+  # Security: evidence attached
+  - id: WAF-SVC-AKS-12
+    title: "WAF-SVC-AKS-12. Clusters that need strong API segmentation are private, and egress passes through a firewall, NAT gateway or proxy"
+    severity: medium
+    query: "$.domains.containers.aksClusters[?(@.privateCluster != true)]"
+    assert: { type: manual, gate: "$.domains.containers.aksClusters[*]" }
+    remediation: "WAF-SVC-AKS-12. Confirm clusters with segmentation requirements use a private API server and that outbound traffic leaves through Azure Firewall, a NAT gateway or an HTTP proxy. Clusters that are not private are attached as evidence."
+    manual: true
+  # Security: no collected field
+  - id: WAF-SVC-AKS-13
+    title: "WAF-SVC-AKS-13. Azure Policy and deployment safeguards enforce pod and cluster standards"
+    severity: medium
+    query: null
+    assert: { type: manual, gate: "$.domains.containers.aksClusters[*]" }
+    remediation: "WAF-SVC-AKS-13. Confirm the Azure Policy add-on and AKS deployment safeguards enforce resource limits, privilege restrictions and approved registries. Add-on state is not collected."
+    manual: true
+  # Reliability: evidence attached
+  - id: WAF-SVC-AKS-14
+    title: "WAF-SVC-AKS-14. Cluster state and application data are backed up, and maintenance is scheduled"
+    severity: medium
+    query: "$.management.maintenanceConfigurations[*]"
+    assert: { type: manual, gate: "$.domains.containers.aksClusters[*]" }
+    remediation: "WAF-SVC-AKS-14. Confirm Azure Backup for AKS protects the cluster and that planned maintenance windows govern cluster and node image upgrades. Maintenance configurations are attached as evidence."
+    manual: true
+
+  # ---- Azure App Service (Web Apps) (WAF-SVC-APP) -- https://learn.microsoft.com/azure/well-architected/service-guides/app-service-web-apps ----
+  # Reliability: `tier`
+  - id: WAF-SVC-APP-01
+    title: "WAF-SVC-APP-01. App Service plans use the Premium v3 tier or above"
+    severity: medium
+    query: "$.domains.web.appServicePlans[?(@.tier =~ /^(Free|Shared|Basic|Standard|Premium|PremiumV2)$/i)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.web.appServicePlans[*]" }
+    remediation: "WAF-SVC-APP-01. The plans listed are on the Free, Shared, Basic, Standard or Premium v2 tier. For production, move to Premium v3 for zone redundancy and better scaling; lower tiers are fine for development and test."
+    manual: false
+  # Reliability: `zoneRedundant`, in zone regions
+  - id: WAF-SVC-APP-02
+    title: "WAF-SVC-APP-02. Plans on a zone-capable tier are zone redundant"
+    severity: high
+    query: "$.domains.web.appServicePlans[?(@.zoneRedundant != true && @.tier =~ /^(PremiumV2|PremiumV3|Premium0V3|PremiumMV3|IsolatedV2)$/i && @.location =~ /^(eastus|eastus2|westus2|westus3|centralus|southcentralus|northeurope|westeurope|uksouth|francecentral|germanywestcentral|switzerlandnorth|norwayeast|swedencentral|southeastasia|eastasia|australiaeast|japaneast|koreacentral|centralindia|canadacentral|brazilsouth|uaenorth|southafricanorth)$/i)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.web.appServicePlans[*]" }
+    remediation: "WAF-SVC-APP-02. The plans listed are on a tier that supports zone redundancy in a region that has zones, but the setting is off. Enable zone redundancy; it needs at least two instances."
+    manual: false
+  # Reliability: `instanceCount`
+  - id: WAF-SVC-APP-03
+    title: "WAF-SVC-APP-03. Plans run more than one instance"
+    severity: high
+    query: "$.domains.web.appServicePlans[?(@.instanceCount != null && @.instanceCount < 2 && @.tier =~ /^(Basic|Standard|Premium|PremiumV2|PremiumV3|Premium0V3|PremiumMV3|IsolatedV2)$/i)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.web.appServicePlans[*]" }
+    remediation: "WAF-SVC-APP-03. The plans listed run a single instance, which is a single point of failure. Run at least two instances, or three or more across zones."
+    manual: false
+  # Performance efficiency: `appServicePlans` to enabled `autoscaleSettings`
+  - id: WAF-SVC-APP-04
+    title: "WAF-SVC-APP-04. Plans on a tier that supports it have an enabled autoscale setting"
+    severity: medium
+    join:
+      left: "$.domains.web.appServicePlans[?(@.tier =~ /^(Standard|Premium|PremiumV2|PremiumV3|Premium0V3|PremiumMV3|IsolatedV2)$/i)]"
+      leftKey: "id"
+      right: "$.monitor.autoscaleSettings[?(@.enabled == true)]"
+      rightKey: "targetResourceUri"
+      mode: leftOnly
+      leftLabel: "App Service plan"
+      rightLabel: "enabled autoscale setting"
+    assert: { type: countEquals, value: 0, gate: "$.domains.web.appServicePlans[*]" }
+    remediation: "WAF-SVC-APP-04. The plans listed have no enabled Azure Monitor autoscale setting. Add autoscale rules so instances follow load. Plans that use the built-in automatic scaling feature can ignore this finding."
+    manual: false
+  # Security: `identityType`
+  - id: WAF-SVC-APP-05
+    title: "WAF-SVC-APP-05. Web apps have a managed identity"
+    severity: medium
+    query: "$.domains.web.webApps[?(@.kind =~ /^(?!.*functionapp)/i && @.identityType =~ /^(none)?$/i)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.web.webApps[?(@.kind =~ /^(?!.*functionapp)/i)]" }
+    remediation: "WAF-SVC-APP-05. The web apps listed have no managed identity, so they need stored credentials to reach other Azure services. Assign a system-assigned or user-assigned identity per app."
+    manual: false
+  # Security: `httpsOnly`
+  - id: WAF-SVC-APP-06
+    title: "WAF-SVC-APP-06. Web apps accept HTTPS only"
+    severity: high
+    query: "$.domains.web.webApps[?(@.kind =~ /^(?!.*functionapp)/i && @.httpsOnly != true)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.web.webApps[?(@.kind =~ /^(?!.*functionapp)/i)]" }
+    remediation: "WAF-SVC-APP-06. The web apps listed still accept plain HTTP. Turn on HTTPS Only."
+    manual: false
+  # Security: `minTls`
+  - id: WAF-SVC-APP-07
+    title: "WAF-SVC-APP-07. Web apps require TLS 1.2 or higher"
+    severity: high
+    query: "$.domains.web.webApps[?(@.kind =~ /^(?!.*functionapp)/i && @.minTls =~ /^(1[.]0|1[.]1)$/)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.web.webApps[?(@.kind =~ /^(?!.*functionapp)/i)]" }
+    remediation: "WAF-SVC-APP-07. The web apps listed allow TLS 1.0 or 1.1. Set the minimum inbound TLS version to 1.2 or higher."
+    manual: false
+  # Security: `publicNetworkAccess`
+  - id: WAF-SVC-APP-08
+    title: "WAF-SVC-APP-08. Web apps block public network access"
+    severity: medium
+    query: "$.domains.web.webApps[?(@.kind =~ /^(?!.*functionapp)/i && @.publicNetworkAccess != 'Disabled')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.web.webApps[?(@.kind =~ /^(?!.*functionapp)/i)]" }
+    remediation: "WAF-SVC-APP-08. The web apps listed allow public network access. Add a private endpoint and set public network access to Disabled. Apps that rely on access restrictions instead can record an exception."
+    manual: false
+  # Security: `vnetIntegrated`
+  - id: WAF-SVC-APP-09
+    title: "WAF-SVC-APP-09. Web apps are integrated with a virtual network"
+    severity: medium
+    query: "$.domains.web.webApps[?(@.kind =~ /^(?!.*functionapp)/i && @.vnetIntegrated != true)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.web.webApps[?(@.kind =~ /^(?!.*functionapp)/i)]" }
+    remediation: "WAF-SVC-APP-09. The web apps listed have no virtual network integration, so outbound traffic leaves over the public network. Enable regional virtual network integration and route all outbound traffic through it."
+    manual: false
+  # Security: `customDomainBound`
+  - id: WAF-SVC-APP-10
+    title: "WAF-SVC-APP-10. Web apps use a custom domain"
+    severity: low
+    query: "$.domains.web.webApps[?(@.kind =~ /^(?!.*functionapp)/i && @.customDomainBound != true)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.web.webApps[?(@.kind =~ /^(?!.*functionapp)/i)]" }
+    remediation: "WAF-SVC-APP-10. The web apps listed only use the default azurewebsites.net name. Bind a custom domain with a certificate; App Service managed certificates are free."
+    manual: false
+  # Security: Defender plan `AppServices`
+  - id: WAF-SVC-APP-11
+    title: "WAF-SVC-APP-11. Microsoft Defender for App Service is enabled"
+    severity: high
+    query: "$.security.defenderPlans[?(@.name == 'AppServices' && @.properties.pricingTier != 'Standard')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.web.webApps[?(@.kind =~ /^(?!.*functionapp)/i)]" }
+    remediation: "WAF-SVC-APP-11. Defender for App Service is not on the Standard tier in the subscriptions listed. Enable it to detect threats against apps and plans."
+    manual: false
+  # Operational excellence: diagnostic-settings coverage of `microsoft.web/sites`
+  - id: WAF-SVC-APP-12
+    title: "WAF-SVC-APP-12. Web apps send diagnostic logs to a destination"
+    severity: medium
+    query: "$.opsPosture.diagnosticCoverage[?(@.type =~ /microsoft[.]web.sites/ && @.coveragePct < 100)]"
+    assert: { type: countEquals, value: 0, gate: "$.opsPosture.diagnosticCoverage[?(@.type =~ /microsoft[.]web.sites/)]" }
+    remediation: "WAF-SVC-APP-12. Some web apps have no diagnostic setting. Send app and platform logs to Log Analytics and keep an audit trail."
+    manual: false
+  # Reliability: no collected field
+  - id: WAF-SVC-APP-13
+    title: "WAF-SVC-APP-13. Health check, auto-heal and Always On are configured"
+    severity: medium
+    query: null
+    assert: { type: manual, gate: "$.domains.web.webApps[?(@.kind =~ /^(?!.*functionapp)/i)]" }
+    remediation: "WAF-SVC-APP-13. Confirm the health check path polls the app dependencies, auto-heal rules cover slow requests and memory limits, and Always On is set where WebJobs or shared plans need it. None of these site settings is collected."
+    manual: true
+  # Security: no collected field
+  - id: WAF-SVC-APP-14
+    title: "WAF-SVC-APP-14. Basic authentication, FTP and remote debugging are disabled, and secrets use Key Vault references"
+    severity: high
+    query: null
+    assert: { type: manual, gate: "$.domains.web.webApps[?(@.kind =~ /^(?!.*functionapp)/i)]" }
+    remediation: "WAF-SVC-APP-14. Confirm basic authentication for deployment and SCM is off, FTP is disabled, remote debugging is off, and app settings use Key Vault references. None of these site settings is collected."
+    manual: true
+  # Security: no collected field
+  - id: WAF-SVC-APP-15
+    title: "WAF-SVC-APP-15. Built-in authentication or Microsoft Entra ID authentication protects the app, with restrictive CORS"
+    severity: medium
+    query: null
+    assert: { type: manual, gate: "$.domains.web.webApps[?(@.kind =~ /^(?!.*functionapp)/i)]" }
+    remediation: "WAF-SVC-APP-15. Confirm user-facing apps authenticate with Microsoft Entra ID, either through App Service authentication or in code, and that CORS allows only the domains you need. Authentication settings are not collected."
+    manual: true
+  # Operational excellence: no collected field
+  - id: WAF-SVC-APP-16
+    title: "WAF-SVC-APP-16. Releases go through deployment slots and a pipeline"
+    severity: medium
+    query: null
+    assert: { type: manual, gate: "$.domains.web.webApps[?(@.kind =~ /^(?!.*functionapp)/i)]" }
+    remediation: "WAF-SVC-APP-16. Confirm production deploys by swapping a validated staging slot, from a CI/CD pipeline. Slots are not collected."
+    manual: true
+  # Cost optimization: evidence attached
+  - id: WAF-SVC-APP-17
+    title: "WAF-SVC-APP-17. Lower environments use Free or Basic plans, and steady workloads use reservations"
+    severity: low
+    query: "$.domains.web.appServicePlans[*]"
+    assert: { type: manual, gate: "$.domains.web.webApps[?(@.kind =~ /^(?!.*functionapp)/i)]" }
+    remediation: "WAF-SVC-APP-17. Review plans by environment; use Free or Basic for experiments and reserved instances or savings plans for stable Premium v3 use. Plans are attached as evidence."
+    manual: true
+
+  # ---- Azure Functions (WAF-SVC-FUNC) -- https://learn.microsoft.com/azure/well-architected/service-guides/azure-functions ----
+  # Security: `identityType`
+  - id: WAF-SVC-FUNC-01
+    title: "WAF-SVC-FUNC-01. Function apps have a managed identity"
+    severity: medium
+    query: "$.domains.web.webApps[?(@.kind =~ /functionapp/i && @.identityType =~ /^(none)?$/i)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.web.webApps[?(@.kind =~ /functionapp/i)]" }
+    remediation: "WAF-SVC-FUNC-01. The function apps listed have no managed identity. Enable one so bindings and Key Vault references use identity instead of connection strings."
+    manual: false
+  # Security: `httpsOnly`
+  - id: WAF-SVC-FUNC-02
+    title: "WAF-SVC-FUNC-02. Function apps accept HTTPS only"
+    severity: high
+    query: "$.domains.web.webApps[?(@.kind =~ /functionapp/i && @.httpsOnly != true)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.web.webApps[?(@.kind =~ /functionapp/i)]" }
+    remediation: "WAF-SVC-FUNC-02. The function apps listed still accept plain HTTP. Turn on HTTPS Only."
+    manual: false
+  # Security: `publicNetworkAccess`
+  - id: WAF-SVC-FUNC-03
+    title: "WAF-SVC-FUNC-03. Function apps block public network access"
+    severity: medium
+    query: "$.domains.web.webApps[?(@.kind =~ /functionapp/i && @.publicNetworkAccess != 'Disabled')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.web.webApps[?(@.kind =~ /functionapp/i)]" }
+    remediation: "WAF-SVC-FUNC-03. The function apps listed allow public network access. Use private endpoints and disable public access where clients can reach the virtual network. Not available on the Consumption plan."
+    manual: false
+  # Security: `vnetIntegrated`
+  - id: WAF-SVC-FUNC-04
+    title: "WAF-SVC-FUNC-04. Function apps are integrated with a virtual network"
+    severity: medium
+    query: "$.domains.web.webApps[?(@.kind =~ /functionapp/i && @.vnetIntegrated != true)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.web.webApps[?(@.kind =~ /functionapp/i)]" }
+    remediation: "WAF-SVC-FUNC-04. The function apps listed have no virtual network integration. Use a Flex Consumption, Elastic Premium or Dedicated plan and enable integration. Not available on the Consumption plan."
+    manual: false
+  # Security: no collected field
+  - id: WAF-SVC-FUNC-05
+    title: "WAF-SVC-FUNC-05. Secrets come from Key Vault and the app requires Microsoft Entra ID authentication"
+    severity: medium
+    query: null
+    assert: { type: manual, gate: "$.domains.web.webApps[?(@.kind =~ /functionapp/i)]" }
+    remediation: "WAF-SVC-FUNC-05. Confirm connection strings and keys are Key Vault references and that HTTP triggers sit behind Microsoft Entra ID authentication. App settings are not collected."
+    manual: true
+  # Reliability: evidence attached
+  - id: WAF-SVC-FUNC-06
+    title: "WAF-SVC-FUNC-06. Retries, Durable Functions and availability zones are used where the workload needs them"
+    severity: medium
+    query: "$.domains.web.appServicePlans[?(@.tier =~ /^(Dynamic|ElasticPremium|FlexConsumption)$/i)]"
+    assert: { type: manual, gate: "$.domains.web.webApps[?(@.kind =~ /functionapp/i)]" }
+    remediation: "WAF-SVC-FUNC-06. Confirm transient failures use retry policies, long-running work uses Durable Functions, and critical apps use Flex Consumption or Premium plans across availability zones. Plan tiers are attached as evidence."
+    manual: true
+  # Operational excellence: evidence attached
+  - id: WAF-SVC-FUNC-07
+    title: "WAF-SVC-FUNC-07. Function apps send telemetry to Application Insights and deploy through CI/CD with slots"
+    severity: medium
+    query: "$.monitor.appInsights[*]"
+    assert: { type: manual, gate: "$.domains.web.webApps[?(@.kind =~ /functionapp/i)]" }
+    remediation: "WAF-SVC-FUNC-07. Confirm monitoring uses Application Insights and that deployments come from a pipeline into staging slots. Application Insights components are attached as evidence."
+    manual: true
+
+  # ---- Azure Container Apps (WAF-SVC-ACA) -- https://learn.microsoft.com/azure/well-architected/service-guides/azure-container-apps ----
+  # Reliability: `zoneRedundant`, in zone regions
+  - id: WAF-SVC-ACA-01
+    title: "WAF-SVC-ACA-01. Environments are zone redundant"
+    severity: high
+    query: "$.domains.containers.containerAppEnvironments[?(@.zoneRedundant != true && @.location =~ /^(eastus|eastus2|westus2|westus3|centralus|southcentralus|northeurope|westeurope|uksouth|francecentral|germanywestcentral|switzerlandnorth|norwayeast|swedencentral|southeastasia|eastasia|australiaeast|japaneast|koreacentral|centralindia|canadacentral|brazilsouth|uaenorth|southafricanorth)$/i)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.containers.containerAppEnvironments[*]" }
+    remediation: "WAF-SVC-ACA-01. The environments listed are not zone redundant in a region that has zones. Zone redundancy is set when the environment is created, so recreate the environment with it enabled."
+    manual: false
+  # Reliability: `externalIngress`, `minReplicas`
+  - id: WAF-SVC-ACA-02
+    title: "WAF-SVC-ACA-02. Apps with ingress keep at least three replicas"
+    severity: medium
+    query: "$.domains.containers.containerApps[?(@.externalIngress != null && @.minReplicas < 3)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.containers.containerApps[*]" }
+    remediation: "WAF-SVC-ACA-02. The apps listed expose ingress but can scale below three replicas. Set the minimum replica count to three so the app survives a zone or node loss; scale to zero only for apps that can tolerate cold starts."
+    manual: false
+  # Security: `allowInsecure`
+  - id: WAF-SVC-ACA-03
+    title: "WAF-SVC-ACA-03. Apps accept HTTPS only"
+    severity: high
+    query: "$.domains.containers.containerApps[?(@.allowInsecure == true)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.containers.containerApps[*]" }
+    remediation: "WAF-SVC-ACA-03. The apps listed allow plain HTTP on ingress. Disable allow-insecure so traffic is redirected to HTTPS."
+    manual: false
+  # Security: `identityType`
+  - id: WAF-SVC-ACA-04
+    title: "WAF-SVC-ACA-04. Apps have a managed identity"
+    severity: medium
+    query: "$.domains.containers.containerApps[?(@.identityType =~ /^(none)?$/i)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.containers.containerApps[*]" }
+    remediation: "WAF-SVC-ACA-04. The apps listed have no managed identity. Assign one to reach Microsoft Entra protected resources and Key Vault without stored credentials."
+    manual: false
+  # Security: `vnetIntegrated`
+  - id: WAF-SVC-ACA-05
+    title: "WAF-SVC-ACA-05. Environments are injected into a virtual network"
+    severity: high
+    query: "$.domains.containers.containerAppEnvironments[?(@.vnetIntegrated != true)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.containers.containerAppEnvironments[*]" }
+    remediation: "WAF-SVC-ACA-05. The environments listed use the default public network with no virtual network injection. Deploy into a virtual network so you can apply NSGs, routes and a firewall."
+    manual: false
+  # Security: `internal`, `publicNetworkAccess`
+  - id: WAF-SVC-ACA-06
+    title: "WAF-SVC-ACA-06. Environments block public network access"
+    severity: medium
+    query: "$.domains.containers.containerAppEnvironments[?(@.internal != true && @.publicNetworkAccess != 'Disabled')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.containers.containerAppEnvironments[*]" }
+    remediation: "WAF-SVC-ACA-06. The environments listed accept public inbound traffic. Use an internal environment, or add a private endpoint and disable public network access."
+    manual: false
+  # Security: evidence attached
+  - id: WAF-SVC-ACA-07
+    title: "WAF-SVC-ACA-07. Apps that must not be public use internal ingress, and a WAF fronts the ones that are"
+    severity: medium
+    query: "$.domains.containers.containerApps[?(@.externalIngress == true)]"
+    assert: { type: manual, gate: "$.domains.containers.containerApps[*]" }
+    remediation: "WAF-SVC-ACA-07. Confirm apps without a need for internet traffic use internal ingress, and that apps published through a reverse proxy sit behind Application Gateway with WAF or Front Door. Apps with external ingress are attached as evidence."
+    manual: true
+  # Security: no collected field
+  - id: WAF-SVC-ACA-08
+    title: "WAF-SVC-ACA-08. Secrets use Key Vault, registry pulls use Microsoft Entra ID, and egress is controlled"
+    severity: medium
+    query: null
+    assert: { type: manual, gate: "$.domains.containers.containerApps[*]" }
+    remediation: "WAF-SVC-ACA-08. Confirm secrets and certificates are in Key Vault, image pulls use Microsoft Entra ID rather than admin credentials, and outbound traffic goes through user-defined routes to a firewall. Secrets and registry settings are not collected."
+    manual: true
+  # Reliability: no collected field
+  - id: WAF-SVC-ACA-09
+    title: "WAF-SVC-ACA-09. Health probes, resource limits and resiliency policies are configured"
+    severity: medium
+    query: null
+    assert: { type: manual, gate: "$.domains.containers.containerApps[*]" }
+    remediation: "WAF-SVC-ACA-09. Confirm liveness, readiness and startup probes are set, CPU and memory limits are defined, and retries, timeouts and circuit breakers protect service calls. Probe settings are not collected."
+    manual: true
+  # Performance efficiency: no collected field
+  - id: WAF-SVC-ACA-10
+    title: "WAF-SVC-ACA-10. Scale rules match the workload"
+    severity: medium
+    query: null
+    assert: { type: manual, gate: "$.domains.containers.containerApps[*]" }
+    remediation: "WAF-SVC-ACA-10. Confirm scale rules are based on HTTP requests, TCP connections or custom metrics, and that premium ingress or dedicated workload profiles are used for latency-sensitive or high-throughput apps. Scale rules are not collected."
+    manual: true
+  # Operational excellence: no collected field
+  - id: WAF-SVC-ACA-11
+    title: "WAF-SVC-ACA-11. Logs and traces go to Log Analytics, Application Insights or an OpenTelemetry agent"
+    severity: medium
+    query: null
+    assert: { type: manual, gate: "$.domains.containers.containerApps[*]" }
+    remediation: "WAF-SVC-ACA-11. Confirm the environment sends logs to a workspace and that tracing is enabled. Logging configuration is not collected."
+    manual: true
+
+  # ---- Azure API Management (WAF-SVC-APIM) -- https://learn.microsoft.com/azure/well-architected/service-guides/azure-api-management ----
+  # Reliability: `zoneCount`
+  - id: WAF-SVC-APIM-01
+    title: "WAF-SVC-APIM-01. Premium instances are zone redundant"
+    severity: high
+    query: "$.domains.integration.apiManagement[?(@.sku =~ /^Premium/i && @.zoneCount < 2)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.integration.apiManagement[*]" }
+    remediation: "WAF-SVC-APIM-01. The Premium instances listed are not spread across availability zones. Enable zone redundancy and deploy at least two units."
+    manual: false
+  # Reliability: `capacity`
+  - id: WAF-SVC-APIM-02
+    title: "WAF-SVC-APIM-02. Premium instances run at least two units"
+    severity: high
+    query: "$.domains.integration.apiManagement[?(@.sku =~ /^Premium/i && @.capacity < 2)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.integration.apiManagement[*]" }
+    remediation: "WAF-SVC-APIM-02. The Premium instances listed run a single scale unit. Deploy at least two units so one failure does not take the gateway down."
+    manual: false
+  # Reliability: `additionalRegionCount`
+  - id: WAF-SVC-APIM-03
+    title: "WAF-SVC-APIM-03. Premium instances use a multiregion topology"
+    severity: medium
+    query: "$.domains.integration.apiManagement[?(@.sku =~ /^Premium/i && @.additionalRegionCount < 1)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.integration.apiManagement[*]" }
+    remediation: "WAF-SVC-APIM-03. The Premium instances listed run in one region. Add gateway regions if the API must survive a regional failure, and plan for scaling out in the remaining regions."
+    manual: false
+  # Reliability: `apiManagement` to enabled `autoscaleSettings`
+  - id: WAF-SVC-APIM-04
+    title: "WAF-SVC-APIM-04. Instances on a tier that supports it have an enabled autoscale setting"
+    severity: medium
+    join:
+      left: "$.domains.integration.apiManagement[?(@.sku =~ /^(Basic|Standard|Premium)$/i)]"
+      leftKey: "id"
+      right: "$.monitor.autoscaleSettings[?(@.enabled == true)]"
+      rightKey: "targetResourceUri"
+      mode: leftOnly
+      leftLabel: "API Management instance"
+      rightLabel: "enabled autoscale setting"
+    assert: { type: countEquals, value: 0, gate: "$.domains.integration.apiManagement[*]" }
+    remediation: "WAF-SVC-APIM-04. The instances listed have no enabled autoscale setting. Add autoscale rules so units follow traffic; secondary regions need a custom automation."
+    manual: false
+  # Security: `publicNetworkAccess`, `virtualNetworkType`
+  - id: WAF-SVC-APIM-05
+    title: "WAF-SVC-APIM-05. The gateway is not open to the internet without network controls"
+    severity: high
+    query: "$.domains.integration.apiManagement[?(@.publicNetworkAccess != 'Disabled' && @.virtualNetworkType =~ /^(none)?$/i)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.integration.apiManagement[*]" }
+    remediation: "WAF-SVC-APIM-05. The instances listed accept public traffic and are not injected into a virtual network. Use virtual network injection, or a private endpoint with public access disabled, and restrict the gateway to where clients connect from."
+    manual: false
+  # Security: `identityType`
+  - id: WAF-SVC-APIM-06
+    title: "WAF-SVC-APIM-06. Instances have a managed identity"
+    severity: medium
+    query: "$.domains.integration.apiManagement[?(@.identityType =~ /^(none)?$/i)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.integration.apiManagement[*]" }
+    remediation: "WAF-SVC-APIM-06. The instances listed have no managed identity. Use managed identities for Key Vault, Event Hubs and back-end dependencies."
+    manual: false
+  # Security: Defender plan `Api`
+  - id: WAF-SVC-APIM-07
+    title: "WAF-SVC-APIM-07. Microsoft Defender for APIs is enabled"
+    severity: high
+    query: "$.security.defenderPlans[?(@.name == 'Api' && @.properties.pricingTier != 'Standard')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.integration.apiManagement[*]" }
+    remediation: "WAF-SVC-APIM-07. Defender for APIs is not on the Standard tier in the subscriptions listed. Enable it for subscriptions that publish APIs."
+    manual: false
+  # Operational excellence: diagnostic-settings coverage of `microsoft.apimanagement/service`
+  - id: WAF-SVC-APIM-08
+    title: "WAF-SVC-APIM-08. Instances send resource logs to a destination"
+    severity: medium
+    query: "$.opsPosture.diagnosticCoverage[?(@.type =~ /microsoft[.]apimanagement/ && @.coveragePct < 100)]"
+    assert: { type: countEquals, value: 0, gate: "$.opsPosture.diagnosticCoverage[?(@.type =~ /microsoft[.]apimanagement/)]" }
+    remediation: "WAF-SVC-APIM-08. Some API Management instances have no diagnostic setting. Send gateway and audit logs to Log Analytics."
+    manual: false
+  # Security: no collected field
+  - id: WAF-SVC-APIM-09
+    title: "WAF-SVC-APIM-09. The narrowest TLS versions, protocols and ciphers are set, and the developer portal and direct management API are off"
+    severity: high
+    query: null
+    assert: { type: manual, gate: "$.domains.integration.apiManagement[*]" }
+    remediation: "WAF-SVC-APIM-09. Confirm legacy TLS and cipher suites are disabled for clients and back ends, the developer portal is disabled or restricted, and the direct management API is off. Protocol settings are not collected."
+    manual: true
+  # Security: no collected field
+  - id: WAF-SVC-APIM-10
+    title: "WAF-SVC-APIM-10. APIs authenticate with OAuth 2.0, secrets use Key Vault named values, and a WAF fronts internet-exposed gateways"
+    severity: medium
+    query: null
+    assert: { type: manual, gate: "$.domains.integration.apiManagement[*]" }
+    remediation: "WAF-SVC-APIM-10. Confirm APIs validate tokens (validate-jwt), secrets sit in Key Vault named values, and internet-facing gateways are behind a web application firewall with DDoS protection. API policies are not collected."
+    manual: true
+  # Reliability: no collected field
+  - id: WAF-SVC-APIM-11
+    title: "WAF-SVC-APIM-11. Backup, restore and a disaster recovery playbook exist, and unrelated APIs are isolated"
+    severity: medium
+    query: null
+    assert: { type: manual, gate: "$.domains.integration.apiManagement[*]" }
+    remediation: "WAF-SVC-APIM-11. Confirm built-in backup and restore is part of the recovery plan and that unrelated APIs are isolated with workspaces or separate instances. Not collected."
+    manual: true
+  # Cost optimization: evidence attached
+  - id: WAF-SVC-APIM-12
+    title: "WAF-SVC-APIM-12. The tier is the least expensive that meets the workload, and lower environments use non-production tiers"
+    severity: low
+    query: "$.domains.integration.apiManagement[*]"
+    assert: { type: manual, gate: "$.domains.integration.apiManagement[*]" }
+    remediation: "WAF-SVC-APIM-12. Review each instance tier against its environment; Developer is for non-production. Instances are attached as evidence."
+    manual: true
+
+  # ---- Azure Service Bus (WAF-SVC-SB) -- https://learn.microsoft.com/azure/well-architected/service-guides/azure-service-bus ----
+  # Reliability: `tier`
+  - id: WAF-SVC-SB-01
+    title: "WAF-SVC-SB-01. Namespaces use the Premium tier"
+    severity: medium
+    query: "$.domains.integration.serviceBusNamespaces[?(@.tier != 'Premium')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.integration.serviceBusNamespaces[*]" }
+    remediation: "WAF-SVC-SB-01. The namespaces listed are on the Basic or Standard tier, which share capacity. Use Premium for production workloads that need dedicated capacity, private endpoints and geo-replication."
+    manual: false
+  # Reliability: `zoneRedundant`, in zone regions
+  - id: WAF-SVC-SB-02
+    title: "WAF-SVC-SB-02. Namespaces are zone redundant in regions that have zones"
+    severity: high
+    query: "$.domains.integration.serviceBusNamespaces[?(@.zoneRedundant != true && @.location =~ /^(eastus|eastus2|westus2|westus3|centralus|southcentralus|northeurope|westeurope|uksouth|francecentral|germanywestcentral|switzerlandnorth|norwayeast|swedencentral|southeastasia|eastasia|australiaeast|japaneast|koreacentral|centralindia|canadacentral|brazilsouth|uaenorth|southafricanorth)$/i)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.integration.serviceBusNamespaces[*]" }
+    remediation: "WAF-SVC-SB-02. The namespaces listed are not zone redundant in a region that has zones. Zone redundancy is chosen at creation, so recreate the namespace in a zone-enabled region."
+    manual: false
+  # Reliability: `geoReplicaCount`
+  - id: WAF-SVC-SB-03
+    title: "WAF-SVC-SB-03. Premium namespaces replicate to a second region"
+    severity: medium
+    query: "$.domains.integration.serviceBusNamespaces[?(@.tier == 'Premium' && @.geoReplicaCount < 2)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.integration.serviceBusNamespaces[*]" }
+    remediation: "WAF-SVC-SB-03. The Premium namespaces listed have no geo-replication. Add a secondary region if recovery must protect message data as well as metadata."
+    manual: false
+  # Security: `disableLocalAuth`
+  - id: WAF-SVC-SB-04
+    title: "WAF-SVC-SB-04. Shared access key authentication is disabled"
+    severity: high
+    query: "$.domains.integration.serviceBusNamespaces[?(@.disableLocalAuth != true)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.integration.serviceBusNamespaces[*]" }
+    remediation: "WAF-SVC-SB-04. The namespaces listed still allow shared access signatures, because the setting is off or absent. Disable local authentication and use Microsoft Entra ID with Data Sender and Data Receiver roles."
+    manual: false
+  # Security: `minimumTlsVersion`
+  - id: WAF-SVC-SB-05
+    title: "WAF-SVC-SB-05. Namespaces require TLS 1.2"
+    severity: high
+    query: "$.domains.integration.serviceBusNamespaces[?(@.minimumTlsVersion =~ /^(1[.]0|1[.]1)?$/)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.integration.serviceBusNamespaces[*]" }
+    remediation: "WAF-SVC-SB-05. The namespaces listed allow TLS 1.0 or 1.1, or do not report a minimum version. Set the minimum TLS version to 1.2."
+    manual: false
+  # Security: `publicAccess`
+  - id: WAF-SVC-SB-06
+    title: "WAF-SVC-SB-06. Premium namespaces block public network access"
+    severity: high
+    query: "$.domains.integration.serviceBusNamespaces[?(@.tier == 'Premium' && @.publicAccess != 'Disabled' && @.publicAccess != 'SecuredByPerimeter')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.integration.serviceBusNamespaces[*]" }
+    remediation: "WAF-SVC-SB-06. The Premium namespaces listed accept public network access. Use private endpoints and disable public access, or secure the namespace with a network security perimeter."
+    manual: false
+  # Security: `serviceBusNamespaces` to `privateEndpoints`
+  - id: WAF-SVC-SB-07
+    title: "WAF-SVC-SB-07. Premium namespaces have a private endpoint"
+    severity: medium
+    join:
+      left: "$.domains.integration.serviceBusNamespaces[?(@.tier == 'Premium')]"
+      leftKey: "id"
+      right: "$.networking.privateEndpoints[*]"
+      rightKey: "targetResourceId"
+      mode: leftOnly
+      leftLabel: "Service Bus namespace"
+      rightLabel: "private endpoint"
+    assert: { type: countEquals, value: 0, gate: "$.domains.integration.serviceBusNamespaces[*]" }
+    remediation: "WAF-SVC-SB-07. The Premium namespaces listed have no private endpoint. Add one so clients reach the namespace over the private network."
+    manual: false
+  # Security: `cmkKeySource`
+  - id: WAF-SVC-SB-08
+    title: "WAF-SVC-SB-08. Premium namespaces encrypt with a customer-managed key"
+    severity: low
+    query: "$.domains.integration.serviceBusNamespaces[?(@.tier == 'Premium' && @.cmkKeySource != 'Microsoft.KeyVault')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.integration.serviceBusNamespaces[*]" }
+    remediation: "WAF-SVC-SB-08. The Premium namespaces listed use Microsoft-managed keys. Use a customer-managed key in Key Vault if your policy requires control of the encryption key."
+    manual: false
+  # Operational excellence: diagnostic-settings coverage of `microsoft.servicebus/namespaces`
+  - id: WAF-SVC-SB-09
+    title: "WAF-SVC-SB-09. Namespaces send security and operational logs to a destination"
+    severity: medium
+    query: "$.opsPosture.diagnosticCoverage[?(@.type =~ /microsoft[.]servicebus/ && @.coveragePct < 100)]"
+    assert: { type: countEquals, value: 0, gate: "$.opsPosture.diagnosticCoverage[?(@.type =~ /microsoft[.]servicebus/)]" }
+    remediation: "WAF-SVC-SB-09. Some namespaces have no diagnostic setting. Capture authentication, authorization failures and administrative operations in Log Analytics."
+    manual: false
+  # Reliability: no collected field
+  - id: WAF-SVC-SB-10
+    title: "WAF-SVC-SB-10. Geo-replication or geo-disaster recovery has a rehearsed regional recovery runbook"
+    severity: medium
+    query: null
+    assert: { type: manual, gate: "$.domains.integration.serviceBusNamespaces[*]" }
+    remediation: "WAF-SVC-SB-10. Confirm who decides to promote or fail over, the evidence required, how clients reconnect, and that the runbook has been rehearsed. Not collected."
+    manual: true
+  # Reliability: evidence attached
+  - id: WAF-SVC-SB-11
+    title: "WAF-SVC-SB-11. Consumers use PeekLock, duplicate detection and dead-lettering, and alerts watch queue depth and throttling"
+    severity: medium
+    query: "$.monitor.metricAlertRules[*]"
+    assert: { type: manual, gate: "$.domains.integration.serviceBusNamespaces[*]" }
+    remediation: "WAF-SVC-SB-11. Confirm message processing is idempotent with PeekLock, dead-letter queues are monitored, and Azure Monitor alerts cover active and dead-letter counts. Metric alert rules are attached as evidence."
+    manual: true
+  # Security: no collected field
+  - id: WAF-SVC-SB-12
+    title: "WAF-SVC-SB-12. Access uses least-privilege Azure RBAC, IP firewall rules, and Key Vault for any remaining keys"
+    severity: medium
+    query: null
+    assert: { type: manual, gate: "$.domains.integration.serviceBusNamespaces[*]" }
+    remediation: "WAF-SVC-SB-12. Confirm Data Sender, Data Receiver and Data Owner roles are assigned at the narrowest scope and any IP or virtual network rules restrict known clients. Access rules are not collected."
+    manual: true
+  # Performance efficiency: no collected field
+  - id: WAF-SVC-SB-13
+    title: "WAF-SVC-SB-13. Premium autoscale, batching, prefetch and partitioning are tuned by load test"
+    severity: low
+    query: null
+    assert: { type: manual, gate: "$.domains.integration.serviceBusNamespaces[*]" }
+    remediation: "WAF-SVC-SB-13. Confirm messaging units autoscale with CPU and memory rules and that clients batch and prefetch. Autoscale and client settings are not collected."
+    manual: true
+
+  # ---- Azure Event Grid (WAF-SVC-EG) -- https://learn.microsoft.com/azure/well-architected/service-guides/azure-event-grid ----
+  # Security: `disableLocalAuth`
+  - id: WAF-SVC-EG-01
+    title: "WAF-SVC-EG-01. Topics and domains disable key-based authentication"
+    severity: high
+    query: "$.domains.integration.eventGrid[?(@.type =~ /(topics|domains)$/i && @.disableLocalAuth != true)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.integration.eventGrid[*]" }
+    remediation: "WAF-SVC-EG-01. The topics or domains listed still accept access keys and SAS tokens, because the setting is off or absent. Disable local authentication and use Microsoft Entra ID with Event Grid Data Sender."
+    manual: false
+  # Security: `publicNetworkAccess`, `inboundIpRuleCount`
+  - id: WAF-SVC-EG-02
+    title: "WAF-SVC-EG-02. Public access is disabled or limited by an IP allow list"
+    severity: high
+    query: "$.domains.integration.eventGrid[?(@.publicNetworkAccess != 'Disabled' && @.inboundIpRuleCount < 1)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.integration.eventGrid[*]" }
+    remediation: "WAF-SVC-EG-02. The resources listed accept public traffic with no IP filtering. Disable public network access and use private endpoints, or set an IP allow list that denies by default."
+    manual: false
+  # Security: `minimumTlsVersion`
+  - id: WAF-SVC-EG-03
+    title: "WAF-SVC-EG-03. Resources require TLS 1.2 or higher"
+    severity: high
+    query: "$.domains.integration.eventGrid[?(@.minimumTlsVersion =~ /^(1[.]0|1[.]1)$/)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.integration.eventGrid[*]" }
+    remediation: "WAF-SVC-EG-03. The resources listed allow TLS 1.0 or 1.1. Set the minimum TLS version to 1.2."
+    manual: false
+  # Security: `identityType`
+  - id: WAF-SVC-EG-04
+    title: "WAF-SVC-EG-04. Resources have a managed identity for delivery"
+    severity: medium
+    query: "$.domains.integration.eventGrid[?(@.identityType =~ /^(none)?$/i)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.integration.eventGrid[*]" }
+    remediation: "WAF-SVC-EG-04. The resources listed have no managed identity, so event delivery to Azure handlers needs stored credentials. Assign an identity and use it for delivery and dead-lettering."
+    manual: false
+  # Security: `eventGrid` to `privateEndpoints`
+  - id: WAF-SVC-EG-05
+    title: "WAF-SVC-EG-05. Resources have a private endpoint"
+    severity: medium
+    join:
+      left: "$.domains.integration.eventGrid[*]"
+      leftKey: "id"
+      right: "$.networking.privateEndpoints[*]"
+      rightKey: "targetResourceId"
+      mode: leftOnly
+      leftLabel: "Event Grid resource"
+      rightLabel: "private endpoint"
+    assert: { type: countEquals, value: 0, gate: "$.domains.integration.eventGrid[*]" }
+    remediation: "WAF-SVC-EG-05. The resources listed have no private endpoint. Deploy private endpoints in your virtual network and configure private DNS."
+    manual: false
+  # Operational excellence: diagnostic-settings coverage of `microsoft.eventgrid/*`
+  - id: WAF-SVC-EG-06
+    title: "WAF-SVC-EG-06. Resources send diagnostic logs to a destination"
+    severity: medium
+    query: "$.opsPosture.diagnosticCoverage[?(@.type =~ /microsoft[.]eventgrid/ && @.coveragePct < 100)]"
+    assert: { type: countEquals, value: 0, gate: "$.opsPosture.diagnosticCoverage[?(@.type =~ /microsoft[.]eventgrid/)]" }
+    remediation: "WAF-SVC-EG-06. Some Event Grid resources have no diagnostic setting. Send delivery failures and data-plane logs to Log Analytics and alert on failures."
+    manual: false
+  # Reliability: no collected field
+  - id: WAF-SVC-EG-07
+    title: "WAF-SVC-EG-07. Retries, dead-lettering and cross-geo failover are configured"
+    severity: high
+    query: null
+    assert: { type: manual, gate: "$.domains.integration.eventGrid[*]" }
+    remediation: "WAF-SVC-EG-07. Confirm subscriptions retry with exponential backoff and dead-letter to storage, and that topics keep the default cross-geo data residency so Microsoft-initiated failover works. Subscription settings are not collected."
+    manual: true
+  # Reliability: evidence attached
+  - id: WAF-SVC-EG-08
+    title: "WAF-SVC-EG-08. Delivery success, dead-letter volume and latency are alerted on"
+    severity: medium
+    query: "$.monitor.metricAlertRules[*]"
+    assert: { type: manual, gate: "$.domains.integration.eventGrid[*]" }
+    remediation: "WAF-SVC-EG-08. Confirm Azure Monitor alerts cover delivery success rate, dead-letter volume and latency against your service-level objectives. Metric alert rules are attached as evidence."
+    manual: true
+  # Security: no collected field
+  - id: WAF-SVC-EG-09
+    title: "WAF-SVC-EG-09. Management is least-privilege RBAC with Conditional Access, and secrets are in Key Vault"
+    severity: medium
+    query: null
+    assert: { type: manual, gate: "$.domains.integration.eventGrid[*]" }
+    remediation: "WAF-SVC-EG-09. Confirm Event Grid Contributor and Data Sender roles are scoped narrowly, MFA covers privileged operations, and any keys are in Key Vault. Not collected."
+    manual: true
+  # Cost optimization: evidence attached
+  - id: WAF-SVC-EG-10
+    title: "WAF-SVC-EG-10. The Event Grid tier and event filters match usage"
+    severity: low
+    query: "$.domains.integration.eventGrid[*]"
+    assert: { type: manual, gate: "$.domains.integration.eventGrid[*]" }
+    remediation: "WAF-SVC-EG-10. Review tier choice against usage and apply subscription-level event filters. Resources are attached as evidence."
+    manual: true
+
+  # ---- Azure Firewall (WAF-SVC-FW) -- https://learn.microsoft.com/azure/well-architected/service-guides/azure-firewall ----
+  # Reliability: `zoneCount`
+  - id: WAF-SVC-FW-01
+    title: "WAF-SVC-FW-01. Firewalls are deployed across multiple availability zones"
+    severity: high
+    query: "$.networking.azureFirewalls[?(@.zoneCount < 2)]"
+    assert: { type: countEquals, value: 0, gate: "$.networking.azureFirewalls[*]" }
+    remediation: "WAF-SVC-FW-01. The firewalls listed are not deployed across at least two availability zones. Zones are set at deployment; recreate or redeploy with zones where the region supports them."
+    manual: false
+  # Security: `hasPolicy`
+  - id: WAF-SVC-FW-02
+    title: "WAF-SVC-FW-02. Firewalls use a firewall policy, not classic rules"
+    severity: high
+    query: "$.networking.azureFirewalls[?(@.hasPolicy != true)]"
+    assert: { type: countEquals, value: 0, gate: "$.networking.azureFirewalls[*]" }
+    remediation: "WAF-SVC-FW-02. The firewalls listed have no firewall policy attached and use classic rules. Migrate to Azure Firewall Manager policies and organize them hierarchically."
+    manual: false
+  # Security: `firewallPolicies.threatIntelMode`
+  - id: WAF-SVC-FW-03
+    title: "WAF-SVC-FW-03. Firewall policies run threat intelligence in Alert and deny mode"
+    severity: high
+    query: "$.networking.firewallPolicies[?(@.sku != 'Basic' && @.threatIntelMode != 'Deny')]"
+    assert: { type: countEquals, value: 0, gate: "$.networking.firewallPolicies[?(@.sku != 'Basic')]" }
+    remediation: "WAF-SVC-FW-03. The policies listed do not run threat intelligence in Alert and deny mode. Set the mode to Deny so known-malicious traffic is blocked."
+    manual: false
+  # Security: `threatIntelMode`
+  - id: WAF-SVC-FW-04
+    title: "WAF-SVC-FW-04. Firewalls without a policy run threat intelligence in Alert and deny mode"
+    severity: high
+    query: "$.networking.azureFirewalls[?(@.hasPolicy != true && @.tier != 'Basic' && @.threatIntelMode != 'Deny')]"
+    assert: { type: countEquals, value: 0, gate: "$.networking.azureFirewalls[*]" }
+    remediation: "WAF-SVC-FW-04. The firewalls listed use classic rules with threat intelligence short of Alert and deny. Set the mode to Deny, or attach a policy."
+    manual: false
+  # Security: `tier`
+  - id: WAF-SVC-FW-05
+    title: "WAF-SVC-FW-05. Firewalls protecting sensitive workloads use the Premium tier"
+    severity: low
+    query: "$.networking.azureFirewalls[?(@.tier != 'Premium')]"
+    assert: { type: countEquals, value: 0, gate: "$.networking.azureFirewalls[*]" }
+    remediation: "WAF-SVC-FW-05. The firewalls listed are on the Basic or Standard tier, which lack IDPS and TLS inspection. Use Premium for sensitive workloads such as payment processing; Standard fits the rest."
+    manual: false
+  # Security: evidence attached
+  - id: WAF-SVC-FW-06
+    title: "WAF-SVC-FW-06. IDPS, TLS inspection and DNS proxy are enabled on the policy"
+    severity: high
+    query: "$.networking.firewallPolicies[*]"
+    assert: { type: manual, gate: "$.networking.azureFirewalls[*]" }
+    remediation: "WAF-SVC-FW-06. Confirm the policy turns on IDPS in Alert or Alert and deny mode, TLS inspection with an enterprise CA, and DNS proxy. Policy settings are not collected; firewall policies are attached as evidence."
+    manual: true
+  # Security: evidence attached
+  - id: WAF-SVC-FW-07
+    title: "WAF-SVC-FW-07. Traffic is forced through the firewall by user-defined routes or routing intent"
+    severity: high
+    query: "$.networking.routeTables[*]"
+    assert: { type: manual, gate: "$.networking.azureFirewalls[*]" }
+    remediation: "WAF-SVC-FW-07. Confirm spoke subnets route 0.0.0.0/0 and spoke-to-spoke traffic to the firewall. Route tables are attached as evidence, with their default-route next hop."
+    manual: true
+  # Operational excellence: evidence attached
+  - id: WAF-SVC-FW-08
+    title: "WAF-SVC-FW-08. Resource Health, throughput, SNAT and health-state alerts exist"
+    severity: medium
+    query: "$.monitor.metricAlertRules[*]"
+    assert: { type: manual, gate: "$.networking.azureFirewalls[*]" }
+    remediation: "WAF-SVC-FW-08. Confirm alerts cover throughput, firewall health state, SNAT port utilization and the latency probe. Metric alert rules are attached as evidence."
+    manual: true
+  # Operational excellence: evidence attached
+  - id: WAF-SVC-FW-09
+    title: "WAF-SVC-FW-09. Customer-controlled maintenance is configured"
+    severity: low
+    query: "$.management.maintenanceConfigurations[*]"
+    assert: { type: manual, gate: "$.networking.azureFirewalls[*]" }
+    remediation: "WAF-SVC-FW-09. Confirm a maintenance window of at least five hours with daily recurrence aligns updates with business hours. Maintenance configurations are attached as evidence."
+    manual: true
+  # Performance efficiency: no collected field
+  - id: WAF-SVC-FW-10
+    title: "WAF-SVC-FW-10. Policy analytics, IP groups, enough public IPs for SNAT and prescaling are in use"
+    severity: medium
+    query: null
+    assert: { type: manual, gate: "$.networking.azureFirewalls[*]" }
+    remediation: "WAF-SVC-FW-10. Confirm policy analytics is reviewed, IP groups keep rules under the limits, deployments prone to SNAT exhaustion have at least five public IPs, and prescaling covers expected peaks. Not collected."
+    manual: true
+  # Operational excellence: diagnostic-settings coverage of `microsoft.network/azurefirewalls`
+  - id: WAF-SVC-FW-11
+    title: "WAF-SVC-FW-11. Firewalls send logs to a destination"
+    severity: medium
+    query: "$.opsPosture.diagnosticCoverage[?(@.type =~ /microsoft[.]network.azurefirewalls/ && @.coveragePct < 100)]"
+    assert: { type: countEquals, value: 0, gate: "$.opsPosture.diagnosticCoverage[?(@.type =~ /microsoft[.]network.azurefirewalls/)]" }
+    remediation: "WAF-SVC-FW-11. Some firewalls have no diagnostic setting. Enable structured firewall logs to Log Analytics."
+    manual: false
+
+  # ---- Azure Application Gateway (WAF-SVC-AGW) -- https://learn.microsoft.com/azure/well-architected/service-guides/azure-application-gateway ----
+  # Reliability: `tier`
+  - id: WAF-SVC-AGW-01
+    title: "WAF-SVC-AGW-01. Gateways use the v2 SKU"
+    severity: high
+    query: "$.networking.applicationGateways[?(@.tier =~ /^(?!.*_v2)/i)]"
+    assert: { type: countEquals, value: 0, gate: "$.networking.applicationGateways[*]" }
+    remediation: "WAF-SVC-AGW-01. The gateways listed are on the v1 SKU, which is retired. Migrate to Standard_v2 or WAF_v2."
+    manual: false
+  # Reliability: `zoneCount`, in zone regions
+  - id: WAF-SVC-AGW-02
+    title: "WAF-SVC-AGW-02. v2 gateways are zone aware"
+    severity: high
+    query: "$.networking.applicationGateways[?(@.tier =~ /_v2$/i && @.location =~ /^(eastus|eastus2|westus2|westus3|centralus|southcentralus|northeurope|westeurope|uksouth|francecentral|germanywestcentral|switzerlandnorth|norwayeast|swedencentral|southeastasia|eastasia|australiaeast|japaneast|koreacentral|centralindia|canadacentral|brazilsouth|uaenorth|southafricanorth)$/i && @.zoneCount < 2)]"
+    assert: { type: countEquals, value: 0, gate: "$.networking.applicationGateways[*]" }
+    remediation: "WAF-SVC-AGW-02. The v2 gateways listed are not spread across availability zones in a region that has them. Redeploy with zones."
+    manual: false
+  # Reliability: `probeCount`
+  - id: WAF-SVC-AGW-03
+    title: "WAF-SVC-AGW-03. Gateways define custom health probes"
+    severity: medium
+    query: "$.networking.applicationGateways[?(@.probeCount < 1)]"
+    assert: { type: countEquals, value: 0, gate: "$.networking.applicationGateways[*]" }
+    remediation: "WAF-SVC-AGW-03. The gateways listed have no custom health probe and rely on the default one. Add probes that check the application and its dependencies."
+    manual: false
+  # Security: `wafEnabled`
+  - id: WAF-SVC-AGW-04
+    title: "WAF-SVC-AGW-04. Web application firewall is enabled"
+    severity: high
+    query: "$.networking.applicationGateways[?(@.wafEnabled != true)]"
+    assert: { type: countEquals, value: 0, gate: "$.networking.applicationGateways[*]" }
+    remediation: "WAF-SVC-AGW-04. The gateways listed have no web application firewall. Use the WAF_v2 tier with a WAF policy to block common exploits at the edge."
+    manual: false
+  # Security: `wafPolicies.mode`
+  - id: WAF-SVC-AGW-05
+    title: "WAF-SVC-AGW-05. WAF policies on Application Gateway run in Prevention mode"
+    severity: high
+    query: "$.security.wafPolicies[?(@.type =~ /applicationgateway/i && @.mode != 'Prevention')]"
+    assert: { type: countEquals, value: 0, gate: "$.security.wafPolicies[?(@.type =~ /applicationgateway/i)]" }
+    remediation: "WAF-SVC-AGW-05. The WAF policies listed run in Detection mode and do not block attacks. Move to Prevention once false positives are tuned."
+    manual: false
+  # Security: `sslPolicyType`, `sslPolicyName`, `sslMinProtocol`
+  - id: WAF-SVC-AGW-06
+    title: "WAF-SVC-AGW-06. Gateways set a current TLS policy"
+    severity: high
+    query: "$.networking.applicationGateways[?(@.sslPolicyType =~ /^$/ || @.sslPolicyName == 'AppGwSslPolicy20150501' || @.sslPolicyName == 'AppGwSslPolicy20170401' || @.sslMinProtocol == 'TLSv1_0' || @.sslMinProtocol == 'TLSv1_1')]"
+    assert: { type: countEquals, value: 0, gate: "$.networking.applicationGateways[*]" }
+    remediation: "WAF-SVC-AGW-06. The gateways listed set no TLS policy, or use one that allows TLS 1.0 or 1.1. Set a predefined policy such as AppGwSslPolicy20220101 or a custom policy with a TLS 1.2 minimum."
+    manual: false
+  # Performance efficiency: `autoscaleMax`
+  - id: WAF-SVC-AGW-07
+    title: "WAF-SVC-AGW-07. v2 gateways autoscale"
+    severity: medium
+    query: "$.networking.applicationGateways[?(@.tier =~ /_v2$/i && @.autoscaleMax == null)]"
+    assert: { type: countEquals, value: 0, gate: "$.networking.applicationGateways[*]" }
+    remediation: "WAF-SVC-AGW-07. The v2 gateways listed run a fixed instance count. Enable autoscaling with a sensible minimum instance count."
+    manual: false
+  # Performance efficiency: `autoscaleMax`
+  - id: WAF-SVC-AGW-08
+    title: "WAF-SVC-AGW-08. Autoscale maximum is set to the maximum possible (125)"
+    severity: low
+    query: "$.networking.applicationGateways[?(@.autoscaleMax != null && @.autoscaleMax < 125)]"
+    assert: { type: countEquals, value: 0, gate: "$.networking.applicationGateways[*]" }
+    remediation: "WAF-SVC-AGW-08. The gateways listed cap autoscaling below 125 instances. Raise the maximum; you pay only for capacity used. Make sure the subnet has enough free addresses."
+    manual: false
+  # Operational excellence: diagnostic-settings coverage of `microsoft.network/applicationgateways`
+  - id: WAF-SVC-AGW-09
+    title: "WAF-SVC-AGW-09. Gateways and WAF send diagnostic logs to a destination"
+    severity: medium
+    query: "$.opsPosture.diagnosticCoverage[?(@.type =~ /microsoft[.]network.applicationgateways/ && @.coveragePct < 100)]"
+    assert: { type: countEquals, value: 0, gate: "$.opsPosture.diagnosticCoverage[?(@.type =~ /microsoft[.]network.applicationgateways/)]" }
+    remediation: "WAF-SVC-AGW-09. Some gateways have no diagnostic setting. Collect access, performance and firewall logs and send WAF logs to your SIEM."
+    manual: false
+  # Security: no collected field
+  - id: WAF-SVC-AGW-10
+    title: "WAF-SVC-AGW-10. Certificates are in Key Vault, end-to-end TLS is used, and the WAF is tuned with rate limiting"
+    severity: medium
+    query: null
+    assert: { type: manual, gate: "$.networking.applicationGateways[*]" }
+    remediation: "WAF-SVC-AGW-10. Confirm TLS certificates come from Key Vault, backend traffic is re-encrypted, the WAF is tuned with narrow exclusions, and rate-limiting rules protect the application. Certificate and WAF rule details are not collected."
+    manual: true
+  # Reliability: evidence attached
+  - id: WAF-SVC-AGW-11
+    title: "WAF-SVC-AGW-11. No user-defined route sits on the gateway subnet, and idle timeout fits the application"
+    severity: medium
+    query: "$.networking.routeTables[?(@.subnetCount > 0)]"
+    assert: { type: manual, gate: "$.networking.applicationGateways[*]" }
+    remediation: "WAF-SVC-AGW-11. Confirm the gateway subnet has no UDR, NSG rules follow Application Gateway restrictions, and the idle timeout suits the back end. Route tables are attached as evidence."
+    manual: true
+  # Operational excellence: evidence attached
+  - id: WAF-SVC-AGW-12
+    title: "WAF-SVC-AGW-12. Alerts cover capacity units, unhealthy hosts and 4xx/5xx responses"
+    severity: medium
+    query: "$.monitor.metricAlertRules[*]"
+    assert: { type: manual, gate: "$.networking.applicationGateways[*]" }
+    remediation: "WAF-SVC-AGW-12. Confirm alerts cover compute-unit use, unhealthy host count, response status and back-end latency. Metric alert rules are attached as evidence."
+    manual: true
+  # Performance efficiency: no collected field
+  - id: WAF-SVC-AGW-13
+    title: "WAF-SVC-AGW-13. Minimum instance count and a /24 subnet are sized from observed load"
+    severity: low
+    query: null
+    assert: { type: manual, gate: "$.networking.applicationGateways[*]" }
+    remediation: "WAF-SVC-AGW-13. Confirm the minimum instance count follows the month of observed compute units divided by ten, and the gateway subnet is /24. Not collected."
+    manual: true
+
+  # ---- Azure Load Balancer (WAF-SVC-LB) -- https://learn.microsoft.com/azure/well-architected/service-guides/azure-load-balancer ----
+  # Reliability: `sku`
+  - id: WAF-SVC-LB-01
+    title: "WAF-SVC-LB-01. Load balancers use the Standard SKU"
+    severity: high
+    query: "$.networking.loadBalancers[?(@.sku != 'Standard' && @.sku != 'Gateway')]"
+    assert: { type: countEquals, value: 0, gate: "$.networking.loadBalancers[*]" }
+    remediation: "WAF-SVC-LB-01. The load balancers listed use the Basic SKU, which is retired and has no zone support or SLA. Migrate to Standard."
+    manual: false
+  # Reliability: `ruleCount`
+  - id: WAF-SVC-LB-02
+    title: "WAF-SVC-LB-02. Load balancers have at least one load-balancing rule"
+    severity: medium
+    query: "$.networking.loadBalancers[?(@.sku != 'Gateway' && @.ruleCount < 1)]"
+    assert: { type: countEquals, value: 0, gate: "$.networking.loadBalancers[*]" }
+    remediation: "WAF-SVC-LB-02. The load balancers listed have no load-balancing rule, so nothing is distributed. Add rules that map a frontend to a back-end pool of two or more endpoints, or delete the load balancer."
+    manual: false
+  # Reliability: `probeCount`
+  - id: WAF-SVC-LB-03
+    title: "WAF-SVC-LB-03. Load balancers define health probes"
+    severity: high
+    query: "$.networking.loadBalancers[?(@.probeCount < 1)]"
+    assert: { type: countEquals, value: 0, gate: "$.networking.loadBalancers[*]" }
+    remediation: "WAF-SVC-LB-03. The load balancers listed have no health probe. Add probes so only healthy instances receive traffic."
+    manual: false
+  # Reliability: `minFrontendZoneCount`
+  - id: WAF-SVC-LB-04
+    title: "WAF-SVC-LB-04. Internal load balancer frontends are zone redundant"
+    severity: high
+    query: "$.networking.loadBalancers[?(@.sku == 'Standard' && @.hasPublicFrontend != true && @.minFrontendZoneCount < 2 && @.location =~ /^(eastus|eastus2|westus2|westus3|centralus|southcentralus|northeurope|westeurope|uksouth|francecentral|germanywestcentral|switzerlandnorth|norwayeast|swedencentral|southeastasia|eastasia|australiaeast|japaneast|koreacentral|centralindia|canadacentral|brazilsouth|uaenorth|southafricanorth)$/i)]"
+    assert: { type: countEquals, value: 0, gate: "$.networking.loadBalancers[*]" }
+    remediation: "WAF-SVC-LB-04. The internal load balancers listed have a frontend that is not zone redundant in a region that has zones. Configure the private frontend as zone redundant. Public frontends take their zones from the public IP address."
+    manual: false
+  # Security: evidence attached
+  - id: WAF-SVC-LB-05
+    title: "WAF-SVC-LB-05. Public load balancers are protected by DDoS Protection and back ends are not reachable directly from the internet"
+    severity: high
+    query: "$.networking.loadBalancers[?(@.hasPublicFrontend == true)]"
+    assert: { type: manual, gate: "$.networking.loadBalancers[*]" }
+    remediation: "WAF-SVC-LB-05. Confirm DDoS Protection covers the public frontends and that back-end subnets are protected with NSGs and, for HTTP, a WAF. Public load balancers are attached as evidence."
+    manual: true
+  # Operational excellence: diagnostic-settings coverage of `microsoft.network/loadbalancers`
+  - id: WAF-SVC-LB-06
+    title: "WAF-SVC-LB-06. Load balancers send resource logs to a destination"
+    severity: medium
+    query: "$.opsPosture.diagnosticCoverage[?(@.type =~ /microsoft[.]network.loadbalancers/ && @.coveragePct < 100)]"
+    assert: { type: countEquals, value: 0, gate: "$.opsPosture.diagnosticCoverage[?(@.type =~ /microsoft[.]network.loadbalancers/)]" }
+    remediation: "WAF-SVC-LB-06. Some load balancers have no diagnostic setting. Capture health event logs and metrics."
+    manual: false
+  # Operational excellence: evidence attached
+  - id: WAF-SVC-LB-07
+    title: "WAF-SVC-LB-07. Multidimensional metric alerts, Azure Monitor Insights and Admin state are used"
+    severity: medium
+    query: "$.monitor.metricAlertRules[*]"
+    assert: { type: manual, gate: "$.networking.loadBalancers[*]" }
+    remediation: "WAF-SVC-LB-07. Confirm availability alerts use multidimensional metrics, the Insights dashboard is in use, and maintenance takes back ends out with Admin state Down. Metric alert rules are attached as evidence."
+    manual: true
+  # Performance efficiency: no collected field
+  - id: WAF-SVC-LB-08
+    title: "WAF-SVC-LB-08. The global tier, session persistence and probe-down behavior fit the workload"
+    severity: low
+    query: null
+    assert: { type: manual, gate: "$.networking.loadBalancers[*]" }
+    remediation: "WAF-SVC-LB-08. Confirm global users use the cross-region tier, session persistence is deliberate, and probes signal down during scale operations. Not collected."
+    manual: true
+  # Cost optimization: evidence attached
+  - id: WAF-SVC-LB-09
+    title: "WAF-SVC-LB-09. Rules are consolidated and unused load balancers are removed"
+    severity: low
+    query: "$.networking.loadBalancers[*]"
+    assert: { type: manual, gate: "$.networking.loadBalancers[*]" }
+    remediation: "WAF-SVC-LB-09. Review rule counts and load balancers with empty back-end pools. Load balancers are attached as evidence."
+    manual: true
+
+  # ---- Azure Virtual Network (WAF-SVC-VNET) -- https://learn.microsoft.com/azure/well-architected/service-guides/virtual-network ----
+  # Reliability: `skuName`
+  - id: WAF-SVC-VNET-01
+    title: "WAF-SVC-VNET-01. Public IP addresses use the Standard SKU"
+    severity: high
+    query: "$.networking.publicIPAddresses[?(@.skuName != 'Standard' && @.skuName != 'StandardV2')]"
+    assert: { type: countEquals, value: 0, gate: "$.networking.publicIPAddresses[*]" }
+    remediation: "WAF-SVC-VNET-01. The public IP addresses listed use the Basic SKU, which is retired and has no zone support. Upgrade to Standard."
+    manual: false
+  # Reliability: `zoneCount`
+  - id: WAF-SVC-VNET-02
+    title: "WAF-SVC-VNET-02. Standard public IP addresses are zone redundant in regions that have zones"
+    severity: medium
+    query: "$.networking.publicIPAddresses[?(@.skuName =~ /^Standard/i && @.location =~ /^(eastus|eastus2|westus2|westus3|centralus|southcentralus|northeurope|westeurope|uksouth|francecentral|germanywestcentral|switzerlandnorth|norwayeast|swedencentral|southeastasia|eastasia|australiaeast|japaneast|koreacentral|centralindia|canadacentral|brazilsouth|uaenorth|southafricanorth)$/i && @.zoneCount < 2)]"
+    assert: { type: countEquals, value: 0, gate: "$.networking.publicIPAddresses[*]" }
+    remediation: "WAF-SVC-VNET-02. The public IP addresses listed are not zone redundant in a region that has zones. Deploy Standard IPs across zones; the default does this unless restricted to one zone."
+    manual: false
+  # Reliability: `ipUtilizationPct`
+  - id: WAF-SVC-VNET-03
+    title: "WAF-SVC-VNET-03. No subnet is close to running out of addresses"
+    severity: medium
+    query: "$.networking.subnets[?(@.ipUtilizationPct >= 80)]"
+    assert: { type: countEquals, value: 0, gate: "$.networking.subnets[*]" }
+    remediation: "WAF-SVC-VNET-03. The subnets listed use 80 percent or more of their addresses. Plan larger subnets or new ones before scaling is blocked."
+    manual: false
+  # Security: `encryptionEnabled`
+  - id: WAF-SVC-VNET-04
+    title: "WAF-SVC-VNET-04. Virtual network encryption is enabled"
+    severity: low
+    query: "$.networking.virtualNetworks[?(@.encryptionEnabled != true)]"
+    assert: { type: countEquals, value: 0, gate: "$.networking.virtualNetworks[*]" }
+    remediation: "WAF-SVC-VNET-04. The virtual networks listed do not encrypt traffic between virtual machines and across peerings. Enable virtual network encryption where the VM sizes support it."
+    manual: false
+  # Security: `ddosEnabled`
+  - id: WAF-SVC-VNET-05
+    title: "WAF-SVC-VNET-05. Azure DDoS Protection covers virtual networks"
+    severity: medium
+    query: "$.networking.virtualNetworks[?(@.ddosEnabled != true)]"
+    assert: { type: countEquals, value: 0, gate: "$.networking.virtualNetworks[*]" }
+    remediation: "WAF-SVC-VNET-05. The virtual networks listed have no DDoS Protection plan. Associate a plan, or protect individual public IP addresses with DDoS IP Protection and record that choice."
+    manual: false
+  # Security: `nsgPublicInbound`
+  - id: WAF-SVC-VNET-06
+    title: "WAF-SVC-VNET-06. No network security group rule allows inbound traffic from any source"
+    severity: high
+    query: "$.networking.nsgPublicInbound[*]"
+    assert: { type: countEquals, value: 0, gate: "$.networking.virtualNetworks[*]" }
+    remediation: "WAF-SVC-VNET-06. The NSG rules listed allow inbound traffic from any address or the internet. Scope the sources, use service tags and application security groups, and reach hosts through Bastion."
+    manual: false
+  # Security: `privateEndpoints`
+  - id: WAF-SVC-VNET-07
+    title: "WAF-SVC-VNET-07. Private endpoints are used for Azure services"
+    severity: low
+    query: "$.networking.privateEndpoints[*]"
+    assert: { type: exists, gate: "$.networking.virtualNetworks[*]" }
+    remediation: "WAF-SVC-VNET-07. No private endpoint exists in scope. Use private endpoints instead of public endpoints for supported Azure services."
+    manual: false
+  # Operational excellence: `virtualNetworks` to enabled `flowLogs`
+  - id: WAF-SVC-VNET-08
+    title: "WAF-SVC-VNET-08. Every virtual network has an enabled flow log"
+    severity: medium
+    join:
+      left: "$.networking.virtualNetworks[*]"
+      leftKey: "id"
+      right: "$.networking.flowLogs[?(@.enabled == true)]"
+      rightKey: "targetResourceId"
+      mode: leftOnly
+      leftLabel: "virtual network"
+      rightLabel: "enabled flow log"
+    assert: { type: countEquals, value: 0, gate: "$.networking.virtualNetworks[*]" }
+    remediation: "WAF-SVC-VNET-08. The virtual networks listed have no enabled virtual network flow log. Turn on flow logs and Traffic Analytics. Logs scoped to a subnet or network interface are not matched by this check."
+    manual: false
+  # Operational excellence: `trafficAnalytics`
+  - id: WAF-SVC-VNET-09
+    title: "WAF-SVC-VNET-09. Flow logs use Traffic Analytics"
+    severity: medium
+    query: "$.networking.flowLogs[?(@.enabled == true && @.trafficAnalytics != true)]"
+    assert: { type: countEquals, value: 0, gate: "$.networking.flowLogs[*]" }
+    remediation: "WAF-SVC-VNET-09. The flow logs listed do not send to Traffic Analytics. Enable it to see traffic patterns and unusual access."
+    manual: false
+  # Operational excellence: `networkManagers`
+  - id: WAF-SVC-VNET-10
+    title: "WAF-SVC-VNET-10. Azure Virtual Network Manager manages connectivity centrally"
+    severity: low
+    query: "$.networking.networkManagers[*]"
+    assert: { type: exists, gate: "$.networking.virtualNetworks[*]" }
+    remediation: "WAF-SVC-VNET-10. No Virtual Network Manager exists. Consider one to manage connectivity and security rules across many virtual networks."
+    manual: false
+  # Security: no collected field
+  - id: WAF-SVC-VNET-11
+    title: "WAF-SVC-VNET-11. Segments are guarded by NSGs and application security groups, with Virtual Network Verifier used before production"
+    severity: medium
+    query: null
+    assert: { type: manual, gate: "$.networking.virtualNetworks[*]" }
+    remediation: "WAF-SVC-VNET-11. Confirm NSGs use application security groups and that connectivity is tested in pre-production. Not collected."
+    manual: true
+  # Cost optimization: evidence attached
+  - id: WAF-SVC-VNET-12
+    title: "WAF-SVC-VNET-12. Unused public IP addresses are removed"
+    severity: low
+    query: "$.networking.publicIPAddresses[?(@.attached != true)]"
+    assert: { type: manual, gate: "$.networking.virtualNetworks[*]" }
+    remediation: "WAF-SVC-VNET-12. Review public IP addresses not attached to anything; addresses bound only to a NAT gateway also read as unattached. Unattached addresses are attached as evidence."
+    manual: true
+  # Performance efficiency: evidence attached
+  - id: WAF-SVC-VNET-13
+    title: "WAF-SVC-VNET-13. Connection Monitor measures latency and loss between key endpoints"
+    severity: low
+    query: "$.networking.networkWatchers[*]"
+    assert: { type: manual, gate: "$.networking.virtualNetworks[*]" }
+    remediation: "WAF-SVC-VNET-13. Confirm Network Watcher Connection Monitor tests the paths that matter. Network watchers are attached as evidence."
+    manual: true
+
+  # ---- Azure Virtual Machines (WAF-SVC-VM) -- https://learn.microsoft.com/azure/well-architected/service-guides/virtual-machines ----
+  # Reliability: `zoneEligible`, `zoneRedundant`
+  - id: WAF-SVC-VM-01
+    title: "WAF-SVC-VM-01. Virtual machines in zone regions are deployed in an availability zone"
+    severity: high
+    query: "$.compute.virtualMachines[?(@.zoneEligible == true && @.zoneRedundant == false)]"
+    assert: { type: countEquals, value: 0, gate: "$.compute.virtualMachines[*]" }
+    remediation: "WAF-SVC-VM-01. The virtual machines listed have no zone in a region that has zones. Redeploy them into zones, or behind a zone-redundant scale set."
+    manual: false
+  # Reliability: `virtualMachines` to `backupProtectedItems`
+  - id: WAF-SVC-VM-02
+    title: "WAF-SVC-VM-02. Virtual machines have a backup protected item"
+    severity: medium
+    join:
+      left: "$.compute.virtualMachines[*]"
+      leftKey: "id"
+      right: "$.management.backupProtectedItems[*]"
+      rightKey: "sourceResourceId"
+      mode: leftOnly
+      leftLabel: "virtual machine"
+      rightLabel: "backup protected item"
+    assert: { type: countEquals, value: 0, gate: "$.compute.virtualMachines[*]" }
+    remediation: "WAF-SVC-VM-02. The virtual machines listed are not protected by Azure Backup. Protect any machine that cannot be rebuilt from code, or record an exception."
+    manual: false
+  # Security: `securityType`
+  - id: WAF-SVC-VM-03
+    title: "WAF-SVC-VM-03. Virtual machines use Trusted Launch or Confidential VMs"
+    severity: high
+    query: "$.compute.virtualMachines[?(@.securityType != 'TrustedLaunch' && @.securityType != 'ConfidentialVM')]"
+    assert: { type: countEquals, value: 0, gate: "$.compute.virtualMachines[*]" }
+    remediation: "WAF-SVC-VM-03. The virtual machines listed use the Standard security type. Enable Trusted Launch (secure boot and vTPM) on Generation 2 machines."
+    manual: false
+  # Security: `encryptionAtHost`
+  - id: WAF-SVC-VM-04
+    title: "WAF-SVC-VM-04. Virtual machines use encryption at host"
+    severity: high
+    query: "$.compute.virtualMachines[?(@.encryptionAtHost != true)]"
+    assert: { type: countEquals, value: 0, gate: "$.compute.virtualMachines[*]" }
+    remediation: "WAF-SVC-VM-04. The virtual machines listed do not encrypt temporary disks and caches at the host. Enable encryption at host."
+    manual: false
+  # Security: `identityType`
+  - id: WAF-SVC-VM-05
+    title: "WAF-SVC-VM-05. Virtual machines have a managed identity"
+    severity: medium
+    query: "$.compute.virtualMachines[?(@.identityType =~ /^(none)?$/i)]"
+    assert: { type: countEquals, value: 0, gate: "$.compute.virtualMachines[*]" }
+    remediation: "WAF-SVC-VM-05. The virtual machines listed have no managed identity. Assign one to any machine that calls Azure services, in place of stored credentials."
+    manual: false
+  # Security: Defender plan `VirtualMachines`
+  - id: WAF-SVC-VM-06
+    title: "WAF-SVC-VM-06. Microsoft Defender for Servers is enabled"
+    severity: high
+    query: "$.security.defenderPlans[?(@.name == 'VirtualMachines' && @.properties.pricingTier != 'Standard')]"
+    assert: { type: countEquals, value: 0, gate: "$.compute.virtualMachines[*]" }
+    remediation: "WAF-SVC-VM-06. Defender for Servers is not on the Standard tier in the subscriptions listed. Enable it for threat detection and an audit trail."
+    manual: false
+  # Operational excellence: `patchMode`
+  - id: WAF-SVC-VM-07
+    title: "WAF-SVC-VM-07. Operating system updates are applied automatically"
+    severity: medium
+    query: "$.compute.virtualMachines[?(@.patchMode != 'AutomaticByPlatform' && @.patchMode != 'AutomaticByOS')]"
+    assert: { type: countEquals, value: 0, gate: "$.compute.virtualMachines[*]" }
+    remediation: "WAF-SVC-VM-07. The virtual machines listed use manual or image-default patching. Use automatic VM guest patching and Azure Update Manager."
+    manual: false
+  # Operational excellence: `bootDiagnostics`
+  - id: WAF-SVC-VM-08
+    title: "WAF-SVC-VM-08. Boot diagnostics are enabled"
+    severity: low
+    query: "$.compute.virtualMachines[?(@.bootDiagnostics != true)]"
+    assert: { type: countEquals, value: 0, gate: "$.compute.virtualMachines[*]" }
+    remediation: "WAF-SVC-VM-08. The virtual machines listed have boot diagnostics off. Enable them to diagnose boot failures."
+    manual: false
+  # Cost optimization: `osType`, `licenseType`
+  - id: WAF-SVC-VM-09
+    title: "WAF-SVC-VM-09. Windows Server machines claim Azure Hybrid Benefit"
+    severity: low
+    query: "$.compute.virtualMachines[?(@.osType == 'Windows' && @.licenseType == '')]"
+    assert: { type: countEquals, value: 0, gate: "$.compute.virtualMachines[*]" }
+    remediation: "WAF-SVC-VM-09. The Windows machines listed carry no licence type. If you own Windows Server licences with Software Assurance, apply Azure Hybrid Benefit."
+    manual: false
+  # Security: evidence attached
+  - id: WAF-SVC-VM-10
+    title: "WAF-SVC-VM-10. No machine has a public IP address bound directly, and every network interface has an NSG"
+    severity: medium
+    query: "$.networking.publicIPAddresses[?(@.attached == true)]"
+    assert: { type: manual, gate: "$.compute.virtualMachines[*]" }
+    remediation: "WAF-SVC-VM-10. Confirm machines are reached through Bastion or a load balancer, and IP forwarding is off. Public IP addresses in use are attached as evidence."
+    manual: true
+  # Reliability: evidence attached
+  - id: WAF-SVC-VM-11
+    title: "WAF-SVC-VM-11. Always-on machines are locked, health endpoints are emitted, and capacity reservations cover critical workloads"
+    severity: medium
+    query: "$.governance.resourceLocks[*]"
+    assert: { type: manual, gate: "$.compute.virtualMachines[*]" }
+    remediation: "WAF-SVC-VM-11. Confirm a read-only lock guards always-on machines and capacity reservations back critical ones. Resource locks are attached as evidence."
+    manual: true
+  # Operational excellence: evidence attached
+  - id: WAF-SVC-VM-12
+    title: "WAF-SVC-VM-12. The Azure Monitor agent, VM insights and data collection rules cover the machines"
+    severity: medium
+    query: "$.monitor.dataCollectionRules[*]"
+    assert: { type: manual, gate: "$.compute.virtualMachines[*]" }
+    remediation: "WAF-SVC-VM-12. Confirm monitoring is deployed across machines. Data collection rules are attached as evidence."
+    manual: true
+  # Performance efficiency: no collected field
+  - id: WAF-SVC-VM-13
+    title: "WAF-SVC-VM-13. Sizes, accelerated networking and proximity placement fit the workload"
+    severity: low
+    query: null
+    assert: { type: manual, gate: "$.compute.virtualMachines[*]" }
+    remediation: "WAF-SVC-VM-13. Confirm VM sizes follow capacity planning and latency-sensitive workloads use proximity placement groups and accelerated networking. Not collected."
+    manual: true
+
+  # ---- Azure Virtual Machine Scale Sets (WAF-SVC-VMSS) -- https://learn.microsoft.com/azure/well-architected/service-guides/virtual-machines ----
+  # Reliability: `orchestrationMode`
+  - id: WAF-SVC-VMSS-01
+    title: "WAF-SVC-VMSS-01. Scale sets use Flexible orchestration"
+    severity: medium
+    query: "$.compute.virtualMachineScaleSets[?(@.resourceGroup =~ /^(?!mc_)/i && @.orchestrationMode != 'Flexible')]"
+    assert: { type: countEquals, value: 0, gate: "$.compute.virtualMachineScaleSets[?(@.resourceGroup =~ /^(?!mc_)/i)]" }
+    remediation: "WAF-SVC-VMSS-01. The scale sets listed use Uniform orchestration. Use Flexible orchestration for new deployments."
+    manual: false
+  # Reliability: `automaticRepairs`
+  - id: WAF-SVC-VMSS-02
+    title: "WAF-SVC-VMSS-02. Scale sets repair unhealthy instances automatically"
+    severity: high
+    query: "$.compute.virtualMachineScaleSets[?(@.resourceGroup =~ /^(?!mc_)/i && @.automaticRepairs != true)]"
+    assert: { type: countEquals, value: 0, gate: "$.compute.virtualMachineScaleSets[?(@.resourceGroup =~ /^(?!mc_)/i)]" }
+    remediation: "WAF-SVC-VMSS-02. The scale sets listed have automatic instance repairs off. Enable them with a health probe."
+    manual: false
+  # Reliability: `zoneCount`, in zone regions
+  - id: WAF-SVC-VMSS-03
+    title: "WAF-SVC-VMSS-03. Scale sets span at least two availability zones"
+    severity: high
+    query: "$.compute.virtualMachineScaleSets[?(@.resourceGroup =~ /^(?!mc_)/i && @.location =~ /^(eastus|eastus2|westus2|westus3|centralus|southcentralus|northeurope|westeurope|uksouth|francecentral|germanywestcentral|switzerlandnorth|norwayeast|swedencentral|southeastasia|eastasia|australiaeast|japaneast|koreacentral|centralindia|canadacentral|brazilsouth|uaenorth|southafricanorth)$/i && @.zoneCount < 2)]"
+    assert: { type: countEquals, value: 0, gate: "$.compute.virtualMachineScaleSets[?(@.resourceGroup =~ /^(?!mc_)/i)]" }
+    remediation: "WAF-SVC-VMSS-03. The scale sets listed are not spread over two or more zones in a region that has them. Deploy across zones with at least two instances in each."
+    manual: false
+  # Security: `encryptionAtHost`
+  - id: WAF-SVC-VMSS-04
+    title: "WAF-SVC-VMSS-04. Scale sets use encryption at host"
+    severity: high
+    query: "$.compute.virtualMachineScaleSets[?(@.resourceGroup =~ /^(?!mc_)/i && @.encryptionAtHost != true)]"
+    assert: { type: countEquals, value: 0, gate: "$.compute.virtualMachineScaleSets[?(@.resourceGroup =~ /^(?!mc_)/i)]" }
+    remediation: "WAF-SVC-VMSS-04. The scale sets listed do not encrypt at the host. Enable it in the security profile."
+    manual: false
+  # Operational excellence: `upgradeMode`
+  - id: WAF-SVC-VMSS-05
+    title: "WAF-SVC-VMSS-05. Uniform scale sets do not use a manual upgrade policy"
+    severity: medium
+    query: "$.compute.virtualMachineScaleSets[?(@.resourceGroup =~ /^(?!mc_)/i && @.upgradeMode == 'Manual')]"
+    assert: { type: countEquals, value: 0, gate: "$.compute.virtualMachineScaleSets[?(@.resourceGroup =~ /^(?!mc_)/i)]" }
+    remediation: "WAF-SVC-VMSS-05. The scale sets listed use the Manual upgrade policy, so instances fall behind. Use Rolling, or Automatic with health checks."
+    manual: false
+  # Performance efficiency: `virtualMachineScaleSets` to enabled `autoscaleSettings`
+  - id: WAF-SVC-VMSS-06
+    title: "WAF-SVC-VMSS-06. Scale sets have an enabled autoscale setting"
+    severity: medium
+    join:
+      left: "$.compute.virtualMachineScaleSets[?(@.resourceGroup =~ /^(?!mc_)/i)]"
+      leftKey: "id"
+      right: "$.monitor.autoscaleSettings[?(@.enabled == true)]"
+      rightKey: "targetResourceUri"
+      mode: leftOnly
+      leftLabel: "virtual machine scale set"
+      rightLabel: "enabled autoscale setting"
+    assert: { type: countEquals, value: 0, gate: "$.compute.virtualMachineScaleSets[?(@.resourceGroup =~ /^(?!mc_)/i)]" }
+    remediation: "WAF-SVC-VMSS-06. The scale sets listed have no enabled autoscale setting. Add rules so instance count follows demand."
+    manual: false
+  # Reliability: evidence attached
+  - id: WAF-SVC-VMSS-07
+    title: "WAF-SVC-VMSS-07. Standby pools, overprovisioning, MaxSurge and zone balancing are used where they fit"
+    severity: low
+    query: "$.compute.virtualMachineScaleSets[*]"
+    assert: { type: manual, gate: "$.compute.virtualMachineScaleSets[?(@.resourceGroup =~ /^(?!mc_)/i)]" }
+    remediation: "WAF-SVC-VMSS-07. Confirm standby pools, MaxSurge upgrades and automatic zone balance are in use for stateless scale sets. Not collected; scale sets are attached as evidence."
+    manual: true
+
+  # ---- Azure Disk Storage (WAF-SVC-DISK) -- https://learn.microsoft.com/azure/well-architected/service-guides/azure-disk-storage ----
+  # Reliability: `zoneCount`, `sku`
+  - id: WAF-SVC-DISK-01
+    title: "WAF-SVC-DISK-01. Attached LRS disks in zone regions are zonal"
+    severity: medium
+    query: "$.domains.storage.managedDisks[?(@.diskState == 'Attached' && @.sku =~ /_LRS$/i && @.location =~ /^(eastus|eastus2|westus2|westus3|centralus|southcentralus|northeurope|westeurope|uksouth|francecentral|germanywestcentral|switzerlandnorth|norwayeast|swedencentral|southeastasia|eastasia|australiaeast|japaneast|koreacentral|centralindia|canadacentral|brazilsouth|uaenorth|southafricanorth)$/i && @.zoneCount < 1)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.storage.managedDisks[*]" }
+    remediation: "WAF-SVC-DISK-01. The attached locally redundant disks listed have no zone in a region that has zones. Distribute VMs and disks across zones, or use zone-redundant (ZRS) disks."
+    manual: false
+  # Reliability: `sku`
+  - id: WAF-SVC-DISK-02
+    title: "WAF-SVC-DISK-02. Attached disks are not Standard HDD"
+    severity: low
+    query: "$.domains.storage.managedDisks[?(@.diskState == 'Attached' && @.sku == 'Standard_LRS')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.storage.managedDisks[*]" }
+    remediation: "WAF-SVC-DISK-02. The attached disks listed are Standard HDD. Use Premium SSD, Premium SSD v2 or Ultra Disk where availability and performance matter; Standard HDD carries no single-instance VM SLA."
+    manual: false
+  # Reliability: `unmanagedOsDisk`
+  - id: WAF-SVC-DISK-03
+    title: "WAF-SVC-DISK-03. Virtual machines use managed disks"
+    severity: high
+    query: "$.compute.virtualMachines[?(@.unmanagedOsDisk == true)]"
+    assert: { type: countEquals, value: 0, gate: "$.compute.virtualMachines[*]" }
+    remediation: "WAF-SVC-DISK-03. The virtual machines listed use an unmanaged OS disk in a storage account. Convert them to managed disks."
+    manual: false
+  # Security: `publicNetworkAccess`
+  - id: WAF-SVC-DISK-04
+    title: "WAF-SVC-DISK-04. Disks block public network access"
+    severity: medium
+    query: "$.domains.storage.managedDisks[?(@.publicNetworkAccess != 'Disabled')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.storage.managedDisks[*]" }
+    remediation: "WAF-SVC-DISK-04. The disks listed allow import and export over public endpoints. Disable public network access and use private endpoints for clients in Azure."
+    manual: false
+  # Security: `encryptionType`
+  - id: WAF-SVC-DISK-05
+    title: "WAF-SVC-DISK-05. Disks use a customer-managed key where policy requires it"
+    severity: low
+    query: "$.domains.storage.managedDisks[?(@.encryptionType =~ /^(EncryptionAtRestWithPlatformKey)?$/)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.storage.managedDisks[*]" }
+    remediation: "WAF-SVC-DISK-05. The disks listed use only platform-managed keys. Use a customer-managed key through a disk encryption set if your policy requires control of the key."
+    manual: false
+  # Security: evidence attached
+  - id: WAF-SVC-DISK-06
+    title: "WAF-SVC-DISK-06. Resource locks protect disks, and RBAC and short-lived SAS limit access"
+    severity: medium
+    query: "$.governance.resourceLocks[*]"
+    assert: { type: manual, gate: "$.domains.storage.managedDisks[*]" }
+    remediation: "WAF-SVC-DISK-06. Confirm locks guard important disks and any SAS tokens expire within 60 days. Resource locks are attached as evidence."
+    manual: true
+  # Reliability: evidence attached
+  - id: WAF-SVC-DISK-07
+    title: "WAF-SVC-DISK-07. Disks are protected by Azure Backup, Site Recovery or restore points"
+    severity: medium
+    query: "$.management.backupProtectedItems[*]"
+    assert: { type: manual, gate: "$.domains.storage.managedDisks[*]" }
+    remediation: "WAF-SVC-DISK-07. Confirm a backup option covers every disk with data you cannot rebuild. Backup items are attached as evidence."
+    manual: true
+  # Performance efficiency: no collected field
+  - id: WAF-SVC-DISK-08
+    title: "WAF-SVC-DISK-08. Disk type and size match performance needs, and throttling is monitored"
+    severity: low
+    query: null
+    assert: { type: manual, gate: "$.domains.storage.managedDisks[*]" }
+    remediation: "WAF-SVC-DISK-08. Confirm the disk type, bursting and size match demand and metrics track throttling. Not collected."
+    manual: true
+  # Cost optimization: evidence attached
+  - id: WAF-SVC-DISK-09
+    title: "WAF-SVC-DISK-09. Disk types are chosen on cost, and reserved capacity covers Premium SSD"
+    severity: low
+    query: "$.domains.storage.managedDisks[*]"
+    assert: { type: manual, gate: "$.domains.storage.managedDisks[*]" }
+    remediation: "WAF-SVC-DISK-09. Review disk SKUs and reservations. Disks are attached as evidence."
+    manual: true
+
+  # ---- Azure Monitor Application Insights (WAF-SVC-APPI) -- https://learn.microsoft.com/azure/well-architected/service-guides/application-insights ----
+  # Reliability: `workspaceBased`
+  - id: WAF-SVC-APPI-01
+    title: "WAF-SVC-APPI-01. Components are workspace-based"
+    severity: high
+    query: "$.monitor.appInsights[?(@.workspaceBased != true)]"
+    assert: { type: countEquals, value: 0, gate: "$.monitor.appInsights[*]" }
+    remediation: "WAF-SVC-APPI-01. The Application Insights components listed are classic and not backed by a Log Analytics workspace. Migrate them to workspace-based."
+    manual: false
+  # Security: `disableLocalAuth`
+  - id: WAF-SVC-APPI-02
+    title: "WAF-SVC-APPI-02. Components require Microsoft Entra authentication for ingestion"
+    severity: high
+    query: "$.monitor.appInsights[?(@.disableLocalAuth != true)]"
+    assert: { type: countEquals, value: 0, gate: "$.monitor.appInsights[*]" }
+    remediation: "WAF-SVC-APPI-02. The components listed still accept ingestion with instrumentation keys alone, because the setting is off or absent. Disable local authentication and use managed identities."
+    manual: false
+  # Security: `publicNetworkAccessForIngestion`, `publicNetworkAccessForQuery`
+  - id: WAF-SVC-APPI-03
+    title: "WAF-SVC-APPI-03. Components block public ingestion and query"
+    severity: medium
+    query: "$.monitor.appInsights[?(@.publicNetworkAccessForIngestion == 'Enabled' || @.publicNetworkAccessForQuery == 'Enabled')]"
+    assert: { type: countEquals, value: 0, gate: "$.monitor.appInsights[*]" }
+    remediation: "WAF-SVC-APPI-03. The components listed accept public ingestion or query. Use Azure Monitor Private Link Scope and disable public access where your network allows."
+    manual: false
+  # Reliability: evidence attached
+  - id: WAF-SVC-APPI-04
+    title: "WAF-SVC-APPI-04. One component per workload per environment, in the same region as its workspace"
+    severity: medium
+    query: "$.monitor.appInsights[*]"
+    assert: { type: manual, gate: "$.monitor.appInsights[*]" }
+    remediation: "WAF-SVC-APPI-04. Confirm components are not shared across environments or workloads and sit with their workspace. Components are attached as evidence."
+    manual: true
+  # Security: no collected field
+  - id: WAF-SVC-APPI-05
+    title: "WAF-SVC-APPI-05. Microsoft Entra authentication is used for the query API, and personal data is not collected"
+    severity: medium
+    query: null
+    assert: { type: manual, gate: "$.monitor.appInsights[*]" }
+    remediation: "WAF-SVC-APPI-05. Confirm scripts and dashboards query with Entra identities and IP addresses stay masked. Not collected."
+    manual: true
+  # Cost optimization: no collected field
+  - id: WAF-SVC-APPI-06
+    title: "WAF-SVC-APPI-06. A daily cap, sampling and telemetry filters control volume"
+    severity: medium
+    query: null
+    assert: { type: manual, gate: "$.monitor.appInsights[*]" }
+    remediation: "WAF-SVC-APPI-06. Confirm the daily cap is set in both Application Insights and Log Analytics and sampling fits each flow. Not collected."
+    manual: true
+  # Operational excellence: no collected field
+  - id: WAF-SVC-APPI-07
+    title: "WAF-SVC-APPI-07. Auto-instrumentation or the Azure Monitor OpenTelemetry distro is used with connection strings"
+    severity: low
+    query: null
+    assert: { type: manual, gate: "$.monitor.appInsights[*]" }
+    remediation: "WAF-SVC-APPI-07. Confirm applications use connection strings and a supported instrumentation approach. Not collected."
+    manual: true
+
+  # ---- Azure Front Door (WAF-SVC-AFD) -- https://learn.microsoft.com/azure/well-architected/service-guides/azure-front-door ----
+  # Security: `sku`
+  - id: WAF-SVC-AFD-01
+    title: "WAF-SVC-AFD-01. Front Door profiles use the Premium tier"
+    severity: medium
+    query: "$.networking.cdnProfiles[?(@.sku =~ /Standard_AzureFrontDoor/i)]"
+    assert: { type: countEquals, value: 0, gate: "$.networking.cdnProfiles[?(@.sku =~ /AzureFrontDoor/i)]" }
+    remediation: "WAF-SVC-AFD-01. The Front Door profiles listed use the Standard tier, which lacks managed WAF rule sets and Private Link origins. Use Premium where you need them."
+    manual: false
+  # Security: `wafPolicies.mode`
+  - id: WAF-SVC-AFD-02
+    title: "WAF-SVC-AFD-02. A Front Door WAF policy runs in Prevention mode"
+    severity: high
+    query: "$.security.wafPolicies[?(@.type =~ /frontdoor|cdnweb/i && @.mode == 'Prevention')]"
+    assert: { type: exists, gate: "$.networking.cdnProfiles[?(@.sku =~ /AzureFrontDoor/i)]" }
+    remediation: "WAF-SVC-AFD-02. No Front Door WAF policy in Prevention mode exists. Create a policy with managed rule sets and rate limiting, and run it in Prevention."
+    manual: false
+  # Operational excellence: diagnostic-settings coverage of `microsoft.cdn/profiles`
+  - id: WAF-SVC-AFD-03
+    title: "WAF-SVC-AFD-03. Profiles send logs and metrics to a destination"
+    severity: medium
+    query: "$.opsPosture.diagnosticCoverage[?(@.type =~ /microsoft[.]cdn.profiles/ && @.coveragePct < 100)]"
+    assert: { type: countEquals, value: 0, gate: "$.opsPosture.diagnosticCoverage[?(@.type =~ /microsoft[.]cdn.profiles/)]" }
+    remediation: "WAF-SVC-AFD-03. Some profiles have no diagnostic setting. Capture access, health probe and WAF logs."
+    manual: false
+  # Reliability: no collected field
+  - id: WAF-SVC-AFD-04
+    title: "WAF-SVC-AFD-04. Origin groups have redundant origins with health probes, and request timeouts and session affinity are deliberate"
+    severity: high
+    query: null
+    assert: { type: manual, gate: "$.networking.cdnProfiles[?(@.sku =~ /AzureFrontDoor/i)]" }
+    remediation: "WAF-SVC-AFD-04. Confirm each origin group has more than one healthy origin, probes use HEAD requests, and timeouts and session affinity suit the app. Origin settings are not collected."
+    manual: true
+  # Security: no collected field
+  - id: WAF-SVC-AFD-05
+    title: "WAF-SVC-AFD-05. Origins are reached over Private Link, TLS 1.2 is the minimum, and managed certificates are used"
+    severity: high
+    query: null
+    assert: { type: manual, gate: "$.networking.cdnProfiles[?(@.sku =~ /AzureFrontDoor/i)]" }
+    remediation: "WAF-SVC-AFD-05. Confirm origins accept traffic only from Front Door, end-to-end TLS is enforced with HTTP-to-HTTPS redirect, and managed certificates renew themselves. Not collected."
+    manual: true
+  # Performance efficiency: no collected field
+  - id: WAF-SVC-AFD-06
+    title: "WAF-SVC-AFD-06. Caching and compression are enabled for cacheable content"
+    severity: low
+    query: null
+    assert: { type: manual, gate: "$.networking.cdnProfiles[?(@.sku =~ /AzureFrontDoor/i)]" }
+    remediation: "WAF-SVC-AFD-06. Confirm caching and file compression are on for the endpoints that support them. Not collected."
+    manual: true
+  # Operational excellence: evidence attached
+  - id: WAF-SVC-AFD-07
+    title: "WAF-SVC-AFD-07. Alerts and built-in analytics reports are reviewed"
+    severity: medium
+    query: "$.monitor.metricAlertRules[*]"
+    assert: { type: manual, gate: "$.networking.cdnProfiles[?(@.sku =~ /AzureFrontDoor/i)]" }
+    remediation: "WAF-SVC-AFD-07. Confirm alerts cover origin health and WAF blocks. Metric alert rules are attached as evidence."
+    manual: true
+
+  # ---- Azure Traffic Manager (WAF-SVC-TM) -- https://learn.microsoft.com/azure/well-architected/service-guides/azure-traffic-manager ----
+  # Reliability: `endpointCount`
+  - id: WAF-SVC-TM-01
+    title: "WAF-SVC-TM-01. Profiles have more than one endpoint"
+    severity: high
+    query: "$.networking.trafficManagerProfiles[?(@.endpointCount < 2)]"
+    assert: { type: countEquals, value: 0, gate: "$.networking.trafficManagerProfiles[*]" }
+    remediation: "WAF-SVC-TM-01. The profiles listed have fewer than two endpoints, so there is nothing to fail over to. Add enabled endpoints in separate regions."
+    manual: false
+  # Reliability: `monitorStatus`
+  - id: WAF-SVC-TM-02
+    title: "WAF-SVC-TM-02. Profile health probes report the profile online"
+    severity: high
+    query: "$.networking.trafficManagerProfiles[?(@.monitorStatus =~ /^(Degraded|Inactive|Disabled)$/i)]"
+    assert: { type: countEquals, value: 0, gate: "$.networking.trafficManagerProfiles[*]" }
+    remediation: "WAF-SVC-TM-02. The profiles listed report Degraded, Inactive or Disabled. Fix the unhealthy endpoints or remove the profile."
+    manual: false
+  # Operational excellence: diagnostic-settings coverage of `microsoft.network/trafficmanagerprofiles`
+  - id: WAF-SVC-TM-03
+    title: "WAF-SVC-TM-03. Profiles send diagnostic logs to a destination"
+    severity: medium
+    query: "$.opsPosture.diagnosticCoverage[?(@.type =~ /microsoft[.]network.trafficmanagerprofiles/ && @.coveragePct < 100)]"
+    assert: { type: countEquals, value: 0, gate: "$.opsPosture.diagnosticCoverage[?(@.type =~ /microsoft[.]network.trafficmanagerprofiles/)]" }
+    remediation: "WAF-SVC-TM-03. Some profiles have no diagnostic setting. Enable them and review probe results."
+    manual: false
+  # Reliability: evidence attached
+  - id: WAF-SVC-TM-04
+    title: "WAF-SVC-TM-04. DNS TTL is below 60 seconds, AlwaysServe is off, and probe interval and tolerated failures are set deliberately"
+    severity: medium
+    query: "$.networking.trafficManagerProfiles[*]"
+    assert: { type: manual, gate: "$.networking.trafficManagerProfiles[*]" }
+    remediation: "WAF-SVC-TM-04. Confirm the TTL, probing interval and tolerated failures meet your recovery targets and AlwaysServe is not used. Probe settings are not collected. Profiles are attached as evidence."
+    manual: true
+  # Reliability: no collected field
+  - id: WAF-SVC-TM-05
+    title: "WAF-SVC-TM-05. Application gateways front HTTP endpoints, and apex domains use alias records"
+    severity: medium
+    query: null
+    assert: { type: manual, gate: "$.networking.trafficManagerProfiles[*]" }
+    remediation: "WAF-SVC-TM-05. Confirm HTTP workloads add Application Gateway as an endpoint for inspection and the apex name uses an Azure DNS alias record. Not collected."
+    manual: true
+  # Performance efficiency: evidence attached
+  - id: WAF-SVC-TM-06
+    title: "WAF-SVC-TM-06. Routing method fits the deployment, using performance routing for multi-region endpoints"
+    severity: low
+    query: "$.networking.trafficManagerProfiles[*]"
+    assert: { type: manual, gate: "$.networking.trafficManagerProfiles[*]" }
+    remediation: "WAF-SVC-TM-06. Confirm the routing method matches the topology and nested profiles combine methods where needed. Profiles are attached as evidence."
+    manual: true
+
+  # ---- Azure Virtual WAN (WAF-SVC-VWAN) -- https://learn.microsoft.com/azure/well-architected/service-guides/azure-virtual-wan ----
+  # Reliability: `wanType`
+  - id: WAF-SVC-VWAN-01
+    title: "WAF-SVC-VWAN-01. Virtual WANs use the Standard SKU"
+    severity: high
+    query: "$.networking.virtualWans[?(@.wanType != 'Standard')]"
+    assert: { type: countEquals, value: 0, gate: "$.networking.virtualWans[*]" }
+    remediation: "WAF-SVC-VWAN-01. The virtual WANs listed are Basic, which has no zone redundancy, hub routing or hub security. Use Standard for production."
+    manual: false
+  # Security: `azureFirewalls` with sku AZFW_Hub
+  - id: WAF-SVC-VWAN-02
+    title: "WAF-SVC-VWAN-02. A secured virtual hub runs Azure Firewall"
+    severity: medium
+    query: "$.networking.azureFirewalls[?(@.sku == 'AZFW_Hub')]"
+    assert: { type: exists, gate: "$.networking.virtualWans[*]" }
+    remediation: "WAF-SVC-VWAN-02. No Azure Firewall is deployed in a virtual hub. Secure the hub with Azure Firewall or a partner solution and set routing intent."
+    manual: false
+  # Operational excellence: diagnostic-settings coverage of hub gateway types
+  - id: WAF-SVC-VWAN-03
+    title: "WAF-SVC-VWAN-03. Hub gateways send diagnostic logs to a destination"
+    severity: medium
+    query: "$.opsPosture.diagnosticCoverage[?(@.type =~ /(vpngateways|expressroutegateways|p2svpngateways)/ && @.coveragePct < 100)]"
+    assert: { type: countEquals, value: 0, gate: "$.opsPosture.diagnosticCoverage[?(@.type =~ /(vpngateways|expressroutegateways|p2svpngateways)/)]" }
+    remediation: "WAF-SVC-VWAN-03. Some VPN, ExpressRoute or point-to-site gateways in hubs have no diagnostic setting. Collect gateway, tunnel, route and IKE logs."
+    manual: false
+  # Reliability: evidence attached
+  - id: WAF-SVC-VWAN-04
+    title: "WAF-SVC-VWAN-04. Virtual hubs exist in at least two regions, with zone-redundant, active-active gateways"
+    severity: high
+    query: "$.networking.virtualHubs[*]"
+    assert: { type: manual, gate: "$.networking.virtualWans[*]" }
+    remediation: "WAF-SVC-VWAN-04. Confirm hubs are deployed in two or more regions near users and workloads, and VPN gateways are zone redundant with active-active tunnels and BGP. Virtual hubs are attached as evidence."
+    manual: true
+  # Reliability: no collected field
+  - id: WAF-SVC-VWAN-05
+    title: "WAF-SVC-VWAN-05. Site-to-site VPN backs up ExpressRoute, and routing preference is set deliberately"
+    severity: medium
+    query: null
+    assert: { type: manual, gate: "$.networking.virtualWans[*]" }
+    remediation: "WAF-SVC-VWAN-05. Confirm a VPN gateway backs up ExpressRoute with ExpressRoute preferred, and the hub routing preference matches the primary connectivity. Not collected."
+    manual: true
+  # Security: no collected field
+  - id: WAF-SVC-VWAN-06
+    title: "WAF-SVC-VWAN-06. Spokes use custom route tables, NSGs and private endpoints, and point-to-site uses Microsoft Entra ID with Conditional Access"
+    severity: high
+    query: null
+    assert: { type: manual, gate: "$.networking.virtualWans[*]" }
+    remediation: "WAF-SVC-VWAN-06. Confirm segmentation through custom route tables and spoke NSGs, private endpoints for PaaS, DDoS Protection, and Entra authentication for VPN clients. Not collected."
+    manual: true
+  # Security: evidence attached
+  - id: WAF-SVC-VWAN-07
+    title: "WAF-SVC-VWAN-07. Site-to-site connections use GCMAES256 IPsec policies"
+    severity: medium
+    query: "$.networking.vpnConnections[*]"
+    assert: { type: manual, gate: "$.networking.virtualWans[*]" }
+    remediation: "WAF-SVC-VWAN-07. Confirm custom IPsec policies set GCMAES256 for both encryption and integrity. Connection policies are not collected; VPN connections are attached as evidence."
+    manual: true
+  # Performance efficiency: no collected field
+  - id: WAF-SVC-VWAN-08
+    title: "WAF-SVC-VWAN-08. Routing infrastructure units and gateway scale units are sized from throughput"
+    severity: medium
+    query: null
+    assert: { type: manual, gate: "$.networking.virtualWans[*]" }
+    remediation: "WAF-SVC-VWAN-08. Confirm hub routing infrastructure units and gateway scale units cover aggregate throughput with growth headroom. Not collected."
+    manual: true
+  # Operational excellence: evidence attached
+  - id: WAF-SVC-VWAN-09
+    title: "WAF-SVC-VWAN-09. Alerts, Insights, Connection Monitor and maintenance windows are configured"
+    severity: medium
+    query: "$.monitor.metricAlertRules[*]"
+    assert: { type: manual, gate: "$.networking.virtualWans[*]" }
+    remediation: "WAF-SVC-VWAN-09. Confirm alerts cover gateway connectivity and BGP state, and customer-controlled maintenance windows exist. Metric alert rules are attached as evidence."
+    manual: true
+
+  # ---- Azure ExpressRoute (WAF-SVC-ER) -- https://learn.microsoft.com/azure/well-architected/service-guides/azure-expressroute ----
+  # Reliability: `expressRouteCircuits`
+  - id: WAF-SVC-ER-01
+    title: "WAF-SVC-ER-01. More than one ExpressRoute circuit exists"
+    severity: high
+    query: "$.networking.expressRouteCircuits[*]"
+    assert: { type: countGreaterThan, value: 1, gate: "$.networking.expressRouteCircuits[*]" }
+    remediation: "WAF-SVC-ER-01. Only one ExpressRoute circuit exists, so one provider or location failure cuts off the network. Plan geo-redundant circuits at different peering locations and, where possible, different providers."
+    manual: false
+  # Reliability: `vpnGateways` sku
+  - id: WAF-SVC-ER-02
+    title: "WAF-SVC-ER-02. ExpressRoute gateways are zone redundant"
+    severity: high
+    query: "$.networking.vpnGateways[?(@.gatewayType == 'ExpressRoute' && @.sku =~ /^(Standard|HighPerformance|UltraPerformance|Basic)$/i)]"
+    assert: { type: countEquals, value: 0, gate: "$.networking.vpnGateways[?(@.gatewayType == 'ExpressRoute')]" }
+    remediation: "WAF-SVC-ER-02. The ExpressRoute gateways listed use a non-zone-redundant SKU. Use an AZ SKU (ErGw1AZ, ErGw2AZ, ErGw3AZ) or a scalable gateway."
+    manual: false
+  # Reliability: `vpnGateways` of type Vpn
+  - id: WAF-SVC-ER-03
+    title: "WAF-SVC-ER-03. A site-to-site VPN gateway can back up ExpressRoute"
+    severity: medium
+    query: "$.networking.vpnGateways[?(@.gatewayType == 'Vpn')]"
+    assert: { type: exists, gate: "$.networking.expressRouteCircuits[*]" }
+    remediation: "WAF-SVC-ER-03. No VPN gateway exists to back up ExpressRoute private peering. Add a site-to-site VPN gateway as a fallback path."
+    manual: false
+  # Cost optimization: `serviceProviderProvisioningState`
+  - id: WAF-SVC-ER-04
+    title: "WAF-SVC-ER-04. No circuit is left unprovisioned"
+    severity: medium
+    query: "$.networking.expressRouteCircuits[?(@.serviceProviderProvisioningState == 'NotProvisioned')]"
+    assert: { type: countEquals, value: 0, gate: "$.networking.expressRouteCircuits[*]" }
+    remediation: "WAF-SVC-ER-04. The circuits listed have not been provisioned by the service provider and still incur cost. Provision them or delete them."
+    manual: false
+  # Reliability: evidence attached
+  - id: WAF-SVC-ER-05
+    title: "WAF-SVC-ER-05. Both connections of each circuit run active-active, with site resiliency across peering locations"
+    severity: high
+    query: "$.networking.expressRouteCircuits[*]"
+    assert: { type: manual, gate: "$.networking.expressRouteCircuits[*]" }
+    remediation: "WAF-SVC-ER-05. Confirm both connections are active-active with BGP, and that circuits use the Maximum or High resiliency design. Circuits are attached as evidence."
+    manual: true
+  # Reliability: evidence attached
+  - id: WAF-SVC-ER-06
+    title: "WAF-SVC-ER-06. The circuit SKU fits geographic reach, and Global Reach joins on-premises sites"
+    severity: medium
+    query: "$.networking.expressRouteCircuits[*]"
+    assert: { type: manual, gate: "$.networking.expressRouteCircuits[*]" }
+    remediation: "WAF-SVC-ER-06. Confirm Local, Standard or Premium suits the regions you connect, and Global Reach links on-premises networks where needed. Circuits are attached as evidence."
+    manual: true
+  # Security: no collected field
+  - id: WAF-SVC-ER-07
+    title: "WAF-SVC-ER-07. MACsec, IPsec and MD5 protect traffic where required"
+    severity: high
+    query: null
+    assert: { type: manual, gate: "$.networking.expressRouteCircuits[*]" }
+    remediation: "WAF-SVC-ER-07. Confirm MACsec on ExpressRoute Direct ports, IPsec over private peering, and MD5 on peering sessions where policy needs them. Not collected."
+    manual: true
+  # Operational excellence: evidence attached
+  - id: WAF-SVC-ER-08
+    title: "WAF-SVC-ER-08. Circuit, port and gateway metrics have alerts, and Service Health and Connection Monitor are configured"
+    severity: medium
+    query: "$.monitor.metricAlertRules[*]"
+    assert: { type: manual, gate: "$.networking.expressRouteCircuits[*]" }
+    remediation: "WAF-SVC-ER-08. Confirm alerts cover circuit availability, bits per second and gateway health, with Network Insights and Connection Monitor in use. Metric alert rules are attached as evidence."
+    manual: true
+  # Performance efficiency: no collected field
+  - id: WAF-SVC-ER-09
+    title: "WAF-SVC-ER-09. Circuit bandwidth, gateway SKU, FastPath and scalable gateways match throughput needs"
+    severity: medium
+    query: null
+    assert: { type: manual, gate: "$.networking.expressRouteCircuits[*]" }
+    remediation: "WAF-SVC-ER-09. Confirm circuit bandwidth and gateway size follow measured demand and FastPath is on for latency-sensitive traffic. Not collected."
+    manual: true
+
+  # ---- Azure Files (WAF-SVC-FILES) -- https://learn.microsoft.com/azure/well-architected/service-guides/azure-files ----
+  # Reliability: `sku`
+  - id: WAF-SVC-FILES-01
+    title: "WAF-SVC-FILES-01. Storage accounts use zone- or geo-redundant storage"
+    severity: high
+    query: "$.domains.storage.storageAccounts[?(@.kind =~ /^(StorageV2|FileStorage|Storage)$/i && @.sku =~ /_LRS$/i)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.storage.storageAccounts[?(@.kind =~ /^(StorageV2|FileStorage|Storage)$/i)]" }
+    remediation: "WAF-SVC-FILES-01. The accounts listed use locally redundant storage. Use ZRS, GRS or GZRS for shares that need availability and durability."
+    manual: false
+  # Security: `minTls`
+  - id: WAF-SVC-FILES-02
+    title: "WAF-SVC-FILES-02. Storage accounts require TLS 1.2 or higher"
+    severity: high
+    query: "$.domains.storage.storageAccounts[?(@.kind =~ /^(StorageV2|FileStorage|Storage)$/i && @.minTls =~ /^(TLS1_0|TLS1_1)?$/i)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.storage.storageAccounts[?(@.kind =~ /^(StorageV2|FileStorage|Storage)$/i)]" }
+    remediation: "WAF-SVC-FILES-02. The accounts listed allow TLS 1.0 or 1.1, or do not report a minimum version, which older accounts treat as 1.0. Set the minimum TLS version to 1.2."
+    manual: false
+  # Security: `httpsOnly`
+  - id: WAF-SVC-FILES-03
+    title: "WAF-SVC-FILES-03. Secure transfer is required"
+    severity: high
+    query: "$.domains.storage.storageAccounts[?(@.kind =~ /^(StorageV2|FileStorage|Storage)$/i && @.httpsOnly != true)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.storage.storageAccounts[?(@.kind =~ /^(StorageV2|FileStorage|Storage)$/i)]" }
+    remediation: "WAF-SVC-FILES-03. The accounts listed do not require secure transfer. Turn it on so SMB shares are encrypted in transit."
+    manual: false
+  # Security: `publicNetworkAccess`, `networkDefaultDeny`
+  - id: WAF-SVC-FILES-04
+    title: "WAF-SVC-FILES-04. Public network access is disabled or limited by a deny-by-default firewall"
+    severity: high
+    query: "$.domains.storage.storageAccounts[?(@.kind =~ /^(StorageV2|FileStorage|Storage)$/i && @.publicNetworkAccess != 'Disabled' && @.networkDefaultDeny != true)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.storage.storageAccounts[?(@.kind =~ /^(StorageV2|FileStorage|Storage)$/i)]" }
+    remediation: "WAF-SVC-FILES-04. The accounts listed accept traffic from the public internet with no firewall. Disable public network access, or set the firewall to deny by default and allow only the virtual networks that need access."
+    manual: false
+  # Reliability: evidence attached
+  - id: WAF-SVC-FILES-05
+    title: "WAF-SVC-FILES-05. Soft delete, snapshots and Azure Backup protect shares"
+    severity: high
+    query: "$.management.backupProtectedItems[*]"
+    assert: { type: manual, gate: "$.domains.storage.storageAccounts[?(@.kind =~ /^(StorageV2|FileStorage|Storage)$/i)]" }
+    remediation: "WAF-SVC-FILES-05. Confirm share soft delete is on and snapshots or Azure Backup give point-in-time restore. Share settings are not collected; backup items are attached as evidence."
+    manual: true
+  # Security: no collected field
+  - id: WAF-SVC-FILES-06
+    title: "WAF-SVC-FILES-06. Identity-based authentication uses Kerberos with AES-256, SMB 3.1.1 with AES-256-GCM, and keys are in Key Vault"
+    severity: medium
+    query: null
+    assert: { type: manual, gate: "$.domains.storage.storageAccounts[?(@.kind =~ /^(StorageV2|FileStorage|Storage)$/i)]" }
+    remediation: "WAF-SVC-FILES-06. Confirm shares use Microsoft Entra or AD DS authentication, SMB 3.1.1 with AES-256-GCM, and SMB 1 is disabled on clients. Not collected."
+    manual: true
+  # Security: evidence attached
+  - id: WAF-SVC-FILES-07
+    title: "WAF-SVC-FILES-07. A Resource Manager lock protects the storage account"
+    severity: medium
+    query: "$.governance.resourceLocks[*]"
+    assert: { type: manual, gate: "$.domains.storage.storageAccounts[?(@.kind =~ /^(StorageV2|FileStorage|Storage)$/i)]" }
+    remediation: "WAF-SVC-FILES-07. Confirm a delete lock guards accounts that host production shares. Resource locks are attached as evidence."
+    manual: true
+  # Performance efficiency: no collected field
+  - id: WAF-SVC-FILES-08
+    title: "WAF-SVC-FILES-08. SMB Multichannel, metadata caching and nconnect are used for SSD shares, and throttling is monitored"
+    severity: low
+    query: null
+    assert: { type: manual, gate: "$.domains.storage.storageAccounts[?(@.kind =~ /^(StorageV2|FileStorage|Storage)$/i)]" }
+    remediation: "WAF-SVC-FILES-08. Confirm Premium shares use SMB Multichannel, metadata caching or nconnect for NFS, and metrics track throttling. Not collected."
+    manual: true
+  # Cost optimization: evidence attached
+  - id: WAF-SVC-FILES-09
+    title: "WAF-SVC-FILES-09. Access tiers, provisioned capacity and reservations match usage"
+    severity: low
+    query: "$.domains.storage.storageAccounts[*]"
+    assert: { type: manual, gate: "$.domains.storage.storageAccounts[?(@.kind =~ /^(StorageV2|FileStorage|Storage)$/i)]" }
+    remediation: "WAF-SVC-FILES-09. Review standard share tiers and reserved capacity. Storage accounts are attached as evidence."
+    manual: true
+
+  # ---- Azure NetApp Files (WAF-SVC-ANF) -- https://learn.microsoft.com/azure/well-architected/service-guides/azure-netapp-files ----
+  # Reliability: evidence attached
+  - id: WAF-SVC-ANF-01
+    title: "WAF-SVC-ANF-01. Snapshots, backup and cross-region or cross-zone replication protect volumes"
+    severity: high
+    query: "$.domains.storage.netAppVolumes[*]"
+    assert: { type: manual, gate: "$.domains.storage.netAppVolumes[*]" }
+    remediation: "WAF-SVC-ANF-01. Confirm snapshot policies, Azure NetApp Files backup and replication meet your recovery objectives, and SMB workloads enable continuous availability."
+    manual: true
+  # Reliability: evidence attached
+  - id: WAF-SVC-ANF-02
+    title: "WAF-SVC-ANF-02. The delegated subnet is sized for growth and uses standard network features"
+    severity: medium
+    query: "$.domains.storage.netAppVolumes[*]"
+    assert: { type: manual, gate: "$.domains.storage.netAppVolumes[*]" }
+    remediation: "WAF-SVC-ANF-02. Confirm the delegated subnet leaves room for growth and standard network features are enabled."
+    manual: true
+  # Security: evidence attached
+  - id: WAF-SVC-ANF-03
+    title: "WAF-SVC-ANF-03. Network access is limited by NSGs, export policies and protocol-level access controls"
+    severity: high
+    query: "$.domains.storage.netAppVolumes[*]"
+    assert: { type: manual, gate: "$.domains.storage.netAppVolumes[*]" }
+    remediation: "WAF-SVC-ANF-03. Confirm an NSG filters the delegated subnet, NFS export policies and ACLs are restrictive, and SMB share permissions follow least privilege."
+    manual: true
+  # Security: evidence attached
+  - id: WAF-SVC-ANF-04
+    title: "WAF-SVC-ANF-04. Data is encrypted in transit and at rest, with customer-managed or double encryption where required"
+    severity: medium
+    query: "$.domains.storage.netAppVolumes[*]"
+    assert: { type: manual, gate: "$.domains.storage.netAppVolumes[*]" }
+    remediation: "WAF-SVC-ANF-04. Confirm SMB3 encryption, NFSv4.1 Kerberos and LDAP over TLS are enabled, and customer-managed keys or double encryption are used for sensitive data."
+    manual: true
+  # Security: evidence attached
+  - id: WAF-SVC-ANF-05
+    title: "WAF-SVC-ANF-05. File access logs feed monitoring, and RBAC and Azure Policy restrict insecure volumes"
+    severity: medium
+    query: "$.domains.storage.netAppVolumes[*]"
+    assert: { type: manual, gate: "$.domains.storage.netAppVolumes[*]" }
+    remediation: "WAF-SVC-ANF-05. Confirm file access logging is enabled for business-critical volumes and a custom RBAC role and storage policy limit operations."
+    manual: true
+  # Performance efficiency: evidence attached
+  - id: WAF-SVC-ANF-06
+    title: "WAF-SVC-ANF-06. Service level, volume size and QoS match performance needs"
+    severity: medium
+    query: "$.domains.storage.netAppVolumes[*]"
+    assert: { type: manual, gate: "$.domains.storage.netAppVolumes[*]" }
+    remediation: "WAF-SVC-ANF-06. Confirm the service level, capacity pool QoS and volume quota meet the workload throughput and IOPS, and that large volumes are used for extreme scale."
+    manual: true
+  # Cost optimization: evidence attached
+  - id: WAF-SVC-ANF-07
+    title: "WAF-SVC-ANF-07. Cool access, reservations, and consolidated capacity pools lower the cost"
+    severity: low
+    query: "$.domains.storage.netAppVolumes[*]"
+    assert: { type: manual, gate: "$.domains.storage.netAppVolumes[*]" }
+    remediation: "WAF-SVC-ANF-07. Review cool access, reserved capacity and capacity pool consolidation against actual use."
+    manual: true
+  # Operational excellence: evidence attached
+  - id: WAF-SVC-ANF-08
+    title: "WAF-SVC-ANF-08. Volume performance and health are monitored, and deployments are automated"
+    severity: medium
+    query: "$.domains.storage.netAppVolumes[*]"
+    assert: { type: manual, gate: "$.domains.storage.netAppVolumes[*]" }
+    remediation: "WAF-SVC-ANF-08. Confirm native monitoring covers volume metrics and ARM templates or Bicep deploy the resources."
+    manual: true

@@ -339,3 +339,22 @@ Describe 'AB#6792 — an initiative Scout cannot confirm is Not assessed, never 
         $findings[0].Framework | Should -Be 'Microsoft cloud security benchmark 57.58.0'
     }
 }
+
+Describe 'AB#9300 -- compliance finding ids stay unique, so drift tracking is never skipped' {
+    It 'disambiguates two unconfirmed initiatives that share a name at different scopes' {
+        Mock Resolve-ScoutAssignedInitiative {
+            @(
+                [pscustomobject]@{ Id = '/providers/Microsoft.Management/managementGroups/mg-a/providers/Microsoft.Authorization/policySetDefinitions/Managed Services'; Unconfirmed = $true }
+                [pscustomobject]@{ Id = '/subscriptions/00000000-0000-0000-0000-000000000001/providers/Microsoft.Authorization/policySetDefinitions/Managed Services'; Unconfirmed = $true }
+                [pscustomobject]@{ Id = '/subscriptions/00000000-0000-0000-0000-000000000001/providers/Microsoft.Authorization/policySetDefinitions/Only Once'; Unconfirmed = $true }
+            )
+        }
+        $findings = @(Invoke-ScoutComplianceAssessment -Collect ([pscustomobject]@{}))
+        $findings.Count | Should -Be 3
+        @($findings.Id | Select-Object -Unique).Count | Should -Be 3
+        ($findings | Where-Object { $_.Id -like 'COMPLIANCE-UNCONFIRMED-Managed Services-*' }).Count | Should -Be 2
+        ($findings | Where-Object { $_.Id -eq 'COMPLIANCE-UNCONFIRMED-Only Once' }).Count | Should -Be 1 -Because 'an id that was already unique is left unchanged'
+        $again = @(Invoke-ScoutComplianceAssessment -Collect ([pscustomobject]@{}))
+        ($again.Id -join '|') | Should -Be ($findings.Id -join '|') -Because 'the suffix is stable across runs'
+    }
+}

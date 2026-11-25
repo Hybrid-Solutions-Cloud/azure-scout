@@ -32,10 +32,14 @@ rules:
   - id: WAF-OE-06
     title: "Alert rules configured for critical resource health/metrics"
     severity: medium
-    query: null
-    assert: { type: manual }
-    remediation: "Confirm Azure Monitor alert rules and action groups cover critical resource health and key metrics. collect.json does not yet collect an alert-rule inventory."
-    manual: true
+    # monitor.metricAlertRules is collected (AB#9300): an enabled metric alert rule with at least one
+    # action (actionGroupCount = the rule's actions array) is the evidence. A rule with no action
+    # group alerts nobody, so it does not count. The check proves alerting exists, not that it covers
+    # the critical resources or that the thresholds are right -- the remediation says so.
+    query: "$.monitor.metricAlertRules[?(@.enabled == true && @.actionGroupCount > 0)]"
+    assert: { type: exists }
+    remediation: "No enabled Azure Monitor metric alert rule with an action group was found. Create alert rules for critical resource health and key metrics and route them to an action group. A passing result shows alerting exists, not that it covers the critical resources -- confirm coverage and thresholds."
+    manual: false
 
   - id: WAF-OE-07
     title: "Automation accounts / runbooks reduce manual operational toil"

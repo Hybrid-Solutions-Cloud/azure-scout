@@ -52,25 +52,25 @@ The service is documented as Foundry IQ (Azure AI Search) and offers Dedicated a
 | WAF-AISEARCH-SE-01 | Inbound public network access is disabled | ✅ publicNetworkAccess | SEC |
 | WAF-AISEARCH-SE-02 | Each search service has a private endpoint | ✅ search service to private endpoint join | SEC |
 | WAF-AISEARCH-SE-03 | API-key authentication is disabled in favour of Microsoft Entra role-based access | ✅ disableLocalAuth | SEC |
-| WAF-AISEARCH-SE-04 | The service has a managed identity for outbound connections | ❌ Manual — the identity type is not collected (proposed projection in the report); services attached | SEC |
+| WAF-AISEARCH-SE-04 | The service has a managed identity for outbound connections | ✅ identity type (none or empty is a finding) | SEC |
 | WAF-AISEARCH-SE-05 | Outbound connections to protected data use shared private links, a trusted-service exception or firewall exceptions | ❌ Manual — shared private links are child resources, not collected | SEC |
-| WAF-AISEARCH-SE-06 | Customer-managed key encryption is used where required | ❌ Manual — encryptionWithCmk is not collected (proposed projection in the report); services attached | SEC |
+| WAF-AISEARCH-SE-06 | Customer-managed key encryption is used where required | ❌ Manual — the service-wide CMK enforcement setting is collected and the services that do not enforce it are attached, but CMK is chosen per index (data plane), so a service that does not enforce it is not a finding | SEC |
 | WAF-AISEARCH-SE-07 | Confidential compute is used only where regulation requires it | ❌ Manual — computeType is not collected (proposed projection in the report); services attached | SEC |
 | WAF-AISEARCH-SE-08 | Document-level access control or security filters trim results per caller | ❌ Manual — data-plane design, not ARM | SEC |
 | WAF-AISEARCH-SE-09 | Access to individual indexes follows least privilege | ❌ Manual — role design, not collected per service | SEC |
 | WAF-AISEARCH-SE-10 | Diagnostic logging is on and alerts watch for anomalous activity | ❌ Manual — type not yet in the diagnostic-settings sweep (proposed in the report) | SEC |
-| WAF-AISEARCH-SE-11 | An IP firewall or network security perimeter limits inbound access when public access stays on | ❌ Manual — the IP rule set is not collected (proposed projection in the report); services with public access attached | SEC |
+| WAF-AISEARCH-SE-11 | An IP firewall or network security perimeter limits inbound access when public access stays on | ✅ public access on with no IP rule (a perimeter is reported as SecuredByPerimeter and is not flagged) | SEC |
 
 ### Cost optimization (WAF-AISEARCH-CO) — 7 items
 
 | # | Item | Scout | Source |
 |---|---|---|---|
 | WAF-AISEARCH-CO-01 | The pricing model and tier are the lightest that meet the need | ❌ Manual — workload shape is judgement; services attached | COST |
-| WAF-AISEARCH-CO-02 | Replicas and partitions are added only when index size, throughput or availability needs them | ❌ Manual — utilisation is not collected; services attached | COST |
+| WAF-AISEARCH-CO-02 | Replicas and partitions are added only when index size, throughput or availability needs them | ❌ Manual — services attached with replica and partition counts; utilisation is not collected | COST |
 | WAF-AISEARCH-CO-03 | Higher tiers are weighed against more partitions or replicas of a lower tier | ❌ Manual — services attached | PERF, COST |
 | WAF-AISEARCH-CO-04 | Related resources are in the same region | ❌ Manual — regions attached; related resources are not linked | COST |
 | WAF-AISEARCH-CO-05 | Incremental indexing, an enrichment cache and a knowledge store limit repeated enrichment cost | ❌ Manual — indexer configuration, not collected | COST |
-| WAF-AISEARCH-CO-06 | Semantic ranker and agentic retrieval plans are set deliberately | ❌ Manual — the semanticSearch plan is not collected (proposed projection in the report); services attached | COST |
+| WAF-AISEARCH-CO-06 | Semantic ranker and agentic retrieval plans are set deliberately | ❌ Manual — services on the billed standard semantic plan attached; whether it is needed is judgement and the agentic plan is not collected | COST |
 | WAF-AISEARCH-CO-07 | Budgets and cost alerts exist for the workload | ❌ Manual — budgets attached (estate-wide) | COST |
 
 ### Operational excellence (WAF-AISEARCH-OE) — 5 items
@@ -79,7 +79,7 @@ The service is documented as Foundry IQ (Azure AI Search) and offers Dedicated a
 |---|---|---|---|
 | WAF-AISEARCH-OE-01 | Metrics for queries per second, latency, throttling and indexer runs are monitored | ❌ Manual — metric alert rules attached (estate-wide) | SEC, COST |
 | WAF-AISEARCH-OE-02 | Services and indexes are deployed as code | ❌ Manual — deployment method is not an ARM property | SEC |
-| WAF-AISEARCH-OE-03 | Service upgrades are applied | ❌ Manual — upgradeAvailable is not collected (proposed projection in the report); services attached | PERF |
+| WAF-AISEARCH-OE-03 | Service upgrades are applied | ❌ Manual — upgradeAvailable is still not projected; services attached | PERF |
 | WAF-AISEARCH-OE-04 | Azure Policy audits logging and private endpoint use and resources are tagged | ❌ Manual — policy assignment scope, not collected per service | SEC |
 | WAF-AISEARCH-OE-05 | Indexes are updated side by side so queries never see half-built data | ❌ Manual — data-plane practice, not ARM | REL, PERF |
 
@@ -97,11 +97,11 @@ The service is documented as Foundry IQ (Azure AI Search) and offers Dedicated a
 | Pillar | Items | Automated (✅) | Manual (❌) |
 |---|---|---|---|
 | Reliability | 10 | 2 | 8 |
-| Security | 11 | 3 | 8 |
+| Security | 11 | 5 | 6 |
 | Cost optimization | 7 | 0 | 7 |
 | Operational excellence | 5 | 0 | 5 |
 | Performance efficiency | 4 | 0 | 4 |
-| **Total** | **37** | **5** | **32** |
+| **Total** | **37** | **7** | **30** |
 
 Every automated item is gated on its resources (or its diagnostic-coverage rows) existing, so an estate
 without them reports the item Not assessed. The rules live in `src/assess/rules/waf.aisearch.yaml`.

@@ -126,8 +126,9 @@ BeforeAll {
         }
 
         function global:Start-Sleep {
-            param([int] $Milliseconds)
-            $script:sleepCalls.Add($Milliseconds)
+            # Records every wait in milliseconds, whether the code asked in seconds or milliseconds.
+            param([int] $Milliseconds, [double] $Seconds)
+            $script:sleepCalls.Add($(if ($PSBoundParameters.ContainsKey('Seconds')) { [int]($Seconds * 1000) } else { $Milliseconds }))
         }
     }
 
@@ -227,7 +228,7 @@ Describe 'Get-ScoutSubscriptionSecurityPolicySweep integration contract' {
         )
 
         $script:assessmentAttempts['sub-1'] | Should -Be 3
-        @($script:sleepCalls) | Should -Be @(200, 400)
+        @($script:sleepCalls) | Should -Be @(2000, 4000) -Because 'a server-side 5xx needs seconds, not milliseconds, to clear (AB#9300)'
         $results[0].properties.DefenderAssessments[0].Name | Should -Be 'assessment-sub-1'
         $results[0].properties.CollectionStatus.DefenderAssessments | Should -Be 'Success'
     }
@@ -453,7 +454,7 @@ Describe 'Get-ScoutSubscriptionSecurityPolicySweep integration contract' {
         $result = @(Get-ScoutSubscriptionSecurityPolicySweep -Subscriptions @($script:subscriptions[0]))[0]
         $script:alertRestAttempts | Should -Be 3
         $result.properties.CollectionStatus.DefenderAlerts | Should -Be 'Success'
-        @($script:sleepCalls) | Should -Be @(200, 400)
+        @($script:sleepCalls) | Should -Be @(2000, 4000) -Because 'a server-side 5xx needs seconds, not milliseconds, to clear (AB#9300)'
     }
 
     It 'treats an unregistered Microsoft.Security pricing provider as unavailable, not an error' {

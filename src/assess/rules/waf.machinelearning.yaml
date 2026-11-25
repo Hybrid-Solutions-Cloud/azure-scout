@@ -12,7 +12,9 @@
 # same way WAF-AI and WAF-AVD are.
 #
 # Only what the collection carries is automated: a workspace's managed-network isolation mode, public network access,
-# private endpoint, identity type. Compute clusters and instances, online endpoints and model registries are child
+# private endpoint, identity type. Customer-managed-key status is projected but the key item is manual (requirement-driven; the workspaces not on a key are its evidence). The hbiWorkspace (high business impact) and
+# v1LegacyMode flags are projected but answer no item in the guide, so they travel as evidence only. Compute clusters
+# and instances, online endpoints and model registries are child
 # resources that are not collected, so their items stay manual rather than guessed. Every automated rule is gated on
 # workspaces existing, so an estate with none reports them Not assessed.
 area: "Azure Machine Learning"
@@ -208,13 +210,13 @@ rules:
     assert: { type: manual }
     remediation: "WAF-ML-SE-13. Restrict model deployments to specific registries, limit compute to approved container registries and package sources, and require signed training code."
     manual: true
-  # the workspace encryption setting is not collected (proposed projection in the report) [MLG-SE-C, MLG-SE-R]
+  # properties.encryption.status is Enabled when the workspace uses a customer-managed key; CMK is requirement-driven, so the item is manual and the evidence is the workspaces NOT on one. Foundry project workspaces inherit their hub's setting and are skipped [MLG-SE-C, MLG-SE-R]
   - id: WAF-ML-SE-14
     title: "WAF-ML-SE-14. Data at rest uses customer-managed keys where required"
     severity: medium
-    query: "$.domains.ai.mlWorkspaces[*]"
+    query: "$.domains.ai.mlWorkspaces[?(@.workspaceKind != 'Project' && @.cmkStatus != 'Enabled')]"
     assert: { type: manual }
-    remediation: "WAF-ML-SE-14. Where a regulation requires you to manage encryption keys, configure customer-managed keys for the workspace. The workspaces are listed; the encryption setting is not collected."
+    remediation: "WAF-ML-SE-14. The workspaces listed use Microsoft-managed keys; confirm whether policy requires customer-managed keys for them. Where a regulation requires you to manage encryption keys, configure customer-managed keys for the workspace (set at creation). Foundry project workspaces share their hub's encryption and are skipped."
     manual: true
   # network policy, not collected [MLG-SE-R]
   - id: WAF-ML-SE-15

@@ -60,7 +60,7 @@ BeforeAll {
         # carries its own framework axis rather than borrowing a pillar or design-area name.
         'WAF-SAP', 'WAF-ORACLE', 'WAF-MC', 'WAF-SUS', 'WAF-GOLIVE'
         'WAF-ML', 'WAF-AISEARCH', 'WAF-ANALYTICS', 'WAF-DATA'
-        'WARA', 'ADVISOR'
+        'WARA', 'ADVISOR', 'WAF-SVC'
         'WAF-SAAS', 'AI-READINESS', 'GENAI-TECH', 'GENAIOPS'
         'PLATFORM-ENG', 'ANALYTICS-JOURNEY', 'APPMOD'
         'XR'

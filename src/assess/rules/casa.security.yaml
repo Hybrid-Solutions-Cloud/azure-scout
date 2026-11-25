@@ -15,13 +15,16 @@ verifiedAgainst: "docs/frameworks/casa-question-set.md, 32 items across 7 domain
 # CAUTION FOR FUTURE MAINTAINERS reading this file next to docs/frameworks/casa-question-set.md:
 # several items the enumeration marks Partial or fully Answerable turned out, on verification
 # against the actual collect.json contract this rule file has to query, to rest on fields that are
-# either not collected at all (Conditional Access, PIM eligibility, Defender plans/secure score,
-# autoscale settings, chaos experiments, load balancers, automation-account runbooks, blob
-# immutability policy, artifact signing) or are collected but hard-coded EMPTY by Invoke-Collect
-# today (management.deployments' templateHash, management.recoveryVaults) -- a pre-existing gap
+# either not collected at all (Conditional Access, PIM eligibility, automation-account runbooks, blob
+# immutability policy) or are collected but hard-coded EMPTY by Invoke-Collect today
+# (management.deployments' templateHash, management.recoveryVaults) -- a pre-existing gap
 # four other rule files already carry, not introduced here. Citing any of those fields would be
 # exactly the empty-collection false-pass class this epic exists to kill, so those items are
 # `manual: true` below even where the enumeration's own collector column reads (Partial) or (✅).
+# 2026-11-25 (AB#9300): the assessment collection since gained autoscale settings, Chaos Studio
+# experiments, load balancers, Defender secure scores/assessments, Sentinel onboarding and artifact
+# signing accounts, so CASA-AV-03, CASA-AV-05, CASA-PM-04, CASA-SS-01 and CASA-IR-02 are now
+# automated; CASA-AV-04 stays manual with the experiments attached (see its comment).
 # One item moved the OTHER way: CASA-CO-04 is automated here because
 # domains.analytics.purviewAccounts (Epic AB#6741) turned out to already be collected even though
 # the enumeration recorded Purview as an uncollected gap.
@@ -98,17 +101,22 @@ rules:
     # plans being ENABLED -- but this control asks whether detection is TUNED (suppression rules,
     # alert routing, analyst review), and no ARM dataset carries tuning state. Manual, not a
     # false pass on a proxy signal.
-    query: null
+    # The plans are attached as evidence; the question stays manual.
+    query: "$.security.defenderPlans[*]"
     assert: { type: manual }
     remediation: "CASA-PM-03. security.defenderPlans evidences which Defender plans are assigned per subscription, but alert TUNING (suppression rules, routing, review cadence) is not ARM-readable -- verify tuning directly in the Defender for Cloud portal."
     manual: true
   - id: CASA-PM-04
     title: "Secure score is tracked in Microsoft Defender for Cloud"
     severity: medium
-    query: null
-    assert: { type: manual }
-    remediation: "CASA-PM-04. Secure score is not collected in any form in collect.json (point-in-time or trend) -- confirm secure score is tracked directly in the Defender for Cloud portal."
-    manual: true
+    # security.defenderSecureScores comes from the same per-subscription sweep as the policy
+    # compliance states and is empty when that sweep did not run (-IncludePolicyCompliance not set,
+    # or the call failed), so the rule is gated on the dataset itself: no rows is "not collected",
+    # never a Fail. When scores are present the rule passes -- point-in-time only, no trend.
+    query: "$.security.defenderSecureScores[*]"
+    assert: { type: exists, gate: "$.security.defenderSecureScores[*]" }
+    remediation: "CASA-PM-04. Secure score was not found. Enable Defender for Cloud (CSPM) so a score is computed, then track it over time -- only a point-in-time score is collected, not a trend."
+    manual: false
   - id: CASA-PM-05
     title: "Validation is automated through policy, IaC, and continuous compliance scanning"
     severity: medium
@@ -130,12 +138,15 @@ rules:
   - id: CASA-IR-02
     title: "Telemetry ingestion and alert fidelity are tuned to reduce MTTD"
     severity: medium
-    # Defender alerts / Sentinel existence are not projected into collect.json for any resource
-    # type.
-    query: null
-    assert: { type: manual }
-    remediation: "CASA-IR-02. Neither Defender alerts nor Sentinel workspace presence is currently collected -- confirm telemetry ingestion and alert-fidelity tuning directly."
-    manual: true
+    # Sentinel onboarding (microsoft.securityinsights/onboardingstates) is the one ARM signal that
+    # telemetry is being ingested into a SIEM. Existence only, the same trade CASA-CO-04 makes for
+    # Purview: it evidences the ingestion foundation, not that alert fidelity is tuned (analytic
+    # rules, suppression and noise levels are not ARM-readable). Defender alerts are deliberately
+    # not used -- alerts existing says nothing about their quality.
+    query: "$.domains.security.sentinelWorkspaces[*]"
+    assert: { type: exists }
+    remediation: "CASA-IR-02. No Microsoft Sentinel onboarding was found in scope. Ingest telemetry into a SIEM (Sentinel, or confirm your own) and tune analytics rules and alert fidelity to reduce time to detect -- alert tuning itself is not ARM-readable, so confirm it directly."
+    manual: false
   - id: CASA-IR-03
     title: "Runbooks are refined and tabletop simulations practiced"
     severity: low
@@ -186,9 +197,11 @@ rules:
   - id: CASA-IN-01
     title: "Hashing and signing preserve data correctness and completeness"
     severity: medium
-    query: null
+    # Artifact Signing accounts are attached as evidence; an account existing says nothing about
+    # whether anything is signed or verified, so the question stays manual.
+    query: "$.domains.security.artifactSigningAccounts[*]"
     assert: { type: manual }
-    remediation: "CASA-IN-01. No artefact-signing collector output is projected into collect.json -- confirm hashing/signing controls are in place directly."
+    remediation: "CASA-IN-01. Artifact Signing accounts (attached as evidence when present) do not show that anything is signed or verified -- confirm hashing/signing controls are in place directly."
     manual: true
   - id: CASA-IN-02
     title: "Immutable storage patterns (WORM, legal hold) are applied where required"
@@ -206,9 +219,10 @@ rules:
   - id: CASA-IN-03
     title: "A secure update supply chain is used for deployment artefacts"
     severity: medium
-    query: null
+    # Same evidence as CASA-IN-01, same reason it stays manual.
+    query: "$.domains.security.artifactSigningAccounts[*]"
     assert: { type: manual }
-    remediation: "CASA-IN-03. No artefact-signing collector output is projected into collect.json -- confirm a secure update supply chain is used directly."
+    remediation: "CASA-IN-03. Artifact Signing accounts (attached as evidence when present) do not show a secure update supply chain is in use -- confirm it directly."
     manual: true
   - id: CASA-IN-04
     title: "Infrastructure changes go through version control / IaC rather than ad hoc portal edits"
@@ -242,33 +256,50 @@ rules:
   - id: CASA-AV-03
     title: "Autoscaling is configured to sustain availability under load"
     severity: medium
-    query: null
-    assert: { type: manual }
-    remediation: "CASA-AV-03. Autoscale settings are not projected into collect.json for any resource type -- confirm autoscaling is configured directly in Azure Monitor."
-    manual: true
+    # monitor.autoscaleSettings is collected. The gate is the scale-set dataset, so an estate with
+    # nothing that autoscales reports Not assessed instead of a Fail. Scale sets in an AKS node
+    # resource group (MC_*) are excluded because the cluster autoscaler, not Azure Monitor
+    # autoscale, scales them. One gate path cannot say "scale sets OR App Service plans", so plan
+    # autoscale is scored per plan by WAF-SVC-APP-04 in waf.serviceguides.yaml instead.
+    query: "$.monitor.autoscaleSettings[?(@.enabled == true)]"
+    assert: { type: exists, gate: "$.compute.virtualMachineScaleSets[?(@.resourceGroup =~ /^(?!mc_)/i)]" }
+    remediation: "CASA-AV-03. Virtual machine scale sets exist but no enabled Azure Monitor autoscale setting was found. Configure autoscale so capacity follows load -- see WAF-SVC-VMSS-06 for which scale sets have none."
+    manual: false
   - id: CASA-AV-04
     title: "Resilience is validated through chaos testing"
     severity: low
-    query: null
+    # Stays MANUAL on purpose. devops.chaosExperiments is collected, but an experiment resource
+    # existing proves nothing about resilience being validated: it may never have been run, may
+    # target nothing that matters, and run history is not in collect.json. An `exists` rule would
+    # pass on a single dormant experiment, which is the over-claim this file avoids. The
+    # experiments are attached as evidence so the person answering can see what exists.
+    query: "$.devops.chaosExperiments[*]"
     assert: { type: manual }
-    remediation: "CASA-AV-04. Azure Chaos Studio experiment existence/history is not projected into collect.json -- confirm chaos testing is performed directly."
+    remediation: "CASA-AV-04. Chaos Studio experiments (attached as evidence when present) show an experiment is defined, not that it was run or that resilience was validated -- confirm chaos tests run on a schedule against the workloads that matter."
     manual: true
   - id: CASA-AV-05
     title: "Health probes and fault-domain isolation are deployed (load balancing)"
     severity: medium
-    query: null
-    assert: { type: manual }
-    remediation: "CASA-AV-05. Load balancer configuration is not projected into collect.json -- confirm health probes and fault-domain isolation are deployed directly."
-    manual: true
+    # networking.loadBalancers is collected with probeCount. A load balancer with no health probe
+    # sends traffic to dead instances. Fault-domain isolation (zone-redundant frontends) is scored
+    # per load balancer by WAF-SVC-LB-04.
+    query: "$.networking.loadBalancers[?(@.probeCount < 1)]"
+    assert: { type: countEquals, value: 0, gate: "$.networking.loadBalancers[*]" }
+    remediation: "CASA-AV-05. Each listed load balancer has no health probe. Add probes so only healthy instances receive traffic -- see WAF-SVC-LB-04 for zone-redundant frontends."
+    manual: false
 
   # ---- SS: Sustain security posture ------------------------------------------------------------
   - id: CASA-SS-01
     title: "Secure score security controls are tracked to quantify remaining gaps"
     severity: medium
-    query: null
-    assert: { type: manual }
-    remediation: "CASA-SS-01. Same limitation as CASA-PM-04 -- secure score is not collected in any form. Confirm it is tracked directly in the Defender for Cloud portal."
-    manual: true
+    # The gap is quantified by the score plus the per-recommendation assessments behind it, so the
+    # query is the assessments and the gate is the score dataset (same sweep, same -IncludePolicyCompliance
+    # dependency as CASA-PM-04: no scores means not collected, not a Fail). Per-control scores are
+    # not in collect.json, and rows existing does not show anyone works the list down.
+    query: "$.security.defenderAssessments[*]"
+    assert: { type: exists, gate: "$.security.defenderSecureScores[*]" }
+    remediation: "CASA-SS-01. A secure score exists but no Defender assessment (recommendation) rows were collected to quantify the remaining gaps. Review the secure score controls in Defender for Cloud and work the list down -- assessments existing does not show anyone does."
+    manual: false
   - id: CASA-SS-02
     title: "Risk-based metrics are coupled to secure score"
     severity: medium

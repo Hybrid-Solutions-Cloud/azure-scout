@@ -133,14 +133,14 @@ rules:
     assert: { type: countEquals, value: 0, gate: "$.domains.ai.searchServices[*]" }
     remediation: "WAF-AISEARCH-SE-03. The search services listed still accept API keys. Enable role-based access, assign least-privilege roles, and set disableLocalAuth to true unless a key is required (then rotate admin keys on a schedule)."
     manual: false
-  # the identity type is not collected (proposed projection in the report); services attached [SEC]
+  # identity.type is '' when the service has no identity and None when it was removed [SEC]
   - id: WAF-AISEARCH-SE-04
     title: "WAF-AISEARCH-SE-04. The service has a managed identity for outbound connections"
     severity: medium
-    query: "$.domains.ai.searchServices[*]"
-    assert: { type: manual }
-    remediation: "WAF-AISEARCH-SE-04. Give the service a system- or user-assigned identity and connect to data sources, Key Vault and models with it instead of connection strings."
-    manual: true
+    query: "$.domains.ai.searchServices[?(@.identityType == '' || @.identityType == 'None')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.ai.searchServices[*]" }
+    remediation: "WAF-AISEARCH-SE-04. The search services listed have no managed identity. Give the service a system- or user-assigned identity and connect to data sources, Key Vault and models with it instead of connection strings."
+    manual: false
   # shared private links are child resources, not collected [SEC]
   - id: WAF-AISEARCH-SE-05
     title: "WAF-AISEARCH-SE-05. Outbound connections to protected data use shared private links, a trusted-service exception or firewall exceptions"
@@ -149,13 +149,13 @@ rules:
     assert: { type: manual }
     remediation: "WAF-AISEARCH-SE-05. Confirm indexers reach private data sources over shared private links or the trusted-service exception."
     manual: true
-  # encryptionWithCmk is not collected (proposed projection in the report); services attached [SEC]
+  # cmkEnforcement (Enabled, Disabled or Unspecified) is a service-wide policy, but CMK itself is chosen per index and is not collected, so a service that does not enforce it is not a finding; those services are attached [SEC]
   - id: WAF-AISEARCH-SE-06
     title: "WAF-AISEARCH-SE-06. Customer-managed key encryption is used where required"
     severity: medium
-    query: "$.domains.ai.searchServices[*]"
+    query: "$.domains.ai.searchServices[?(@.cmkEnforcement != 'Enabled')]"
     assert: { type: manual }
-    remediation: "WAF-AISEARCH-SE-06. Add CMK encryption only for indexes that need it (it can degrade query performance by 30 to 60 percent)."
+    remediation: "WAF-AISEARCH-SE-06. Add CMK encryption only for indexes that need it (it can degrade query performance by 30 to 60 percent). The services attached do not enforce CMK service-wide; whether an individual index uses a key is data-plane and is not collected, so confirm it by hand where regulation requires."
     manual: true
   # computeType is not collected (proposed projection in the report); services attached [SEC]
   - id: WAF-AISEARCH-SE-07
@@ -189,14 +189,14 @@ rules:
     assert: { type: manual }
     remediation: "WAF-AISEARCH-SE-10. Send diagnostic logs to Azure Monitor and alert on query spikes and failed authentication. Search is not in the diagnostic-settings sweep yet; coverage rows are attached once it is."
     manual: true
-  # the IP rule set is not collected (proposed projection in the report); services with public access attached [SEC]
+  # ipRuleCount is a COUNT of networkRuleSet.ipRules (null when there is no rule set); services with public access on and no rule are findings [SEC]
   - id: WAF-AISEARCH-SE-11
     title: "WAF-AISEARCH-SE-11. An IP firewall or network security perimeter limits inbound access when public access stays on"
     severity: low
-    query: "$.domains.ai.searchServices[?(@.publicAccess == 'Enabled' || @.publicAccess == 'enabled')]"
-    assert: { type: manual }
-    remediation: "WAF-AISEARCH-SE-11. If public access is kept, restrict it with IP rules or join a network security perimeter."
-    manual: true
+    query: "$.domains.ai.searchServices[?(@.publicAccess =~ /^enabled$/i && @.ipRuleCount < 1)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.ai.searchServices[*]" }
+    remediation: "WAF-AISEARCH-SE-11. The search services listed accept public network traffic with no IP rule, so any address can reach them. Restrict public access with IP rules or join a network security perimeter (a perimeter is reported as public access SecuredByPerimeter and is not flagged), or disable public access."
+    manual: false
 
   # ---- Cost optimization -------------------------------------------------------------------
   # workload shape is judgement; services attached [COST]
@@ -207,13 +207,13 @@ rules:
     assert: { type: manual }
     remediation: "WAF-AISEARCH-CO-01. Choose Dedicated for steady load and Serverless for bursty or variable load; use the lightest tier (Basic or S1 are lowest per unit) that fits. Services are attached."
     manual: true
-  # utilisation is not collected; services attached [COST]
+  # utilisation is not collected; services attached with replicaCount and partitionCount [COST]
   - id: WAF-AISEARCH-CO-02
     title: "WAF-AISEARCH-CO-02. Replicas and partitions are added only when index size, throughput or availability needs them"
     severity: medium
     query: "$.domains.ai.searchServices[*]"
     assert: { type: manual }
-    remediation: "WAF-AISEARCH-CO-02. Add partitions for size or ingestion, replicas for query rate or availability; scale up for heavy indexing and back down after."
+    remediation: "WAF-AISEARCH-CO-02. Add partitions for size or ingestion, replicas for query rate or availability; scale up for heavy indexing and back down after. Services are attached with their replica and partition counts; index size and query load are not collected."
     manual: true
   # services attached [PERF, COST]
   - id: WAF-AISEARCH-CO-03
@@ -239,13 +239,13 @@ rules:
     assert: { type: manual }
     remediation: "WAF-AISEARCH-CO-05. Index only new or changed data and reuse enriched content; keep vector payloads compact."
     manual: true
-  # the semanticSearch plan is not collected (proposed projection in the report); services attached [COST]
+  # semanticSearch is disabled, free or standard; whether a billed plan is needed is judgement, so the services on the standard plan are attached [COST]
   - id: WAF-AISEARCH-CO-06
     title: "WAF-AISEARCH-CO-06. Semantic ranker and agentic retrieval plans are set deliberately"
     severity: low
-    query: "$.domains.ai.searchServices[*]"
+    query: "$.domains.ai.searchServices[?(@.semanticSearch == 'standard')]"
     assert: { type: manual }
-    remediation: "WAF-AISEARCH-CO-06. Both are billed separately; keep the plan at free or disabled where they are not needed."
+    remediation: "WAF-AISEARCH-CO-06. Both are billed separately; keep the plan at free or disabled where they are not needed. The services attached are on the billed standard semantic plan; confirm each one uses it. The agentic retrieval plan is not collected."
     manual: true
   # budgets attached (estate-wide) [COST]
   - id: WAF-AISEARCH-CO-07
@@ -273,7 +273,7 @@ rules:
     assert: { type: manual }
     remediation: "WAF-AISEARCH-OE-02. Define services, indexes, indexers and skillsets in version control and deploy through a pipeline."
     manual: true
-  # upgradeAvailable is not collected (proposed projection in the report); services attached [PERF]
+  # upgradeAvailable is still not projected (it is not among the search fields collected); services attached [PERF]
   - id: WAF-AISEARCH-OE-03
     title: "WAF-AISEARCH-OE-03. Service upgrades are applied"
     severity: low

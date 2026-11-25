@@ -22,7 +22,7 @@ Sources (the code after each item names the page and section; -C is a workload d
 
 - [MLG] [Architecture best practices for Azure Machine Learning](https://learn.microsoft.com/azure/well-architected/service-guides/azure-machine-learning), sections Reliability, Security, Cost Optimization, Operational Excellence, Performance Efficiency
 
-Items about compute clusters, compute instances, online endpoints and registries are manual: those are child resources of the workspace that the assessment collection does not read. The report that accompanies this page lists the projections that would automate them.
+The workspace dataset also carries `hbiWorkspace` (high business impact) and `v1LegacyMode`; neither answers an item in the guide, so they are evidence only. Items about compute clusters, compute instances, online endpoints and registries are manual: those are child resources of the workspace that the assessment collection does not read. The report that accompanies this page lists the projections that would automate them.
 
 ## The enumeration — 44 items
 
@@ -57,7 +57,7 @@ Items about compute clusters, compute instances, online endpoints and registries
 | WAF-ML-SE-11 | Compute instances are recreated to pick up the latest operating system image | ❌ Manual — image age is not collected | MLG-SE-R |
 | WAF-ML-SE-12 | Workspace access uses Microsoft Entra groups and least-privilege RBAC, per use case | ❌ Manual — role assignments attached; scope-to-workspace review is judgement | MLG-SE-C, MLG-SE-R |
 | WAF-ML-SE-13 | Model catalog deployments, container registries and Python packages are restricted to approved sources | ❌ Manual — registry and package policy is workspace configuration, not collected | MLG-SE-C, MLG-SE-R |
-| WAF-ML-SE-14 | Data at rest uses customer-managed keys where required | ❌ Manual — the workspace encryption setting is not collected (proposed projection in the report) | MLG-SE-C, MLG-SE-R |
+| WAF-ML-SE-14 | Data at rest uses customer-managed keys where required | ❌ Manual — customer-managed keys are requirement-driven; the workspaces whose encryption status is not Enabled are attached as evidence (Foundry project workspaces inherit their hub's and are skipped) | MLG-SE-C, MLG-SE-R |
 | WAF-ML-SE-15 | Data exfiltration prevention limits egress to approved storage accounts | ❌ Manual — network policy, not collected | MLG-SE-R |
 
 ### Cost optimization (WAF-ML-CO) — 7 items

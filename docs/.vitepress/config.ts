@@ -121,6 +121,7 @@ export default defineConfig({
           { text: 'CASA Question Set', link: '/frameworks/casa-question-set' },
           { text: 'DevOps Capability Question Set', link: '/frameworks/devops-capability-question-set' },
           { text: 'FinOps Review Question Set', link: '/frameworks/finops-review-question-set' },
+          { text: 'WAF — Service Guides', link: '/frameworks/waf-service-guides-checklist' },
           { text: 'WAF — Mission Critical', link: '/frameworks/waf-mission-critical-checklist' },
           { text: 'WAF — Sustainability', link: '/frameworks/waf-sustainability-checklist' },
           { text: 'WAF — Go-Live Readiness', link: '/frameworks/waf-go-live-checklist' },
