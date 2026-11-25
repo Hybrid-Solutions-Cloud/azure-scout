@@ -41,13 +41,17 @@ All collector definitions, source retirement, strict runtime contracts, and repo
 complete. The remaining release steps are package validation, broad test-suite completion, tag, and
 publication. Historical v2 entries below are retained as release history rather than current status.
 
-## Current Release — v3.18.17 — every Microsoft catalog assessment has a Scout equivalent
+## Current Release — v3.18.18 — Azure only, with Conditional Access and PIM scored from data
+
+Scout assesses Azure: the seven assessments for products outside Azure added in 3.18.17 (Power Platform x3, Microsoft 365 Copilot data security, Dynamics 365 Sustainability, Microsoft for Financial Services, Windows 11) are removed, and the coverage page lists them as out of scope. Azure PIM eligibility, which Scout already read for every subscription and then discarded, now reaches the assessment data together with active role-assignment schedules (eligible, standing or activated; permanent or time-bound; privileged roles flagged) -- an ARM read covered by Reader. Entra Conditional Access policies, named locations and Security Defaults are read into domains.identity.conditionalAccess with computed flags (requires MFA, all users, Azure management, legacy-auth block, risk, device). Five identity checks move from manual to scored (CAF-IDN-04, CAF-BIL-02, WAF-AVD-SE-01, WAF-AVDAZ-SE-06, APPMOD-SEC-02), three PIM checks that were wired but always NotAssessed now score (CAF-IDN-02, CAF-IDN-05, CGOV-SC-05), and seven attach the policies or standing privileged assignments as evidence. Each reads NotAssessed, never Fail, when the data could not be read. 66 assessments, 1,732 rules, 674 automated. See AB#9300.
+
+**Next:** more identity evidence where it governs Azure -- directory-role eligibility and MFA registration need delegated scopes the default sign-in lacks; access reviews and sign-in activity would answer CAF-IDN-06/07.
+
+## Previous Release — v3.18.17 — Microsoft catalog assessments
 
 Version 3.18.17 is phase 5 of running every known Microsoft assessment. Seven assessments for Microsoft products other than Azure, run as questionnaires because Scout does not read their data yet (answered with -AssessmentAnswers; each framework page names the Microsoft APIs an automated version would need): Power Platform Well-Architected (Microsoft's checklist codes), Power Platform Solution and Power Platform Adoption; Microsoft 365 Copilot data security; Dynamics 365 Sustainability (formerly Sustainability Manager) and Microsoft for Financial Services (formerly Cloud for Financial Services) Well-Architected for Industry; and Windows 11 migration readiness. 73 assessments, 2,020 rules. The Microsoft Assessment Coverage page now maps every catalog assessment. See AB#9300.
 
-**Next:** automate the non-Azure assessments where an API exists -- an opt-in Power Platform collector (Power Platform API: environments, DLP and data policies, managed environments, security recommendations) and Microsoft Graph reads for Microsoft 365 Copilot data security (sensitivity labels, SharePoint sharing settings, Conditional Access) and Windows 11 readiness (Intune endpoint analytics) -- each behind its own permissions.
-
-## Previous Release — v3.18.16 — per-resource settings, read in parallel
+## Earlier Release — v3.18.16 — per-resource settings, read in parallel
 
 Version 3.18.16 is phase 4, batch 2 of running every known Microsoft assessment. Eight datasets Resource Graph does not hold are now read from each resource (storage blob and file soft delete, versioning and SMB settings; SQL auditing and failover groups; App Service FTP, basic auth, Always On, health check and remote debugging; Event Hubs geo-DR; Redis Enterprise access keys), with secret-bearing fields filtered before any row exists, and diagnostic-settings coverage extends to 14 more resource types. These reads and the diagnostic sweep now run eight at a time (live: 33 s to 3.7 s for 110 reads, identical results), and throttling or server errors back off 1-8 s honouring Retry-After over five attempts. 19 more checks are scored from data (669 of 1,732). A classic Redis cache with no access-key flag now reads as keys allowed, Azure's default. See AB#9300.
 

@@ -154,7 +154,7 @@ or Failed, and an answer file cannot override them.
 | # | Item | Scout | Source |
 |---|---|---|---|
 | APPMOD-SEC-01 | Applications use single sign-on with Microsoft Entra ID as the single source of identity | ❌ Manual | LAUNCH |
-| APPMOD-SEC-02 | Multifactor authentication and Conditional Access protect all single sign-on integrations | ❌ Manual | LAUNCH |
+| APPMOD-SEC-02 | Multifactor authentication and Conditional Access protect all single sign-on integrations | ✅ Entra Conditional Access: an enabled policy requires MFA for all users on all cloud apps with no app excluded (gated on Entra having been read) | LAUNCH |
 | APPMOD-SEC-03 | Hybrid identity gives users one set of credentials across on-premises and cloud resources | ❌ Manual | LAUNCH |
 | APPMOD-SEC-04 | Azure Policy assignments enforce organizational standards | ✅ Azure Policy assignments (needs an Azure Policy read) | LAUNCH |
 | APPMOD-SEC-05 | Entra audit logs and reports are monitored to detect anomalies | ❌ Manual | LAUNCH |
@@ -171,13 +171,16 @@ or Failed, and an answer file cannot override them.
 | Application estate readiness | 8 | 2 | 6 |
 | AI readiness | 7 | 1 | 6 |
 | Operational readiness | 7 | 0 | 7 |
-| Identity, security and compliance | 5 | 1 | 4 |
-| **Total** | **62** | **10** | **52** |
+| Identity, security and compliance | 5 | 2 | 3 |
+| **Total** | **62** | **11** | **51** |
 
-Ten of the 62 items can be judged from Azure data, each only on the signal it names. Four need
-data that is not always collected: Azure DevOps repositories and pipelines need `-IncludeDevOps`,
-the policy assignment item needs the Azure Policy read, and the diagnostic coverage item needs the
-coverage measurement. Resources Scout found (virtual machines, SQL servers, Application Insights and
-so on) are attached to some questions as evidence of the Azure part of the estate only. On-premises
-applications, source hosts other than Azure DevOps, Microsoft Entra settings and the organizational
-questions are not visible to Scout and are left to the person answering.
+Eleven of the 62 items can be judged from Azure or Entra data, each only on the signal it names.
+Five need data that is not always collected: Azure DevOps repositories and pipelines need
+`-IncludeDevOps`, the policy assignment item needs the Azure Policy read, the diagnostic coverage
+item needs the coverage measurement, and the multifactor item needs Microsoft Entra Conditional
+Access to have been read (Policy.Read.All and a reader role; it reads Not assessed under
+`-Scope ArmOnly` or when Graph refuses). Resources Scout found (virtual machines, SQL servers,
+Application Insights and so on) are attached to some questions as evidence of the Azure part of the
+estate only. On-premises applications, source hosts other than Azure DevOps, the rest of Microsoft
+Entra (single sign-on, hybrid identity, audit logs) and the organizational questions are not visible
+to Scout and are left to the person answering.

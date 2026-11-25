@@ -154,7 +154,7 @@ necessary-but-not-sufficient signals and say so in their remediation text.
 | WAF-MC-SE-06 | Container registry admin accounts are disabled | ✅ `adminEnabled` | AP · Container registry |
 | WAF-MC-SE-07 | Container registries restrict public network access | ✅ `publicAccess` | AP · Container registry |
 | WAF-MC-SE-08 | Managed identities and Azure RBAC secure service-to-service and data-plane access | ❌ Manual — managed identities attached | SEC · Alignment with the Zero Trust model |
-| WAF-MC-SE-09 | No one holds standing write access to production; emergency access is just-in-time with break-glass accounts | ❌ Manual | SEC · Alignment with the Zero Trust model; OPS · DevOps processes |
+| WAF-MC-SE-09 | No one holds standing write access to production; emergency access is just-in-time with break-glass accounts | ❌ Manual — permanent, standing privileged role assignments (`governance.roleAssignmentSchedules`) attached; which scopes are production is not known | SEC · Alignment with the Zero Trust model; OPS · DevOps processes |
 | WAF-MC-SE-10 | Threat modeling is current and engineering budget is set aside for mitigations | ❌ Manual | SEC · Threat modeling |
 | WAF-MC-SE-11 | Security testing runs in the delivery pipeline and lower environments have a defined posture | ❌ Manual | SEC · Alignment with the Zero Trust model |
 | WAF-MC-SE-12 | Keys and certificates are rotated automatically, with one key vault per regional stamp | ❌ Manual — key vaults attached | SEC · Data integrity protection; OPS · Secret management |

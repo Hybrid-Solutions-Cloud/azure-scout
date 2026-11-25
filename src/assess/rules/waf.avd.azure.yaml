@@ -9,7 +9,8 @@
 # product documentation, so every item is Scout's reading of the live AVD guidance named per row.
 #
 # Every automated rule is gated on AVD data being present, so an estate without AVD reports these
-# Not assessed rather than passed or failed. Joins to virtual machines use the session host's
+# Not assessed rather than passed or failed (WAF-AVDAZ-SE-06 also needs Entra Conditional Access
+# to have been read -- its gate is a list). Joins to virtual machines use the session host's
 # `resourceId`, so session hosts on Azure Local (which are not Azure VMs) drop out of those rules
 # instead of being mis-scored.
 area: "AVD workload (Azure)"
@@ -123,10 +124,16 @@ rules:
   - id: WAF-AVDAZ-SE-06
     title: "WAF-AVDAZ-SE-06. Multifactor authentication and Conditional Access are required for AVD"
     severity: high
-    query: null
-    assert: { type: manual }
-    remediation: "WAF-AVDAZ-SE-06. Confirm a Conditional Access policy requires MFA for the Azure Virtual Desktop app. Conditional Access is read from Microsoft Graph, not this assessment's collection."
-    manual: true
+    # Entra Conditional Access (domains.identity.conditionalAccess): an ENABLED policy (report-only
+    # does not enforce) that requires MFA (an OR with another control does not) and covers the Azure
+    # Virtual Desktop app, or all cloud apps without excluding it. Gated twice -- AVD host pools
+    # exist, and Conditional Access was read -- so an estate without AVD, or a run that could not
+    # read Entra (-Scope ArmOnly, no Policy.Read.All), reads Not assessed. Security defaults are not
+    # accepted: they require MFA "when necessary", which is not a guarantee for this app.
+    query: "$.domains.identity.conditionalAccess.policies[?(@.enabled == true && @.requiresMfa == true && @.targetsAvd == true)]"
+    assert: { type: exists, gate: ["$.compute.avdHostPools[*]", "$.domains.identity.conditionalAccess.Collected"] }
+    remediation: "WAF-AVDAZ-SE-06. No enabled Conditional Access policy requires MFA for the Azure Virtual Desktop app (or all cloud apps). Create one scoped to the AVD users and turn it On -- report-only policies do not count, and a policy that lets MFA be replaced by another control (grant operator OR) does not require it. With single sign-on to session hosts, add the same requirement for the Windows Cloud Login app, which this check does not read."
+    manual: false
   - id: WAF-AVDAZ-SE-07
     title: "WAF-AVDAZ-SE-07. Session hosts use Trusted Launch or Confidential VMs, with encryption at host"
     severity: medium

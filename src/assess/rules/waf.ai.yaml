@@ -323,7 +323,7 @@ rules:
     severity: high
     query: null
     assert: { type: manual }
-    remediation: "WAF-AI-RAI-04. Confirm auditability, RBAC and circuit-breaker safeguards are implemented for any agentic AI components. Identity/RBAC data (Conditional Access, per-resource role assignments) is not modeled in domains.* for this rule set; confirm manually."
+    remediation: "WAF-AI-RAI-04. Confirm auditability, RBAC and circuit-breaker safeguards are implemented for any agentic AI components. Conditional Access (domains.identity.conditionalAccess) and role assignments (governance.roleAssignments) are collected but not scored for this item; per-resource role scoping and agent circuit breakers are not collected, so confirm manually."
     manual: true
 
   # ---- Grounding data design: Microsoft's 5th recommendation, added after 2026-08-01 ----------

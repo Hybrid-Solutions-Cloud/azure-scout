@@ -64,22 +64,21 @@ each was built on, and the old names still work.
 | Cloud Governance | `CAF: Govern` (CAF Govern) |
 | Cloud Journey Tracker, Cloud Adoption Strategy Evaluator, Developer Velocity Assessment | Not carried forward: Microsoft retired them without a replacement methodology |
 
-## Microsoft products other than Azure
+## Out of scope: not Azure
 
-Scout runs these as questionnaires: it does not read Power Platform, Microsoft 365, Dataverse or
-client-device data yet, so every item is answered with
-[questionnaire answers](../assessment/questionnaire-answers.md). Each framework page names the
-Microsoft APIs an automated version would need.
+Scout assesses Azure. These catalog assessments are about products that live outside Azure
+subscriptions, with their own admin centres and APIs, so Scout does not run them:
 
-| Microsoft assessment | Scout assessment | Notes |
-|---|---|---|
-| Power Platform Well-Architected | `Microsoft: Power Platform Well-Architected` | Microsoft's checklist codes (RE:01 ...) |
-| Power Platform Solution Assessment | `Microsoft: Power Platform Solution` | |
-| Power Platform Adoption Assessment | `Microsoft: Power Platform Adoption` | |
-| Data Security for Copilot for Microsoft 365 | `Microsoft: M365 Copilot Data Security` | Product now Microsoft 365 Copilot |
-| Microsoft Sustainability Manager \| Well-Architected Assessment | `Microsoft: Sustainability Manager Well-Architected` | Product now Dynamics 365 Sustainability |
-| Microsoft Cloud for Financial Services \| Well-Architected for Industry | `Microsoft: Cloud for Financial Services Well-Architected` | Product now Microsoft for Financial Services |
-| Windows 11 Pro Migration Readiness Assessment | `Microsoft: Windows 11 Migration Readiness` | Windows 10 reached end of support on 2025-10-14 |
+| Microsoft assessment | Why it is not Azure |
+|---|---|
+| Power Platform Well-Architected, Solution Assessment, Adoption Assessment | Power Platform (Power Apps, Power Automate, Dataverse) is administered in the Power Platform admin centre, not in Azure subscriptions |
+| Microsoft Sustainability Manager \| Well-Architected Assessment (now Dynamics 365 Sustainability) | A Dynamics 365 application built on Power Platform |
+| Microsoft Cloud for Financial Services \| Well-Architected for Industry (now Microsoft for Financial Services) | Dynamics 365 and Power Platform industry solutions |
+| Data Security for Copilot for Microsoft 365 | Microsoft 365: SharePoint, Purview and sensitivity labels |
+| Windows 11 Pro Migration Readiness Assessment | Client devices (laptops and desktops), not Azure resources |
+
+Microsoft Entra ID is in scope where it governs access to Azure: Conditional Access for Azure
+management, Privileged Identity Management for Azure roles, and role assignments.
 
 The catalog's partner journeys (Microsoft Partner and industry readiness guides) and learner
 skill self-assessments are training material, not assessments of an environment, so Scout does

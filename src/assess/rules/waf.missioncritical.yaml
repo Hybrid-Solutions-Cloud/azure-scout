@@ -502,9 +502,13 @@ rules:
   - id: WAF-MC-SE-09
     title: "WAF-MC-SE-09. No one holds standing write access to production; emergency access is just-in-time with break-glass accounts"
     severity: high
-    query: null
+    # Evidence only: which privileged Azure roles (Owner, Contributor, User Access Administrator,
+    # RBAC Administrator) are held as a STANDING, permanent assignment by a user or group anywhere in
+    # the estate. Scout does not know which scopes are production, so it cannot score the rule; the
+    # reviewer reads the scopes. Empty when the schedules were not read (governance.privilegedAccessMeasured).
+    query: "$.governance.roleAssignmentSchedules[?(@.accessType == 'Standing' && @.permanent == true && @.privilegedRole == true && @.principalType != 'ServicePrincipal')]"
     assert: { type: manual }
-    remediation: "WAF-MC-SE-09. Confirm Entra Privileged Identity Management removes sustained control-plane access, production pipelines have granular RBAC and approval gates, and break-glass accounts exist for authentication failure."
+    remediation: "WAF-MC-SE-09. The permanent, standing privileged role assignments held by users and groups are listed as evidence -- check none is at a production scope, and convert them to PIM-eligible assignments. Also confirm production pipelines have granular RBAC and approval gates, and break-glass accounts exist for authentication failure."
     manual: true
   - id: WAF-MC-SE-10
     title: "WAF-MC-SE-10. Threat modeling is current and engineering budget is set aside for mitigations"

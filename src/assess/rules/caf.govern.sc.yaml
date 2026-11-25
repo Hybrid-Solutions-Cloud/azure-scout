@@ -41,17 +41,15 @@ rules:
   - id: CGOV-SC-03
     title: "Identity governance monitoring is configured — audit/sign-in/provisioning logs, identity secure score, an identity-governance dashboard"
     severity: high
-    # Sign-in/audit/provisioning logs are not collected by Scout at all -- confirmed against
-    # collect.json's identity domain, and independently corroborated by the AzGovViz
-    # methodology evaluation (docs/design/azgovviz-methodology-evaluation.md, AB#6448), which
-    # documents that AzGovViz's Entra service-principal/secret-expiry tracking is capability
-    # Scout does not have an equivalent collector for. Microsoft's own example policies SC01 (MFA
-    # for all users, monitored through Conditional Access) and SC02 (monthly access reviews in
-    # ID Governance) are identity controls of the same kind -- tenant-level Entra settings, not
-    # ARM resources.
-    query: null
+    # Sign-in/audit/provisioning logs are not part of collect.json's identity domain, and whether a
+    # dashboard exists or access reviews run monthly cannot be read from Azure, so this item stays
+    # manual. What Scout CAN now show is the MFA half of Microsoft's example policy SC01: the
+    # enabled Conditional Access policies that require MFA for all users are attached as evidence
+    # (domains.identity.conditionalAccess, read from Entra -- empty when Graph was not read). They
+    # do not answer the other parts, so none of them is scored here.
+    query: "$.domains.identity.conditionalAccess.policies[?(@.enabled == true && @.requiresMfa == true && @.targetsAllUsers == true)]"
     assert: { type: manual }
-    remediation: "Configure Microsoft Entra sign-in/audit log export, review identity secure score, and stand up an identity-governance dashboard. Also confirm MFA is enforced for all users (Conditional Access) and that access reviews run on the cadence your policy states -- none of this is currently observable from Scout's collected data."
+    remediation: "Configure Microsoft Entra sign-in/audit log export, review identity secure score, and stand up an identity-governance dashboard. Confirm access reviews run on the cadence your policy states. The Conditional Access policies listed as evidence (if any) show where MFA is required for all users; no listed policy means Scout either found none or could not read Conditional Access (domains.identity.conditionalAccess.Reason in collect.json says which)."
     manual: true
 
   - id: CGOV-SC-04
@@ -73,13 +71,13 @@ rules:
     severity: medium
     # enforce-cloud-governance-policies#automate-security-governance: "Enable just-in-time access
     # to limit access to important resources" (Privileged Identity Management). Same dataset and
-    # gate as CAF-IDN rules: governance.pimEligibility needs an Entra ID P2 licence and a Graph
-    # application permission outside Scout's Reader baseline, and the ingestor currently sets
-    # governance.pimEligibilityAvailable = false -- so this reads NotAssessed (never a Fail and
-    # never a Pass) until that collection is wired.
+    # gate as the CAF-IDN rules: the Azure RBAC eligibility schedules Scout reads per subscription
+    # (Get-AzRoleEligibilitySchedule, an Azure Resource Manager read the Reader role covers).
+    # governance.pimEligibilityAvailable is true only when every subscription answered, so a
+    # subscription that could not be read reads NotAssessed (never a Fail and never a Pass).
     query: "$.governance.pimEligibility[*]"
     assert: { type: exists, gate: "$.governance.pimEligibilityAvailable" }
-    remediation: "Convert standing privileged role assignments to PIM eligible assignments with approval and time limits. Scout could not read PIM eligibility in this run (needs Entra ID P2 and a Graph permission), so confirm in the Entra admin centre."
+    remediation: "No PIM eligible role assignment exists on any subscription. Convert standing privileged role assignments to PIM eligible assignments with approval and time limits. If this check reads Not assessed, governance.pimEligibilityReason in collect.json names the subscription read that failed."
     manual: false
 
   - id: CGOV-SC-06

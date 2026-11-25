@@ -69,7 +69,7 @@ resource configuration.
 
 | # | Item | Scout can evidence? |
 |---|---|---|
-| CASA-PM-01 | Identity strengthening — MFA, Conditional Access, least-privilege, just-in-time access — is integrated | ⚠️ Partial — `Identity/ConditionalAccess`, `Identity/PIMAssignments` existence; policy *effectiveness* not scored |
+| CASA-PM-01 | Identity strengthening — MFA, Conditional Access, least-privilege, just-in-time access — is integrated | ⚠️ Partial — four controls in one item, so it stays manual; the enabled Conditional Access policies that require MFA (`domains.identity.conditionalAccess`) are attached as evidence, and CAF-IDN-02/05 score PIM eligibility from Azure RBAC |
 | CASA-PM-02 | Network/workload segmentation is implemented | ⚠️ Partial — `Networking/NetworkSecurityGroup`, `$.networking.nsgPublicInbound[*]` |
 | CASA-PM-03 | Threat detection is tuned and enabled via Microsoft Defender for Cloud | ✅ `Security/DefenderPricing`, `Security/DefenderAlerts` |
 | CASA-PM-04 | Secure score is tracked in Microsoft Defender for Cloud | ✅ `Security/DefenderSecureScore` (point-in-time only, no trend — same limitation `waf.security.yaml`'s WAF-SE analogue records). **Automated**: `security.defenderSecureScores` exists, gated on that dataset, so a run without the policy-compliance sweep reads Not assessed rather than Fail |

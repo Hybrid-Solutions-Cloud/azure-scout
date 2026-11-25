@@ -103,9 +103,12 @@ rules:
   - id: WAF-AVS-SEC-01
     title: "Permanent Contributor access to the AVS resource group is limited"
     severity: high
-    query: null
+    # Evidence only: permanent, standing Contributor assignments anywhere in the estate (Azure RBAC
+    # role assignment schedules). Scout cannot tell which of them is scoped to the AVS resource
+    # group, so the reviewer picks those out by scope; empty when the schedules were not read.
+    query: "$.governance.roleAssignmentSchedules[?(@.accessType == 'Standing' && @.permanent == true && @.roleDefinitionName == 'Contributor')]"
     assert: { type: manual }
-    remediation: "WAF-AVS-SEC-01. PIM eligibility data is not reliably collected (governance.pimEligibility requires an Entra ID P2 license and a Graph application permission Scout's Reader-at-root baseline does not grant) -- confirm Contributor access to the AVS resource group is PIM-eligible, time-bound, and justification-based, not standing."
+    remediation: "WAF-AVS-SEC-01. The permanent, standing Contributor assignments are listed as evidence (estate-wide -- find those at or above the AVS resource group by scope). Confirm Contributor access to the AVS resource group is PIM-eligible, time-bound and justification-based, not standing; governance.pimEligibility lists the eligible assignments."
     manual: true
   - id: WAF-AVS-SEC-02
     title: "cloudadmin/network-admin built-in accounts used only in break-glass scenarios"

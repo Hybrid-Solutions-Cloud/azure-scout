@@ -34,9 +34,10 @@ BeforeAll {
     }
 
     # A fully-populated mock Collect: every automatable caf.govern.*.yaml query resolves to
-    # at least one row, so every automated rule Passes (except CGOV-SC-05, whose PIM dataset is
-    # never collected today and so reads NotAssessed) -- this proves the "healthy tenant" path
-    # scores cleanly, not just the empty-tenant path.
+    # at least one row, so every automated rule Passes -- this proves the "healthy tenant" path
+    # scores cleanly, not just the empty-tenant path. CGOV-SC-05 reads the Azure RBAC PIM eligibility
+    # schedules, which Scout now collects (governance.pimEligibility); the empty-tenant fixture below
+    # leaves them unavailable, which is where its NotAssessed outcome is pinned.
     function New-MockGovernanceCollect {
         $def = '/providers/Microsoft.Authorization/policyDefinitions'
         $set = '/providers/Microsoft.Authorization/policySetDefinitions'
@@ -46,8 +47,8 @@ BeforeAll {
                 roleAssignmentsAvailable   = $true
                 budgetsAvailable           = $true
                 resourceLocksAvailable     = $true
-                pimEligibilityAvailable    = $false
-                pimEligibility             = @()
+                pimEligibilityAvailable    = $true
+                pimEligibility             = @([pscustomobject]@{ id = 'sched1'; principalId = 'p1'; principalType = 'User'; roleDefinitionName = 'Owner'; privilegedRole = $true; accessType = 'Eligible' })
                 managementGroups = @(
                     [pscustomobject]@{ name = 'root' }, [pscustomobject]@{ name = 'platform' }, [pscustomobject]@{ name = 'landingzones' }
                 )
@@ -252,11 +253,10 @@ Describe 'caf.govern.*.yaml -- scoring correctness on a fully-populated (healthy
         ($script:Findings | Where-Object Id -eq 'CGOV-DG-01').Status | Should -Be 'Pass'
     }
 
-    It 'Passes every automated rule on the healthy fixture except CGOV-SC-05, which is NotAssessed because PIM eligibility is never collected' {
+    It 'Passes every automated rule on the healthy fixture, CGOV-SC-05 included now that PIM eligibility is collected' {
         foreach ($rule in @($script:AllRules | Where-Object { -not $_.manual })) {
             $status = ($script:Findings | Where-Object Id -eq $rule.id).Status
-            if ($rule.id -eq 'CGOV-SC-05') { $status | Should -Be 'NotAssessed' -Because 'the PIM gate is closed' }
-            else { $status | Should -Be 'Pass' -Because "$($rule.id) has matching evidence in the healthy fixture" }
+            $status | Should -Be 'Pass' -Because "$($rule.id) has matching evidence in the healthy fixture"
         }
     }
 

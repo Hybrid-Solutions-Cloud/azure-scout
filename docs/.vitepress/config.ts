@@ -140,13 +140,6 @@ export default defineConfig({
           { text: 'Platform Engineering Question Set', link: '/frameworks/platform-engineering-question-set' },
           { text: 'Analytics Journey Question Set', link: '/frameworks/analytics-journey-question-set' },
           { text: 'App and Data Modernization Question Set', link: '/frameworks/app-modernization-question-set' },
-          { text: 'Power Platform Well-Architected', link: '/frameworks/power-platform-well-architected-checklist' },
-          { text: 'Power Platform Solution Question Set', link: '/frameworks/power-platform-solution-question-set' },
-          { text: 'Power Platform Adoption Question Set', link: '/frameworks/power-platform-adoption-question-set' },
-          { text: 'Microsoft 365 Copilot Data Security', link: '/frameworks/m365-copilot-data-security-question-set' },
-          { text: 'Dynamics 365 Sustainability Well-Architected', link: '/frameworks/sustainability-manager-well-architected-question-set' },
-          { text: 'Microsoft for Financial Services Well-Architected', link: '/frameworks/cloud-for-financial-services-question-set' },
-          { text: 'Windows 11 Migration Readiness', link: '/frameworks/windows-11-readiness-question-set' },
         ],
       },
       {

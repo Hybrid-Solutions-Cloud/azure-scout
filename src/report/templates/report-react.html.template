@@ -943,7 +943,7 @@ function keyCat(k){
   if(k==='management.logAnalyticsWorkspaces' || k.indexOf('opsPosture.')===0) return 'Monitor';
   if(k.indexOf('management.')===0) return 'Management';
   if(k.indexOf('security.')===0) return 'Security';
-  if(/^governance\.(roleAssignments|pimEligibility|classicAdministrators)$/.test(k)) return 'Identity';
+  if(/^governance\.(roleAssignments|pimEligibility|roleAssignmentSchedules|classicAdministrators)$/.test(k)) return 'Identity';
   if(k.indexOf('governance.')===0) return 'Management';
   if(k.indexOf('devops.')===0) return 'DevOps';
   if(k.indexOf('monitor.')===0) return 'Monitor';

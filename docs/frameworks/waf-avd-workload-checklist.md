@@ -63,7 +63,7 @@ gap, not a fabricated item — closing it is a follow-up task, not a guess made 
 
 | # | Item | Scout collector |
 |---|---|---|
-| WAF-AVD-SE-01 | Turn on Microsoft Entra multifactor authentication for AVD access | ⚠️ Partial — `Identity/ConditionalAccess` can show an MFA-requiring policy exists; per-user enforcement isn't collected |
+| WAF-AVD-SE-01 | Turn on Microsoft Entra multifactor authentication for AVD access | ✅ `domains.identity.conditionalAccess` — an enabled policy requires MFA for the Azure Virtual Desktop app or all cloud apps (gated on AVD host pools existing and Entra having been read) |
 | WAF-AVD-SE-02 | Update and patch AVD session hosts regularly (Azure Update Manager) | ✅ `Management/PolicyComplianceStates` (Update Manager compliance path) |
 | WAF-AVD-SE-03 | Protect against threats and vulnerabilities (Defender for Cloud) | ✅ `Security/DefenderPricing`, `Security/DefenderAlerts` |
 | WAF-AVD-SE-04 | Isolate networks (separate logical networks/VLANs for the workload) | ✅ `Hybrid/LogicalNetworks` |
@@ -100,13 +100,13 @@ gap, not a fabricated item — closing it is a follow-up task, not a guess made 
 | Pillar | Items | Answerable (✅) | Partial (⚠️) | Unanswerable (❌) |
 |---|---|---|---|---|
 | Reliability | 4 | 3 | 0 | 1 |
-| Security | 4 | 3 | 1 | 0 |
+| Security | 4 | 4 | 0 | 0 |
 | Cost Optimization | 6 | 3 | 2 | 1 |
 | Operational Excellence | 4 | 2 | 0 | 2 |
 | Performance Efficiency | 2 | 1 | 1 | 0 |
-| **Total** | **20** | **12** | **4** | **4** |
+| **Total** | **20** | **13** | **3** | **4** |
 
-12 of 20 items (60%) map cleanly to an existing collector — the highest automatable fraction of the
+13 of 20 items (65%) map cleanly to an existing collector — the highest automatable fraction of the
 four checklists in this release, because AVD-on-Azure-Local is infrastructure-heavy and Scout already
 collects both the AVD (`Compute/AVD*`) and Azure Local (`Hybrid/*`) collector families it depends on.
 

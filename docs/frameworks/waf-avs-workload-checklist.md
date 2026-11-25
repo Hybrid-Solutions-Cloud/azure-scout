@@ -84,7 +84,7 @@ Source: [Security, governance, and compliance for Azure VMware Solution](https:/
 
 | # | Item | Scout collector |
 |---|---|---|
-| WAF-AVS-SEC-01 | Permanent Contributor access to the AVS resource group is limited (PIM, time-bound, justification-based) | ❌ Unanswerable — `Identity/ConditionalAccess` and PIM eligibility aren't the same collected surface as scoped RG role assignments |
+| WAF-AVS-SEC-01 | Permanent Contributor access to the AVS resource group is limited (PIM, time-bound, justification-based) | ⚠️ Partial — manual; the permanent, standing Contributor assignments (`governance.roleAssignmentSchedules`, estate-wide) are attached as evidence, but which of them is scoped to the AVS resource group is for the reviewer |
 | WAF-AVS-SEC-02 | `cloudadmin`/network-admin built-in accounts are centrally managed and used only in break-glass scenarios, with domain-services-sourced accounts for routine access | ❌ Unanswerable — vCenter/NSX-T-internal RBAC configuration, not ARM-readable |
 | WAF-AVS-SEC-03 | Guest VM identity uses centralized AD DS/LDAP, integrated with Microsoft Entra ID | ⚠️ Partial — `Identity/*` collectors evidence Entra-side configuration; guest-VM domain-join state isn't collected |
 | WAF-AVS-SEC-04 | Network security controls are implemented — traffic filtering, WAF/OWASP compliance, unified firewall management, DDoS protection | ⚠️ Partial — `Networking/*` collectors (Azure Firewall, WAF policy, DDoS protection plan) evidence the Azure-side controls; NSX-T-internal filtering isn't collected |

@@ -22,13 +22,13 @@ scores, a prioritised gap list, and evidence for every finding.
 ## What can be assessed
 
 The full list lives on one generated page — **[Assessment Catalogue](../reference/assessment-catalogue.md)**
-— covering all 73 assessments grouped into CAF design areas, WAF pillars, per-service slices,
+— covering all 66 assessments grouped into CAF design areas, WAF pillars, per-service slices,
 and specialised reviews, with the rule files and rule counts behind each.
 
 ## Read this before quoting a score
 
 A rule is either **automated** — decided by collected data — or **manual**, meaning no data
-Azure exposes can settle it and a human must confirm it. **1,351 of Scout's 2,020 rules (67%) are
+Azure exposes can settle it and a human must confirm it. **1,058 of Scout's 1,732 rules (61%) are
 manual.** Unanswered, they are excluded from every score rather than counted as failures, and
 reported separately. Answered (see [Questionnaire answers](./questionnaire-answers.md)), they are
 scored and marked as answered.

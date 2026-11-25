@@ -159,10 +159,13 @@ In the current implementation, PIM-eligibility data is **never** collected
 through this ingest path, regardless of whether you grant
 `PrivilegedAccess.Read.AzureResources` or hold an Entra ID P2 license. The
 permission is still listed by `Test-ScoutPermission` (it's part of AzGovViz's
-own general permission set) — grant it if you want to future-proof for when
-`-NoPIMEligibility` is lifted, but do not expect PIM data in `findings.json`
-today. This is a real gap between the permission checklist and what the code
-does; flagged here rather than silently documented as "working."
+own general permission set) — you do not need it for PIM data in `findings.json`,
+because the **default** native collector reads Azure RBAC PIM eligibility and
+role assignment schedules itself, through Azure Resource Manager, with the **Reader**
+role (`Get-AzRoleEligibilitySchedule` / `Get-AzRoleAssignmentSchedule`, one read
+of each per subscription). The rules gate on `governance.pimEligibilityAvailable`,
+which is true only when every subscription answered, so a subscription the identity
+cannot read makes the PIM rules **Not assessed** rather than failed.
 :::
 
 ## What `-PermissionAudit` actually verifies
