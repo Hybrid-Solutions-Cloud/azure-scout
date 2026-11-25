@@ -67,11 +67,14 @@ rules:
     title: "SQL Server/Database auditing enabled to a durable destination"
     severity: high
     # Split from the old combined CAF-DB-04 (AB#5068): Microsoft.Sql/servers/
-    # auditingSettings and .../extendedAuditingSettings are RP child resources,
-    # not in the Resource Graph reference — Resource Graph cannot see them, so
-    # this half of the original rule stays manual even though the
-    # Defender-for-SQL half (now CAF-DB-04) is ARG-collectable.
-    query: null
-    assert: { type: manual }
-    remediation: "Enable SQL Server/Database auditing to a storage account or Log Analytics workspace. collect.json does not yet capture auditing settings — verify via `az sql server audit-policy show`."
-    manual: true
+    # auditingSettings is an RP child resource that Resource Graph cannot see, so
+    # this half of the original rule was manual. The phase 4 batch 2 ARM sweep now
+    # reads it (domains.databases.sqlServerAuditing, one row per server whose GET
+    # answered), so it is automated: a server whose auditing state is not Enabled
+    # is a finding. An enabled audit always has a destination (storage, Log
+    # Analytics or Event Hubs), so state Enabled is what "a durable destination"
+    # means here. Gated on the Measured flag.
+    query: "$.domains.databases.sqlServerAuditing[?(@.auditingState != 'Enabled')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.databases.sqlServerAuditingMeasured" }
+    remediation: "SQL auditing is not enabled on the servers listed. Enable SQL Server auditing to a storage account, a Log Analytics workspace or Event Hubs, so access and changes are recorded durably. Server-level auditing covers every database on the server; database-level auditing settings are not read."
+    manual: false

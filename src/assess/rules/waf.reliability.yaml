@@ -54,10 +54,13 @@ rules:
   - id: WAF-RE-13
     title: "Blob soft-delete retention meets minimum recovery window"
     severity: medium
-    query: null
-    assert: { type: manual }
-    remediation: "Confirm blob soft-delete retention is set to at least the org's minimum recovery window (commonly 7-30 days). collect.json does not yet capture deleteRetentionPolicy.days -- verify via `az storage account blob-service-properties show`."
-    manual: true
+    # domains.storage.blobServiceProperties carries deleteRetentionEnabled and deleteRetentionDays per account. Scout
+    # scores the 7-day floor the Azure Storage data-protection guidance recommends; a longer organisational
+    # minimum is the same fix with a bigger number. Gated on the Measured flag.
+    query: "$.domains.storage.blobServiceProperties[?(@.deleteRetentionEnabled == false || @.deleteRetentionDays < 7)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.storage.blobServicePropertiesMeasured" }
+    remediation: "The storage accounts listed have blob soft delete off or a retention of fewer than 7 days. Turn soft delete on and set the retention to at least 7 days, or to your organisation's minimum recovery window if that is longer (commonly 7-30 days)."
+    manual: false
 
   - id: WAF-RE-14
     title: "GRS/GZRS storage accounts have tested failover readiness"

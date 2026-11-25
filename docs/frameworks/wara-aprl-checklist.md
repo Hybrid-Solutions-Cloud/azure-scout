@@ -49,7 +49,7 @@ Checked 2026-11-25, and **no, it has not been merged or retired**:
 across more than 100 provider folders, most of them about configuration Scout does not collect (child
 resources, metrics, Kubernetes objects, guest settings) or about application behaviour (retries,
 connection reuse) that no inventory can see. This page covers the subset whose condition maps to a
-property Scout collects, plus two Manual items (WARA-SQL-02, WARA-ER-02) that attach the nearest evidence. APRL's
+property Scout collects, plus one Manual item (WARA-ER-02) that attaches the nearest evidence. APRL's
 own queries also differ in two ways Scout cannot match today: they filter to a region list that has
 availability zones, and they read properties Scout's slimmer projections omit. Where Scout is coarser,
 the rule's remediation says so.
@@ -60,7 +60,7 @@ each item cites the APRL recommendation it paraphrases by `aprlGuid` and reposit
 check any item against the source. Folder URLs are of the form
 `https://github.com/Azure/Azure-Proactive-Resiliency-Library-v2/tree/main/azure-resources/<Provider>/<type>`.
 
-## The enumeration — 38 items (36 automated, 2 manual)
+## The enumeration — 38 items (37 automated, 1 manual)
 
 Every item is **gated** on its own resource type existing: an estate without that service reports it
 Not assessed, never passed. "Impact" is APRL's own rating for the recommendation; "Severity" is what
@@ -100,7 +100,7 @@ Scout's rule uses, lowered where the condition cannot tell production from test.
 | # | Item | Scout | APRL impact | aprlGuid |
 |---|---|---|---|---|
 | WARA-SQL-01 | Azure SQL databases are zone redundant | ✅ `domains.databases.sqlDatabases` `zoneRedundant` (`master` excluded) | High | `c0085c32-84c0-c247-bfa9-e70977cbf108` |
-| WARA-SQL-02 | Critical SQL databases are geo-replicated or in a failover group | ❌ Manual — SQL servers attached; replicas are child resources | High | `74c2491d-048b-0041-a140-935960220e20` |
+| WARA-SQL-02 | Critical SQL databases are geo-replicated or in a failover group | ✅ `domains.databases.sqlFailoverGroups` `failoverGroupCount` (a server with no failover group is a finding; geo-replication links are not collected, and Scout cannot tell a critical database from a test one); gated on `sqlFailoverGroupsMeasured` | High | `74c2491d-048b-0041-a140-935960220e20` |
 | WARA-COSMOS-01 | Cosmos DB spans more than one region and uses zones | ✅ `cosmosDbAccounts` `regionCount` < 2 or `zoneRedundantRegionCount` < 1 (JSONPath cannot compare the two counts, and automatic failover is not scored) | High | `43663217-a1d3-844b-80ea-571a2ce37c6c` |
 | WARA-REDIS-01 | Redis caches are zone redundant (Premium or Enterprise) | ✅ `redisCaches` classic: `zoneCount` < 2 and `zonalAllocationPolicy` not Automatic; Enterprise: `highAvailability` Disabled | High | `5a44bd30-ae6a-4b81-9b68-dc3a8ffca4d8` |
 | WARA-PGSQL-01 | PostgreSQL flexible servers use zone-redundant high availability | ✅ `postgreSqlFlexibleServers` `haMode` not ZoneRedundant | High | `ca87914f-aac4-4783-ab67-82a6f936f194` |

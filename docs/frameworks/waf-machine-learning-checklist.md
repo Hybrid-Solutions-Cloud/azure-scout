@@ -82,7 +82,7 @@ The workspace dataset also carries `hbiWorkspace` (high business impact) and `v1
 | WAF-ML-OE-04 | Workspaces, compute and environments are deployed with infrastructure as code | ❌ Manual — deployment method is not an ARM property | MLG-OE-C |
 | WAF-ML-OE-05 | Deployed model performance and data drift are monitored | ❌ Manual — model-monitor configuration is not collected | MLG-OE-C, MLG-OE-R |
 | WAF-ML-OE-06 | Online endpoints send telemetry to Application Insights | ❌ Manual — Application Insights components attached (link to endpoints is not collected) | MLG-OE-C, MLG-OE-R |
-| WAF-ML-OE-07 | Resource logs are collected for Machine Learning workspaces | ❌ Manual — type not yet in the diagnostic-settings sweep (proposed in the report) | MLG-OE-R |
+| WAF-ML-OE-07 | Resource logs are collected for Machine Learning workspaces | ✅ diagnostic-settings coverage for the Machine Learning workspace type (a setting present, not which categories) | MLG-OE-R |
 | WAF-ML-OE-08 | Curated environments are used where available | ❌ Manual — environment choice, not collected | MLG-OE-C, MLG-OE-R |
 
 ### Performance efficiency (WAF-ML-PE) — 5 items
@@ -102,9 +102,9 @@ The workspace dataset also carries `hbiWorkspace` (high business impact) and `v1
 | Reliability | 9 | 0 | 9 |
 | Security | 15 | 5 | 10 |
 | Cost optimization | 7 | 0 | 7 |
-| Operational excellence | 8 | 0 | 8 |
+| Operational excellence | 8 | 1 | 7 |
 | Performance efficiency | 5 | 0 | 5 |
-| **Total** | **44** | **5** | **39** |
+| **Total** | **44** | **6** | **38** |
 
 Every automated item is gated on its resources (or its diagnostic-coverage rows) existing, so an estate
 without them reports the item Not assessed. The rules live in `src/assess/rules/waf.machinelearning.yaml`.

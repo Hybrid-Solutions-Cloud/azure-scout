@@ -253,11 +253,22 @@ param([Parameter(ValueFromRemainingArguments)] $Rest); return @() }
 
         $collect = Invoke-Collect -Categories @('*')
 
-        # AzureScout never reads inside a Key Vault. The assessment collect's only ARM-child sweep
-        # is ResourceDiagnosticSettings (AB#9300: where each resource sends its logs, never what a
-        # vault holds), and it carries no secret/key projection.
+        # AzureScout never reads inside a Key Vault. The assessment collect's ARM-child sweeps are
+        # ResourceDiagnosticSettings (AB#9300: where each resource sends its logs, never what a
+        # vault holds) plus the eight per-resource settings datasets AB#9300 phase 4 batch 2 added
+        # (storage blob/file service, SQL auditing and failover groups, web app configuration and
+        # basic-auth policies, Event Hubs geo-DR, Redis Enterprise databases). None of them reads a
+        # Key Vault, and each keeps only an allow-list of scalar settings (never a key, app setting,
+        # connection string or partner id) -- see Collect.Phase4Batch2.Tests.ps1. The list is pinned
+        # in full so a ninth dataset cannot join the assessment sweep unreviewed.
         $script:capturedIncludeArmChild | Should -Be $true
-        @($script:capturedArmChildDataset) | Should -Be @('ResourceDiagnosticSettings')
+        @($script:capturedArmChildDataset) | Should -Be @(
+            'ResourceDiagnosticSettings'
+            'StorageBlobServiceProperties', 'StorageFileServiceProperties'
+            'SqlServerAuditing', 'SqlFailoverGroups'
+            'WebAppConfig', 'WebAppBasicAuth'
+            'EventHubGeoDr', 'RedisEnterpriseDatabases'
+        )
         @($script:capturedArmChildDataset) | Should -Not -Contain 'KeyVaultSecrets'
         @($script:capturedArmChildDataset) | Should -Not -Contain 'KeyVaultKeys'
 

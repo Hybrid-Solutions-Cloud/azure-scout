@@ -58,7 +58,7 @@ The service is documented as Foundry IQ (Azure AI Search) and offers Dedicated a
 | WAF-AISEARCH-SE-07 | Confidential compute is used only where regulation requires it | ❌ Manual — computeType is not collected (proposed projection in the report); services attached | SEC |
 | WAF-AISEARCH-SE-08 | Document-level access control or security filters trim results per caller | ❌ Manual — data-plane design, not ARM | SEC |
 | WAF-AISEARCH-SE-09 | Access to individual indexes follows least privilege | ❌ Manual — role design, not collected per service | SEC |
-| WAF-AISEARCH-SE-10 | Diagnostic logging is on and alerts watch for anomalous activity | ❌ Manual — type not yet in the diagnostic-settings sweep (proposed in the report) | SEC |
+| WAF-AISEARCH-SE-10 | Diagnostic logging is on and alerts watch for anomalous activity | ✅ diagnostic-settings coverage for the search service type (a setting present; alert rules are not read) | SEC |
 | WAF-AISEARCH-SE-11 | An IP firewall or network security perimeter limits inbound access when public access stays on | ✅ public access on with no IP rule (a perimeter is reported as SecuredByPerimeter and is not flagged) | SEC |
 
 ### Cost optimization (WAF-AISEARCH-CO) — 7 items
@@ -97,11 +97,11 @@ The service is documented as Foundry IQ (Azure AI Search) and offers Dedicated a
 | Pillar | Items | Automated (✅) | Manual (❌) |
 |---|---|---|---|
 | Reliability | 10 | 2 | 8 |
-| Security | 11 | 5 | 6 |
+| Security | 11 | 6 | 5 |
 | Cost optimization | 7 | 0 | 7 |
 | Operational excellence | 5 | 0 | 5 |
 | Performance efficiency | 4 | 0 | 4 |
-| **Total** | **37** | **7** | **30** |
+| **Total** | **37** | **8** | **29** |
 
 Every automated item is gated on its resources (or its diagnostic-coverage rows) existing, so an estate
 without them reports the item Not assessed. The rules live in `src/assess/rules/waf.aisearch.yaml`.

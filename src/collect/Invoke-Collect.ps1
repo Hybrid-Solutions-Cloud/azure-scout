@@ -168,7 +168,24 @@ $ErrorActionPreference = 'Stop'
                                                  publicNetworkAccess,allowCrossTenantReplication,
                                                  defaultToOAuth}],                       (AB#9300 phase 4)
                                 managedDisks[{zoneCount,networkAccessPolicy,publicNetworkAccess,
-                                               encryptionType}]},                         (AB#9300 phase 4)
+                                               encryptionType}],                          (AB#9300 phase 4)
+                                blobServiceProperties[{storageAccountId,deleteRetentionEnabled,
+                                                        deleteRetentionDays,
+                                                        containerDeleteRetentionEnabled,
+                                                        containerDeleteRetentionDays,
+                                                        versioningEnabled,changeFeedEnabled,
+                                                        pointInTimeRestoreEnabled}],
+                                blobServicePropertiesMeasured,
+                                fileServiceProperties[{storageAccountId,shareDeleteRetentionEnabled,
+                                                        shareDeleteRetentionDays,smbVersions,
+                                                        smbChannelEncryption,
+                                                        smbAuthenticationMethods}],
+                                fileServicePropertiesMeasured},   (AB#9300 phase 4, batch 2 -- one ARM
+                                GET per storage account, NOT Resource Graph; the *Measured flags are
+                                true only when at least one GET got an answer, so a rule gates on them
+                                and reports NotAssessed rather than passing on an empty list. Every
+                                id is the parent's, lower-cased. smb* are the service's own strings,
+                                $null meaning "all allowed".)
                       databases{sqlServers[{id,location,minimalTlsVersion,entraOnlyAuth,identityType,
                                              cmkEnabled}],
                                 sqlDatabases[{id,location,backupRedundancy,secondaryType,
@@ -189,10 +206,40 @@ $ErrorActionPreference = 'Stop'
                                               accessKeyAuthDisabled,aadEnabled,
                                               highAvailability}],
                                 sqlManagedInstances[{zoneRedundant,backupRedundancy,entraOnlyAuth,
-                                                      minimalTlsVersion,cmkEnabled}]},     (AB#9300 phase 4)
+                                                      minimalTlsVersion,cmkEnabled}],      (AB#9300 phase 4)
+                                sqlServerAuditing[{sqlServerId,auditingState,
+                                                    azureMonitorTargetEnabled}],
+                                sqlServerAuditingMeasured,
+                                sqlFailoverGroups[{sqlServerId,failoverGroupCount,
+                                                    automaticFailoverGroupCount,
+                                                    hasAutomaticFailover,failoverPolicies}],
+                                sqlFailoverGroupsMeasured,
+                                redisEnterpriseDatabases[{redisEnterpriseId,name,
+                                                           accessKeysAuthentication,clientProtocol,
+                                                           persistenceAofEnabled,
+                                                           persistenceAofFrequency,
+                                                           persistenceRdbEnabled,
+                                                           persistenceRdbFrequency,
+                                                           geoReplicationLinkCount}],
+                                redisEnterpriseDatabasesMeasured},   (AB#9300 phase 4, batch 2 -- one
+                                ARM GET per SQL server / Redis Enterprise cluster. sqlServerAuditing
+                                never carries the storage key, subscription or endpoint;
+                                sqlFailoverGroups is one row per server whose list answered, count 0
+                                when it has none, and never a partner server id;
+                                redisEnterpriseDatabases never carries an access key.)
                       web{webApps[{id,location,kind,vnetIntegrated,customDomainBound,
                                     publicNetworkAccess,identityType,clientCertEnabled}],
-                          appServicePlans[{zoneRedundant,instanceCount,tier}]},         (AB#9300 phase 4)
+                          appServicePlans[{zoneRedundant,instanceCount,tier}],          (AB#9300 phase 4)
+                          webAppConfig[{webAppId,ftpsState,alwaysOn,healthCheckPathSet,
+                                         remoteDebuggingEnabled,http20Enabled,minTlsVersion,
+                                         scmMinTlsVersion}],
+                          webAppConfigMeasured,
+                          webAppBasicAuth[{webAppId,ftpBasicAuthAllowed,scmBasicAuthAllowed}],
+                          webAppBasicAuthMeasured},   (AB#9300 phase 4, batch 2 -- one ARM GET per
+                          web app for config/web, two for the ftp and scm basic-auth policies. Never
+                          app settings or connection strings; healthCheckPathSet is a boolean, the
+                          path is not carried; a basic-auth field is $null when its GET returned
+                          nothing.)
                       containers{aksClusters[{id,location,networkPolicyEnabled,aadIntegrated,allPoolsZoned,
                                                tier,systemPoolMinNodes,allPoolsAutoscale,
                                                disableLocalAccounts,upgradeChannel,
@@ -289,7 +336,11 @@ $ErrorActionPreference = 'Stop'
                                                          cmkKeySource}],
                                   eventGrid[{id,name,type,publicNetworkAccess,inboundIpRuleCount,
                                               minimumTlsVersion,disableLocalAuth,zoneRedundant,
-                                              identityType}]},                    (AB#9300 phase 4)
+                                              identityType}],                     (AB#9300 phase 4)
+                                  eventHubGeoDr[{eventHubNamespaceId,geoDrConfigured}],
+                                  eventHubGeoDrMeasured},   (AB#9300 phase 4, batch 2 -- one row per
+                                  non-Basic namespace whose disasterRecoveryConfigs list answered;
+                                  a boolean only, never the partner namespace)
                       iot{iotHubs[{disableLocalAuth}],
                           dpsInstances[{publicAccess,allocationPolicy,linkedHubCount}],
                           digitalTwinsInstances[{publicAccess,privateEndpointConnectionCount,identityType}]},
@@ -458,6 +509,23 @@ $ErrorActionPreference = 'Stop'
     inspect each element (`zoneRedundantRegionCount`, `minFrontendZoneCount`, activity-log
     `category`) uses mv-apply over the array swapped for a one-element placeholder when it is
     absent or empty, so the parent resource can never vanish (AB#6845).
+
+    AB#9300 phase 4 (batch 2) -- settings the Well-Architected service guides check that Resource
+    Graph does not carry, read with one ARM GET per resource by Get-ScoutArmChildResource and
+    shaped by ConvertFrom-ScoutInventory (so, unlike batch 1, there is NO KQL twin -- they exist
+    only on the Inventory path, and only when the ARM-child sweep ran). Eight datasets:
+    domains.storage.blobServiceProperties / fileServiceProperties, domains.databases.
+    sqlServerAuditing / sqlFailoverGroups / redisEnterpriseDatabases, domains.web.webAppConfig /
+    webAppBasicAuth, domains.integration.eventHubGeoDr. Each is keyed by the PARENT's resource id
+    (lower-cased) and has a sibling `<dataset>Measured` flag that is true only when a GET of that
+    dataset got an answer -- a rule gates on it and reports NotAssessed, never a Pass on an empty
+    list. The same batch widens the diagnostic-settings sweep to 14 more parent types, which
+    diagnosticCoverage picks up with no change here. What this batch NEVER reads or projects: a SQL
+    auditing policy's storageAccountAccessKey / storageAccountSubscriptionId / storageEndpoint,
+    a web app's app settings and connection strings (and the health-check path itself), a failover
+    group's partner server ids, an Event Hubs pairing's partner namespace, a Redis Enterprise
+    database's access keys and linked-database ids. Those are dropped at the GET, before any row
+    exists -- see $SafeChildPropertyPaths in Get-ScoutArmChildResource.ps1.
 
     Deliberately NOT collected here, confirmed absent/out of scope after
     checking the ARM template references before writing this note:
@@ -1245,7 +1313,8 @@ resources | where type =~ "microsoft.sql/servers"
         # coarse, subscription-wide signal (same tradeoff as security.defenderPlans /
         # CAF-SEC-02), not a per-server property — Microsoft.Sql/servers/auditingSettings and
         # .../extendedAuditingSettings (the "auditing" half of the old combined rule) are NOT
-        # in that reference list, so they stay manual (CAF-DB-07).
+        # in that reference list; they are read per server by the SqlServerAuditing ARM child
+        # sweep instead (domains.databases.sqlServerAuditing, which CAF-DB-07 scores, AB#9300).
         sqlDefenderPricing = @'
 SecurityResources
 | where type =~ "microsoft.security/pricings" and name =~ "sqlservers"
@@ -1348,7 +1417,9 @@ resources | where type in~ ("microsoft.cache/redis", "microsoft.cache/redisenter
           replicasPerPrimary = coalesce(toint(properties.replicasPerMaster), toint(properties.replicasPerPrimary)),
           minimumTlsVersion = tostring(properties.minimumTlsVersion),
           nonSslPortEnabled = tobool(properties.enableNonSslPort),
-          accessKeyAuthDisabled = tobool(properties.disableAccessKeyAuthentication),
+          // Classic caches: an absent flag is Azure's default -- access keys allowed -- so it reads
+          // false, not null. Enterprise keeps null (its setting is on the database, AB#9300).
+          accessKeyAuthDisabled = iff(type =~ "microsoft.cache/redis", coalesce(tobool(properties.disableAccessKeyAuthentication), false), tobool(properties.disableAccessKeyAuthentication)),
           aadEnabled = tobool(properties.redisConfiguration['aad-enabled']),
           highAvailability = tostring(properties.highAvailability)
 '@
@@ -2962,9 +3033,22 @@ resources
         privateLinkScopes            = @('Monitor')
         workspaceSolutions           = @('Monitor')
         appInsightsAvailabilityTests = @('Monitor')
+        # AB#9300 phase 4, batch 2 -- shaped datasets with NO typed query (one ARM GET per parent,
+        # collected by the ARM-child sweep and shaped from its rows). Nothing selects typed queries
+        # by these keys, so they are not consulted by the -Categories filter above; they record
+        # which categories' rules read each dataset, so a category-scoped sweep can be derived from
+        # one place and so Collect.Phase4Batch2.Tests can hold the map and the contract together.
+        blobServiceProperties    = @('Storage', 'Security')
+        fileServiceProperties    = @('Storage', 'Security')
+        sqlServerAuditing        = @('Databases', 'Security', 'Monitor')
+        sqlFailoverGroups        = @('Databases')
+        redisEnterpriseDatabases = @('Databases', 'Security')
+        webAppConfig             = @('Web', 'Security')
+        webAppBasicAuth          = @('Web', 'Security')
+        eventHubGeoDr            = @('Integration')
     }
 
-    $runAllCategories = (-not $Categories) -or (@($Categories).Count -eq 0) -or ($Categories -contains '*')
+    $runAllCategories =(-not $Categories) -or (@($Categories).Count -eq 0) -or ($Categories -contains '*')
     $selectedKeys = if ($runAllCategories) {
         $q.Keys
     }
@@ -3182,15 +3266,32 @@ resources
             # so the only way to measure coverage is the per-resource ResourceDiagnosticSettings
             # sweep (one GET per resource of the ~20 types it visits). Without it CAF-MGT-01/05
             # and WAF-OE-01 have nothing true to score (AB#9300).
+            #
+            # AB#9300 phase 4, batch 2 adds eight more per-resource sweeps for settings the
+            # Well-Architected service guides check and Resource Graph omits (blob/file service
+            # settings, SQL auditing and failover groups, web app configuration and basic-auth
+            # policies, Event Hubs geo-DR, Redis Enterprise databases). Each is one GET per parent
+            # (two for the web basic-auth policies). Get-ScoutArmChildResource makes these, and the
+            # diagnostic sweep, 8 at a time: sequentially a call costs 0.35-0.6 s (so ~4 min for 200
+            # storage accounts and ~3 min for 100 web apps), in parallel the same GETs took 1/7th to
+            # 1/9th of the time on the dev VM (110 GETs: 39.5 s -> 4.1 s), with identical rows,
+            # source operations and health. The raw pass keeps only an allow-list of scalar settings
+            # from each response -- never a key, app setting, connection string or partner resource id.
             $rawArgs.IncludeArmChildResources = $true
-            $rawArgs.ArmChildDataset = @('ResourceDiagnosticSettings')
+            $rawArgs.ArmChildDataset = @(
+                'ResourceDiagnosticSettings'
+                'StorageBlobServiceProperties', 'StorageFileServiceProperties'
+                'SqlServerAuditing', 'SqlFailoverGroups'
+                'WebAppConfig', 'WebAppBasicAuth'
+                'EventHubGeoDr', 'RedisEnterpriseDatabases'
+            )
             # ARM deployment history lives in Resource Graph's deploymentresources table, not the
             # resources table. It is what tells the infrastructure-as-code rules (WAF-OE-02/08,
             # CAF-PA, DevOps, Platform Engineering) whether a resource group was deployed from a
             # template; without it those rules could never pass (AB#9300).
             $rawArgs.ResourceGraphDiscoveryTable = @('deploymentresources')
             if ($IncludeAzureLocalArm) {
-                $rawArgs.ArmChildDataset = @('ResourceDiagnosticSettings', 'AzureLocalVirtualMachineInstances')
+                $rawArgs.ArmChildDataset = @($rawArgs.ArmChildDataset) + @('AzureLocalVirtualMachineInstances')
                 $rawArgs.TenantWideDefinitionsOnly = $false
             }
             $rawInventory = Get-ScoutRawInventory @rawArgs
@@ -3413,6 +3514,30 @@ resources
     $r['recoveryVaults'] = if ($inventoryShaped.ContainsKey('recoveryVaults')) { @($inventoryShaped['recoveryVaults']) } else { @() }
     # True only when the diagnostic-settings ARM sweep ran (there is no typed query for it).
     $r['diagnosticCoverageMeasured'] = [bool]($inventoryShaped.ContainsKey('diagnosticCoverageMeasured') -and $inventoryShaped['diagnosticCoverageMeasured'])
+
+    # AB#9300 phase 4, batch 2. Eight per-resource ARM GET datasets and their `...Measured` flags
+    # -- the same situation as diagnosticCoverageMeasured and recoveryVaults: there is no typed
+    # query (no KQL can produce them), so the `$q.Keys` copy loop above never visits them and each
+    # needs its own explicit line, which tests/Collect.ShapedDatasetsReachTheResult.Tests.ps1
+    # enforces. Empty / $false whenever the ARM-child sweep did not run (the typed-query path, or
+    # a raw pass without it) -- "not asked", never "asked and found none" -- and a rule gates on
+    # the flag to report NotAssessed.
+    $r['blobServiceProperties'] = if ($inventoryShaped.ContainsKey('blobServiceProperties')) { @($inventoryShaped['blobServiceProperties']) } else { @() }
+    $r['blobServicePropertiesMeasured'] = [bool]($inventoryShaped.ContainsKey('blobServicePropertiesMeasured') -and $inventoryShaped['blobServicePropertiesMeasured'])
+    $r['fileServiceProperties'] = if ($inventoryShaped.ContainsKey('fileServiceProperties')) { @($inventoryShaped['fileServiceProperties']) } else { @() }
+    $r['fileServicePropertiesMeasured'] = [bool]($inventoryShaped.ContainsKey('fileServicePropertiesMeasured') -and $inventoryShaped['fileServicePropertiesMeasured'])
+    $r['sqlServerAuditing'] = if ($inventoryShaped.ContainsKey('sqlServerAuditing')) { @($inventoryShaped['sqlServerAuditing']) } else { @() }
+    $r['sqlServerAuditingMeasured'] = [bool]($inventoryShaped.ContainsKey('sqlServerAuditingMeasured') -and $inventoryShaped['sqlServerAuditingMeasured'])
+    $r['sqlFailoverGroups'] = if ($inventoryShaped.ContainsKey('sqlFailoverGroups')) { @($inventoryShaped['sqlFailoverGroups']) } else { @() }
+    $r['sqlFailoverGroupsMeasured'] = [bool]($inventoryShaped.ContainsKey('sqlFailoverGroupsMeasured') -and $inventoryShaped['sqlFailoverGroupsMeasured'])
+    $r['webAppConfig'] = if ($inventoryShaped.ContainsKey('webAppConfig')) { @($inventoryShaped['webAppConfig']) } else { @() }
+    $r['webAppConfigMeasured'] = [bool]($inventoryShaped.ContainsKey('webAppConfigMeasured') -and $inventoryShaped['webAppConfigMeasured'])
+    $r['webAppBasicAuth'] = if ($inventoryShaped.ContainsKey('webAppBasicAuth')) { @($inventoryShaped['webAppBasicAuth']) } else { @() }
+    $r['webAppBasicAuthMeasured'] = [bool]($inventoryShaped.ContainsKey('webAppBasicAuthMeasured') -and $inventoryShaped['webAppBasicAuthMeasured'])
+    $r['eventHubGeoDr'] = if ($inventoryShaped.ContainsKey('eventHubGeoDr')) { @($inventoryShaped['eventHubGeoDr']) } else { @() }
+    $r['eventHubGeoDrMeasured'] = [bool]($inventoryShaped.ContainsKey('eventHubGeoDrMeasured') -and $inventoryShaped['eventHubGeoDrMeasured'])
+    $r['redisEnterpriseDatabases'] = if ($inventoryShaped.ContainsKey('redisEnterpriseDatabases')) { @($inventoryShaped['redisEnterpriseDatabases']) } else { @() }
+    $r['redisEnterpriseDatabasesMeasured'] = [bool]($inventoryShaped.ContainsKey('redisEnterpriseDatabasesMeasured') -and $inventoryShaped['redisEnterpriseDatabasesMeasured'])
 
     # ---- firewall policy rule-collection group parsing (AB#400) ----
     # properties.ruleCollections is a nested dynamic array (rule collections -> rules)
@@ -4100,6 +4225,13 @@ resources
                 storageTasks = $r.storageTasks
                 storageDiscoveryWorkspaces = $r.storageDiscoveryWorkspaces
                 storageMovers = $r.storageMovers
+                # AB#9300 phase 4, batch 2 -- one ARM GET per storage account (blob and file
+                # service settings). The flags are $true only when a GET of that dataset was
+                # answered; read them with [bool] on the hashtable, never as a PSObject property.
+                blobServiceProperties = $r.blobServiceProperties
+                blobServicePropertiesMeasured = [bool]$r['blobServicePropertiesMeasured']
+                fileServiceProperties = $r.fileServiceProperties
+                fileServicePropertiesMeasured = [bool]$r['fileServicePropertiesMeasured']
             }
             databases    = [pscustomobject]@{
                 sqlDatabases = $r.sqlDatabases; sqlServers = $r.sqlServers
@@ -4120,9 +4252,22 @@ resources
                 # either type before this).
                 documentDbMongoClusters = $r.documentDbMongoClusters
                 managedCassandraClusters = $r.managedCassandraClusters
+                # AB#9300 phase 4, batch 2 -- one ARM GET per SQL server / Redis Enterprise cluster.
+                sqlServerAuditing = $r.sqlServerAuditing
+                sqlServerAuditingMeasured = [bool]$r['sqlServerAuditingMeasured']
+                sqlFailoverGroups = $r.sqlFailoverGroups
+                sqlFailoverGroupsMeasured = [bool]$r['sqlFailoverGroupsMeasured']
+                redisEnterpriseDatabases = $r.redisEnterpriseDatabases
+                redisEnterpriseDatabasesMeasured = [bool]$r['redisEnterpriseDatabasesMeasured']
             }
             web          = [pscustomobject]@{
                 webApps = $r.webApps
+                # AB#9300 phase 4, batch 2 -- one ARM GET per web app (config/web), two for the
+                # ftp and scm basic-auth policies.
+                webAppConfig = $r.webAppConfig
+                webAppConfigMeasured = [bool]$r['webAppConfigMeasured']
+                webAppBasicAuth = $r.webAppBasicAuth
+                webAppBasicAuthMeasured = [bool]$r['webAppBasicAuthMeasured']
                 # AB#7110 -- Web plumbing.
                 appServiceCertificates = $r.appServiceCertificates
                 appServiceDomains = $r.appServiceDomains
@@ -4220,6 +4365,9 @@ resources
                 serviceBusNamespaces = $r.serviceBusNamespaces
                 # AB#9300 phase 4 -- Event Grid topics, domains and namespaces.
                 eventGrid = $r.eventGrid
+                # AB#9300 phase 4, batch 2 -- one ARM GET per non-Basic Event Hubs namespace.
+                eventHubGeoDr = $r.eventHubGeoDr
+                eventHubGeoDrMeasured = [bool]$r['eventHubGeoDrMeasured']
             }
             iot          = [pscustomobject]@{
                 iotHubs = $r.iotHubs; dpsInstances = $r.dpsInstances

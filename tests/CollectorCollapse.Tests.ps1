@@ -244,6 +244,251 @@ Describe 'ConvertFrom-ScoutInventory — KQL semantics are preserved' {
         @($shaped['diagnosticCoverage']).Count | Should -Be 0 -Because 'properties.diagnosticSettings is not a real ARM property and must not be counted'
     }
 
+    Context 'per-resource ARM GET datasets (AB#9300 phase 4, batch 2)' {
+        BeforeAll {
+            $script:Sub = '/subscriptions/sub1/resourceGroups/rg1/providers'
+            function New-ChildRow {
+                # A row as Get-ScoutArmChildResource emits it: the child's id/name/type/properties
+                # plus the synthetic parent linkage.
+                param([string] $Dataset, [string] $ParentId, [string] $ParentName, [string] $ChildJson, [string] $Name = 'default')
+                $child = $ChildJson | ConvertFrom-Json
+                [pscustomobject]@{
+                    id             = "$ParentId/child/$Name"
+                    name           = $Name
+                    properties     = $child
+                    # The child's own `type` is dropped by ConvertTo-ArmChildRow (it collides with
+                    # TYPE, case-insensitively), so a real row carries only the synthetic one.
+                    TYPE           = "AZSC/ARMChild/$Dataset"
+                    PARENTID       = $ParentId
+                    PARENTTYPE     = 'test/parent'
+                    PARENTNAME     = $ParentName
+                    PARENTLOCATION = 'eastus'
+                    subscriptionId = 'sub1'
+                    RESOURCEGROUP  = 'rg1'
+                }
+            }
+            function New-SweepOp {
+                param([string] $Dataset, [string] $Status, [string] $ParentId)
+                [pscustomobject]@{ Dataset = $Dataset; Status = $Status; ParentId = $ParentId; Uri = "$ParentId/x?api-version=1" }
+            }
+            $script:AllDatasets = @(
+                @{ Key = 'blobServiceProperties'; Dataset = 'StorageBlobServiceProperties' }
+                @{ Key = 'fileServiceProperties'; Dataset = 'StorageFileServiceProperties' }
+                @{ Key = 'sqlServerAuditing'; Dataset = 'SqlServerAuditing' }
+                @{ Key = 'sqlFailoverGroups'; Dataset = 'SqlFailoverGroups' }
+                @{ Key = 'webAppConfig'; Dataset = 'WebAppConfig' }
+                @{ Key = 'webAppBasicAuth'; Dataset = 'WebAppBasicAuth' }
+                @{ Key = 'eventHubGeoDr'; Dataset = 'EventHubGeoDr' }
+                @{ Key = 'redisEnterpriseDatabases'; Dataset = 'RedisEnterpriseDatabases' }
+            )
+        }
+
+        It 'always declares every dataset and its Measured flag, empty and false when no sweep ran' {
+            $shaped = ConvertFrom-ScoutInventory -Resources @() -ResourceContainers @()
+            foreach ($case in $script:AllDatasets) {
+                $shaped.ContainsKey($case.Key) | Should -BeTrue -Because $case.Key
+                @($shaped[$case.Key]).Count | Should -Be 0
+                $shaped.ContainsKey("$($case.Key)Measured") | Should -BeTrue -Because "$($case.Key)Measured"
+                $shaped["$($case.Key)Measured"] | Should -BeFalse
+            }
+        }
+
+        It 'shapes blob service settings keyed by the lower-cased parent id, reading an absent feature as off' {
+            $parent = "$script:Sub/Microsoft.Storage/storageAccounts/StOne"
+            $on = New-ChildRow -Dataset StorageBlobServiceProperties -ParentId $parent -ParentName 'StOne' -ChildJson '{"deleteRetentionPolicy":{"enabled":true,"days":14},"containerDeleteRetentionPolicy":{"enabled":true,"days":7},"isVersioningEnabled":true,"changeFeed":{"enabled":true},"restorePolicy":{"enabled":true}}'
+            # What ARM returns for an account that never enabled anything beyond a soft-delete stub
+            # (verified live): no isVersioningEnabled, no changeFeed, no restorePolicy.
+            $offParent = "$script:Sub/Microsoft.Storage/storageAccounts/stoff"
+            $off = New-ChildRow -Dataset StorageBlobServiceProperties -ParentId $offParent -ParentName 'stoff' -ChildJson '{"deleteRetentionPolicy":{"enabled":false}}'
+            $shaped = ConvertFrom-ScoutInventory -Resources @($on, $off) -ResourceContainers @() -SourceOperations @(
+                New-SweepOp -Dataset StorageBlobServiceProperties -Status Success -ParentId $parent
+                New-SweepOp -Dataset StorageBlobServiceProperties -Status Success -ParentId $offParent
+            )
+            $shaped['blobServicePropertiesMeasured'] | Should -BeTrue
+            $a = $shaped['blobServiceProperties'] | Where-Object name -EQ 'StOne'
+            $a.storageAccountId | Should -BeExactly $parent.ToLowerInvariant()
+            $a.deleteRetentionEnabled | Should -BeExactly $true
+            $a.deleteRetentionDays | Should -Be 14
+            $a.containerDeleteRetentionEnabled | Should -BeExactly $true
+            $a.containerDeleteRetentionDays | Should -Be 7
+            $a.versioningEnabled | Should -BeExactly $true
+            $a.changeFeedEnabled | Should -BeExactly $true
+            $a.pointInTimeRestoreEnabled | Should -BeExactly $true
+            $b = $shaped['blobServiceProperties'] | Where-Object name -EQ 'stoff'
+            $b.deleteRetentionEnabled | Should -BeExactly $false
+            $b.deleteRetentionDays | Should -BeNullOrEmpty
+            $b.containerDeleteRetentionEnabled | Should -BeExactly $false
+            $b.versioningEnabled | Should -BeExactly $false -Because 'an absent feature in a complete GET response means it was never enabled, not "unknown"'
+            $b.changeFeedEnabled | Should -BeExactly $false
+            $b.pointInTimeRestoreEnabled | Should -BeExactly $false
+        }
+
+        It 'keeps SMB strings exactly as returned, with null meaning every option is allowed' {
+            $parent = "$script:Sub/Microsoft.Storage/storageAccounts/stfile"
+            $restricted = New-ChildRow -Dataset StorageFileServiceProperties -ParentId $parent -ParentName 'stfile' -ChildJson '{"shareDeleteRetentionPolicy":{"enabled":true,"days":9},"protocolSettings":{"smb":{"versions":"SMB3.0;SMB3.1.1","channelEncryption":"AES-256-GCM","authenticationMethods":"Kerberos"}}}'
+            $openParent = "$script:Sub/Microsoft.Storage/storageAccounts/stopen"
+            $open = New-ChildRow -Dataset StorageFileServiceProperties -ParentId $openParent -ParentName 'stopen' -ChildJson '{"shareDeleteRetentionPolicy":{"enabled":true,"days":7},"protocolSettings":{"smb":{}}}'
+            $shaped = ConvertFrom-ScoutInventory -Resources @($restricted, $open) -ResourceContainers @() -SourceOperations @(
+                New-SweepOp -Dataset StorageFileServiceProperties -Status Success -ParentId $parent
+            )
+            $r = $shaped['fileServiceProperties'] | Where-Object name -EQ 'stfile'
+            $r.shareDeleteRetentionEnabled | Should -BeExactly $true
+            $r.shareDeleteRetentionDays | Should -Be 9
+            $r.smbVersions | Should -BeExactly 'SMB3.0;SMB3.1.1'
+            $r.smbChannelEncryption | Should -BeExactly 'AES-256-GCM'
+            $r.smbAuthenticationMethods | Should -BeExactly 'Kerberos'
+            $o = $shaped['fileServiceProperties'] | Where-Object name -EQ 'stopen'
+            $o.smbVersions | Should -BeNullOrEmpty
+            $null -eq $o.smbVersions | Should -BeTrue -Because 'null means all allowed; an empty string would read as none'
+            $null -eq $o.smbChannelEncryption | Should -BeTrue
+            $null -eq $o.smbAuthenticationMethods | Should -BeTrue
+        }
+
+        It 'shapes SQL auditing to its state and Azure Monitor flag only' {
+            $parent = "$script:Sub/Microsoft.Sql/servers/sql1"
+            $row = New-ChildRow -Dataset SqlServerAuditing -ParentId $parent -ParentName 'sql1' -ChildJson '{"state":"Enabled","isAzureMonitorTargetEnabled":true}'
+            $shaped = ConvertFrom-ScoutInventory -Resources @($row) -ResourceContainers @() -SourceOperations @(New-SweepOp -Dataset SqlServerAuditing -Status Success -ParentId $parent)
+            $a = $shaped['sqlServerAuditing'][0]
+            $a.sqlServerId | Should -BeExactly $parent.ToLowerInvariant()
+            $a.auditingState | Should -BeExactly 'Enabled'
+            $a.azureMonitorTargetEnabled | Should -BeExactly $true
+            @($a.PSObject.Properties.Name) | Should -Not -Contain 'storageAccountAccessKey'
+            @($a.PSObject.Properties.Name) | Should -Not -Contain 'storageEndpoint'
+        }
+
+        It 'emits one failover-group row per server whose list answered, with a zero count where it returned nothing' {
+            $withGroups = "$script:Sub/Microsoft.Sql/servers/sqlfg"
+            $without = "$script:Sub/Microsoft.Sql/servers/sqlnone"
+            $unreached = "$script:Sub/Microsoft.Sql/servers/sqlfailed"
+            $auto = New-ChildRow -Dataset SqlFailoverGroups -ParentId $withGroups -ParentName 'sqlfg' -ChildJson '{"readWriteEndpoint":{"failoverPolicy":"Automatic"},"partnerServerCount":1,"databaseCount":2}' -Name 'fg1'
+            $manual = New-ChildRow -Dataset SqlFailoverGroups -ParentId $withGroups -ParentName 'sqlfg' -ChildJson '{"readWriteEndpoint":{"failoverPolicy":"Manual"},"partnerServerCount":1,"databaseCount":0}' -Name 'fg2'
+            $shaped = ConvertFrom-ScoutInventory -Resources @(
+                New-Resource -Type 'microsoft.sql/servers' -Name 'sqlnone'
+                $auto, $manual
+            ) -ResourceContainers @() -SourceOperations @(
+                New-SweepOp -Dataset SqlFailoverGroups -Status Success -ParentId $withGroups
+                New-SweepOp -Dataset SqlFailoverGroups -Status Empty -ParentId $without
+                New-SweepOp -Dataset SqlFailoverGroups -Status Failed -ParentId $unreached
+            )
+            $shaped['sqlFailoverGroupsMeasured'] | Should -BeTrue
+            @($shaped['sqlFailoverGroups']).Count | Should -Be 2 -Because 'the server whose GET failed was not measured and gets no row'
+            $g = $shaped['sqlFailoverGroups'] | Where-Object sqlServerId -EQ $withGroups.ToLowerInvariant()
+            $g.failoverGroupCount | Should -Be 2
+            $g.automaticFailoverGroupCount | Should -Be 1
+            $g.hasAutomaticFailover | Should -BeExactly $true
+            @($g.failoverPolicies) | Should -Be @('Automatic', 'Manual')
+            $g.name | Should -Be 'sqlfg'
+            $n = $shaped['sqlFailoverGroups'] | Where-Object sqlServerId -EQ $without.ToLowerInvariant()
+            $n.failoverGroupCount | Should -Be 0
+            $n.hasAutomaticFailover | Should -BeExactly $false
+            @($n.failoverPolicies).Count | Should -Be 0
+            $n.name | Should -Be 'sqlnone' -Because 'the parent row supplies the name when it is in the inventory'
+        }
+
+        It 'shapes web app configuration to scalar settings and a health-check boolean' {
+            $parent = "$script:Sub/Microsoft.Web/sites/app1"
+            $row = New-ChildRow -Dataset WebAppConfig -ParentId $parent -ParentName 'app1' -ChildJson '{"ftpsState":"FtpsOnly","alwaysOn":true,"remoteDebuggingEnabled":false,"http20Enabled":true,"minTlsVersion":"1.2","scmMinTlsVersion":"1.2","healthCheckPathSet":true}' -Name 'web'
+            $bare = New-ChildRow -Dataset WebAppConfig -ParentId "$script:Sub/Microsoft.Web/sites/app2" -ParentName 'app2' -ChildJson '{"healthCheckPathSet":false}' -Name 'web'
+            $shaped = ConvertFrom-ScoutInventory -Resources @($row, $bare) -ResourceContainers @() -SourceOperations @(New-SweepOp -Dataset WebAppConfig -Status Success -ParentId $parent)
+            $c = $shaped['webAppConfig'] | Where-Object name -EQ 'app1'
+            $c.webAppId | Should -BeExactly $parent.ToLowerInvariant()
+            $c.ftpsState | Should -BeExactly 'FtpsOnly'
+            $c.alwaysOn | Should -BeExactly $true
+            $c.healthCheckPathSet | Should -BeExactly $true
+            $c.remoteDebuggingEnabled | Should -BeExactly $false
+            $c.http20Enabled | Should -BeExactly $true
+            $c.minTlsVersion | Should -BeExactly '1.2'
+            $c.scmMinTlsVersion | Should -BeExactly '1.2'
+            @($c.PSObject.Properties.Name) | Should -Not -Contain 'healthCheckPath'
+            $d = $shaped['webAppConfig'] | Where-Object name -EQ 'app2'
+            $null -eq $d.ftpsState | Should -BeTrue
+            $d.alwaysOn | Should -BeExactly $false
+            $d.healthCheckPathSet | Should -BeExactly $false
+        }
+
+        It 'folds the ftp and scm policy rows into one row per site, leaving a policy it never got as null' {
+            $both = "$script:Sub/Microsoft.Web/sites/both"
+            $ftpOnly = "$script:Sub/Microsoft.Web/sites/ftponly"
+            $shaped = ConvertFrom-ScoutInventory -Resources @(
+                New-ChildRow -Dataset WebAppBasicAuth -ParentId $both -ParentName 'both' -ChildJson '{"allow":false,"policy":"ftp"}' -Name 'ftp'
+                New-ChildRow -Dataset WebAppBasicAuth -ParentId $both -ParentName 'both' -ChildJson '{"allow":true,"policy":"scm"}' -Name 'scm'
+                New-ChildRow -Dataset WebAppBasicAuth -ParentId $ftpOnly -ParentName 'ftponly' -ChildJson '{"allow":true,"policy":"ftp"}' -Name 'ftp'
+            ) -ResourceContainers @() -SourceOperations @(New-SweepOp -Dataset WebAppBasicAuth -Status Success -ParentId $both)
+            @($shaped['webAppBasicAuth']).Count | Should -Be 2
+            $b = $shaped['webAppBasicAuth'] | Where-Object name -EQ 'both'
+            $b.ftpBasicAuthAllowed | Should -BeExactly $false
+            $b.scmBasicAuthAllowed | Should -BeExactly $true
+            $f = $shaped['webAppBasicAuth'] | Where-Object name -EQ 'ftponly'
+            $f.ftpBasicAuthAllowed | Should -BeExactly $true
+            $null -eq $f.scmBasicAuthAllowed | Should -BeTrue -Because 'no scm row came back, so it is unknown rather than disallowed'
+        }
+
+        It 'reports geo-DR as a boolean per namespace whose list answered' {
+            $paired = "$script:Sub/Microsoft.EventHub/namespaces/ehpaired"
+            $alone = "$script:Sub/Microsoft.EventHub/namespaces/ehalone"
+            $shaped = ConvertFrom-ScoutInventory -Resources @(
+                New-ChildRow -Dataset EventHubGeoDr -ParentId $paired -ParentName 'ehpaired' -ChildJson '{"provisioningState":"Succeeded","role":"Primary"}' -Name 'alias'
+            ) -ResourceContainers @() -SourceOperations @(
+                New-SweepOp -Dataset EventHubGeoDr -Status Success -ParentId $paired
+                New-SweepOp -Dataset EventHubGeoDr -Status Empty -ParentId $alone
+            )
+            $shaped['eventHubGeoDrMeasured'] | Should -BeTrue
+            @($shaped['eventHubGeoDr']).Count | Should -Be 2
+            ($shaped['eventHubGeoDr'] | Where-Object eventHubNamespaceId -EQ $paired.ToLowerInvariant()).geoDrConfigured | Should -BeExactly $true
+            $notPaired = $shaped['eventHubGeoDr'] | Where-Object eventHubNamespaceId -EQ $alone.ToLowerInvariant()
+            $notPaired.geoDrConfigured | Should -BeExactly $false
+            $notPaired.name | Should -Be 'ehalone' -Because 'the name is recovered from the id when the parent row is not in the inventory'
+            @($notPaired.PSObject.Properties.Name) | Should -Be @('eventHubNamespaceId', 'name', 'resourceGroup', 'subscriptionId', 'location', 'geoDrConfigured')
+        }
+
+        It 'shapes Redis Enterprise databases with the access-key setting, protocol, persistence and link count' {
+            $parent = "$script:Sub/Microsoft.Cache/redisEnterprise/redis1"
+            $row = New-ChildRow -Dataset RedisEnterpriseDatabases -ParentId $parent -ParentName 'redis1' -ChildJson '{"accessKeysAuthentication":"Disabled","clientProtocol":"Encrypted","persistence":{"aofEnabled":true,"aofFrequency":"1s"},"geoReplication":{"linkedDatabaseCount":2}}'
+            $shaped = ConvertFrom-ScoutInventory -Resources @($row) -ResourceContainers @() -SourceOperations @(New-SweepOp -Dataset RedisEnterpriseDatabases -Status Success -ParentId $parent)
+            $d = $shaped['redisEnterpriseDatabases'][0]
+            $d.redisEnterpriseId | Should -BeExactly $parent.ToLowerInvariant()
+            $d.name | Should -Be 'default'
+            $d.clusterName | Should -Be 'redis1'
+            $d.accessKeysAuthentication | Should -BeExactly 'Disabled'
+            $d.clientProtocol | Should -BeExactly 'Encrypted'
+            $d.persistenceAofEnabled | Should -BeExactly $true
+            $d.persistenceAofFrequency | Should -BeExactly '1s'
+            $d.persistenceRdbEnabled | Should -BeExactly $false
+            $null -eq $d.persistenceRdbFrequency | Should -BeTrue
+            $d.geoReplicationLinkCount | Should -Be 2
+        }
+
+        It 'sets a Measured flag only when a GET of that dataset got an answer' {
+            $parent = "$script:Sub/Microsoft.Storage/storageAccounts/stm"
+            $cases = @(
+                @{ Statuses = @('Success'); Expected = $true }
+                @{ Statuses = @('Empty'); Expected = $true }
+                @{ Statuses = @('Failed', 'Success'); Expected = $true }
+                @{ Statuses = @('Failed', 'Failed'); Expected = $false }
+                @{ Statuses = @('NotApplicable'); Expected = $false }
+                @{ Statuses = @(); Expected = $false }
+            )
+            foreach ($case in $cases) {
+                $ops = @($case.Statuses | ForEach-Object { New-SweepOp -Dataset StorageBlobServiceProperties -Status $_ -ParentId $parent })
+                $shaped = ConvertFrom-ScoutInventory -Resources @() -ResourceContainers @() -SourceOperations $ops
+                $shaped['blobServicePropertiesMeasured'] | Should -Be $case.Expected -Because ($case.Statuses -join ',')
+            }
+            # A different dataset's operations must not measure this one.
+            $other = ConvertFrom-ScoutInventory -Resources @() -ResourceContainers @() -SourceOperations @(New-SweepOp -Dataset StorageFileServiceProperties -Status Success -ParentId $parent)
+            $other['blobServicePropertiesMeasured'] | Should -BeFalse
+            $other['fileServicePropertiesMeasured'] | Should -BeTrue
+        }
+
+        It 'leaves rows out when no operation was recorded, rather than guessing a sweep ran' {
+            $parent = "$script:Sub/Microsoft.Storage/storageAccounts/stg"
+            $shaped = ConvertFrom-ScoutInventory -Resources @(
+                New-ChildRow -Dataset StorageBlobServiceProperties -ParentId $parent -ParentName 'stg' -ChildJson '{"deleteRetentionPolicy":{"enabled":true}}'
+            ) -ResourceContainers @()
+            @($shaped['blobServiceProperties']).Count | Should -Be 1
+            $shaped['blobServicePropertiesMeasured'] | Should -BeFalse -Because 'there is no source operation to prove the GET was answered'
+        }
+    }
+
     It 'never produces sqlDefenderPricing — that query reads SecurityResources, which inventory does not collect' {
         $shaped = ConvertFrom-ScoutInventory -Resources @() -ResourceContainers @()
         $shaped.ContainsKey('sqlDefenderPricing') | Should -BeFalse
@@ -313,6 +558,17 @@ $script:Phase4SparseCases = @(
 Describe 'ConvertFrom-ScoutInventory — AB#9300 phase 4 collection properties' {
 
     Context 'the two bug fixes' {
+        It 'reads an absent classic Redis access-key flag as false (Azure default: keys allowed) but leaves Enterprise null' {
+            $shaped = ConvertFrom-ScoutInventory -Resources @(
+                New-Resource -Type 'microsoft.cache/redis' -Name 'nokeyflag' -Properties @{ sku = [pscustomobject]@{ name = 'Standard' } }
+                New-Resource -Type 'microsoft.cache/redis' -Name 'keysoff' -Properties @{ sku = [pscustomobject]@{ name = 'Standard' }; disableAccessKeyAuthentication = $true }
+                New-Resource -Type 'microsoft.cache/redisenterprise' -Name 'ent' -Properties @{ highAvailability = 'Enabled' }
+            ) -ResourceContainers @()
+            ($shaped['redisCaches'] | Where-Object name -EQ 'nokeyflag').accessKeyAuthDisabled | Should -BeExactly $false
+            ($shaped['redisCaches'] | Where-Object name -EQ 'keysoff').accessKeyAuthDisabled | Should -BeExactly $true
+            ($null -eq ($shaped['redisCaches'] | Where-Object name -EQ 'ent').accessKeyAuthDisabled) | Should -BeTrue
+        }
+
         It 'reads the classic Redis SKU from properties.sku and the Enterprise SKU from the top-level sku' {
             $shaped = ConvertFrom-ScoutInventory -Resources @(
                 New-Resource -Type 'microsoft.cache/redis' -Name 'classic' -Properties @{

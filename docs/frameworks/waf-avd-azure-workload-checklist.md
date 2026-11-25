@@ -89,7 +89,7 @@ rather than being mis-scored.
 |---|---|---|---|
 | WAF-AVDAZ-OE-01 | A validation host pool exists for service updates | ✅ `validationEnvironment` | VAL |
 | WAF-AVDAZ-OE-02 | Agent updates are scheduled | ✅ `agentUpdate.type` | SAU |
-| WAF-AVDAZ-OE-03 | Host pools, workspaces and session hosts send diagnostics to Log Analytics | ❌ Manual — data collection rules attached | INS |
+| WAF-AVDAZ-OE-03 | Host pools, workspaces and session hosts send diagnostics to Log Analytics | ✅ diagnostic-settings coverage for host pools and workspaces; the Azure Monitor agent and data collection rule on session hosts are not scored | INS |
 | WAF-AVDAZ-OE-04 | No session-host component update has failed | ✅ `updateState` | SAU, INS |
 | WAF-AVDAZ-OE-05 | Service Health and metric alerts cover AVD | ❌ Manual — activity-log alert rules attached | SEC |
 
@@ -108,9 +108,9 @@ rather than being mis-scored.
 | Reliability | 6 | 2 | 4 |
 | Security | 11 | 6 | 5 |
 | Cost optimization | 5 | 4 | 1 |
-| Operational excellence | 5 | 3 | 2 |
+| Operational excellence | 5 | 4 | 1 |
 | Performance efficiency | 3 | 0 | 3 |
-| **Total** | **30** | **15** | **15** |
+| **Total** | **30** | **16** | **14** |
 
 Fields added to the assessment collection for these items (2026-11-24): host pool `id`, `location`,
 `startVMOnConnect`, `validationEnvironment`, `publicNetworkAccess`, `agentUpdateType`,

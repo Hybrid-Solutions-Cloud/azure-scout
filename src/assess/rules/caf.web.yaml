@@ -51,7 +51,18 @@ rules:
   - id: CAF-WEB-06
     title: "Always On and health-check probes are configured"
     severity: low
-    query: null
-    assert: { type: manual }
-    remediation: "Confirm Always On and a Health Check path are configured on production App Service sites to avoid cold-start gaps and enable automatic instance failover; extend the webApps collector with siteConfig.alwaysOn/healthCheckPath before automating."
-    manual: true
+    # domains.web.webAppConfig is one row per site whose config/web answered (alwaysOn, healthCheckPathSet read false
+    # when the setting is absent). A join to webApps limits it to web apps: a function app on a Consumption or
+    # Flex plan has no Always On, so it would be a false finding. Scout cannot tell a production site from a test
+    # one, so every web app is scored. Gated on the Measured flag.
+    join:
+      left: "$.domains.web.webAppConfig[?(@.alwaysOn == false || @.healthCheckPathSet == false)]"
+      leftKey: "webAppId"
+      right: "$.domains.web.webApps[?(@.kind =~ /^(?!.*functionapp)/i)]"
+      rightKey: "id"
+      mode: "leftMatched"
+      leftLabel: "web app configuration"
+      rightLabel: "web app"
+    assert: { type: countEquals, value: 0, gate: "$.domains.web.webAppConfigMeasured" }
+    remediation: "The web apps listed have Always On off or no Health Check path set. Turn Always On on (Basic tier or above) so the app is not unloaded when idle, and set a Health Check path so App Service removes unhealthy instances from rotation. Sites on a Free or Shared plan cannot use Always On: move production sites to Basic or above. A site that is not production (a test or staging site) is an accepted exception."
+    manual: false

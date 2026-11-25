@@ -1,5 +1,14 @@
 # Handoff
 
+## Session 2026-11-25 (continued) — phase 4 batch 2 (3.18.16)
+
+3.18.15 released and five-tenant tested: all Completed, 66 assessments each, 0 errors; drift warning gone, Defender
+Partial gone, diagnostics and IaC checks now give real per-tenant answers. Batch 2: one agent added eight per-resource
+ARM child datasets to Get-ScoutArmChildResource.ps1 (allow-listed fields, Measured flags) plus 14 diagnostic parent
+types, then parallelised the sweep 8-wide (fetch/apply split; in-process fallback for tests); I added Retry-After-aware
+back-off. A second agent converted 16 rules. Note for the next big run: watch for ARM 429s on large subscriptions.
+Next: phase 5 (non-Azure assessments) -- needs new data sources (Power Platform admin API, Microsoft Graph).
+
 ## Session 2026-11-25 (continued) — phase 4 batch 1 (3.18.15)
 
 3.18.14 released and five-tenant tested (all Completed, 65 assessments per tenant, 0 Error findings, 71 min). That run

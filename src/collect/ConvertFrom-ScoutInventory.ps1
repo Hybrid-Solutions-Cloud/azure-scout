@@ -218,6 +218,40 @@ function ConvertTo-ScoutBool {
     return [bool]::TryParse($text, [ref] $null) ? [bool]::Parse($text) : $null
 }
 
+function ConvertTo-ScoutFeatureFlag {
+    <#
+    .SYNOPSIS
+        A feature switch read off a per-resource ARM GET: $true only when the service said so,
+        $false when it said otherwise OR said nothing.
+
+    .NOTES
+        AB#9300 phase 4, batch 2. This is the deliberate opposite of ConvertTo-ScoutBool, which
+        keeps a missing property as $null because a Resource Graph row can be sparse. A per-
+        resource GET returns the service's complete document, and ARM omits a feature that was
+        never turned on: a storage account that never enabled blob versioning has no
+        `isVersioningEnabled` at all, and one that never enabled change feed has no `changeFeed`
+        object (both seen live). Reading that absence as $null would let a rule filtering
+        `versioningEnabled == false` silently skip exactly the accounts it exists to find.
+    #>
+    param([AllowNull()] $Value)
+    return ((ConvertTo-ScoutBool $Value) -eq $true)
+}
+
+function ConvertTo-ScoutNullableString {
+    <#
+    .SYNOPSIS
+        A string setting as the service returned it: $null stays $null instead of becoming ''.
+
+    .NOTES
+        AB#9300 phase 4, batch 2. For the SMB protocol settings an absent value MEANS something
+        ("every version / channel encryption / authentication method is allowed"), and an empty
+        string would read as "none".
+    #>
+    param([AllowNull()] $Value)
+    if ($null -eq $Value) { return $null }
+    return [string] $Value
+}
+
 function Get-ScoutOsPatchSetting {
     <#
     .SYNOPSIS
@@ -315,8 +349,12 @@ function ConvertFrom-ScoutInventory {
         # The `ResourceContainers` array from Start-AZSCGraphExtraction (subscriptions + RGs).
         [Parameter()] [AllowNull()] [object[]] $ResourceContainers,
 
-        # SourceOperations from Get-ScoutRawInventory. Only the ResourceDiagnosticSettings GETs are
-        # read: they say which resources' diagnostic settings were actually checked.
+        # SourceOperations from Get-ScoutRawInventory. Only the per-resource GETs are read -- the
+        # ResourceDiagnosticSettings sweep and the eight AB#9300 phase 4 batch 2 datasets (storage
+        # blob/file service settings, SQL auditing and failover groups, web app configuration and
+        # basic-auth policies, Event Hubs geo-DR, Redis Enterprise databases): they say which
+        # resources were actually checked, which is what separates "setting is off" and "no
+        # failover group exists" from "nobody asked".
         [Parameter()] [AllowNull()] [object[]] $SourceOperations
     )
 
@@ -1268,6 +1306,278 @@ function ConvertFrom-ScoutInventory {
             }
         }
     )
+    # ---- per-resource settings from one ARM GET each (AB#9300 phase 4, batch 2) ---------------------
+    # Eight datasets Resource Graph cannot supply, collected by Get-ScoutArmChildResource (one GET
+    # per parent) and shaped here. Every dataset is keyed by the PARENT's resource id, lower-cased,
+    # in a field named for the parent (storageAccountId, sqlServerId, webAppId, eventHubNamespaceId,
+    # redisEnterpriseId) so a rule's join can match it to the parent dataset's `id`.
+    #
+    # Each dataset has a `<name>Measured` flag that is $true only when at least one GET of that
+    # dataset got an ANSWER (Success or Empty). It is not "the sweep was requested": a run where
+    # every GET was denied or failed has rows for nobody, and a `countEquals: 0` rule reading that
+    # would pass for no reason. Rules gate on the flag and report NotAssessed instead. It is also
+    # not "every parent was reached" -- a parent whose GET failed has no row, exactly like
+    # diagnosticCoverage, and the failure is in the run's collection health.
+    #
+    # Two datasets are per-parent SUMMARIES, not row-per-response (sqlFailoverGroups, eventHubGeoDr):
+    # for them "the server has no failover group" and "the namespace is not paired" are the finding,
+    # and an empty list produces no response row to show it. They emit one row per parent whose GET
+    # answered, with a count of 0 where nothing came back, using the ParentId each source operation
+    # carries.
+    $sweepOperations = @(@($SourceOperations) | Where-Object {
+            $null -ne $_ -and $_.PSObject.Properties['Dataset'] -and $_.PSObject.Properties['Status']
+        })
+
+    function Test-ScoutSweepMeasured {
+        param([Parameter(Mandatory)] [string] $Dataset)
+        return @($sweepOperations | Where-Object {
+                [string] $_.Dataset -eq $Dataset -and [string] $_.Status -in 'Success', 'Empty'
+            }).Count -gt 0
+    }
+
+    function Get-ScoutSweepCheckedParent {
+        param([Parameter(Mandatory)] [string] $Dataset)
+        $checked = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+        foreach ($operation in $sweepOperations) {
+            if ([string] $operation.Dataset -ne $Dataset -or [string] $operation.Status -notin 'Success', 'Empty') { continue }
+            $operationParent = if ($operation.PSObject.Properties['ParentId']) { [string] $operation.ParentId } else { '' }
+            if ($operationParent) { [void] $checked.Add($operationParent.ToLowerInvariant()) }
+        }
+        return , $checked
+    }
+
+    # Name / resource group / subscription for a parent that only has an id to go on: read them off
+    # the parent's own row when it is in the inventory, else off the id itself.
+    $summaryParentById = @{}
+    foreach ($summaryParent in @(Select-ByAnyType @('microsoft.sql/servers', 'microsoft.eventhub/namespaces'))) {
+        $summaryParentId = [string] (Get-ScoutProp $summaryParent 'id')
+        if ($summaryParentId) { $summaryParentById[$summaryParentId.ToLowerInvariant()] = $summaryParent }
+    }
+    function Get-ScoutSummaryParentFact {
+        param([Parameter(Mandatory)] [string] $ParentId)
+        $parent = $summaryParentById[$ParentId.ToLowerInvariant()]
+        if ($null -ne $parent) {
+            return [pscustomobject]@{
+                name           = [string] (Get-ScoutProp $parent 'name')
+                resourceGroup  = [string] (Get-ScoutProp $parent 'resourceGroup')
+                subscriptionId = [string] (Get-ScoutProp $parent 'subscriptionId')
+                location       = [string] (Get-ScoutProp $parent 'location')
+            }
+        }
+        $parsed = [regex]::Match($ParentId, '(?i)^/subscriptions/(?<sub>[^/]+)/resourceGroups/(?<rg>[^/]+)/providers/.+/(?<name>[^/]+)$')
+        return [pscustomobject]@{
+            name           = if ($parsed.Success) { $parsed.Groups['name'].Value } else { '' }
+            resourceGroup  = if ($parsed.Success) { $parsed.Groups['rg'].Value } else { '' }
+            subscriptionId = if ($parsed.Success) { $parsed.Groups['sub'].Value } else { '' }
+            location       = ''
+        }
+    }
+
+    function Group-ScoutChildRowByParent {
+        param([Parameter(Mandatory)] [string] $Type)
+        $grouped = [ordered]@{}
+        foreach ($childRow in @(Select-ByType $Type)) {
+            $groupKey = ([string] (Get-ScoutProp $childRow 'PARENTID')).ToLowerInvariant()
+            if (-not $groupKey) { continue }
+            if (-not $grouped.Contains($groupKey)) { $grouped[$groupKey] = [System.Collections.Generic.List[object]]::new() }
+            $grouped[$groupKey].Add($childRow)
+        }
+        return $grouped
+    }
+
+    # -- storage: blob service ---------------------------------------------------------------
+    # A feature the account never enabled is simply absent from the response (verified live), so
+    # each switch reads $true only when the service said true -- see ConvertTo-ScoutFeatureFlag.
+    $result['blobServicePropertiesMeasured'] = Test-ScoutSweepMeasured 'StorageBlobServiceProperties'
+    $result['blobServiceProperties'] = @(
+        Select-ByType 'AZSC/ARMChild/StorageBlobServiceProperties' | ForEach-Object {
+            [pscustomobject]@{
+                storageAccountId                = ([string] (Get-ScoutProp $_ 'PARENTID')).ToLowerInvariant()
+                name                            = [string] (Get-ScoutProp $_ 'PARENTNAME')
+                resourceGroup                   = [string] (Get-ScoutProp $_ 'RESOURCEGROUP')
+                subscriptionId                  = [string] (Get-ScoutProp $_ 'subscriptionId')
+                location                        = [string] (Get-ScoutProp $_ 'PARENTLOCATION')
+                deleteRetentionEnabled          = ConvertTo-ScoutFeatureFlag (Get-ScoutProp $_ 'properties.deleteRetentionPolicy.enabled')
+                deleteRetentionDays             = ConvertTo-ScoutInt (Get-ScoutProp $_ 'properties.deleteRetentionPolicy.days')
+                containerDeleteRetentionEnabled = ConvertTo-ScoutFeatureFlag (Get-ScoutProp $_ 'properties.containerDeleteRetentionPolicy.enabled')
+                containerDeleteRetentionDays    = ConvertTo-ScoutInt (Get-ScoutProp $_ 'properties.containerDeleteRetentionPolicy.days')
+                versioningEnabled               = ConvertTo-ScoutFeatureFlag (Get-ScoutProp $_ 'properties.isVersioningEnabled')
+                changeFeedEnabled               = ConvertTo-ScoutFeatureFlag (Get-ScoutProp $_ 'properties.changeFeed.enabled')
+                pointInTimeRestoreEnabled       = ConvertTo-ScoutFeatureFlag (Get-ScoutProp $_ 'properties.restorePolicy.enabled')
+            }
+        }
+    )
+
+    # -- storage: file service ---------------------------------------------------------------
+    # The SMB strings are kept exactly as returned. $null is a real answer -- "every version,
+    # channel-encryption algorithm and authentication method is allowed" -- not a missing one.
+    $result['fileServicePropertiesMeasured'] = Test-ScoutSweepMeasured 'StorageFileServiceProperties'
+    $result['fileServiceProperties'] = @(
+        Select-ByType 'AZSC/ARMChild/StorageFileServiceProperties' | ForEach-Object {
+            [pscustomobject]@{
+                storageAccountId           = ([string] (Get-ScoutProp $_ 'PARENTID')).ToLowerInvariant()
+                name                       = [string] (Get-ScoutProp $_ 'PARENTNAME')
+                resourceGroup              = [string] (Get-ScoutProp $_ 'RESOURCEGROUP')
+                subscriptionId             = [string] (Get-ScoutProp $_ 'subscriptionId')
+                location                   = [string] (Get-ScoutProp $_ 'PARENTLOCATION')
+                shareDeleteRetentionEnabled = ConvertTo-ScoutFeatureFlag (Get-ScoutProp $_ 'properties.shareDeleteRetentionPolicy.enabled')
+                shareDeleteRetentionDays   = ConvertTo-ScoutInt (Get-ScoutProp $_ 'properties.shareDeleteRetentionPolicy.days')
+                smbVersions                = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.protocolSettings.smb.versions')
+                smbChannelEncryption       = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.protocolSettings.smb.channelEncryption')
+                smbAuthenticationMethods   = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.protocolSettings.smb.authenticationMethods')
+            }
+        }
+    )
+
+    # -- SQL server auditing -----------------------------------------------------------------
+    # Only the state and the Azure Monitor flag. The response also carries
+    # storageAccountAccessKey, storageAccountSubscriptionId and storageEndpoint; the collector
+    # drops them before a row exists, and nothing here reads them.
+    $result['sqlServerAuditingMeasured'] = Test-ScoutSweepMeasured 'SqlServerAuditing'
+    $result['sqlServerAuditing'] = @(
+        Select-ByType 'AZSC/ARMChild/SqlServerAuditing' | ForEach-Object {
+            [pscustomobject]@{
+                sqlServerId                 = ([string] (Get-ScoutProp $_ 'PARENTID')).ToLowerInvariant()
+                name                        = [string] (Get-ScoutProp $_ 'PARENTNAME')
+                resourceGroup               = [string] (Get-ScoutProp $_ 'RESOURCEGROUP')
+                subscriptionId              = [string] (Get-ScoutProp $_ 'subscriptionId')
+                location                    = [string] (Get-ScoutProp $_ 'PARENTLOCATION')
+                auditingState               = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.state')
+                azureMonitorTargetEnabled   = ConvertTo-ScoutFeatureFlag (Get-ScoutProp $_ 'properties.isAzureMonitorTargetEnabled')
+            }
+        }
+    )
+
+    # -- SQL failover groups (one row per server whose list answered) -------------------------
+    # Counts and booleans only. A group's partner servers are other servers' resource ids and are
+    # never carried; the collector reduces them to partnerServerCount before the row exists.
+    $result['sqlFailoverGroupsMeasured'] = Test-ScoutSweepMeasured 'SqlFailoverGroups'
+    $failoverGroupsByServer = Group-ScoutChildRowByParent 'AZSC/ARMChild/SqlFailoverGroups'
+    $failoverServers = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+    foreach ($checkedServer in (Get-ScoutSweepCheckedParent 'SqlFailoverGroups')) { [void] $failoverServers.Add($checkedServer) }
+    foreach ($groupedServer in $failoverGroupsByServer.Keys) { [void] $failoverServers.Add($groupedServer) }
+    $result['sqlFailoverGroups'] = @(
+        foreach ($serverId in @($failoverServers | Sort-Object)) {
+            $groups = @(if ($failoverGroupsByServer.Contains($serverId)) { $failoverGroupsByServer[$serverId] })
+            $policies = @($groups | ForEach-Object { Get-ScoutProp $_ 'properties.readWriteEndpoint.failoverPolicy' } |
+                    Where-Object { $_ } | ForEach-Object { [string] $_ } | Sort-Object -Unique)
+            $automatic = @($groups | Where-Object { ([string] (Get-ScoutProp $_ 'properties.readWriteEndpoint.failoverPolicy')) -ieq 'Automatic' }).Count
+            $fact = Get-ScoutSummaryParentFact $serverId
+            [pscustomobject]@{
+                sqlServerId                 = $serverId
+                name                        = $fact.name
+                resourceGroup               = $fact.resourceGroup
+                subscriptionId              = $fact.subscriptionId
+                location                    = $fact.location
+                failoverGroupCount          = $groups.Count
+                automaticFailoverGroupCount = $automatic
+                hasAutomaticFailover        = $automatic -gt 0
+                failoverPolicies            = $policies
+            }
+        }
+    )
+
+    # -- web app configuration ---------------------------------------------------------------
+    # Seven settings off config/web. App settings and connection strings are not in the allow-
+    # list; the health-check PATH is reduced to "is one set".
+    $result['webAppConfigMeasured'] = Test-ScoutSweepMeasured 'WebAppConfig'
+    $result['webAppConfig'] = @(
+        Select-ByType 'AZSC/ARMChild/WebAppConfig' | ForEach-Object {
+            [pscustomobject]@{
+                webAppId               = ([string] (Get-ScoutProp $_ 'PARENTID')).ToLowerInvariant()
+                name                   = [string] (Get-ScoutProp $_ 'PARENTNAME')
+                resourceGroup          = [string] (Get-ScoutProp $_ 'RESOURCEGROUP')
+                subscriptionId         = [string] (Get-ScoutProp $_ 'subscriptionId')
+                location               = [string] (Get-ScoutProp $_ 'PARENTLOCATION')
+                ftpsState              = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.ftpsState')
+                alwaysOn               = ConvertTo-ScoutFeatureFlag (Get-ScoutProp $_ 'properties.alwaysOn')
+                healthCheckPathSet     = ConvertTo-ScoutFeatureFlag (Get-ScoutProp $_ 'properties.healthCheckPathSet')
+                remoteDebuggingEnabled = ConvertTo-ScoutFeatureFlag (Get-ScoutProp $_ 'properties.remoteDebuggingEnabled')
+                http20Enabled          = ConvertTo-ScoutFeatureFlag (Get-ScoutProp $_ 'properties.http20Enabled')
+                minTlsVersion          = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.minTlsVersion')
+                scmMinTlsVersion       = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.scmMinTlsVersion')
+            }
+        }
+    )
+
+    # -- web app basic-auth policies ---------------------------------------------------------
+    # Two GETs per site (ftp, scm) folded into one row per site. A policy whose GET returned no
+    # row (404, denied) stays $null -- "unknown" -- rather than becoming "not allowed".
+    $result['webAppBasicAuthMeasured'] = Test-ScoutSweepMeasured 'WebAppBasicAuth'
+    $basicAuthSites = [ordered]@{}
+    foreach ($policyRow in @(Select-ByType 'AZSC/ARMChild/WebAppBasicAuth')) {
+        $siteKey = ([string] (Get-ScoutProp $policyRow 'PARENTID')).ToLowerInvariant()
+        if (-not $siteKey) { continue }
+        if (-not $basicAuthSites.Contains($siteKey)) {
+            $basicAuthSites[$siteKey] = [pscustomobject]@{ row = $policyRow; ftp = $null; scm = $null }
+        }
+        $policyName = [string] (Get-ScoutProp $policyRow 'properties.policy')
+        if (-not $policyName) { $policyName = ([string] (Get-ScoutProp $policyRow 'id')).Split('/')[-1] }
+        $allowed = ConvertTo-ScoutBool (Get-ScoutProp $policyRow 'properties.allow')
+        if ($policyName -ieq 'ftp') { $basicAuthSites[$siteKey].ftp = $allowed }
+        elseif ($policyName -ieq 'scm') { $basicAuthSites[$siteKey].scm = $allowed }
+    }
+    $result['webAppBasicAuth'] = @(
+        foreach ($siteKey in $basicAuthSites.Keys) {
+            $site = $basicAuthSites[$siteKey]
+            [pscustomobject]@{
+                webAppId             = $siteKey
+                name                 = [string] (Get-ScoutProp $site.row 'PARENTNAME')
+                resourceGroup        = [string] (Get-ScoutProp $site.row 'RESOURCEGROUP')
+                subscriptionId       = [string] (Get-ScoutProp $site.row 'subscriptionId')
+                location             = [string] (Get-ScoutProp $site.row 'PARENTLOCATION')
+                ftpBasicAuthAllowed  = $site.ftp
+                scmBasicAuthAllowed  = $site.scm
+            }
+        }
+    )
+
+    # -- Event Hubs geo-disaster recovery (one row per namespace whose list answered) ---------
+    # A boolean only. The pairing's partner namespace is another namespace's resource id and is
+    # never carried; the collector keeps just the pairing's role and provisioning state.
+    $result['eventHubGeoDrMeasured'] = Test-ScoutSweepMeasured 'EventHubGeoDr'
+    $geoDrByNamespace = Group-ScoutChildRowByParent 'AZSC/ARMChild/EventHubGeoDr'
+    $geoDrNamespaces = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+    foreach ($checkedNamespace in (Get-ScoutSweepCheckedParent 'EventHubGeoDr')) { [void] $geoDrNamespaces.Add($checkedNamespace) }
+    foreach ($groupedNamespace in $geoDrByNamespace.Keys) { [void] $geoDrNamespaces.Add($groupedNamespace) }
+    $result['eventHubGeoDr'] = @(
+        foreach ($namespaceId in @($geoDrNamespaces | Sort-Object)) {
+            $fact = Get-ScoutSummaryParentFact $namespaceId
+            [pscustomobject]@{
+                eventHubNamespaceId = $namespaceId
+                name                = $fact.name
+                resourceGroup       = $fact.resourceGroup
+                subscriptionId      = $fact.subscriptionId
+                location            = $fact.location
+                geoDrConfigured     = $geoDrByNamespace.Contains($namespaceId) -and @($geoDrByNamespace[$namespaceId]).Count -gt 0
+            }
+        }
+    )
+
+    # -- Redis Enterprise / Azure Managed Redis databases ------------------------------------
+    # Access keys are never read (they come from a POST listKeys, not this GET). The linked
+    # databases of a geo-replication group are counted, never listed.
+    $result['redisEnterpriseDatabasesMeasured'] = Test-ScoutSweepMeasured 'RedisEnterpriseDatabases'
+    $result['redisEnterpriseDatabases'] = @(
+        Select-ByType 'AZSC/ARMChild/RedisEnterpriseDatabases' | ForEach-Object {
+            [pscustomobject]@{
+                redisEnterpriseId        = ([string] (Get-ScoutProp $_ 'PARENTID')).ToLowerInvariant()
+                name                     = [string] (Get-ScoutProp $_ 'name')
+                clusterName              = [string] (Get-ScoutProp $_ 'PARENTNAME')
+                resourceGroup            = [string] (Get-ScoutProp $_ 'RESOURCEGROUP')
+                subscriptionId           = [string] (Get-ScoutProp $_ 'subscriptionId')
+                location                 = [string] (Get-ScoutProp $_ 'PARENTLOCATION')
+                accessKeysAuthentication = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.accessKeysAuthentication')
+                clientProtocol           = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.clientProtocol')
+                persistenceAofEnabled    = ConvertTo-ScoutFeatureFlag (Get-ScoutProp $_ 'properties.persistence.aofEnabled')
+                persistenceAofFrequency  = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.persistence.aofFrequency')
+                persistenceRdbEnabled    = ConvertTo-ScoutFeatureFlag (Get-ScoutProp $_ 'properties.persistence.rdbEnabled')
+                persistenceRdbFrequency  = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.persistence.rdbFrequency')
+                geoReplicationLinkCount  = ConvertTo-ScoutInt (Get-ScoutProp $_ 'properties.geoReplication.linkedDatabaseCount')
+            }
+        }
+    )
+
     # ---- per-domain scalars ----
     $result['storageAccounts'] = @(
         Select-ByType 'microsoft.storage/storageaccounts' | ForEach-Object {
@@ -3037,7 +3347,10 @@ function ConvertFrom-ScoutInventory {
                 replicasPerPrimary  = $redisReplicas
                 minimumTlsVersion   = [string] (Get-ScoutProp $_ 'properties.minimumTlsVersion')
                 nonSslPortEnabled   = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.enableNonSslPort')
-                accessKeyAuthDisabled = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.disableAccessKeyAuthentication')
+                # Classic: absent = Azure's default (keys allowed) = false. Enterprise: null (database-level).
+                accessKeyAuthDisabled = $(
+                    $keyFlag = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.disableAccessKeyAuthentication')
+                    if ($redisIsClassic -and $null -eq $keyFlag) { $false } else { $keyFlag })
                 aadEnabled          = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.redisConfiguration.aad-enabled')
                 highAvailability    = [string] (Get-ScoutProp $_ 'properties.highAvailability')
             }

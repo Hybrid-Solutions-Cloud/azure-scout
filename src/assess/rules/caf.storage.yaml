@@ -31,10 +31,13 @@ rules:
   - id: CAF-STO-04
     title: "Storage accounts enable blob soft delete or versioning"
     severity: medium
-    query: null
-    assert: { type: manual }
-    remediation: "Enable blob soft delete and/or blob versioning (deleteRetentionPolicy, isVersioningEnabled) to protect against accidental or malicious deletion. collect.json does not yet capture these properties (SKU redundancy is already covered by WAF-STO-01) — verify via `az storage account blob-service-properties show`."
-    manual: true
+    # domains.storage.blobServiceProperties is one row per account whose blob service answered; a feature the
+    # account never enabled reads false. Soft delete OR versioning passes, so only an account with BOTH off is a
+    # finding. Gated on the Measured flag so a run that never read the blob service is Not assessed.
+    query: "$.domains.storage.blobServiceProperties[?(@.deleteRetentionEnabled == false && @.versioningEnabled == false)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.storage.blobServicePropertiesMeasured" }
+    remediation: "The storage accounts listed have neither blob soft delete (deleteRetentionPolicy) nor blob versioning (isVersioningEnabled), so an accidental or malicious delete or overwrite cannot be recovered. Enable soft delete and/or versioning. Accounts with a hierarchical namespace (Data Lake Storage) do not support versioning; use soft delete there."
+    manual: false
   - id: CAF-STO-05
     title: "Storage account network rules default-deny with explicit allow-list"
     severity: high

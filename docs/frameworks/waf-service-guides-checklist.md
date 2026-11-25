@@ -95,7 +95,7 @@ Guide: <https://learn.microsoft.com/azure/well-architected/service-guides/azure-
 
 ### Azure App Service (Web Apps) (WAF-SVC-APP) — 17 items
 
-Guide: <https://learn.microsoft.com/azure/well-architected/service-guides/app-service-web-apps>. 12 automated, 5 manual.
+Guide: <https://learn.microsoft.com/azure/well-architected/service-guides/app-service-web-apps>. 14 automated, 3 manual.
 
 | # | Item | Pillar | Scout |
 |---|---|---|---|
@@ -111,8 +111,8 @@ Guide: <https://learn.microsoft.com/azure/well-architected/service-guides/app-se
 | WAF-SVC-APP-10 | Web apps use a custom domain | Security | ✅ `customDomainBound` |
 | WAF-SVC-APP-11 | Microsoft Defender for App Service is enabled | Security | ✅ Defender plan `AppServices` |
 | WAF-SVC-APP-12 | Web apps send diagnostic logs to a destination | Operational excellence | ✅ diagnostic-settings coverage of `microsoft.web/sites` |
-| WAF-SVC-APP-13 | Health check, auto-heal and Always On are configured | Reliability | ❌ Manual — no collected field |
-| WAF-SVC-APP-14 | Basic authentication, FTP and remote debugging are disabled, and secrets use Key Vault references | Security | ❌ Manual — no collected field |
+| WAF-SVC-APP-13 | Health check, auto-heal and Always On are configured | Reliability | ✅ `webAppConfig` `healthCheckPathSet` and `alwaysOn`, web apps only (a function app has no Always On); auto-heal is not collected |
+| WAF-SVC-APP-14 | Basic authentication, FTP and remote debugging are disabled, and secrets use Key Vault references | Security | ✅ `webAppBasicAuth` `ftpBasicAuthAllowed` and `scmBasicAuthAllowed`, `webAppConfig` `ftpsState` (AllAllowed is a finding) and `remoteDebuggingEnabled`; covers web and function apps, a policy that was not returned is not scored; Key Vault references are not collected |
 | WAF-SVC-APP-15 | Built-in authentication or Microsoft Entra ID authentication protects the app, with restrictive CORS | Security | ❌ Manual — no collected field |
 | WAF-SVC-APP-16 | Releases go through deployment slots and a pipeline | Operational excellence | ❌ Manual — no collected field |
 | WAF-SVC-APP-17 | Lower environments use Free or Basic plans, and steady workloads use reservations | Cost optimization | ❌ Manual — evidence attached |
@@ -412,7 +412,7 @@ Guide: <https://learn.microsoft.com/azure/well-architected/service-guides/azure-
 
 ### Azure Files (WAF-SVC-FILES) — 9 items
 
-Guide: <https://learn.microsoft.com/azure/well-architected/service-guides/azure-files>. 4 automated, 5 manual.
+Guide: <https://learn.microsoft.com/azure/well-architected/service-guides/azure-files>. 6 automated, 3 manual.
 
 Scout cannot see which storage accounts hold file shares, so the account-level items apply to every account that can (StorageV2, FileStorage, Storage).
 
@@ -422,8 +422,8 @@ Scout cannot see which storage accounts hold file shares, so the account-level i
 | WAF-SVC-FILES-02 | Storage accounts require TLS 1.2 or higher | Security | ✅ `minTls` |
 | WAF-SVC-FILES-03 | Secure transfer is required | Security | ✅ `httpsOnly` |
 | WAF-SVC-FILES-04 | Public network access is disabled or limited by a deny-by-default firewall | Security | ✅ `publicNetworkAccess`, `networkDefaultDeny` |
-| WAF-SVC-FILES-05 | Soft delete, snapshots and Azure Backup protect shares | Reliability | ❌ Manual — evidence attached |
-| WAF-SVC-FILES-06 | Identity-based authentication uses Kerberos with AES-256, SMB 3.1.1 with AES-256-GCM, and keys are in Key Vault | Security | ❌ Manual — no collected field |
+| WAF-SVC-FILES-05 | Soft delete, snapshots and Azure Backup protect shares | Reliability | ✅ `fileServiceProperties` `shareDeleteRetentionEnabled`; snapshots and backup are not read |
+| WAF-SVC-FILES-06 | Identity-based authentication uses Kerberos with AES-256, SMB 3.1.1 with AES-256-GCM, and keys are in Key Vault | Security | ✅ `fileServiceProperties` `smbVersions` and `smbChannelEncryption` (null allows every version and algorithm, which is a finding); Kerberos ticket encryption and key custody are not read |
 | WAF-SVC-FILES-07 | A Resource Manager lock protects the storage account | Security | ❌ Manual — evidence attached |
 | WAF-SVC-FILES-08 | SMB Multichannel, metadata caching and nconnect are used for SSD shares, and throttling is monitored | Performance efficiency | ❌ Manual — no collected field |
 | WAF-SVC-FILES-09 | Access tiers, provisioned capacity and reservations match usage | Cost optimization | ❌ Manual — evidence attached |
@@ -450,7 +450,7 @@ The assessment collects volume name, state and quota only, so every item here is
 | Service guide | Items | Automated (✅) | Manual (❌) |
 |---|---|---|---|
 | Azure Kubernetes Service | 14 | 11 | 3 |
-| Azure App Service (Web Apps) | 17 | 12 | 5 |
+| Azure App Service (Web Apps) | 17 | 14 | 3 |
 | Azure Functions | 7 | 4 | 3 |
 | Azure Container Apps | 11 | 6 | 5 |
 | Azure API Management | 12 | 8 | 4 |
@@ -468,9 +468,9 @@ The assessment collects volume name, state and quota only, so every item here is
 | Azure Traffic Manager | 6 | 3 | 3 |
 | Azure Virtual WAN | 9 | 3 | 6 |
 | Azure ExpressRoute | 9 | 4 | 5 |
-| Azure Files | 9 | 4 | 5 |
+| Azure Files | 9 | 6 | 3 |
 | Azure NetApp Files | 8 | 0 | 8 |
-| **Total** | **214** | **126** | **88** |
+| **Total** | **214** | **130** | **84** |
 
 ## What these rules read
 
@@ -481,6 +481,14 @@ and local-authentication settings; Firewall, Application Gateway and Load Balanc
 probe fields; virtual network `encryptionEnabled`, `publicIPAddresses` and `flowLogs`; and virtual
 machine, scale set and disk security fields. Only a boolean or a count is collected for anything
 sensitive: no key, certificate, secret value, IP address list or workspace id is read.
+
+Four items read the per-resource ARM settings added in AB#9300 phase 4, batch 2, each from a dataset with a
+sibling `<name>Measured` flag: App Service configuration (`webAppConfig`) and basic-authentication policies
+(`webAppBasicAuth`) for WAF-SVC-APP-13 and APP-14, and the Azure Files service properties
+(`fileServiceProperties`) for WAF-SVC-FILES-05 and FILES-06. The rule is gated on that flag, so a run that never
+read the setting reports the item Not assessed rather than passed. A site, account or policy whose read failed has
+no row and is not scored. Only a boolean, a count or a protocol string is collected: no app setting, connection
+string or credential is read.
 
 Virtual network flow logs are matched to virtual networks by lower-cased resource id. A flow log
 whose target is a subnet or a network interface is not matched, and NSG flow logs (which Microsoft

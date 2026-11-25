@@ -15,6 +15,10 @@
         function-app and AKS node scale set splits
       - the manual rules converted to automated now their data is collected: CASA-AV-03, AV-05,
         PM-04, SS-01 and IR-02, WAF-OE-06 (and CASA-AV-04, which deliberately stays manual)
+      - the four service-guide items converted with the phase 4 batch 2 per-resource ARM reads
+        (WAF-SVC-APP-13 and APP-14 from web app configuration and basic-authentication policies,
+        WAF-SVC-FILES-05 and FILES-06 from the file service properties), each gated on its Measured
+        flag so a run that never read the setting is Not assessed instead of a pass
 
     Automated rules are proven twice, once failing and once passing, so a query that always passes or
     always fails cannot slip through.
@@ -193,6 +197,19 @@ BeforeAll {
                 foreach ($key in $webProps.Keys) { $row[$key] = $webProps[$key] }
                 $row
             })
+        # AB#9300 phase 4 batch 2: per-site configuration and basic-authentication policies, one row per site
+        # keyed by the lower-cased site id. The function app is deliberately "bad" on Always On in the bad
+        # estate, to prove WAF-SVC-APP-13 is limited to web apps.
+        $web.webAppConfigMeasured = $true
+        $web.webAppBasicAuthMeasured = $true
+        $web.webAppConfig = @(foreach ($app in @('app1', 'func1')) {
+                $siteId = "$sub/Microsoft.Web/sites/$app".ToLowerInvariant()
+                if ($Good) { [ordered]@{ webAppId = $siteId; name = $app; ftpsState = 'FtpsOnly'; alwaysOn = $true; healthCheckPathSet = $true; remoteDebuggingEnabled = $false; http20Enabled = $true; minTlsVersion = '1.2'; scmMinTlsVersion = '1.2' } }
+                else { [ordered]@{ webAppId = $siteId; name = $app; ftpsState = 'AllAllowed'; alwaysOn = $false; healthCheckPathSet = $false; remoteDebuggingEnabled = $true; http20Enabled = $false; minTlsVersion = '1.0'; scmMinTlsVersion = '1.0' } }
+            })
+        $web.webAppBasicAuth = @(foreach ($app in @('app1', 'func1')) {
+                [ordered]@{ webAppId = "$sub/Microsoft.Web/sites/$app".ToLowerInvariant(); name = $app; ftpBasicAuthAllowed = (-not $Good); scmBasicAuthAllowed = (-not $Good) }
+            })
         $web.appServicePlans = @(if ($Good) {
                 [ordered]@{ id = $id.Plan; name = 'plan1'; location = 'eastus'; tier = 'PremiumV3'; zoneRedundant = $true; instanceCount = 3 }
             }
@@ -221,6 +238,15 @@ BeforeAll {
             }
             else {
                 [ordered]@{ id = "$sub/Microsoft.Storage/storageAccounts/st1"; name = 'st1'; kind = 'StorageV2'; sku = 'Standard_LRS'; minTls = ''; httpsOnly = $false; publicNetworkAccess = 'Enabled'; networkDefaultDeny = $false }
+            })
+        # AB#9300 phase 4 batch 2: file service properties, keyed by the lower-cased account id. null SMB strings
+        # mean every version and algorithm is allowed.
+        $storage.fileServicePropertiesMeasured = $true
+        $storage.fileServiceProperties = @([ordered]@{
+                storageAccountId = "$sub/Microsoft.Storage/storageAccounts/st1".ToLowerInvariant(); name = 'st1'
+                shareDeleteRetentionEnabled = $Good; shareDeleteRetentionDays = $(if ($Good) { 14 } else { $null })
+                smbVersions = $(if ($Good) { 'SMB3.1.1' } else { $null }); smbChannelEncryption = $(if ($Good) { 'AES-256-GCM' } else { $null })
+                smbAuthenticationMethods = $(if ($Good) { 'Kerberos' } else { $null })
             })
         $storage.managedDisks = @(if ($Good) {
                 [ordered]@{ id = 'd1'; name = 'd1'; location = 'eastus'; sku = 'Premium_ZRS'; diskState = 'Attached'; zoneCount = 3; publicNetworkAccess = 'Disabled'; encryptionType = 'EncryptionAtRestWithCustomerKey' }
@@ -278,9 +304,9 @@ BeforeAll {
             security   = [ordered]@{ defenderPlans = @(); wafPolicies = @() }
             opsPosture = [ordered]@{ diagnosticCoverage = @(); diagnosticCoverageMeasured = $false }
             domains    = [ordered]@{
-                web = [ordered]@{ webApps = @(); appServicePlans = @() }
+                web = [ordered]@{ webApps = @(); appServicePlans = @(); webAppConfig = @(); webAppConfigMeasured = $false; webAppBasicAuth = @(); webAppBasicAuthMeasured = $false }
                 containers = [ordered]@{ aksClusters = @(); containerApps = @(); containerAppEnvironments = @() }
-                storage = [ordered]@{ storageAccounts = @(); managedDisks = @(); netAppVolumes = @() }
+                storage = [ordered]@{ storageAccounts = @(); managedDisks = @(); netAppVolumes = @(); fileServiceProperties = @(); fileServicePropertiesMeasured = $false }
                 integration = [ordered]@{ apiManagement = @(); serviceBusNamespaces = @(); eventGrid = @() }
             }
         }
@@ -303,10 +329,10 @@ Describe 'waf.serviceguides.yaml -- shape' {
         $script:Set.FrameworkVersion | Should -Match 'waf-service-guides-checklist\.md'
     }
 
-    It 'loads 214 rules, 126 automated and 88 manual, with unique ids' {
+    It 'loads 214 rules, 130 automated and 84 manual, with unique ids' {
         $script:Rules.Count | Should -Be 214
-        $script:Automated.Count | Should -Be 126
-        $script:Manual.Count | Should -Be 88
+        $script:Automated.Count | Should -Be 130
+        $script:Manual.Count | Should -Be 84
         @($script:Rules.id | Select-Object -Unique).Count | Should -Be 214
     }
 
@@ -339,10 +365,10 @@ Describe 'waf.serviceguides.yaml -- shape' {
         foreach ($r in $script:Automated) { $r.assert.type | Should -Not -Be 'manual' }
     }
 
-    It 'only uses supported join shapes (leftOnly on a collected id key) and no grouping parentheses in a filter' {
+    It 'only uses supported join shapes (leftOnly or leftMatched on a collected id key) and no grouping parentheses in a filter' {
         foreach ($r in $script:Rules) {
             if ($r.ContainsKey('join') -and $r.join) {
-                $r.join.mode | Should -Be 'leftOnly'
+                $r.join.mode | Should -BeIn @('leftOnly', 'leftMatched')
                 $r.join.left | Should -Match '\]$'
                 $r.join.right | Should -Match '\]$'
             }
@@ -382,7 +408,7 @@ Describe 'waf-service-guides-checklist.md' {
     }
 
     It 'states the same totals the rule file holds' {
-        $script:Doc | Should -Match '\| \*\*Total\*\* \| \*\*214\*\* \| \*\*126\*\* \| \*\*88\*\* \|'
+        $script:Doc | Should -Match '\| \*\*Total\*\* \| \*\*214\*\* \| \*\*130\*\* \| \*\*84\*\* \|'
     }
 }
 
@@ -622,5 +648,65 @@ Describe 'Manual rules converted now that their data is collected (CASA and WAF-
         (Invoke-OneRule -Set $script:OpsSet -Id 'WAF-OE-06' -Collect (Get-AlertCollect -Rule ([pscustomobject]@{ enabled = $false; actionGroupCount = 1 }))).Status | Should -Be 'Fail'
         (Invoke-OneRule -Set $script:OpsSet -Id 'WAF-OE-06' -Collect (Get-AlertCollect -Rule ([pscustomobject]@{ enabled = $true; actionGroupCount = $null }))).Status | Should -Be 'Fail'
         (Invoke-OneRule -Set $script:OpsSet -Id 'WAF-OE-06' -Collect (Get-AlertCollect -Rule ([pscustomobject]@{ enabled = $true; actionGroupCount = 1 }))).Status | Should -Be 'Pass'
+    }
+}
+
+Describe 'Service-guide items converted with the phase 4 batch 2 per-resource ARM reads' {
+    It 'scores <Id> as Fail with <Count> offending rows on the bad estate and Pass on the good one' -ForEach @(
+        @{ Id = 'WAF-SVC-APP-13'; Count = 1 }   # app1 only: the function app is left out of the web-app join
+        @{ Id = 'WAF-SVC-APP-14'; Count = 4 }   # two basic-authentication rows and two configuration rows
+        @{ Id = 'WAF-SVC-FILES-05'; Count = 1 }
+        @{ Id = 'WAF-SVC-FILES-06'; Count = 1 }
+    ) {
+        $bad = $script:Bad | Where-Object Id -eq $Id
+        $bad.Status | Should -Be 'Fail'
+        $bad.EvidenceCount | Should -Be $Count
+        $bad.Manual | Should -BeFalse
+        ($script:Good | Where-Object Id -eq $Id).Status | Should -Be 'Pass'
+    }
+
+    It 'reports <Id> NotAssessed, not Pass, when <Flag> is false even though the rows exist' -ForEach @(
+        @{ Id = 'WAF-SVC-APP-13'; Flag = 'webAppConfigMeasured'; Section = 'web' }
+        @{ Id = 'WAF-SVC-APP-14'; Flag = 'webAppBasicAuthMeasured'; Section = 'web' }
+        @{ Id = 'WAF-SVC-FILES-05'; Flag = 'fileServicePropertiesMeasured'; Section = 'storage' }
+        @{ Id = 'WAF-SVC-FILES-06'; Flag = 'fileServicePropertiesMeasured'; Section = 'storage' }
+    ) {
+        $estate = New-ServiceGuideEstate -Good $false
+        $estate.domains[$Section][$Flag] = $false
+        $findings = Invoke-ServiceGuideAssessment -Estate $estate
+        ($findings | Where-Object Id -eq $Id).Status | Should -Be 'NotAssessed'
+        @($findings | Where-Object Status -eq 'Error').Count | Should -Be 0
+    }
+
+    It 'scores <Id> as <Status> when <Name>' -ForEach @(
+        @{ Name = 'only the health check path is missing'; Id = 'WAF-SVC-APP-13'; Status = 'Fail'; Mutate = { param($e) $e.domains.web.webAppConfig[0].healthCheckPathSet = $false } }
+        @{ Name = 'only Always On is off'; Id = 'WAF-SVC-APP-13'; Status = 'Fail'; Mutate = { param($e) $e.domains.web.webAppConfig[0].alwaysOn = $false } }
+        @{ Name = 'the only site with Always On off is a function app'; Id = 'WAF-SVC-APP-13'; Status = 'Pass'; Mutate = { param($e) $e.domains.web.webAppConfig[1].alwaysOn = $false; $e.domains.web.webAppConfig[1].healthCheckPathSet = $false } }
+        @{ Name = 'a site config row has no matching web app in the inventory'; Id = 'WAF-SVC-APP-13'; Status = 'Pass'; Mutate = { param($e) $e.domains.web.webAppConfig[0].webAppId = '/subscriptions/x/resourcegroups/y/providers/microsoft.web/sites/gone'; $e.domains.web.webAppConfig[0].alwaysOn = $false } }
+        @{ Name = 'the web app id differs in casing from the configuration row'; Id = 'WAF-SVC-APP-13'; Status = 'Fail'; Mutate = { param($e) $e.domains.web.webApps[0].id = $e.domains.web.webApps[0].id.ToUpperInvariant(); $e.domains.web.webAppConfig[0].alwaysOn = $false } }
+        @{ Name = 'FTP basic authentication is allowed'; Id = 'WAF-SVC-APP-14'; Status = 'Fail'; Mutate = { param($e) $e.domains.web.webAppBasicAuth[0].ftpBasicAuthAllowed = $true } }
+        @{ Name = 'SCM basic authentication is allowed'; Id = 'WAF-SVC-APP-14'; Status = 'Fail'; Mutate = { param($e) $e.domains.web.webAppBasicAuth[0].scmBasicAuthAllowed = $true } }
+        @{ Name = 'a basic-authentication policy was not returned (null)'; Id = 'WAF-SVC-APP-14'; Status = 'Pass'; Mutate = { param($e) $e.domains.web.webAppBasicAuth[0].ftpBasicAuthAllowed = $null; $e.domains.web.webAppBasicAuth[0].scmBasicAuthAllowed = $null } }
+        @{ Name = 'FTP accepts plain FTP'; Id = 'WAF-SVC-APP-14'; Status = 'Fail'; Mutate = { param($e) $e.domains.web.webAppConfig[0].ftpsState = 'AllAllowed' } }
+        @{ Name = 'FTP is disabled'; Id = 'WAF-SVC-APP-14'; Status = 'Pass'; Mutate = { param($e) $e.domains.web.webAppConfig[0].ftpsState = 'Disabled' } }
+        @{ Name = 'the FTPS state was not returned (null)'; Id = 'WAF-SVC-APP-14'; Status = 'Pass'; Mutate = { param($e) $e.domains.web.webAppConfig[0].ftpsState = $null } }
+        @{ Name = 'remote debugging is on'; Id = 'WAF-SVC-APP-14'; Status = 'Fail'; Mutate = { param($e) $e.domains.web.webAppConfig[1].remoteDebuggingEnabled = $true } }
+        @{ Name = 'share soft delete is off on one account'; Id = 'WAF-SVC-FILES-05'; Status = 'Fail'; Mutate = { param($e) $e.domains.storage.fileServiceProperties[0].shareDeleteRetentionEnabled = $false } }
+        @{ Name = 'SMB allows version 3.0 as well as 3.1.1'; Id = 'WAF-SVC-FILES-06'; Status = 'Fail'; Mutate = { param($e) $e.domains.storage.fileServiceProperties[0].smbVersions = 'SMB3.0;SMB3.1.1' } }
+        @{ Name = 'SMB channel encryption allows AES-128-GCM too'; Id = 'WAF-SVC-FILES-06'; Status = 'Fail'; Mutate = { param($e) $e.domains.storage.fileServiceProperties[0].smbChannelEncryption = 'AES-128-GCM;AES-256-GCM' } }
+        @{ Name = 'SMB versions were never restricted (null allows every version)'; Id = 'WAF-SVC-FILES-06'; Status = 'Fail'; Mutate = { param($e) $e.domains.storage.fileServiceProperties[0].smbVersions = $null } }
+        @{ Name = 'SMB is restricted to 3.1.1 and AES-256-GCM'; Id = 'WAF-SVC-FILES-06'; Status = 'Pass'; Mutate = { param($e) $e.domains.storage.fileServiceProperties[0].smbVersions = 'SMB3.1.1'; $e.domains.storage.fileServiceProperties[0].smbChannelEncryption = 'AES-256-GCM' } }
+    ) {
+        $estate = New-ServiceGuideEstate -Good $true
+        & $Mutate $estate
+        $finding = Invoke-ServiceGuideAssessment -Estate $estate | Where-Object Id -eq $Id
+        $finding.Status | Should -Be $Status
+    }
+
+    It 'names the offending site, not just a count, in the web-app join evidence' {
+        $apps = @(($script:Bad | Where-Object Id -eq 'WAF-SVC-APP-13').Evidence)
+        $apps.Count | Should -Be 1
+        $apps[0].Left.name | Should -Be 'app1'
+        $apps[0].Right.name | Should -Be 'app1'
     }
 }

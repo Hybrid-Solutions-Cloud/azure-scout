@@ -164,6 +164,9 @@ function Remove-ScoutStaleSecurityAssessment {
     set -IncludeArmChildResources without naming a subset. A caller that only needs, say, the Azure
     Local virtual machine instances (the assessment collect path) names them explicitly so the
     ARM REST sweep is not paying for ML/Search/Storage/Backup/diagnostics children nothing reads.
+    'All' includes the eight AB#9300 phase 4 batch 2 per-resource datasets (storage blob/file
+    service settings, SQL auditing and failover groups, web app configuration and basic-auth
+    policies, Event Hubs geo-DR, Redis Enterprise databases), each one ARM GET per parent.
 
 .PARAMETER IncludeSubscriptionSecurityPolicy
     Also collect one synthetic Defender/diagnostics/policy-compliance envelope per discovered
@@ -407,14 +410,34 @@ function Get-ScoutRawInventory {
             'microsoft.web/sites', 'microsoft.cdn/profiles', 'microsoft.apimanagement/service',
             'microsoft.eventhub/namespaces', 'microsoft.servicebus/namespaces',
             'microsoft.operationalinsights/workspaces', 'microsoft.recoveryservices/vaults',
-            'microsoft.automation/automationaccounts'
+            'microsoft.automation/automationaccounts',
+            # AB#9300 phase 4, batch 2 -- the non-network parents added to the diagnostic sweep.
+            'microsoft.machinelearningservices/workspaces', 'microsoft.search/searchservices',
+            'microsoft.databricks/workspaces', 'microsoft.sql/managedinstances',
+            'microsoft.cache/redis', 'microsoft.cache/redisenterprise',
+            'microsoft.eventgrid/topics', 'microsoft.insights/components',
+            'microsoft.desktopvirtualization/hostpools', 'microsoft.desktopvirtualization/workspaces'
         )
         'azsc/armchild/reservationutilization' = @('microsoft.capacity/reservationorders/reservations')
         'azsc/armchild/azurelocalvirtualmachineinstances' = @('microsoft.hybridcompute/machines')
+        # AB#9300 phase 4, batch 2 -- per-resource settings read with one GET per parent. No
+        # manifest declares these types, so no collector is ever listed against them; the entries
+        # keep the map complete for the day one does.
+        'azsc/armchild/storageblobserviceproperties' = @('microsoft.storage/storageaccounts')
+        'azsc/armchild/storagefileserviceproperties' = @('microsoft.storage/storageaccounts')
+        'azsc/armchild/sqlserverauditing' = @('microsoft.sql/servers')
+        'azsc/armchild/sqlfailovergroups' = @('microsoft.sql/servers')
+        'azsc/armchild/webappconfig' = @('microsoft.web/sites')
+        'azsc/armchild/webappbasicauth' = @('microsoft.web/sites')
+        'azsc/armchild/eventhubgeodr' = @('microsoft.eventhub/namespaces')
+        'azsc/armchild/redisenterprisedatabases' = @('microsoft.cache/redisenterprise')
     }
     $networkDiagnosticParentTypes = @(
         'microsoft.network/networksecuritygroups', 'microsoft.network/applicationgateways',
-        'microsoft.network/azurefirewalls', 'microsoft.network/frontdoors'
+        'microsoft.network/azurefirewalls', 'microsoft.network/frontdoors',
+        # AB#9300 phase 4, batch 2.
+        'microsoft.network/loadbalancers', 'microsoft.network/publicipaddresses',
+        'microsoft.network/virtualnetworkgateways', 'microsoft.network/trafficmanagerprofiles'
     )
 
     function Get-ScoutRawAffectedCollector {

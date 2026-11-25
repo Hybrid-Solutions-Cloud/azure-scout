@@ -146,7 +146,7 @@ rules:
     severity: high
     query: "$.domains.databases.cosmosDbAccounts[*]"
     assert: { type: manual }
-    remediation: "WAF-MC-DP-03. Confirm the data platform spans every deployment region, uses zone redundancy in each, and uses multi-region writes where consistency allows (Azure Cosmos DB with continuous backup and a write replica per region). Cosmos DB accounts are attached; replicas, zones and write regions are not yet collected."
+    remediation: "WAF-MC-DP-03. Confirm the data platform spans every deployment region, uses zone redundancy in each, and uses multi-region writes where consistency allows (Azure Cosmos DB with continuous backup and a write replica per region). Cosmos DB accounts are attached with their region count, zone-redundant region count and multi-region-write setting."
     manual: true
   - id: WAF-MC-DP-04
     title: "WAF-MC-DP-04. SQL databases are zone-redundant"
@@ -160,7 +160,7 @@ rules:
     severity: high
     query: "$.domains.databases.postgreSqlFlexibleServers[*]"
     assert: { type: manual }
-    remediation: "WAF-MC-DP-05. Confirm Azure SQL uses auto-failover groups (automated by health-model alerting), and PostgreSQL or MySQL flexible servers use zone-redundant high availability. Flexible servers are attached; their high-availability mode is not yet collected."
+    remediation: "WAF-MC-DP-05. Confirm Azure SQL uses auto-failover groups (automated by health-model alerting), and PostgreSQL or MySQL flexible servers use zone-redundant high availability. Flexible servers are attached with their high-availability mode (haMode); SQL failover groups are scored by WAF-DATA-SQL-02."
     manual: true
   - id: WAF-MC-DP-06
     title: "WAF-MC-DP-06. Event Hubs namespaces are zone-redundant"

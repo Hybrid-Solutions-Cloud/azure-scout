@@ -240,15 +240,31 @@ Describe 'AB#6769 -- Monitor/ResourceDiagnosticSettings is re-sourced via ARM RE
         # This is the cost control, and it is the reason this is a scoped sweep rather than one
         # REST call per resource in the estate. If a VM ever appears here, the run just got
         # 10-50x more expensive on any real tenant.
+        #
+        # Public IP addresses used to be listed here too. AB#9300 phase 4 batch 2 moved them INTO
+        # the scope on purpose: the Well-Architected DDoS guidance asks for diagnostic logs on every
+        # public IP, so one without a setting is itself the finding, and they number in the tens to
+        # low hundreds -- not the tens of thousands that VMs, disks and NICs do. The next test pins
+        # that decision.
         $rows = @(Get-ScoutArmChildResource -Resources @(
                 New-DiagParent -Type 'microsoft.compute/virtualmachines' -Name 'vm-one'
                 New-DiagParent -Type 'microsoft.compute/disks' -Name 'disk-one'
                 New-DiagParent -Type 'microsoft.network/networkinterfaces' -Name 'nic-one'
-                New-DiagParent -Type 'microsoft.network/publicipaddresses' -Name 'pip-one'
+                New-DiagParent -Type 'microsoft.compute/snapshots' -Name 'snap-one'
             ) -Dataset @('ResourceDiagnosticSettings'))
 
         $rows | Should -BeNullOrEmpty
         $script:ArmCalls.Count | Should -Be 0
+    }
+
+    It 'sweeps public IP addresses, the one deliberately in-scope high-count type (AB#9300 phase 4, batch 2)' {
+        $rows = @(Get-ScoutArmChildResource -Resources @(
+                New-DiagParent -Type 'microsoft.network/publicipaddresses' -Name 'pip-one'
+            ) -Dataset @('ResourceDiagnosticSettings'))
+
+        $script:ArmCalls.Count | Should -Be 1 -Because 'a public IP is asked once, not once per anything else'
+        $script:ArmCalls[0] | Should -Match 'publicipaddresses/pip-one/providers/Microsoft\.Insights/diagnosticSettings'
+        @($rows).Count | Should -BeGreaterThan 0
     }
 
     It 'produces no row for a parent that has no diagnostic setting, which is the finding' {

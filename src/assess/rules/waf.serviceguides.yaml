@@ -244,22 +244,29 @@ rules:
     assert: { type: countEquals, value: 0, gate: "$.opsPosture.diagnosticCoverage[?(@.type =~ /microsoft[.]web.sites/)]" }
     remediation: "WAF-SVC-APP-12. Some web apps have no diagnostic setting. Send app and platform logs to Log Analytics and keep an audit trail."
     manual: false
-  # Reliability: no collected field
+  # Reliability: `webAppConfig` `healthCheckPathSet` and `alwaysOn`, joined to the web apps (a function app on a Consumption plan has no Always On)
   - id: WAF-SVC-APP-13
     title: "WAF-SVC-APP-13. Health check, auto-heal and Always On are configured"
     severity: medium
-    query: null
-    assert: { type: manual, gate: "$.domains.web.webApps[?(@.kind =~ /^(?!.*functionapp)/i)]" }
-    remediation: "WAF-SVC-APP-13. Confirm the health check path polls the app dependencies, auto-heal rules cover slow requests and memory limits, and Always On is set where WebJobs or shared plans need it. None of these site settings is collected."
-    manual: true
-  # Security: no collected field
+    join:
+      left: "$.domains.web.webAppConfig[?(@.alwaysOn == false || @.healthCheckPathSet == false)]"
+      leftKey: "webAppId"
+      right: "$.domains.web.webApps[?(@.kind =~ /^(?!.*functionapp)/i)]"
+      rightKey: "id"
+      mode: leftMatched
+      leftLabel: "web app configuration"
+      rightLabel: "web app"
+    assert: { type: countEquals, value: 0, gate: "$.domains.web.webAppConfigMeasured" }
+    remediation: "WAF-SVC-APP-13. The web apps listed have Always On off or no Health Check path set. Set a health check path that polls the app dependencies so unhealthy instances leave rotation, and turn Always On on (Basic tier or above) so the app is not unloaded when idle; Always On matters most where WebJobs run. Auto-heal rules are not collected, so confirm those by hand."
+    manual: false
+  # Security: `webAppBasicAuth` `ftpBasicAuthAllowed` and `scmBasicAuthAllowed`, `webAppConfig` `ftpsState` and `remoteDebuggingEnabled`; both datasets are read in one query and gated on the basic-authentication read
   - id: WAF-SVC-APP-14
     title: "WAF-SVC-APP-14. Basic authentication, FTP and remote debugging are disabled, and secrets use Key Vault references"
     severity: high
-    query: null
-    assert: { type: manual, gate: "$.domains.web.webApps[?(@.kind =~ /^(?!.*functionapp)/i)]" }
-    remediation: "WAF-SVC-APP-14. Confirm basic authentication for deployment and SCM is off, FTP is disabled, remote debugging is off, and app settings use Key Vault references. None of these site settings is collected."
-    manual: true
+    query: "$.domains.web['webAppBasicAuth','webAppConfig'][?(@.ftpBasicAuthAllowed == true || @.scmBasicAuthAllowed == true || @.ftpsState == 'AllAllowed' || @.remoteDebuggingEnabled == true)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.web.webAppBasicAuthMeasured" }
+    remediation: "WAF-SVC-APP-14. The App Service sites listed (web apps and function apps) still allow FTP or SCM basic authentication, accept plain FTP (only FTPS-only or disabled passes), or have remote debugging on. Turn basic authentication off for deployment and SCM, set FTP to FTPS only or disabled, and turn remote debugging off. A policy that could not be read is not scored. App settings are not collected, so confirm that secrets use Key Vault references by hand."
+    manual: false
   # Security: no collected field
   - id: WAF-SVC-APP-15
     title: "WAF-SVC-APP-15. Built-in authentication or Microsoft Entra ID authentication protects the app, with restrictive CORS"
@@ -1722,22 +1729,22 @@ rules:
     assert: { type: countEquals, value: 0, gate: "$.domains.storage.storageAccounts[?(@.kind =~ /^(StorageV2|FileStorage|Storage)$/i)]" }
     remediation: "WAF-SVC-FILES-04. The accounts listed accept traffic from the public internet with no firewall. Disable public network access, or set the firewall to deny by default and allow only the virtual networks that need access."
     manual: false
-  # Reliability: evidence attached
+  # Reliability: `fileServiceProperties` `shareDeleteRetentionEnabled`
   - id: WAF-SVC-FILES-05
     title: "WAF-SVC-FILES-05. Soft delete, snapshots and Azure Backup protect shares"
     severity: high
-    query: "$.management.backupProtectedItems[*]"
-    assert: { type: manual, gate: "$.domains.storage.storageAccounts[?(@.kind =~ /^(StorageV2|FileStorage|Storage)$/i)]" }
-    remediation: "WAF-SVC-FILES-05. Confirm share soft delete is on and snapshots or Azure Backup give point-in-time restore. Share settings are not collected; backup items are attached as evidence."
-    manual: true
-  # Security: no collected field
+    query: "$.domains.storage.fileServiceProperties[?(@.shareDeleteRetentionEnabled == false)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.storage.fileServicePropertiesMeasured" }
+    remediation: "WAF-SVC-FILES-05. The accounts listed have share soft delete off, so a deleted share cannot be recovered. Turn share soft delete on. Only soft delete is read: share snapshots and Azure Backup are not tied to a storage account here, so confirm point-in-time restore by hand."
+    manual: false
+  # Security: `fileServiceProperties` `smbVersions` and `smbChannelEncryption` (null = every version or algorithm is allowed, which is a finding)
   - id: WAF-SVC-FILES-06
     title: "WAF-SVC-FILES-06. Identity-based authentication uses Kerberos with AES-256, SMB 3.1.1 with AES-256-GCM, and keys are in Key Vault"
     severity: medium
-    query: null
-    assert: { type: manual, gate: "$.domains.storage.storageAccounts[?(@.kind =~ /^(StorageV2|FileStorage|Storage)$/i)]" }
-    remediation: "WAF-SVC-FILES-06. Confirm shares use Microsoft Entra or AD DS authentication, SMB 3.1.1 with AES-256-GCM, and SMB 1 is disabled on clients. Not collected."
-    manual: true
+    query: "$.domains.storage.fileServiceProperties[?(@.smbVersions != 'SMB3.1.1' || @.smbChannelEncryption != 'AES-256-GCM')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.storage.fileServicePropertiesMeasured" }
+    remediation: "WAF-SVC-FILES-06. The accounts listed allow SMB versions other than 3.1.1 or channel encryption other than AES-256-GCM (an account that never restricted them allows every version and algorithm). Restrict SMB to 3.1.1 with AES-256-GCM once clients support it (Windows Server 2022 and Windows 11 or later); older clients then cannot connect. Whether authentication is Kerberos with AES-256 and where keys are held are not scored, so confirm those by hand."
+    manual: false
   # Security: evidence attached
   - id: WAF-SVC-FILES-07
     title: "WAF-SVC-FILES-07. A Resource Manager lock protects the storage account"

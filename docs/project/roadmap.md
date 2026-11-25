@@ -41,13 +41,19 @@ All collector definitions, source retirement, strict runtime contracts, and repo
 complete. The remaining release steps are package validation, broad test-suite completion, tag, and
 publication. Historical v2 entries below are retained as release history rather than current status.
 
-## Current Release — v3.18.15 — more assessment answered from data, and WAF service guides
+## Current Release — v3.18.16 — per-resource settings, read in parallel
+
+Version 3.18.16 is phase 4, batch 2 of running every known Microsoft assessment. Eight datasets Resource Graph does not hold are now read from each resource (storage blob and file soft delete, versioning and SMB settings; SQL auditing and failover groups; App Service FTP, basic auth, Always On, health check and remote debugging; Event Hubs geo-DR; Redis Enterprise access keys), with secret-bearing fields filtered before any row exists, and diagnostic-settings coverage extends to 14 more resource types. These reads and the diagnostic sweep now run eight at a time (live: 33 s to 3.7 s for 110 reads, identical results), and throttling or server errors back off 1-8 s honouring Retry-After over five attempts. 19 more checks are scored from data (669 of 1,732). A classic Redis cache with no access-key flag now reads as keys allowed, Azure's default. See AB#9300.
+
+**Next:** phase 5, the assessments for Microsoft products other than Azure (Power Platform, Microsoft 365 Copilot data security, Sustainability Manager, Cloud for Financial Services, Windows 11 migration readiness).
+
+## Previous Release — v3.18.15 — more assessment answered from data, and WAF service guides
 
 Version 3.18.15 is phase 4, batch 1 of running every known Microsoft assessment. About 150 Azure settings added to the assessment collection (zones and high availability for databases, Redis, AKS, App Service, gateways, Service Bus and Event Hubs; TLS, local-auth and encryption settings; ids and locations) plus public IP, scale set, flow log and Event Grid datasets, so 179 more checks are scored from data (650 of 1,732). New WAF: Service Guides assessment: 214 checks from 20 Microsoft service guides. Fixed: classic Redis SKU always empty; Azure Firewall tier never collected; five typed Resource Graph queries Azure rejected (mv-apply and a reserved word), now live-verified and guarded by a test; diagnostic coverage not reaching the assessment in combined runs; Defender reads giving up after 0.6 seconds on a server error (now 2-16 s back-off, 5 attempts); duplicate compliance finding ids that made drift tracking skip a run. See AB#9300.
 
 **Next:** settings that need a per-resource Azure call rather than Resource Graph (SQL failover groups, auditing and short-term retention; blob and file soft delete; App Service FTP, basic auth, Always On and health check; Front Door routes and custom domains; Event Hubs geo-DR and partitions; ML compute), then phase 5, the non-Azure assessments.
 
-## Previous Release — v3.18.14 — Microsoft's workload, technology and questionnaire assessments
+## Earlier Release — v3.18.14 — Microsoft's workload, technology and questionnaire assessments
 
 Version 3.18.14 is phases 2 and 3 of running every known Microsoft assessment. Eighteen Microsoft assessments Scout did not have (65 assessments, 1,507 rules, 471 automated): SAP on Azure, Oracle on Azure IaaS, SaaS, Mission Critical, Sustainability, Go-Live, Azure Machine Learning, Azure AI Search, Analytics and Data Services Well-Architected reviews; the Well-Architected Reliability Assessment (from the Azure Proactive Resiliency Library) and Azure Advisor recommendations; and the questionnaire-led AI Readiness, Generative AI Technical, GenAIOps Maturity, Platform Engineering, Analytics Journey Tracker and App and Data Modernization assessments. Microsoft publishes none of their question text, so each is Scout's reading of the published guidance, documented per framework; questionnaire items are answered with -AssessmentAnswers. A Microsoft Assessment Coverage page maps every catalog assessment to Scout's. Fixed: infrastructure-as-code rules (WAF-OE-02/08, CAF platform automation, DevOps) could never pass because no deployment history was collected; assessment runs now read Resource Graph's deploymentresources table. See AB#9300.
 

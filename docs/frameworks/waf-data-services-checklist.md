@@ -34,7 +34,7 @@ Collected datasets map as follows: `domains.databases.sqlServers`, `sqlDatabases
 
 The datasets now carry the settings the first pass lacked: SQL server `id`, `minimalTlsVersion` and `entraOnlyAuth`; database and managed-instance backup redundancy; managed-instance zone redundancy and customer-managed-key flag; Cosmos region and zone-redundant-region counts, automatic failover, backup type, network filter and key flag; PostgreSQL and MySQL high-availability mode, geo-redundant backup and (PostgreSQL) authentication; Redis TLS, non-TLS port, access-key setting and high availability; and storage shared-key access, key source and public network access. An absent string is `''` and an absent boolean is `null` in the collection, and Newtonsoft JSONPath never matches a missing property with `==` or `!=` but does match a `null` or `''` value with `!=`. Rules where absence is itself the finding are therefore written as "is not the good value" (storage minimum TLS, shared-key access, the SQL Entra-only flag). Two limits to know: the Cosmos zone item is satisfied by one zone-redundant region (a filter cannot compare two fields), and the Redis access-key setting is only projected for classic caches, so that rule is scoped to them.
 
-Items that mix an automated check with something ARM does not carry (failover groups, the user-assigned identity, vault soft delete, role assignments, failover tests) have been narrowed to the part that can be scored, and the doc row says what is left for a human.
+Items that mix an automated check with something ARM does not carry (active geo-replication links, the immutable audit target and Always Encrypted, the user-assigned identity, vault soft delete, role assignments, failover tests) have been narrowed to the part that can be scored, and the doc row says what is left for a human.
 
 ## The enumeration — 104 items
 
@@ -43,7 +43,7 @@ Items that mix an automated check with something ARM does not carry (failover gr
 | # | Pillar | Item | Scout | Source |
 |---|---|---|---|---|
 | WAF-DATA-SQL-01 | Reliability | SQL databases are zone redundant | ✅ database zoneRedundant (master excluded) | SQL-RE-R |
-| WAF-DATA-SQL-02 | Reliability | Active geo-replication or failover groups protect against a regional failure | ❌ Manual — failover groups and replica links are child resources, not collected (proposed in the report); servers attached | SQL-RE-C, SQL-RE-R |
+| WAF-DATA-SQL-02 | Reliability | Active geo-replication or failover groups protect against a regional failure | ✅ `sqlFailoverGroups` `failoverGroupCount` (a server with no failover group is a finding; active geo-replication links are not collected, so a server protected by links alone is an exception to record); gated on `sqlFailoverGroupsMeasured` | SQL-RE-C, SQL-RE-R |
 | WAF-DATA-SQL-03 | Reliability | Backups cover point-in-time restore, geo-restore and long-term retention, with immutability | ❌ Manual — backup policy is a child resource, not collected | SQL-RE-R |
 | WAF-DATA-SQL-04 | Reliability | Critical databases use the Business Critical or Hyperscale tier | ❌ Manual — the tier of each database is attached; which are critical is judgement | SQL-RE-C |
 | WAF-DATA-SQL-05 | Reliability | Applications retry with backoff and isolate connection pools by function | ❌ Manual — client code, not ARM | SQL-RE-C, SQL-RE-R |
@@ -52,7 +52,7 @@ Items that mix an automated check with something ARM does not carry (failover gr
 | WAF-DATA-SQL-08 | Security | The minimum TLS version is 1.2 or higher | ✅ minimalTlsVersion; only 1.2 and 1.3 pass, so an empty value (which allows every version), None, 1.0 and 1.1 are findings | SQL-SE-R |
 | WAF-DATA-SQL-09 | Security | SQL authentication is disabled and Microsoft Entra-only authentication is on | ✅ Entra-only flag; an absent flag (no Entra administrator) is a finding | SQL-SE-R |
 | WAF-DATA-SQL-10 | Security | Microsoft Defender for SQL is on Standard | ✅ subscription Defender for SQL tier | SQL-SE-R |
-| WAF-DATA-SQL-11 | Security | Auditing is on with immutable storage, and sensitive data is protected with Always Encrypted or ledger | ❌ Manual — auditing and column encryption are not collected | SQL-SE-R |
+| WAF-DATA-SQL-11 | Security | Auditing is on with immutable storage, and sensitive data is protected with Always Encrypted or ledger | ✅ `sqlServerAuditing` `auditingState` (only Enabled passes); the immutable audit target and column encryption are not collected; gated on `sqlServerAuditingMeasured` | SQL-SE-R |
 | WAF-DATA-SQL-12 | Cost optimization | The service tier, serverless and elastic pools match each database's use | ❌ Manual — elastic pools attached; databases are in the reliability item | SQL-CO-R |
 | WAF-DATA-SQL-13 | Cost optimization | Reserved capacity and Azure Hybrid Benefit are used for steady workloads | ❌ Manual — reservations attached | SQL-CO-R |
 | WAF-DATA-SQL-14 | Cost optimization | Backup storage consumption is tuned and queries are optimised to cut resource use | ❌ Manual — metrics, not ARM | SQL-CO-R |
@@ -73,7 +73,7 @@ Items that mix an automated check with something ARM does not carry (failover gr
 | WAF-DATA-MI-05 | Security | Microsoft Entra-only authentication is used | ✅ Entra-only flag; an absent flag is a finding. The user-assigned identity half is not collected | MI-SE |
 | WAF-DATA-MI-06 | Security | TDE uses a customer-managed key | ❌ Manual — customer-managed keys are requirement-driven; the instances not on a customer-managed key (cmkEnabled is not true) are attached as evidence, and the vault's soft delete and purge protection are not read | MI-SE |
 | WAF-DATA-MI-07 | Security | Defender for SQL is on, SQL Agent is off if unused, and the subnet NSG denies by default | ❌ Manual — agent, NSG and subnet detail are not collected per instance | MI-SE |
-| WAF-DATA-MI-08 | Security | Server and operator auditing go to blob storage and Azure Monitor logs | ❌ Manual — type not yet in the diagnostic-settings sweep (proposed in the report) | MI-SE |
+| WAF-DATA-MI-08 | Security | Server and operator auditing go to blob storage and Azure Monitor logs | ✅ diagnostic-settings coverage for the managed-instance type (a setting present, not which categories or targets) | MI-SE |
 | WAF-DATA-MI-09 | Cost optimization | vCores and service tier are right-sized, with reservations and Azure Hybrid Benefit | ❌ Manual — instances attached with sku and vCores | MI-CO |
 | WAF-DATA-MI-10 | Operational excellence | Maintenance windows and the update policy are chosen deliberately | ❌ Manual — maintenance configurations attached (estate-wide) | MI-OE |
 | WAF-DATA-MI-11 | Performance efficiency | The service tier, vCores and storage are validated against the workload | ❌ Manual — instances attached | MI-PE |
@@ -138,9 +138,9 @@ Items that mix an automated check with something ARM does not carry (failover gr
 | WAF-DATA-RED-03 | Reliability | Clients use bounded retries with backoff and separate connection and command timeouts | ❌ Manual — client code, not ARM | AMR-RE-R |
 | WAF-DATA-RED-04 | Security | Redis caches have public network access disabled | ✅ publicNetworkAccess | AMR-SE-R |
 | WAF-DATA-RED-05 | Security | Each Redis cache has a private endpoint | ✅ cache to private endpoint join | AMR-SE-R |
-| WAF-DATA-RED-06 | Security | Access-key authentication is disabled in favour of Microsoft Entra authentication | ✅ disableAccessKeyAuthentication on classic caches only (Redis Enterprise keeps it on a child database); an absent flag is a finding | AMR-SE-R |
+| WAF-DATA-RED-06 | Security | Access-key authentication is disabled in favour of Microsoft Entra authentication | ✅ `disableAccessKeyAuthentication` on classic caches (an explicit false is a finding; a cache that returned no flag is not scored) and `redisEnterpriseDatabases` `accessKeysAuthentication` on Redis Enterprise databases (Enabled is a finding) | AMR-SE-R |
 | WAF-DATA-RED-07 | Security | Non-TLS access is disabled and the minimum TLS version is 1.2 | ✅ enableNonSslPort and minimumTlsVersion. Certificate validation and customer-managed keys are not collected | AMR-SE-R |
-| WAF-DATA-RED-08 | Security | ConnectionEvents diagnostics and activity logs are collected | ❌ Manual — type not yet in the diagnostic-settings sweep (proposed in the report) | AMR-SE-R |
+| WAF-DATA-RED-08 | Security | ConnectionEvents diagnostics and activity logs are collected | ✅ diagnostic-settings coverage for the classic and Enterprise Redis types (a setting present, not which categories) | AMR-SE-R |
 | WAF-DATA-RED-09 | Cost optimization | The tier and SKU fit memory and compute needs, with reservations for steady usage and no-HA only for disposable environments | ❌ Manual — caches attached with sku (now read for classic caches), capacity and high availability | AMR-CO-R |
 | WAF-DATA-RED-10 | Operational excellence | Instances deploy as code with health gates, dashboards, alerts and tested recovery runbooks | ❌ Manual — practice, not ARM | AMR-OE-R |
 | WAF-DATA-RED-11 | Performance efficiency | OSS clustering, connection reuse, pipelining and co-location with the application are used | ❌ Manual — caches attached with location | AMR-PE-R |
@@ -173,7 +173,7 @@ Items that mix an automated check with something ARM does not carry (failover gr
 | WAF-DATA-BLOB-07 | Security | Customer-managed keys protect data where required | ❌ Manual — customer-managed keys are requirement-driven; the accounts whose key source is not Key Vault are attached as evidence. Defender for Storage is WAF-DATA-BLOB-17 | BLOB-SE-C, BLOB-SE-R |
 | WAF-DATA-BLOB-08 | Security | Critical data is immutable and the account is protected by a resource lock | ❌ Manual — resource locks attached (estate-wide) | BLOB-SE-C, BLOB-SE-R |
 | WAF-DATA-BLOB-09 | Reliability | Storage accounts use zone-redundant or geo-redundant replication | ✅ account sku redundancy | BLOB-RE-C |
-| WAF-DATA-BLOB-10 | Reliability | Soft delete, versioning and point-in-time restore are enabled | ❌ Manual — the blob-service data-protection settings are not collected (proposed in the report); accounts attached | BLOB-RE-R |
+| WAF-DATA-BLOB-10 | Reliability | Soft delete, versioning and point-in-time restore are enabled | ✅ `blobServiceProperties` `deleteRetentionEnabled`, `containerDeleteRetentionEnabled`, `versioningEnabled` and `pointInTimeRestoreEnabled` (any false is a finding; Data Lake and premium accounts cannot use versioning or restore, so record them as exceptions); gated on `blobServicePropertiesMeasured` | BLOB-RE-R |
 | WAF-DATA-BLOB-11 | Reliability | Vaulted backup for blobs and a tested recovery plan exist | ❌ Manual — protected items attached (estate-wide) | BLOB-RE-C, BLOB-RE-R |
 | WAF-DATA-BLOB-12 | Operational excellence | Storage accounts send diagnostic logs and metrics to Log Analytics | ✅ diagnostic-settings coverage for the storage account type | BLOB-RE-C |
 | WAF-DATA-BLOB-13 | Cost optimization | Access tiers and lifecycle management move cold data to cheaper tiers | ❌ Manual — lifecycle policies are not collected (proposed in the report); accounts attached | BLOB-CO |
@@ -186,12 +186,13 @@ Items that mix an automated check with something ARM does not carry (failover gr
 
 | Pillar | Items | Automated (✅) | Manual (❌) |
 |---|---|---|---|
-| Reliability | 25 | 13 | 12 |
-| Security | 46 | 27 | 19 |
+| Reliability | 25 | 15 | 10 |
+| Security | 46 | 30 | 16 |
 | Cost optimization | 12 | 1 | 11 |
 | Operational excellence | 11 | 3 | 8 |
 | Performance efficiency | 10 | 0 | 10 |
-| **Total** | **104** | **44** | **60** |
+| **Total** | **104** | **49** | **55** |
 
-Every automated item is gated on its resources (or its diagnostic-coverage rows) existing, so an estate
-without them reports the item Not assessed. The rules live in `src/assess/rules/waf.dataservices.yaml`.
+Every automated item is gated on its resources, its diagnostic-coverage rows, or the `<name>Measured` flag of the per-resource ARM
+read it scores (blob service, SQL auditing and failover groups, Redis Enterprise databases), so an estate without them, or a run that
+never read the setting, reports the item Not assessed. The rules live in `src/assess/rules/waf.dataservices.yaml`.
