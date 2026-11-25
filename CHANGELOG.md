@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.18.17] - 2026-11-25 - every Microsoft catalog assessment has a Scout equivalent
+
+### Added
+
+- **Seven assessments for Microsoft products other than Azure** (73 assessments, 2,020 rules). Scout does not read
+  these products' data yet, so each is a questionnaire answered with `-AssessmentAnswers`, and each framework page
+  names the Microsoft APIs and permissions an automated version would need.
+  - `Microsoft: Power Platform Well-Architected` (49, Microsoft's RE/SE/OE/PE/XO checklist codes),
+    `Microsoft: Power Platform Solution` (37), `Microsoft: Power Platform Adoption` (41).
+  - `Microsoft: M365 Copilot Data Security` (40): oversharing, sensitivity labels, governance, audit, retention,
+    agents; notes Restricted SharePoint Search's retirement in favour of Restricted Content Discovery.
+  - `Microsoft: Sustainability Manager Well-Architected` (47) for Dynamics 365 Sustainability (renamed) and
+    `Microsoft: Cloud for Financial Services Well-Architected` (40) for Microsoft for Financial Services (renamed).
+  - `Microsoft: Windows 11 Migration Readiness` (34); Windows 10 reached end of support on 2025-10-14.
+- The Microsoft Assessment Coverage page maps every assessment in Microsoft's catalog to the Scout assessment that
+  runs it; partner journeys and learner self-assessments are training material and are not run.
+
 ## [3.18.16] - 2026-11-25 - per-resource settings, read in parallel
 
 ### Added

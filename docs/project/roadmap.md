@@ -41,13 +41,19 @@ All collector definitions, source retirement, strict runtime contracts, and repo
 complete. The remaining release steps are package validation, broad test-suite completion, tag, and
 publication. Historical v2 entries below are retained as release history rather than current status.
 
-## Current Release — v3.18.16 — per-resource settings, read in parallel
+## Current Release — v3.18.17 — every Microsoft catalog assessment has a Scout equivalent
+
+Version 3.18.17 is phase 5 of running every known Microsoft assessment. Seven assessments for Microsoft products other than Azure, run as questionnaires because Scout does not read their data yet (answered with -AssessmentAnswers; each framework page names the Microsoft APIs an automated version would need): Power Platform Well-Architected (Microsoft's checklist codes), Power Platform Solution and Power Platform Adoption; Microsoft 365 Copilot data security; Dynamics 365 Sustainability (formerly Sustainability Manager) and Microsoft for Financial Services (formerly Cloud for Financial Services) Well-Architected for Industry; and Windows 11 migration readiness. 73 assessments, 2,020 rules. The Microsoft Assessment Coverage page now maps every catalog assessment. See AB#9300.
+
+**Next:** automate the non-Azure assessments where an API exists -- an opt-in Power Platform collector (Power Platform API: environments, DLP and data policies, managed environments, security recommendations) and Microsoft Graph reads for Microsoft 365 Copilot data security (sensitivity labels, SharePoint sharing settings, Conditional Access) and Windows 11 readiness (Intune endpoint analytics) -- each behind its own permissions.
+
+## Previous Release — v3.18.16 — per-resource settings, read in parallel
 
 Version 3.18.16 is phase 4, batch 2 of running every known Microsoft assessment. Eight datasets Resource Graph does not hold are now read from each resource (storage blob and file soft delete, versioning and SMB settings; SQL auditing and failover groups; App Service FTP, basic auth, Always On, health check and remote debugging; Event Hubs geo-DR; Redis Enterprise access keys), with secret-bearing fields filtered before any row exists, and diagnostic-settings coverage extends to 14 more resource types. These reads and the diagnostic sweep now run eight at a time (live: 33 s to 3.7 s for 110 reads, identical results), and throttling or server errors back off 1-8 s honouring Retry-After over five attempts. 19 more checks are scored from data (669 of 1,732). A classic Redis cache with no access-key flag now reads as keys allowed, Azure's default. See AB#9300.
 
 **Next:** phase 5, the assessments for Microsoft products other than Azure (Power Platform, Microsoft 365 Copilot data security, Sustainability Manager, Cloud for Financial Services, Windows 11 migration readiness).
 
-## Previous Release — v3.18.15 — more assessment answered from data, and WAF service guides
+## Earlier Release — v3.18.15 — more assessment answered from data, and WAF service guides
 
 Version 3.18.15 is phase 4, batch 1 of running every known Microsoft assessment. About 150 Azure settings added to the assessment collection (zones and high availability for databases, Redis, AKS, App Service, gateways, Service Bus and Event Hubs; TLS, local-auth and encryption settings; ids and locations) plus public IP, scale set, flow log and Event Grid datasets, so 179 more checks are scored from data (650 of 1,732). New WAF: Service Guides assessment: 214 checks from 20 Microsoft service guides. Fixed: classic Redis SKU always empty; Azure Firewall tier never collected; five typed Resource Graph queries Azure rejected (mv-apply and a reserved word), now live-verified and guarded by a test; diagnostic coverage not reaching the assessment in combined runs; Defender reads giving up after 0.6 seconds on a server error (now 2-16 s back-off, 5 attempts); duplicate compliance finding ids that made drift tracking skip a run. See AB#9300.
 

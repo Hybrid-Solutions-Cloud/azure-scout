@@ -329,6 +329,51 @@
         Rules = @('appmod.readiness'); Frameworks = @('App and Data Modernization Readiness: 9 areas (Scout-derived)')
         Tags = @('modernization', 'readiness', 'questionnaire', 'inferred-enumeration'); Reporters = @('Html', 'Excel')
     }
+    # ---- Microsoft assessments for products other than Azure (AB#9300 phase 5) ----
+    # Scout does not read these products' data yet, so each is a questionnaire answered with
+    # -AssessmentAnswers; each docs/frameworks page names the APIs an automated version would need.
+    'Microsoft: Power Platform Well-Architected' = @{
+        Description = 'Power Platform Well-Architected: reliability, security, operational excellence, performance efficiency and experience optimization -- 49 items from Microsoft''s published checklists. Questionnaire only: Scout does not read Power Platform data yet (see docs/frameworks/power-platform-well-architected-checklist.md)'
+        Category = '*'; Collect = @('Management'); Ingest = @()
+        Rules = @('pp.wellarchitected'); Frameworks = @('PP-WAF: 5 pillars, 49 checklist items')
+        Tags = @('power-platform', 'well-architected', 'questionnaire'); Reporters = @('Html', 'Excel')
+    }
+    'Microsoft: Power Platform Solution' = @{
+        Description = 'Power Platform Solution Assessment: functionality, user experience and alignment with business goals -- 37 items. Questionnaire only; question text is Scout''s reading of Power Platform ALM, adoption and Well-Architected guidance (see docs/frameworks/power-platform-solution-question-set.md)'
+        Category = '*'; Collect = @('Management'); Ingest = @()
+        Rules = @('pp.solution'); Frameworks = @('PP-SOLUTION: 5 groups, 37 items')
+        Tags = @('power-platform', 'solution', 'questionnaire', 'inferred-enumeration'); Reporters = @('Html', 'Excel')
+    }
+    'Microsoft: Power Platform Adoption' = @{
+        Description = 'Power Platform Adoption Assessment: strategy and business value, administration and governance, nurture and adoption -- 41 items. Questionnaire only; question text is Scout''s reading of the Power Platform adoption and CoE guidance (see docs/frameworks/power-platform-adoption-question-set.md)'
+        Category = '*'; Collect = @('Management'); Ingest = @()
+        Rules = @('pp.adoption'); Frameworks = @('PP-ADOPTION: 3 areas, 41 items')
+        Tags = @('power-platform', 'adoption', 'questionnaire', 'inferred-enumeration'); Reporters = @('Html', 'Excel')
+    }
+    'Microsoft: M365 Copilot Data Security' = @{
+        Description = 'Microsoft 365 Copilot data security readiness (oversharing, sensitivity labels, governance, audit, retention, agents) -- 40 Scout-derived questionnaire items from Microsoft''s Copilot data protection and Purview guidance; Microsoft does not publish the assessment''s questions and Scout does not read Microsoft 365 data yet (see docs/frameworks/m365-copilot-data-security-question-set.md)'
+        Category = '*'; Collect = @('Management'); Ingest = @()
+        Rules = @('m365.copilot.datasecurity'); Frameworks = @('Microsoft 365 Copilot data security')
+        Tags = @('copilot', 'm365', 'data-security', 'purview', 'questionnaire'); Reporters = @('Html', 'Excel')
+    }
+    'Microsoft: Sustainability Manager Well-Architected' = @{
+        Description = 'Dynamics 365 Sustainability (formerly Microsoft Sustainability Manager) well-architected review -- 47 Scout-derived questionnaire items from Microsoft''s implementation and Well-Architected for Industry guidance; Scout does not read Dataverse data yet (see docs/frameworks/sustainability-manager-well-architected-question-set.md)'
+        Category = '*'; Collect = @('Management'); Ingest = @()
+        Rules = @('msm.wellarchitected'); Frameworks = @('Sustainability Manager well-architected')
+        Tags = @('sustainability', 'dynamics-365', 'well-architected', 'questionnaire'); Reporters = @('Html', 'Excel')
+    }
+    'Microsoft: Cloud for Financial Services Well-Architected' = @{
+        Description = 'Microsoft for Financial Services (formerly Cloud for Financial Services) Well-Architected for Industry review -- 40 Scout-derived questionnaire items across the five pillars plus compliance and governance; Scout does not read Dataverse data yet (see docs/frameworks/cloud-for-financial-services-question-set.md)'
+        Category = '*'; Collect = @('Management'); Ingest = @()
+        Rules = @('mcfs.wellarchitected'); Frameworks = @('Cloud for Financial Services well-architected')
+        Tags = @('financial-services', 'well-architected', 'industry', 'questionnaire'); Reporters = @('Html', 'Excel')
+    }
+    'Microsoft: Windows 11 Migration Readiness' = @{
+        Description = 'Windows 11 migration readiness (planning, hardware, app compatibility, management, security, operations) -- 34 Scout-derived questionnaire items from Microsoft''s Windows 11 planning guidance; Windows 10 reached end of support on 2025-10-14. Scout does not read client device data yet (see docs/frameworks/windows-11-readiness-question-set.md)'
+        Category = '*'; Collect = @('Management'); Ingest = @()
+        Rules = @('win11.readiness'); Frameworks = @('Windows 11 migration readiness')
+        Tags = @('windows-11', 'migration', 'endpoint', 'questionnaire'); Reporters = @('Html', 'Excel')
+    }
     'Microsoft: Well-Architected Reliability Assessment' = @{
         Description = 'Well-Architected Reliability Assessment (WARA) from the data Scout already collected, backed by the Azure Proactive Resiliency Library (APRL) -- 38 items (36 automated) across compute, containers, web, databases, storage, backup, networking and integration: zones, redundancy SKUs, backup coverage, Key Vault protection, gateway and load-balancer SKUs'
         Category    = '*'; Collect = @('Compute', 'Storage', 'Networking', 'Containers', 'Web', 'Databases', 'Security', 'Integration', 'Management'); Ingest = @()

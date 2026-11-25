@@ -1,0 +1,360 @@
+# msm.wellarchitected.yaml -- Microsoft Sustainability Manager Well-Architected (AB#9300 phase 5)
+#
+# Scout's review for Microsoft's "Microsoft Sustainability Manager | Well-Architected Assessment"
+# (learn.microsoft.com/assessments/333d9326-e34c-40e1-88d9-8342afceec36). Microsoft does not publish that
+# assessment's questions, so every item is SCOUT-DERIVED from the Well-Architected for Dynamics 365
+# Sustainability guidance on Learn (design principles, reference architecture, design, deployment and
+# monitoring considerations, best practices and checklists). The MSM-* ids are Scout's own.
+#
+# Product status (checked 2026-11-25): Microsoft Sustainability Manager has been rebranded as Dynamics 365
+# Sustainability, a name change only (functionality, capabilities, licensing and services unchanged). Learn
+# lists this assessment as the "Microsoft Dynamics 365 Sustainability Assessment". Scout keeps the MSM-
+# prefix and the catalog assessment name. Nothing in the guidance is retired.
+#
+# Scout does not read Dataverse or Power Platform data, so every rule is `manual: true` with `query: null`.
+# Answer them with -AssessmentAnswers. Written ONLY against
+# docs/frameworks/sustainability-manager-well-architected-question-set.md.
+area: "Sustainability Manager well-architected"
+framework: MSM-WAF
+frameworkversion: "docs/frameworks/sustainability-manager-well-architected-question-set.md, extracted 2026-11-25 (Well-Architected for Dynamics 365 Sustainability and Well-Architected for Industry on Microsoft Learn, current as of the extraction date; no published version number); verified 2026-11-25"
+weight: 1.0
+verifiedAgainst: "docs/frameworks/sustainability-manager-well-architected-question-set.md, 47 Scout-derived items across 9 groups, verified 2026-11-25. The assessment's own question text and numbering are not published; the MSM-* identifiers are Scout's own. Every item is a questionnaire item (manual: true, query: null): Scout does not read this product's data."
+rules:
+  # ---- CF -- Configure the solution (8 items) --------------------
+  - id: MSM-CF-01
+    title: "MSM-CF-01. Organisation data (business units, facilities, reporting years) is configured before activity data is imported"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "MSM-CF-01. Organisational -- confirm the organisation structure, facilities and reporting years are defined first, because activity data and calculations break when a facility is missing."
+    manual: true
+  - id: MSM-CF-02
+    title: "MSM-CF-02. Reference data is configured before activity data, to the regulations, conversions and granularity required"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "MSM-CF-02. Organisational -- confirm reference data (emission factors, units, contractual instruments where relevant) is set up before activity data is imported, and that the level of granularity matches the reporting needs."
+    manual: true
+  - id: MSM-CF-03
+    title: "MSM-CF-03. The first rollout covers one scenario or emission scope end to end before widening"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "MSM-CF-03. Organisational -- confirm the team ran one scenario (for example Scope 2 purchased electricity) through the whole configuration and reviewed the generated reports before adding more emission sources."
+    manual: true
+  - id: MSM-CF-04
+    title: "MSM-CF-04. Units and unit conversions are specified and checked against the activity and model units"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "MSM-CF-04. Organisational -- confirm unit groups and conversions are defined so calculations do not fail or give wrong values when sites use different units."
+    manual: true
+  - id: MSM-CF-05
+    title: "MSM-CF-05. Emission factors and factor mappings are complete, and the factor libraries are kept current"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "MSM-CF-05. Organisational -- confirm every reference data item in a category has a factor mapping, the factor mappings keep the number of calculation models low, and emission factors are updated to the latest standards and research."
+    manual: true
+  - id: MSM-CF-06
+    title: "MSM-CF-06. Calculation models are tested on small data sets, and calculation jobs stay under the record limit"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "MSM-CF-06. Organisational -- confirm models are tested iteratively on small data ranges and that calculation profiles are scoped so a job processes fewer than 50,000 records at a time."
+    manual: true
+  - id: MSM-CF-07
+    title: "MSM-CF-07. The calculation methodology is decided and documented, using copies of the built-in models where changes are needed"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "MSM-CF-07. Organisational -- confirm the team knows the built-in models and emission sources follow the GHG Protocol and cannot be changed, and that changed calculations are copies of the built-in models documented for audit."
+    manual: true
+  - id: MSM-CF-08
+    title: "MSM-CF-08. Preview capabilities (some Scope 3 categories, water and waste data models, Teams collaboration) are not relied on in production"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "MSM-CF-08. Organisational -- confirm production reporting does not depend on features Microsoft documents as preview, or the risk is accepted and recorded."
+    manual: true
+  # ---- DI -- Data ingestion and integration (8 items) --------------------
+  - id: MSM-DI-01
+    title: "MSM-DI-01. A data ingestion strategy is set per source (Excel template, Power Query, partner connector, pipeline or manual)"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "MSM-DI-01. Organisational -- confirm the variety, volume and velocity of each source were assessed and the import method chosen to match, with the extract-transform-load approach agreed."
+    manual: true
+  - id: MSM-DI-02
+    title: "MSM-DI-02. Native Power Query connectors are preferred to custom connectors"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "MSM-DI-02. Organisational -- confirm custom connectors are built only where no native connector exists, and that their API and authentication changes are owned."
+    manual: true
+  - id: MSM-DI-03
+    title: "MSM-DI-03. Data connections use service accounts, not the account of the person who built them"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "MSM-DI-03. Organisational -- confirm connections are owned by service accounts so imports do not fail when the creator leaves the organisation."
+    manual: true
+  - id: MSM-DI-04
+    title: "MSM-DI-04. Data refresh is scheduled for every connection at the frequency the reporting needs"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "MSM-DI-04. Organisational -- confirm incremental refresh is scheduled and its failures are watched, so the data is not stale at reporting time."
+    manual: true
+  - id: MSM-DI-05
+    title: "MSM-DI-05. Import hygiene is followed: latest templates, transformation checklist, validated auto-mapping"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "MSM-DI-05. Organisational -- confirm users download the latest Excel templates, follow the data transformation checklist, and check that auto-map did not map unnecessary fields."
+    manual: true
+  - id: MSM-DI-06
+    title: "MSM-DI-06. Only the activity data needed for calculations is ingested"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "MSM-DI-06. Organisational -- confirm extra data for analytics or pre-processing is handled outside the solution to protect performance and Dataverse capacity."
+    manual: true
+  - id: MSM-DI-07
+    title: "MSM-DI-07. Import errors are reviewed and fixed, and data approval staging is used where needed (preview)"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "MSM-DI-07. Organisational -- confirm someone reviews the import error reports and that data can be staged for approval before it affects calculations where controls require it."
+    manual: true
+  - id: MSM-DI-08
+    title: "MSM-DI-08. The on-premises data gateway is clustered for availability, and its recovery keys and environments are managed"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "MSM-DI-08. Organisational -- confirm business-critical gateways use clusters with load balancing, recovery keys are held securely, and non-production gateways are separate from production."
+    manual: true
+  # ---- EX -- Extend the solution (4 items) --------------------
+  - id: MSM-EX-01
+    title: "MSM-EX-01. Extensions include only the components they change, and default solution components are cloned, not overridden"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "MSM-EX-01. Organisational -- confirm extension solutions carry only the sub-components needed, to avoid dependency failures and to keep default behaviour."
+    manual: true
+  - id: MSM-EX-02
+    title: "MSM-EX-02. Custom dimensions are considered before the data model is extended"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "MSM-EX-02. Organisational -- confirm custom dimensions were evaluated first, and that extended tables are used as reference data only in the ways the product supports."
+    manual: true
+  - id: MSM-EX-03
+    title: "MSM-EX-03. The Power Apps solution checker is run regularly on customisations"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "MSM-EX-03. Organisational -- confirm the solution checker results are reviewed and the recommended resolutions are applied."
+    manual: true
+  - id: MSM-EX-04
+    title: "MSM-EX-04. Extensions use supported techniques, are tested at volume and are deployed through ALM automation"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "MSM-EX-04. Organisational -- confirm extensions avoid deprecated techniques, honour security and compliance requirements, are load tested, and are built and deployed by automated application lifecycle management."
+    manual: true
+  # ---- SE -- Security, identity and access (8 items) --------------------
+  - id: MSM-SE-01
+    title: "MSM-SE-01. Least privilege: built-in roles are copied per business unit and custom roles are copied from existing roles"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "MSM-SE-01. Organisational -- confirm users get the least access their job needs, using copies of the built-in security roles, with non-default roles checked so background processes do not fail."
+    manual: true
+  - id: MSM-SE-02
+    title: "MSM-SE-02. Business units, Entra groups and an environment security group segment access"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "MSM-SE-02. Organisational -- confirm the business unit structure reflects responsibilities, Entra groups are mapped to teams, and an environment security group limits who can reach the environment."
+    manual: true
+  - id: MSM-SE-03
+    title: "MSM-SE-03. Administrator access to the environments is limited through a Privileged Identity Management group"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "MSM-SE-03. Organisational -- confirm admin access comes from an Entra group managed with Privileged Identity Management, not standing individual assignments."
+    manual: true
+  - id: MSM-SE-04
+    title: "MSM-SE-04. Conditional Access with multifactor authentication applies to users of the application"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "MSM-SE-04. Organisational -- confirm Entra Conditional Access, including multifactor authentication, is enforced for users who sign in to the sustainability application."
+    manual: true
+  - id: MSM-SE-05
+    title: "MSM-SE-05. Defender for Cloud protects the related resources, and Sentinel is considered for signals"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "MSM-SE-05. Organisational -- confirm Microsoft Defender for Cloud is configured for the Azure resources the solution uses and Microsoft Sentinel is evaluated to collect Purview, Power Apps and Entra signals."
+    manual: true
+  - id: MSM-SE-06
+    title: "MSM-SE-06. Purview classifies the Dataverse and Power BI data used by the solution"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "MSM-SE-06. Organisational -- confirm Microsoft Purview is connected to Dataverse and Power BI so the emissions data is classified and cataloged."
+    manual: true
+  - id: MSM-SE-07
+    title: "MSM-SE-07. The limits of dashboard and insights access control are understood and handled"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "MSM-SE-07. Organisational -- confirm the team knows that Dataverse security roles do not restrict Power BI views, that dashboards and insights are scoped at organisation level, and has restricted dashboard access or built filtered reports where needed."
+    manual: true
+  - id: MSM-SE-08
+    title: "MSM-SE-08. Exports to external analytical stores are secured and given only to people who need them"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "MSM-SE-08. Organisational -- confirm data exported to Synapse, Data Lake or other platforms is protected and access is limited."
+    manual: true
+  # ---- OB -- Deployment, monitoring and operations (5 items) --------------------
+  - id: MSM-OB-01
+    title: "MSM-OB-01. Dataverse auditing is turned on in every environment"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "MSM-OB-01. Organisational -- confirm auditing was enabled after the environment was created (it is off by default and cannot be enabled during provisioning) and its events reach Microsoft Purview."
+    manual: true
+  - id: MSM-OB-02
+    title: "MSM-OB-02. Dataverse diagnostics go to Application Insights and Log Analytics, with alerts for admins and owners"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "MSM-OB-02. Organisational -- confirm API usage, form load and performance diagnostics are exported, critical alerts are enabled, and environment owners can see their own environments."
+    manual: true
+  - id: MSM-OB-03
+    title: "MSM-OB-03. Power Platform analytics are exported to a data lake or Application Insights and kept as long as policy requires"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "MSM-OB-03. Organisational -- confirm tenant-level analytics and Power Apps usage data are exported and retained for the period the organisation requires."
+    manual: true
+  - id: MSM-OB-04
+    title: "MSM-OB-04. Deployments are planned: sample data is off for test and production, and time is reserved for installs"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "MSM-OB-04. Organisational -- confirm sample data is not deployed to test or production, deployments allow for the environment write lock, and deployment status is tracked in the Power Platform admin center."
+    manual: true
+  - id: MSM-OB-05
+    title: "MSM-OB-05. Azure Synapse Link for Dataverse is deployed in the right tenant and region with change tracking enabled"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "MSM-OB-05. Organisational -- confirm the storage account and Synapse workspace are in the same Entra tenant and region as the Power Apps environment, and only tables with change tracking are exported."
+    manual: true
+  # ---- PC -- Privacy, compliance and regulatory fit (4 items) --------------------
+  - id: MSM-PC-01
+    title: "MSM-PC-01. Regulatory and disclosure requirements are identified for each country where the organisation operates"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "MSM-PC-01. Organisational -- confirm the reporting standards that apply (for example CSRD, SASB, IFRS, BRSR) and the regional requirements that decide emission factors are listed."
+    manual: true
+  - id: MSM-PC-02
+    title: "MSM-PC-02. Product availability, countries or regions and languages match the tenant"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "MSM-PC-02. Organisational -- confirm the countries or regions and languages Microsoft supports for the solution match the tenant and the sites that must report."
+    manual: true
+  - id: MSM-PC-03
+    title: "MSM-PC-03. Compliance offerings and privacy terms were reviewed against the organisation requirements"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "MSM-PC-03. Organisational -- confirm the compliance offerings listed for the solution, and the Online Service Terms and privacy statement, were reviewed against the standards the organisation must meet."
+    manual: true
+  - id: MSM-PC-04
+    title: "MSM-PC-04. Data residency needs for transactional data are defined and drive the retention design"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "MSM-PC-04. Organisational -- confirm where the transactional data may reside is decided and the Dataverse retention strategy follows it."
+    manual: true
+  # ---- RP -- Reporting and analytics (4 items) --------------------
+  - id: MSM-RP-01
+    title: "MSM-RP-01. Reporting years and periods match the organisation reporting requirements before data is imported"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "MSM-RP-01. Organisational -- confirm reporting years and periods were aligned with the disclosure calendar first, so reports are not rebuilt later."
+    manual: true
+  - id: MSM-RP-02
+    title: "MSM-RP-02. The default reports and embedded intelligence are used before custom reports are built"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "MSM-RP-02. Organisational -- confirm built-in reports, the sustainability dashboard and insights were evaluated before custom Power BI work was started."
+    manual: true
+  - id: MSM-RP-03
+    title: "MSM-RP-03. The data estate is mapped and an analytics strategy covers current and future reporting needs"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "MSM-RP-03. Organisational -- confirm the sources, their data types and schemas are mapped, and that the analytics tools are chosen for the expected volumes and requirements."
+    manual: true
+  - id: MSM-RP-04
+    title: "MSM-RP-04. Custom reports read exported data (Synapse or Data Lake), not the managed data lake"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "MSM-RP-04. Organisational -- confirm custom reports use data exported through Azure Synapse Link or the documented route, because the managed data lake and built-in report refresh schedule cannot be changed."
+    manual: true
+  # ---- PI -- Reliability, cost and performance (4 items) --------------------
+  - id: MSM-PI-01
+    title: "MSM-PI-01. The Azure reliability design checklist is applied to the Azure parts of the solution"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "MSM-PI-01. Organisational -- confirm the Azure components around the solution (gateways, storage, Synapse) follow the Azure Well-Architected reliability checklist."
+    manual: true
+  - id: MSM-PI-02
+    title: "MSM-PI-02. The Dataverse entitlement is tracked, and extra capacity is planned and approved"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "MSM-PI-02. Organisational -- confirm database, file and log capacity against the licence entitlement is monitored and that capacity add-ons are decided before the limit is reached."
+    manual: true
+  - id: MSM-PI-03
+    title: "MSM-PI-03. Historical data is archived to cheaper long-term storage within the retention policy"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "MSM-PI-03. Organisational -- confirm data not used by operations or analytics is archived (for example to Azure Storage) in line with retention rules."
+    manual: true
+  - id: MSM-PI-04
+    title: "MSM-PI-04. Ingestion design respects Power Query and Dataverse service protection limits and keeps sources in one cloud and region"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "MSM-PI-04. Organisational -- confirm inbound integrations allow for Power Query Online limits, Dataverse API limits and unlicensed user request limits, and that cross-region and cross-cloud data movement was minimised."
+    manual: true
+  # ---- IT -- Emissions from IT operations (2 items) --------------------
+  - id: MSM-IT-01
+    title: "MSM-IT-01. Emissions from IT operations are measured with the Emissions Impact Dashboard and Azure carbon optimization"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "MSM-IT-01. Organisational -- confirm IT roles use the Emissions Impact Dashboard and Azure carbon optimization to report and reduce the emissions of Azure and Microsoft 365 use."
+    manual: true
+  - id: MSM-IT-02
+    title: "MSM-IT-02. Emissions from IT operations feed the organisation sustainability reporting"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "MSM-IT-02. Organisational -- confirm the IT emissions figures are included in the totals the sustainability team reports, and are not tracked separately."
+    manual: true

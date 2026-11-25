@@ -1,0 +1,309 @@
+# mcfs.wellarchitected.yaml -- Microsoft Cloud for Financial Services Well-Architected for Industry (AB#9300 phase 5)
+#
+# Scout's review for Microsoft's "Microsoft Cloud for Financial Services | Well-Architected for Industry"
+# assessment (learn.microsoft.com/assessments/85444ed4-5423-440a-aae0-a03a70981d6c). Microsoft does not publish
+# that assessment's questions, so every item is SCOUT-DERIVED from the Well-Architected for Industry pillar
+# overviews and Microsoft's financial services guidance (landing zones, Azure Policy, compliance tools,
+# operational resilience and concentration risk, service enablement, deprecations). The MCFS-* ids are Scout's own.
+#
+# Product status (checked 2026-11-25): Microsoft Cloud for Financial Services is now Microsoft for Financial
+# Services; Learn lists this assessment as the "Microsoft for Financial Services Assessment". The product-
+# specific Well-Architected pages did not return content of their own, so the items rest on the five pillar
+# overviews and the financial services pages. Several product components are deprecated (MCFS-OE-05).
+#
+# Scout does not read Dataverse, Power Platform or Dynamics 365 data, so every rule is `manual: true` with
+# `query: null`. Answer them with -AssessmentAnswers. Written ONLY against
+# docs/frameworks/cloud-for-financial-services-question-set.md.
+area: "Cloud for Financial Services well-architected"
+framework: MCFS-WAF
+frameworkversion: "docs/frameworks/cloud-for-financial-services-question-set.md, extracted 2026-11-25 (Well-Architected for Industry pillar overviews and Microsoft for Financial Services guidance on Microsoft Learn, current as of the extraction date; no published version number); verified 2026-11-25"
+weight: 1.0
+verifiedAgainst: "docs/frameworks/cloud-for-financial-services-question-set.md, 40 Scout-derived items across 7 groups, verified 2026-11-25. The assessment's own question text and numbering are not published; the MCFS-* identifiers are Scout's own. Every item is a questionnaire item (manual: true, query: null): Scout does not read this product's data."
+rules:
+  # ---- RE -- Reliability (7 items) --------------------
+  - id: MCFS-RE-01
+    title: "MCFS-RE-01. Business-critical services are identified, with recovery objectives and impact tolerances set for each"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "MCFS-RE-01. Organisational -- confirm the services whose failure would disrupt critical operations are listed, and recovery time objectives, recovery point objectives and service levels are defined and approved for them."
+    manual: true
+  - id: MCFS-RE-02
+    title: "MCFS-RE-02. Workloads are designed for availability: multiple zones, redundancy of network and data, design for failure"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "MCFS-RE-02. Organisational -- confirm Azure workloads that support critical services use availability zones or the redundancy that their objectives require, with no single point of failure left unaccepted."
+    manual: true
+  - id: MCFS-RE-03
+    title: "MCFS-RE-03. Changes are deployed by automation, with testing and validation, and with safe rollout techniques"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "MCFS-RE-03. Organisational -- confirm infrastructure, Power Platform and Dynamics 365 changes move through automated pipelines with validation, and use canary or blue-green techniques where the risk warrants."
+    manual: true
+  - id: MCFS-RE-04
+    title: "MCFS-RE-04. Failures are detected, isolated and recovered through monitoring, alerting, and tested disaster recovery and continuity plans"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "MCFS-RE-04. Organisational -- confirm automated monitoring and alerting exist, fault isolation is designed in, and disaster recovery and business continuity plans are tested regularly, including a cloud outage scenario."
+    manual: true
+  - id: MCFS-RE-05
+    title: "MCFS-RE-05. Capacity is planned and workloads scale to demand"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "MCFS-RE-05. Organisational -- confirm autoscaling, elasticity and capacity planning exist for the Azure components and that Power Platform and Dataverse capacity limits are tracked."
+    manual: true
+  - id: MCFS-RE-06
+    title: "MCFS-RE-06. Dependencies on cloud providers and third parties are mapped to critical use cases, and concentration risk is assessed"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "MCFS-RE-06. Organisational -- confirm dependencies between business processes, platforms, software and third-party relationships are mapped (for example in the business impact analysis) and concentration risk is judged against risk tolerance."
+    manual: true
+  - id: MCFS-RE-07
+    title: "MCFS-RE-07. Exit plans exist for services that support critical or important functions"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "MCFS-RE-07. Organisational -- confirm an exit strategy and exit plans (including stressed exit) exist for critical use cases, with transition periods, return of data and records, and testing."
+    manual: true
+  # ---- SE -- Security (9 items) --------------------
+  - id: MCFS-SE-01
+    title: "MCFS-SE-01. Security governance covers monitoring, logging and a tested incident response plan with escalation"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "MCFS-SE-01. Organisational -- confirm monitoring and logging detect incidents, an incident response plan names escalation paths, and the plan is tested and reviewed."
+    manual: true
+  - id: MCFS-SE-02
+    title: "MCFS-SE-02. Identity and access follow least privilege, with multifactor authentication and strong identity management"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "MCFS-SE-02. Organisational -- confirm Entra ID and the Dynamics 365 and Power Platform security roles follow least privilege, require multifactor authentication, and are reviewed."
+    manual: true
+  - id: MCFS-SE-03
+    title: "MCFS-SE-03. Customer security responsibilities for each service type (IaaS, PaaS, SaaS) are written down and owned"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "MCFS-SE-03. Organisational -- confirm the division of responsibility between Microsoft and the organisation is documented for Azure, Power Platform, Dynamics 365 and Microsoft 365 components, with owners for the customer part."
+    manual: true
+  - id: MCFS-SE-04
+    title: "MCFS-SE-04. Network, host and application layers have security controls that limit the effect of an attack"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "MCFS-SE-04. Organisational -- confirm network segmentation, private connectivity, host protection and application controls are applied to the Azure parts of the solution and to the integration points."
+    manual: true
+  - id: MCFS-SE-05
+    title: "MCFS-SE-05. Data is classified, encrypted at rest and in transit, and retained by policy; the strongest controls are used for the most sensitive data"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "MCFS-SE-05. Organisational -- confirm data classification, encryption and retention policies exist, and that customer-managed keys, double key encryption, Managed HSM or confidential computing are used where the data warrants it."
+    manual: true
+  - id: MCFS-SE-06
+    title: "MCFS-SE-06. Applications and AI services built on the platform follow secure development and AI governance practices"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "MCFS-SE-06. Organisational -- confirm applications, copilots and AI solutions built with Power Platform, Copilot Studio or Azure AI services follow secure development practice and an AI governance process."
+    manual: true
+  - id: MCFS-SE-07
+    title: "MCFS-SE-07. Defender for Cloud and Purview Compliance Manager are used to find and track security and compliance gaps"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "MCFS-SE-07. Organisational -- confirm cloud security posture and workload protection are monitored with Microsoft Defender for Cloud and compliance gaps are tracked in Microsoft Purview Compliance Manager."
+    manual: true
+  - id: MCFS-SE-08
+    title: "MCFS-SE-08. Payment cryptography uses a certified payment HSM where payment transactions are processed (if applicable)"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "MCFS-SE-08. Organisational -- confirm payment key operations that need PCI-level assurance use Azure Payment HSM or an equivalent certified module, or record that payment processing is out of scope."
+    manual: true
+  - id: MCFS-SE-09
+    title: "MCFS-SE-09. Data residency and sovereignty needs are met with the right residency, key and cloud options"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "MCFS-SE-09. Organisational -- confirm data residency commitments, customer-managed keys and instanced or sovereign cloud options were chosen against the regulations that apply."
+    manual: true
+  # ---- CO -- Cost optimization (4 items) --------------------
+  - id: MCFS-CO-01
+    title: "MCFS-CO-01. Services use the right pricing model and size, with reservations or savings plans where use is steady"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "MCFS-CO-01. Organisational -- confirm resource types, instance sizes and commitments were chosen against measured need."
+    manual: true
+  - id: MCFS-CO-02
+    title: "MCFS-CO-02. Supply is matched to demand through autoscaling and usage-based options"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "MCFS-CO-02. Organisational -- confirm autoscaling and usage-based pricing are used wherever load varies."
+    manual: true
+  - id: MCFS-CO-03
+    title: "MCFS-CO-03. Idle and under-used resources are found and removed or right-sized"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "MCFS-CO-03. Organisational -- confirm performance monitoring and right-sizing reviews find idle resources on a schedule."
+    manual: true
+  - id: MCFS-CO-04
+    title: "MCFS-CO-04. Costs are managed over time: budgets, tagging and cost allocation, plus licence and Dataverse storage management"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "MCFS-CO-04. Organisational -- confirm budgets and tagging allocate cost to owners, and that licences and Dataverse storage for the SaaS components are reviewed."
+    manual: true
+  # ---- OE -- Operational excellence (5 items) --------------------
+  - id: MCFS-OE-01
+    title: "MCFS-OE-01. Azure, Power Platform and Dynamics 365 components are monitored together, with analytics exported for review"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "MCFS-OE-01. Organisational -- confirm monitoring covers the Azure resources and the Power Platform and Dynamics 365 services, and that the monitoring data reaches the teams who act on it."
+    manual: true
+  - id: MCFS-OE-02
+    title: "MCFS-OE-02. Routine operations are automated to reduce manual effort and error"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "MCFS-OE-02. Organisational -- confirm repeated operational tasks (provisioning, patching, configuration, deployment) are automated and the automation is maintained."
+    manual: true
+  - id: MCFS-OE-03
+    title: "MCFS-OE-03. Release engineering uses separate environments, solution lifecycle management and quality checks"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "MCFS-OE-03. Organisational -- confirm development, test and production environments exist for the SaaS and PaaS parts, solutions move through automated lifecycle management, and the solution checker is used on customisations."
+    manual: true
+  - id: MCFS-OE-04
+    title: "MCFS-OE-04. Support processes, runbooks and incident handling cover the whole solution"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "MCFS-OE-04. Organisational -- confirm runbooks and an incident process name who responds to a failure in each layer, including the Microsoft services whose issues are raised through support."
+    manual: true
+  - id: MCFS-OE-05
+    title: "MCFS-OE-05. No deprecated Microsoft for Financial Services component is deployed or planned"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "MCFS-OE-05. Organisational -- confirm none of the deprecated components (for example Financial Meeting Prep, the financial document analysis skill for agents, Intelligent appointments, Banking customer intelligence, Collaboration Manager for Loans) is in use, and that replacements are planned."
+    manual: true
+  # ---- PE -- Performance efficiency (4 items) --------------------
+  - id: MCFS-PE-01
+    title: "MCFS-PE-01. Resource types and architecture were chosen for the performance each workload needs"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "MCFS-PE-01. Organisational -- confirm the resource types, application architecture and data stores were chosen against measured performance requirements."
+    manual: true
+  - id: MCFS-PE-02
+    title: "MCFS-PE-02. Workloads scale up and down, and caching and network optimisation are used where latency matters"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "MCFS-PE-02. Organisational -- confirm scalability, elasticity, caching and network traffic were designed for the latency objectives of customer-facing and payment workloads."
+    manual: true
+  - id: MCFS-PE-03
+    title: "MCFS-PE-03. Performance is logged and monitored so problems are found before users report them"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "MCFS-PE-03. Organisational -- confirm performance metrics and logs for the Azure, Power Platform and Dynamics 365 components are collected and alerted on."
+    manual: true
+  - id: MCFS-PE-04
+    title: "MCFS-PE-04. Power Platform and Dataverse service limits are designed for"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "MCFS-PE-04. Organisational -- confirm integrations and automations allow for API request limits, capacity and throttling in Dataverse and the Power Platform."
+    manual: true
+  # ---- CE -- Configuration and extension (5 items) --------------------
+  - id: MCFS-CE-01
+    title: "MCFS-CE-01. The standard financial services data model and out-of-the-box configuration are used before anything is customised"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "MCFS-CE-01. Organisational -- confirm the Microsoft for Financial Services data model (for example the banking and retail banking core entities) and standard configuration meet the need before custom tables or logic are added."
+    manual: true
+  - id: MCFS-CE-02
+    title: "MCFS-CE-02. Extensions use supported techniques and add to the standard solution without changing its managed components"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "MCFS-CE-02. Organisational -- confirm extensions are separate solutions that use supported extension points and do not overwrite managed components."
+    manual: true
+  - id: MCFS-CE-03
+    title: "MCFS-CE-03. Data model extensions are documented, owned and reviewed for upgrade impact"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "MCFS-CE-03. Organisational -- confirm each custom table, field and relationship has a documented owner and purpose, and is checked against each product update."
+    manual: true
+  - id: MCFS-CE-04
+    title: "MCFS-CE-04. Integrations with core banking and other systems are designed, documented and tested for failure"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "MCFS-CE-04. Organisational -- confirm interfaces to core platforms, document and AI services, and partner products are documented, with retry, monitoring and failure handling."
+    manual: true
+  - id: MCFS-CE-05
+    title: "MCFS-CE-05. Copilots and AI features added through extension are scoped, secured and governed"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "MCFS-CE-05. Organisational -- confirm Copilot Studio agents and Azure AI Foundry solutions added to the platform have owners, data scope, security review and monitoring."
+    manual: true
+  # ---- GV -- Governance, compliance and operational resilience (6 items) --------------------
+  - id: MCFS-GV-01
+    title: "MCFS-GV-01. An Azure landing zone, with platform and application landing zones, hosts the Azure workloads"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "MCFS-GV-01. Organisational -- confirm the Azure parts of the solution run in a landing zone that applies shared identity, connectivity and policy, with subscriptions isolating platform and application resources."
+    manual: true
+  - id: MCFS-GV-02
+    title: "MCFS-GV-02. Azure Policy initiatives enforce the organisation and regulatory controls, with a compliance view"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "MCFS-GV-02. Organisational -- confirm Azure Policy initiatives mapped to the applicable regulatory controls are assigned, non-compliance is reviewed, and remediation is tracked."
+    manual: true
+  - id: MCFS-GV-03
+    title: "MCFS-GV-03. Applicable financial services regulations are identified for each jurisdiction and mapped to controls"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "MCFS-GV-03. Organisational -- confirm the regulations that apply (for example operational resilience and third-party risk rules) are listed per jurisdiction, and the Financial Services Compliance Checklists are used to map controls."
+    manual: true
+  - id: MCFS-GV-04
+    title: "MCFS-GV-04. Cloud risk governance, risk tolerance and risk appetite are updated at least annually"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "MCFS-GV-04. Organisational -- confirm the internal risk governance framework covers cloud and critical services, states tolerances and appetite, and is revised every year."
+    manual: true
+  - id: MCFS-GV-05
+    title: "MCFS-GV-05. New cloud services pass a service enablement review before production use"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "MCFS-GV-05. Organisational -- confirm a defined lifecycle (demand, approval backlog, review of configuration baselines and regional availability, then release) enables each new service."
+    manual: true
+  - id: MCFS-GV-06
+    title: "MCFS-GV-06. Audit evidence is available: Microsoft attestations and the Service Trust Portal are used for the Microsoft-responsible controls"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "MCFS-GV-06. Organisational -- confirm audit and risk teams use the Trust Center, Service Trust Portal and control mappings to evidence the Microsoft responsibility, and own evidence for the customer responsibility."
+    manual: true
