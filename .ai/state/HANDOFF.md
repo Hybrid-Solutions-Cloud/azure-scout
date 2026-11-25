@@ -1,5 +1,18 @@
 # Handoff
 
+## Session 2026-11-24 (continued) — 3.18.12 live result
+
+Installed 3.18.12 from the Gallery; full five-tenant matrix (inventory + every assessment, Entra, cost,
+React/Json/JsonEvidence), cached lab account, one log. **All five Completed in 68 min (3.18.11: 82.9).**
+The 42-subscription tenant took 30.2 min (was about 38-40). 19,771 discovered resources, 0
+uncategorized; 0 [ERROR]. The 6 [WARN] lines and 8 subphase status=Partial lines are the same set as
+3.18.11: no Azure DevOps organization for the identity (x5), and drift tracking skipped on one tenant
+because two compliance findings share an identity (pre-existing; not yet fixed). The batch-3 collector
+types are not deployed in any test tenant, so they returned no rows; fixtures and goldens cover them.
+Docs site redeployed from the merge and was checked live (381 counts, coverage gap, Resource Categories).
+
+Next: the duplicate compliance-finding identity that skips drift tracking.
+
 ## Session 2026-11-24 (continued) — the remaining collectors, faster completeness (3.18.12)
 
 Live on the installed 3.18.11 (five tenants, 82.9 min): all Completed, 19,773 discovered resources, 0
