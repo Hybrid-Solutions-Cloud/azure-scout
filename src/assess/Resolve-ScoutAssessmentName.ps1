@@ -60,7 +60,12 @@ function Resolve-ScoutAssessmentName {
         'LandingZone'                    = 'CAF: Azure Landing Zone'
         'CASA'                           = 'Microsoft: CASA'
         'DevOps Capability Assessment'   = 'Microsoft: DevOps Capability'
-        'SMART'                          = 'Microsoft: SMART Migration'
+        # SMART is deleted by Microsoft in January 2027; the assessment is now CAF Plan + Migrate.
+        'SMART'                          = 'CAF: Migrate readiness'
+        'Microsoft: SMART Migration'     = 'CAF: Migrate readiness'
+        # Microsoft's Cloud Governance assessment is deleted in January 2027; this is CAF Govern.
+        'Assess: Cloud Governance'       = 'CAF: Govern'
+        'Cloud Governance'               = 'CAF: Govern'
         'FinOps Review'                  = 'Microsoft: FinOps Review'
         'Cost'                           = 'Scout: Cost Optimization'
         'CrossResource'                  = 'Scout: Cross-Resource'

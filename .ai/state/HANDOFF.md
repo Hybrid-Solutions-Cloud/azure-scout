@@ -1,5 +1,23 @@
 # Handoff
 
+## Session 2026-11-25 — run every known assessment: phases 0 and 1 (3.18.13)
+
+Goal set by the operator 2026-11-24: Scout must run every known Microsoft assessment, with the menu,
+docs and website kept current. Plan (also in auto-memory): 0 answer intake; 1 bring existing
+assessments to Microsoft's current set; 2 data-backed new assessments (SAP, Azure ML, Mission
+Critical, Sustainability, Oracle IaaS, Go-Live, WAF Analytics / AI Search / Data Services, WARA/APRL,
+Advisor); 3 questionnaire assessments (SaaS, AI Readiness, GenAI technical, GenAIOps, Platform
+Engineering, Analytics Journey, App & Data Modernization); 4 WAF rules vs all 33 service guides;
+5 non-Azure (Power Platform x3, Copilot M365, Sustainability Manager, Cloud for FS, Windows 11).
+
+3.18.13 delivers 0 and 1: `src/assess/Import-ScoutAssessmentAnswer.ps1` (answers, questionnaire,
+`Export-ScoutAssessmentQuestion`), `-AssessmentAnswers`, report answer UI, wizard prompt; CAF: Migrate
+readiness (smart.migration.yaml, 49), CAF: Govern (caf.govern.*, 54, new proc area), FinOps 2026 (23),
+AI workload all 10 areas (63), Workload: AVD (waf.avd.azure.yaml, 30). Diagnostic coverage now from
+the ResourceDiagnosticSettings sweep (`opsPosture.diagnosticCoverageMeasured` gates the rules). Known
+limits: PIM eligibility is hard-coded unavailable (CGOV-SC-05 NotAssessed); AVD resources are not in
+the diagnostic-settings sweep; activity-log alert conditions are not projected.
+
 ## Session 2026-11-24 (continued) — 3.18.12 live result
 
 Installed 3.18.12 from the Gallery; full five-tenant matrix (inventory + every assessment, Entra, cost,

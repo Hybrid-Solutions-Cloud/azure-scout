@@ -203,7 +203,7 @@ $Script:ScoutGovShellTemplate = @'
   <div class="card"><h2>Domain Maturity — Radar (1-10 per CAF Govern risk category)</h2><div class="chart" id="chart-radar"></div></div>
   <div class="card"><h2>Domain × Status — Heatmap</h2><div class="chart" id="chart-heatmap"></div></div>
   <div class="card" style="grid-column: 1 / -1;">
-    <h2>Seven Governance Domains</h2>
+    <h2>Governance Domains (CAF Govern risk categories and governance process)</h2>
     <table class="domain-table" id="domain-table">
       <thead><tr><th>Domain</th><th>Score</th><th>Pass</th><th>Partial</th><th>Fail</th><th>Manual</th><th>Unknown</th></tr></thead>
       <tbody></tbody>
@@ -407,7 +407,7 @@ function Export-GovernanceReport {
         # surface that honestly (all seven "Not assessed") rather than rendering an empty
         # page, the same "absence is visible, not silent" principle NotAssessed already
         # follows elsewhere in this codebase.
-        $expectedDomains = @('Regulatory Compliance', 'Security', 'Cost Management', 'Operations', 'Data', 'Resource Management', 'Artificial Intelligence')
+        $expectedDomains = @('Regulatory Compliance', 'Security', 'Cost Management', 'Operations', 'Data', 'Resource Management', 'Artificial Intelligence', 'Governance Process')
         if ($domainScores.Count -eq 0) {
             $domainScores = @($expectedDomains | ForEach-Object {
                     [pscustomobject]@{

@@ -1,0 +1,133 @@
+area: "Governance Process"
+framework: "Cloud Governance"
+# The governance PROCESS itself -- steps 1 to 3 of the CAF Govern five-step cycle (build a team,
+# assess risks, document policies) plus the audit, review and change-control practices around steps
+# 4 and 5. Every rule here is organisational: no Azure resource records that a charter exists or a
+# risk register is reviewed, so every rule is manual. They become scorable the way any manual rule
+# does -- when the operator supplies an answer (-AssessmentAnswers); until then this area reads
+# "Not assessed" and is left out of the score, never counted as a failure.
+#
+# This is an eighth area beside the seven CAF Govern risk categories, not a replacement for one: the
+# seven categories are what the process PROTECTS, this is the process. Weighted equally with each of
+# them for the same reason they are weighted equally with each other -- CAF publishes no relative
+# importance (docs/design/governance-domain-maturity-scale.md).
+#
+# Citations for this file:
+#   govern/ (build a cloud governance team: function, members, authority, scope, RACI)
+#   govern/assess-cloud-risks (identify, analyse, document, communicate, review; risk register)
+#   govern/document-cloud-governance-policies (format, policy fields, distribute, review, change control)
+#   govern/enforce-cloud-governance-policies (checklists, training, reviews)
+#   govern/monitor-cloud-governance (compliance baseline, remediation plan, audits)
+weight: 0.142857
+frameworkversion: "CAF Govern — 5-step process (team, assess risks, document, enforce, monitor) x 7 categories (RC, SC, CM, OP, DG, RM, AI); learn.microsoft.com/azure/cloud-adoption-framework/govern/; verified 2026-11-24"
+rules:
+  - id: CGOV-PROC-01
+    title: "A cloud governance team is formally established with a charter, defined membership and cross-functional representation"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "Establish a small, cross-functional governance team (IT operations, cloud architecture, security, compliance, finance, development) with a written charter covering its function: engage stakeholders, assess risks, maintain policies, monitor compliance."
+    manual: true
+
+  - id: CGOV-PROC-02
+    title: "Governance policies are documented in a standard format (policy ID, category, risk ID, statement, purpose, scope, remediation, monitoring tool)"
+    severity: medium
+    # Management/PolicyDefinitions and PolicyAssignments carry a display name and description, but
+    # not whether they follow this authoring standard -- they are Azure Policy objects, not the
+    # governance policy documents CAF Govern means.
+    query: null
+    assert: { type: manual }
+    remediation: "Adopt one policy template with the fields Microsoft lists (ID, statement, risk ID, category, purpose, scope, remediation, monitoring tool) and write every policy in 'must' / 'must not' language."
+    manual: true
+
+  - id: CGOV-PROC-03
+    title: "Policies are distributed through a centralised repository, with compliance checklists for teams"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "Publish the governance policies in one repository every team can read, and give each team a short compliance checklist built from the policy statements."
+    manual: true
+
+  - id: CGOV-PROC-04
+    title: "A compliance baseline was established and progress against it is tracked over time"
+    severity: medium
+    # monitor-cloud-governance, 'Establish a compliance baseline'. Scout collects a single
+    # point-in-time snapshot per run and keeps no history between runs, so it cannot show a trend;
+    # the baseline itself is a record the governance team keeps.
+    query: null
+    assert: { type: manual }
+    remediation: "Record the first compliance measurement as the baseline, then track the same measures on a schedule and report the trend to the governance team and sponsor."
+    manual: true
+
+  - id: CGOV-PROC-05
+    title: "Noncompliance remediation has a defined timeline and escalation path scaled to risk severity"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "Define, per risk priority, how fast a violation must be fixed and who it escalates to: discussion for low-risk and nonproduction violations, immediate remediation for high-risk and production ones."
+    manual: true
+
+  - id: CGOV-PROC-06
+    title: "A named executive sponsor grants the governance team its authority, and a RACI matrix assigns governance tasks"
+    severity: high
+    # govern/ steps 3 and 4: "Secure executive sponsorship ... Gain support from and report to a
+    # named executive" and "Use a RACI matrix" mapping the governance team, executive sponsor,
+    # platform teams and workload teams to tasks (engage stakeholders, assess risks, develop policies,
+    # report, plan architecture, enforce, monitor).
+    query: null
+    assert: { type: manual }
+    remediation: "Name the executive sponsor (for example the CIO or CTO), record the authority the governance team holds to define policy and require corrective action, and publish a RACI matrix for governance tasks."
+    manual: true
+
+  - id: CGOV-PROC-07
+    title: "A risk register exists with Microsoft's twelve fields (ID, status, category, description, probability, impact, priority, level, strategy, enforcement, owner, closure date) and is reviewed on a schedule"
+    severity: high
+    # govern/assess-cloud-risks, 'Document cloud risks' and 'Review cloud risks'. The twelve fields
+    # are Microsoft's; the review cadence (regular and event-based) is the practice around it.
+    query: null
+    assert: { type: manual }
+    remediation: "Keep one risk register with all twelve fields, a single owner per risk, and a recurring review (quarterly or similar) plus event-based reviews after incidents, audits and major changes. Report risks to the executive sponsor."
+    manual: true
+
+  - id: CGOV-PROC-08
+    title: "Every governance policy is linked to a risk ID and names the tool that monitors it"
+    severity: medium
+    # govern/document-cloud-governance-policies, 'Define cloud governance policies' items 2 and 3
+    # ("Associate every cloud governance policy to a risk"; "Name the tool required for enforcement so
+    # you know where to monitor compliance"), and monitor-cloud-governance 'Document monitoring
+    # solution'. Azure Policy assignments carry no risk ID, so the link cannot be read from Azure.
+    query: null
+    assert: { type: manual }
+    remediation: "Add a risk ID and a monitoring tool (for example Azure Policy, Microsoft Purview, a manual audit with its frequency) to every governance policy; retire or re-link policies whose risk was removed."
+    manual: true
+
+  - id: CGOV-PROC-09
+    title: "Governance training is provided to the teams the policies apply to"
+    severity: low
+    # govern/enforce-cloud-governance-policies, 'Enforce cloud governance policies manually', item 2:
+    # "Provide regular training ... to ensure they're aware of the governance policies."
+    query: null
+    assert: { type: manual }
+    remediation: "Run regular governance training for platform and workload teams and onboard new teams to the policies and checklists that apply to them."
+    manual: true
+
+  - id: CGOV-PROC-10
+    title: "Internal audits (and external audits where required) validate compliance monitoring"
+    severity: medium
+    # govern/monitor-cloud-governance, 'Audit cloud governance regularly': internal audits, and
+    # external auditors "as required to validate compliance with legal and regulatory requirements".
+    query: null
+    assert: { type: manual }
+    remediation: "Schedule internal audits of governance compliance and of the monitoring itself, and engage external auditors where regulation requires, consulting legal experts on the policies."
+    manual: true
+
+  - id: CGOV-PROC-11
+    title: "Policy change control: policies are reviewed on a schedule and after events, with a defined way to add, edit or remove them"
+    severity: medium
+    # govern/document-cloud-governance-policies, 'Review cloud governance policies': feedback
+    # mechanisms, event-based reviews, scheduled reviews, "Facilitate change control", and finding
+    # inefficiencies. Also enforce-cloud-governance-policies 'Review policy enforcement'.
+    query: null
+    assert: { type: manual }
+    remediation: "Define how a policy is proposed, approved, changed and retired; review policies on a schedule and after policy failures or regulatory changes; collect feedback from the teams the policies affect."
+    manual: true

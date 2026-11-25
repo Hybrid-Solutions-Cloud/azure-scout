@@ -253,9 +253,11 @@ param([Parameter(ValueFromRemainingArguments)] $Rest); return @() }
 
         $collect = Invoke-Collect -Categories @('*')
 
-        # AzureScout never reads inside a Key Vault, so the assessment collect requests no
-        # ARM-child sweep (no Azure Local opt-in here) and carries no secret/key projection.
-        $script:capturedIncludeArmChild | Should -Be $false
+        # AzureScout never reads inside a Key Vault. The assessment collect's only ARM-child sweep
+        # is ResourceDiagnosticSettings (AB#9300: where each resource sends its logs, never what a
+        # vault holds), and it carries no secret/key projection.
+        $script:capturedIncludeArmChild | Should -Be $true
+        @($script:capturedArmChildDataset) | Should -Be @('ResourceDiagnosticSettings')
         @($script:capturedArmChildDataset) | Should -Not -Contain 'KeyVaultSecrets'
         @($script:capturedArmChildDataset) | Should -Not -Contain 'KeyVaultKeys'
 

@@ -1,7 +1,11 @@
 area: "Cost Management"
 framework: "Cloud Governance"
 weight: 0.142857
-frameworkversion: "CAF Govern (learn.microsoft.com/azure/cloud-adoption-framework/govern), CM category per docs/frameworks/cloud-governance-question-set.md, verified 2026-08-01"
+# Per-category citations for this file:
+#   monitor-cloud-governance#configure-monitoring-for-cost-management-governance
+#   enforce-cloud-governance-policies#automate-cost-governance
+#   monitor-cloud-governance#azure-facilitation-configuring-cloud-governance-alerts
+frameworkversion: "CAF Govern — 5-step process (team, assess risks, document, enforce, monitor) x 7 categories (RC, SC, CM, OP, DG, RM, AI); learn.microsoft.com/azure/cloud-adoption-framework/govern/; verified 2026-11-24"
 rules:
   - id: CGOV-CM-01
     title: "Cost analysis gives full visibility into cloud costs"
@@ -32,14 +36,73 @@ rules:
     manual: false
 
   - id: CGOV-CM-04
-    title: "Cost anomalies and unexpected changes are identified"
+    title: "Cost anomalies and unexpected changes are identified, and a cost anomaly alert is configured"
     severity: medium
-    # src/analyze/Get-ScoutCostAnomaly.ps1 implements spike/z-score/IQR anomaly detection
-    # against Get-ScoutCostInventory output, but Invoke-Collect.ps1 never calls it -- the
-    # function exists and is unused, not absent (see
-    # docs/frameworks/cloud-governance-question-set.md CGOV-CM-04). Scoring it as answered
-    # would claim a capability that is implemented but not wired into any run.
-    query: null
+    # monitor-cloud-governance#configure-monitoring-for-cost-management-governance ("Identify
+    # anomalies and unexpected changes in cost") and #azure-facilitation-configuring-cloud-governance-
+    # alerts ("cost anomaly alerts"). A Cost Management anomaly alert is a scheduled action
+    # (Microsoft.CostManagement/scheduledActions, kind InsightAlert) that Scout does not collect, and
+    # src/analyze/Get-ScoutCostAnomaly.ps1 -- spike/z-score/IQR detection over
+    # Get-ScoutCostInventory output -- is not called by Invoke-Collect (see
+    # docs/frameworks/cloud-governance-question-set.md CGOV-CM-04). Whether an alert exists cannot be
+    # read, so this stays manual; any anomalies Scout did detect are attached as evidence.
+    query: "$.finops.anomalies[*]"
     assert: { type: manual }
-    remediation: "Wire Get-ScoutCostAnomaly.ps1 into the collect pipeline (tracked separately from this reporting feature), or confirm cost-anomaly alerting is configured in Cost Management + Billing directly."
+    remediation: "Create a cost anomaly alert in Cost Management (Cost alerts > Add > Anomaly) routed to the workload owner, and review detected anomalies on a regular cadence."
     manual: true
+
+  - id: CGOV-CM-05
+    title: "Budget alerts are set at the resource-group level by workload teams"
+    severity: medium
+    # Microsoft's example policy CM01 (document-cloud-governance-policies#example-cloud-governance-
+    # policies): "Workload teams must set budget alerts at the resource group level." The collector
+    # lists budgets per SUBSCRIPTION scope only (Microsoft.Consumption/budgets at
+    # /subscriptions/<id>), which does not return budgets defined on a resource group, so zero
+    # resource-group budgets here would be a collection limit, not proof none exist. Manual, with
+    # whatever resource-group-scoped budget rows were collected attached as evidence.
+    query: "$.governance.budgets[?(@.id =~ /resourcegroups/i)]"
+    assert: { type: manual }
+    remediation: "Confirm each workload team has a budget with alert thresholds on its resource group (Cost Management > Budgets, scope = resource group). Scout reads subscription-scope budgets only."
+    manual: true
+
+  - id: CGOV-CM-06
+    title: "Every budget has alert notifications configured"
+    severity: medium
+    # monitor-cloud-governance#azure-facilitation-configuring-cloud-governance-alerts: "Configure
+    # cost alerts" to notify teams of potential cost overruns. A budget with no notifications object
+    # records a limit but tells nobody. governance.budgets rows are raw ARM rows, so
+    # properties.notifications is present when at least one threshold alert exists. Denominator is
+    # every collected budget; zero budgets reads Unknown here (CGOV-CM-02 already Fails that case).
+    query: "$.governance.budgets[?(@.properties.notifications)]"
+    assert: { type: percentageAtLeast, value: 100, denominatorQuery: "$.governance.budgets[*]", gate: "$.governance.budgetsAvailable" }
+    remediation: "Add at least one alert threshold (for example 80% actual and 100% forecast) with a contact group to every budget."
+    manual: false
+
+  - id: CGOV-CM-07
+    title: "Cost-intensive resource types are blocked by a 'Not allowed resource types' policy"
+    severity: medium
+    # enforce-cloud-governance-policies#automate-cost-governance: "Automate deployment restrictions.
+    # Disallow certain cloud resources to prevent the use of cost-intensive resources." The built-in
+    # definition is 'Not allowed resource types' (6c112d4e-5bc7-47ae-a041-ea2d9dccd749, verified in
+    # the Azure Policy built-in reference 2026-11-24). Recognised by definition id or, for an
+    # assignment wrapped in a custom initiative, by its display name. An initiative that CONTAINS the
+    # definition is not unpacked -- this reads direct assignments only.
+    query: "$.governance.policyAssignments[?(@.properties.policyDefinitionId =~ /6c112d4e-5bc7-47ae-a041-ea2d9dccd749/i || @.properties.displayName =~ /not allowed resource types/i)]"
+    assert: { type: exists, gate: "$.governance.policyAssignmentsAvailable" }
+    remediation: "Assign 'Not allowed resource types' at management-group scope with the SKUs and services your cost policy excludes (prefer a short block list over a long allow list, per the CAF Govern enforcement guidance)."
+    manual: false
+
+  - id: CGOV-CM-08
+    title: "Tag inheritance for cost allocation is enforced by Azure Policy (an 'Inherit a tag' policy is assigned)"
+    severity: low
+    # enforce-cloud-governance-policies#automate-cost-governance: "Automate cost allocation. Enforce
+    # tagging requirements to group and allocate costs ... (enable-tag-inheritance)". The Cost
+    # Management tag-inheritance SETTING is not collected; this reads the Azure Policy route only
+    # (Inherit a tag from the resource group / subscription, with or without 'if missing':
+    # ea3f2387-9b95-492a-a190-fcdc54f7b070, cd3aa116-8754-49c9-a813-ad46512ece54,
+    # 40df99da-1232-49b1-a39a-6da8d878f469, b27a0cbd-a167-4dfa-ae64-4337be671140), so a tenant that
+    # relies on the Cost Management setting alone reads Fail -- the remediation says so.
+    query: "$.governance.policyAssignments[?(@.properties.policyDefinitionId =~ /(ea3f2387-9b95-492a-a190-fcdc54f7b070|cd3aa116-8754-49c9-a813-ad46512ece54|40df99da-1232-49b1-a39a-6da8d878f469|b27a0cbd-a167-4dfa-ae64-4337be671140)/i || @.properties.displayName =~ /inherit a tag/i)]"
+    assert: { type: exists, gate: "$.governance.policyAssignmentsAvailable" }
+    remediation: "Assign an 'Inherit a tag from the resource group/subscription' policy for the cost-allocation tags (for example CostCenter), or enable tag inheritance in Cost Management if you rely on that setting instead -- Scout cannot read the Cost Management setting."
+    manual: false

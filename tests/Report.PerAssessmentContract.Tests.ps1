@@ -96,7 +96,7 @@ Describe 'AB#6879 -- the slug is a valid folder name' {
 
     It 'turns the shipped assessment names into safe slugs' -ForEach @(
         @{ Name = 'CAF: Azure Landing Zone';   Expected = 'caf-azure-landing-zone' }
-        @{ Name = 'Assess: Cloud Governance'; Expected = 'assess-cloud-governance' }
+        @{ Name = 'CAF: Govern'; Expected = 'caf-govern' }
         @{ Name = 'CAF: Governance';          Expected = 'caf-governance' }
         @{ Name = 'WAF: Cost Optimization';   Expected = 'waf-cost-optimization' }
         @{ Name = 'Workload: AVS Landing Zone'; Expected = 'workload-avs-landing-zone' }

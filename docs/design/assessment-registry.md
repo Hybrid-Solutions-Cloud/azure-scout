@@ -59,9 +59,9 @@ roll-up that pulls in every CAF and WAF rule file at once. What is left to expla
 
 That leaves **4 genuinely distinct rule-scored assessments**: `CAF: Azure Landing Zone`
 (the roll-up), `Scout: Cost Optimization` (targeted cost/TCO pull), `Scout: Cross-Resource` (findings
-that need two collected datasets correlated), and `Microsoft: SMART Migration` (migration
-readiness, scored against its own enumerated source — see
-[SMART's framework page](../frameworks/smart-question-set.md)) — plus the one
+that need two collected datasets correlated), and `CAF: Migrate readiness` (migration
+readiness, scored against CAF Plan + CAF Migrate — see
+[its framework page](../frameworks/smart-question-set.md)) — plus the one
 compliance-engine assessment above.
 :::
 
@@ -138,10 +138,10 @@ Two entries that don't fit the roll-up/category/sub-bundle shape above.
 
 | Assessment | Description | Category | Rules | Frameworks | Legacy manifest report tiers (held except React/Json/JsonEvidence) | Tags |
 |---|---|---|---|---|---|---|
-| `Microsoft: SMART Migration` | Strategic Migration Assessment — migration readiness, scored against its own enumerated source (see [SMART's framework page](../frameworks/smart-question-set.md)) | Migration | `smart.*` | CAF: Migrate · SMART: readiness | Held: Html, Excel | caf, migration, smart |
+| `CAF: Migrate readiness` | CAF migration readiness (CAF Plan + CAF Migrate; formerly `Microsoft: SMART Migration`, which Microsoft deletes in January 2027), see [its framework page](../frameworks/smart-question-set.md) | Migration | `smart.*` | CAF: Plan · CAF: Migrate | Held: Html, Excel | caf, migration |
 | `Scout: Cross-Resource` | Findings that require two collected datasets correlated (e.g. "which VMs have no backup") | `*` | `xr.*` | XR: Cross-resource posture | Held: Html, Excel | cross-resource, waf, caf |
 
-`Microsoft: SMART Migration` additionally declares `RequiresData` — the wizard hides it unless the
+`CAF: Migrate readiness` additionally declares `RequiresData` — the wizard hides it unless the
 current tenant's `collect.json` actually has Azure Migrate project,
 discovery-site, or migration-service data, so a tenant that hasn't started a
 migration doesn't get a manufactured "Unknown" result offered as a real

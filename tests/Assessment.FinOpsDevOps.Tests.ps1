@@ -224,7 +224,61 @@ Describe 'AB#6826/AB#6827 -- rule files load, cite real items, and gate every ac
         $set = Get-RuleSet -Patterns @('finops.review')
         $set.Count | Should -Be 1
         $set[0].FrameworkVersion | Should -Not -BeNullOrEmpty
-        $set[0].Rules.Count | Should -Be 22
+        $set[0].Rules.Count | Should -Be 23
+    }
+    It 'finops.review.yaml frameworkversion names the 2026 FinOps Framework and the FinOps Review (New) assessment id' {
+        $set = Get-RuleSet -Patterns @('finops.review')
+        $set[0].FrameworkVersion | Should -Match 'FinOps Framework 2026'
+        $set[0].FrameworkVersion | Should -Match '60c02533-b280-4dec-ac5f-3f10cdd238b9'
+        $set[0].FrameworkVersion | Should -Match '4 domains / 22 capabilities'
+    }
+    It 'rule titles use the FinOps Framework 2026 capability names while rule ids are unchanged' {
+        $expected = @{
+            'FINOPS-Q04' = 'KPIs & Benchmarking'
+            'FINOPS-O01' = 'Architecting & Workload Placement'
+            'FINOPS-O02' = 'Usage Optimization'
+            'FINOPS-O05' = 'Sustainability'
+            'FINOPS-M04' = 'Governance, Policy & Risk'
+            'FINOPS-M07' = 'Automation, Tools & Services'
+            'FINOPS-M08' = 'Intersecting Disciplines'
+        }
+        foreach ($id in $expected.Keys) {
+            $rule = @($script:FinOpsDoc.rules | Where-Object { $_.id -eq $id })
+            $rule.Count | Should -Be 1 -Because "$id must keep its id across the 2026 rename"
+            $rule[0].title | Should -BeLike "$($expected[$id])*" -Because "$id's title leads with the 2026 capability name"
+        }
+    }
+    It 'the 2025 names replaced in the 2026 update no longer lead any rule title' {
+        $stale = @('Benchmarking', 'Architecting for the cloud', 'Workload optimization', 'Cloud sustainability',
+                   'Policy and governance', 'FinOps tools and services', 'Intersecting frameworks')
+        $offenders = @($script:FinOpsDoc.rules | Where-Object { $title = $_.title; $stale | Where-Object { $title -like "$_*" } })
+        $offenders | Should -BeNullOrEmpty
+    }
+    It 'FINOPS-M03 (Onboarding Workloads) is kept and labelled as no longer in the FinOps Foundation 2026 list' {
+        $rule = @($script:FinOpsDoc.rules | Where-Object { $_.id -eq 'FINOPS-M03' })
+        $rule.Count | Should -Be 1
+        $rule[0].title | Should -Match 'Onboarding Workloads'
+        $rule[0].title | Should -Match 'no longer in the FinOps Foundation 2026 list'
+        $rule[0].manual | Should -BeTrue
+    }
+    It 'FINOPS-M09 (Executive Strategy Alignment) exists, is manual, and has no query' {
+        $rule = @($script:FinOpsDoc.rules | Where-Object { $_.id -eq 'FINOPS-M09' })
+        $rule.Count | Should -Be 1
+        $rule[0].title | Should -Match 'Executive Strategy Alignment'
+        $rule[0].manual | Should -BeTrue
+        $rule[0].assert.type | Should -Be 'manual'
+        $rule[0].query | Should -BeNullOrEmpty
+        $rule[0].remediation | Should -Match 'multi-year investment strategy'
+    }
+    It 'every one of the original 22 FinOps rule ids is still present (answer files key on them)' {
+        $ids = @($script:FinOpsDoc.rules | ForEach-Object { $_.id })
+        $original = @('U01','U02','U03','U04','Q01','Q02','Q03','Q04','Q05','O01','O02','O03','O04','O05',
+                      'M01','M02','M03','M04','M05','M06','M07','M08') | ForEach-Object { "FINOPS-$_" }
+        foreach ($id in $original) { $ids | Should -Contain $id }
+    }
+    It 'the FinOps findings link in Export-React points at the live FinOps Framework page, not the dead overview-finops URL' {
+        $src = Get-Content (Join-Path -Path $script:Root -ChildPath 'src/report/renderers/Export-React.ps1') -Raw
+        $src | Should -Match "p = '\^FINOPS-'; u = 'https://learn\.microsoft\.com/cloud-computing/finops/framework/finops-framework'"
     }
     It 'devops.capability.yaml loads under Get-RuleSet with a non-empty frameworkversion' {
         $set = Get-RuleSet -Patterns @('devops.capability')

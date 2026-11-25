@@ -38,6 +38,12 @@ Describe 'Collector counts in the docs match the catalogue' {
         (Get-Content "$script:RepoRoot/docs/reference/index.md" -Raw) | Should -Match ("All \*\*{0} collector definitions\*\*" -f $script:Total)
     }
 
+    It 'home page and assessment index state the registry''s assessment count' {
+        $assessments = @((Import-PowerShellDataFile "$script:RepoRoot/manifests/assessments.psd1").Keys).Count
+        (Get-Content "$script:RepoRoot/docs/index.md" -Raw) | Should -Match ("title: {0} assessments" -f $assessments)
+        (Get-Content "$script:RepoRoot/docs/assessment/index.md" -Raw) | Should -Match ("covering all {0} assessments" -f $assessments)
+    }
+
     It 'testing guide' {
         $text = Get-Content "$script:RepoRoot/docs/project/testing.md" -Raw
         $text | Should -Match ("all {0} collectors" -f $script:Total)

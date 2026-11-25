@@ -1,7 +1,11 @@
 area: "Operations"
 framework: "Cloud Governance"
 weight: 0.142857
-frameworkversion: "CAF Govern (learn.microsoft.com/azure/cloud-adoption-framework/govern), OP category per docs/frameworks/cloud-governance-question-set.md, verified 2026-08-01"
+# Per-category citations for this file:
+#   monitor-cloud-governance#configure-monitoring-for-operations-governance
+#   enforce-cloud-governance-policies#automate-operations-governance
+#   monitor-cloud-governance#azure-facilitation-configuring-cloud-governance-alerts
+frameworkversion: "CAF Govern — 5-step process (team, assess risks, document, enforce, monitor) x 7 categories (RC, SC, CM, OP, DG, RM, AI); learn.microsoft.com/azure/cloud-adoption-framework/govern/; verified 2026-11-24"
 rules:
   - id: CGOV-OP-01
     title: "Policy compliance is tracked for operations-scoped governance policies"
@@ -27,24 +31,54 @@ rules:
   - id: CGOV-OP-03
     title: "Advisor is used to monitor reliability/security/performance/cost, with alerts set on new recommendations"
     severity: medium
-    # $.advisor[*] proves recommendations were pulled, but whether ALERTS are configured to
-    # fire on *new* recommendations is not observable from a point-in-time collect.json --
-    # the same "existence of data, not proof of the specific claim" gap CAF-GOV-05 (manual,
-    # DeployIfNotExists effect) already established the pattern for. Manual rather than a
-    # false pass on "Advisor data exists therefore alerting is configured".
-    query: null
+    # monitor-cloud-governance#configure-monitoring-for-operations-governance: "Set alerts for any
+    # new Advisor recommendations." Corrected from the earlier "not observable": an Advisor alert IS
+    # observable in principle -- it is an activity-log alert rule (Microsoft.Insights/activityLogAlerts)
+    # whose condition is category = Recommendation. What Scout lacks is the CONDITION: the
+    # activityLogAlertRules query projects only enabled/scopeCount/actionGroupCount, so a
+    # Recommendation alert cannot be told from a Service Health alert or any other. Manual, with every
+    # collected activity-log alert rule attached as evidence; CGOV-OP-05 scores the part that is
+    # readable (enabled rules routed to an action group).
+    query: "$.monitor.activityLogAlertRules[*]"
     assert: { type: manual }
-    remediation: "Confirm Azure Advisor alerts are configured to notify on new reliability/security/performance/cost recommendations, not only that recommendations were reviewed once."
+    remediation: "Confirm an activity-log alert exists with condition category = Recommendation (Advisor > Alerts) for reliability/performance/security/cost, routed to an action group. Advisor recommendations themselves are collected under $.advisor; the alert condition is not."
     manual: true
 
   - id: CGOV-OP-04
-    title: "Resource health is monitored for service-impacting events and planned maintenance"
+    title: "Service Health and Resource Health alerts are configured for service-impacting events and planned maintenance"
     severity: medium
-    # Monitor/Outages exists as a collector but was documented as broken (runs before the
-    # data it reads is merged) at the time this enumeration was written -- scoring it would
-    # either false-pass on stale/empty data or false-fail on a defect rather than an absence
-    # of monitoring. Manual until that collector defect is confirmed fixed.
-    query: null
+    # monitor-cloud-governance#azure-facilitation-configuring-cloud-governance-alerts: "Configure
+    # service health alerts to get notified of current and upcoming service health problems.
+    # Configure resource health alerts to get notified of the current and historical health status of
+    # your Azure resources." Both are activity-log alert rules (categories ServiceHealth and
+    # ResourceHealth). Same limitation as CGOV-OP-03: the collected rows have no condition field, so
+    # the two cannot be distinguished from other activity-log alerts. This replaces the earlier
+    # reliance on the Monitor/Outages collector. Manual, rows attached as evidence.
+    query: "$.monitor.activityLogAlertRules[*]"
     assert: { type: manual }
-    remediation: "Confirm Azure Resource Health alerts are configured for service-impacting events and planned maintenance. Scout's Outages collector had a known ordering defect at the time this rule was written -- verify it has been fixed before trusting an automated read here."
+    remediation: "Create a Service Health alert (service issues, planned maintenance, health advisories) for the subscriptions and regions you use, and a Resource Health alert for critical resources, each routed to an action group."
     manual: true
+
+  - id: CGOV-OP-05
+    title: "Activity-log alert rules are enabled and routed to an action group (the basis for Service Health, Resource Health and Advisor alerts)"
+    severity: medium
+    # The readable half of CGOV-OP-03/CGOV-OP-04. An activity-log alert rule that is disabled, or
+    # has no action group, notifies nobody; zero such rules means none of Service Health, Resource
+    # Health or Advisor alerting can be in place. Requires the Monitor category (the assessment
+    # manifest must list it) -- a saved collect without it is refused by the provenance check
+    # before this rule runs.
+    query: "$.monitor.activityLogAlertRules[?(@.enabled == true && @.actionGroupCount > 0)]"
+    assert: { type: exists }
+    remediation: "Create activity-log alert rules (Service Health, Resource Health, Advisor recommendations) that are enabled and point at an action group owned by the operations team."
+    manual: false
+
+  - id: CGOV-OP-06
+    title: "Alerts are configured on specific logs and metrics (enabled metric or log-search alert rules exist)"
+    severity: medium
+    # monitor-cloud-governance#azure-facilitation-configuring-cloud-governance-alerts: "Configure
+    # alerts on specific logs and metrics." Enabled metric alert rules or scheduled-query (log
+    # search) rules. Existence only -- whether the thresholds are right is not observable.
+    query: "$.monitor['metricAlertRules','scheduledQueryRules'][?(@.enabled == true)]"
+    assert: { type: exists }
+    remediation: "Create metric and log-search alert rules for availability and performance of production workloads, routed to the owning team's action group."
+    manual: false

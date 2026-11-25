@@ -443,6 +443,11 @@ Function Invoke-AzureScout {
         # Consultant/Data) when the browser has nothing persisted yet. Default Consultant.
         [ValidateSet('Executive', 'Consultant', 'Data')]
         [string]$DefaultReportMode = 'Consultant',
+        # Answers to the assessments' questionnaire items (the manual questions no Azure API can
+        # answer), as CSV or JSON. Every assessment run writes assessment-questions.csv into its
+        # report folder; fill in the Answer column and pass it back here. Combine with -FromCollect
+        # to re-score an existing collection without scanning again.
+        [string]$AssessmentAnswers,
         [Alias('AllTenants', 'AllReachableTenants')]
         [switch]$AllAccessibleTenants,
         [string]$ResumeRun,
@@ -746,6 +751,11 @@ Function Invoke-AzureScout {
         if ($TenantID)                                      { $assessArgs.TenantID = $TenantID }
         if ($ReportIdentity -and $ReportIdentity.Count -gt 0) { $assessArgs.ReportIdentity = $ReportIdentity }
         if ($PSBoundParameters.ContainsKey('DefaultReportMode')) { $assessArgs.DefaultReportMode = $DefaultReportMode }
+        if ($AssessmentAnswers) {
+            # Resolved now: a multi-tenant child or a deferred run may execute from a different
+            # working directory, and a relative path would then point nowhere.
+            $assessArgs.AssessmentAnswers = (Resolve-Path -LiteralPath $AssessmentAnswers -ErrorAction Stop).ProviderPath
+        }
 
         # "Both" from the wizard or command line: DEFER the assessment until after the inventory
         # pass instead of running it now (AB#5543). Running the assessment here made the command

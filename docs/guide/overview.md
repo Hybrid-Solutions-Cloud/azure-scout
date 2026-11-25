@@ -45,6 +45,11 @@ Scout can do — all of it pre-selected, so you uncheck what you don't want:
    Enter = accept, q = quit
 ```
 
+If the assessments you choose include questions only a person can answer, the wizard says how
+many there are and asks for an answer file. Press Enter to skip. Every run writes those
+questions to `assessment-questions.csv`, so you can answer them and give the file next time. See
+[Questionnaire Answers](../assessment/questionnaire-answers.md).
+
 The last step prints the equivalent one-line command, so the wizard also teaches you the
 parameters for when you want to script it later.
 

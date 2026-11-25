@@ -1,12 +1,15 @@
 area: "Data"
 framework: "Cloud Governance"
 weight: 0.142857
-frameworkversion: "CAF Govern (learn.microsoft.com/azure/cloud-adoption-framework/govern), DG category per docs/frameworks/cloud-governance-question-set.md, verified 2026-08-01"
+# Per-category citations for this file:
+#   monitor-cloud-governance#configure-monitoring-for-data-governance
+#   enforce-cloud-governance-policies#automate-data-governance
+frameworkversion: "CAF Govern — 5-step process (team, assess risks, document, enforce, monitor) x 7 categories (RC, SC, CM, OP, DG, RM, AI); learn.microsoft.com/azure/cloud-adoption-framework/govern/; verified 2026-11-24"
 rules:
   - id: CGOV-DG-01
     title: "Data compliance, management, and usage are monitored (Microsoft Purview)"
     severity: medium
-    # Correction to docs/frameworks/cloud-governance-question-set.md's "Purview is not
+    # Correction to docs/frameworks/cloud-governance-question-set.md's earlier "Purview is not
     # collected by Scout" (CGOV-DG-01): Epic AB#6731 wired a Purview collector into
     # domains.analytics.purviewAccounts (manifests/collectors/Analytics/Purview.psd1). This
     # only proves a Purview account is DEPLOYED, not that it is actively monitoring data
@@ -25,4 +28,58 @@ rules:
     query: null
     assert: { type: manual }
     remediation: "Confirm a dashboard exists for data-plane policy compliance (row/column-level security, data classification enforcement) -- Scout only evidences control-plane (ARM resource) policy, never data-plane."
+    manual: true
+
+  - id: CGOV-DG-03
+    title: "Encryption policies are assigned (secure transfer, minimum TLS version, customer-managed keys)"
+    severity: high
+    # Microsoft's example policy DG01 ("Encryption in transit and at rest must be applied to all
+    # sensitive data", monitored by Azure Policy) and enforce-cloud-governance-policies#automate-
+    # data-governance ("Automate data security. Review and enforce data protection strategies, such
+    # as data segregation, encryption, and redundancy"). Built-in definitions, each verified in the
+    # Azure Policy built-in reference 2026-11-24:
+    #   404c3081-a854-4457-ae30-26a93ef643f9  Secure transfer to storage accounts should be enabled
+    #   fe83a0eb-a853-422d-aac2-1bffd182c5d0  Storage accounts should have the specified minimum TLS version
+    #   6fac406b-40ca-413b-bf8e-0bf964659c25  Storage accounts should use customer-managed key for encryption
+    # The Microsoft cloud security benchmark initiative contains these, so an assignment of it is
+    # accepted by display name. Other service-specific encryption definitions (SQL TDE, Key Vault
+    # purge protection, ...) are not listed; the outcome-based CGOV-DG-04/05 check the storage
+    # configuration directly, independent of how it was enforced.
+    query: "$.governance.policyAssignments[?(@.properties.policyDefinitionId =~ /(404c3081-a854-4457-ae30-26a93ef643f9|fe83a0eb-a853-422d-aac2-1bffd182c5d0|6fac406b-40ca-413b-bf8e-0bf964659c25)/i || @.properties.displayName =~ /security benchmark|secure transfer|minimum tls|customer-managed key/i)]"
+    assert: { type: exists, gate: "$.governance.policyAssignmentsAvailable" }
+    remediation: "Assign the built-in encryption policies (secure transfer, minimum TLS 1.2, customer-managed keys where required) at management-group scope, or assign the Microsoft cloud security benchmark initiative that contains them."
+    manual: false
+
+  - id: CGOV-DG-04
+    title: "Encryption in transit: every storage account requires secure transfer (HTTPS only)"
+    severity: high
+    # The outcome behind DG01, read from configuration rather than from policy: storageAccounts rows
+    # carry httpsOnly (properties.supportsHttpsTrafficOnly). Denominator is every collected storage
+    # account; an estate with none reads Unknown. Needs the Storage category in the assessment manifest.
+    query: "$.domains.storage.storageAccounts[?(@.httpsOnly == true)]"
+    assert: { type: percentageAtLeast, value: 100, denominatorQuery: "$.domains.storage.storageAccounts[*]" }
+    remediation: "Enable 'Secure transfer required' on every storage account and enforce it with the built-in policy so new accounts cannot be created without it."
+    manual: false
+
+  - id: CGOV-DG-05
+    title: "Encryption in transit: every storage account enforces TLS 1.2 or higher"
+    severity: high
+    # minTls is properties.minimumTlsVersion; an account with the property unset accepts TLS 1.0, so an
+    # empty value counts as not compliant (Microsoft's storage guidance: unset reads as null or empty).
+    query: "$.domains.storage.storageAccounts[?(@.minTls == 'TLS1_2' || @.minTls == 'TLS1_3')]"
+    assert: { type: percentageAtLeast, value: 100, denominatorQuery: "$.domains.storage.storageAccounts[*]" }
+    remediation: "Set the minimum TLS version to 1.2 on every storage account (TLS 1.0 and 1.1 are retired) and enforce it with the 'minimum TLS version' policy."
+    manual: false
+
+  - id: CGOV-DG-06
+    title: "Data lifecycle policies are enabled for all sensitive data"
+    severity: medium
+    # Microsoft's example policy DG02 ("Data lifecycle policies must be enabled in Microsoft Purview
+    # for all sensitive data") and enforce-cloud-governance-policies#automate-data-governance
+    # ("Automate data lifecycle management. Implement storage policies and lifecycle management for
+    # storage"). Storage management policies (Microsoft.Storage/storageAccounts/managementPolicies)
+    # and Purview retention labels are child resources / tenant settings Scout does not collect.
+    query: null
+    assert: { type: manual }
+    remediation: "Confirm lifecycle management rules (tiering, retention, deletion) exist on storage accounts that hold sensitive data, and that Purview retention policies cover the rest."
     manual: true

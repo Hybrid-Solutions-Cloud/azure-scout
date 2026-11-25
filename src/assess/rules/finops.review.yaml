@@ -1,18 +1,34 @@
 area: "FinOps Review"
 framework: FinOps
-frameworkversion: "FinOps enumeration in docs/frameworks/finops-review-question-set.md, verified 2026-08-01"
+frameworkversion: "FinOps Framework 2026 (FinOps Foundation, 2026-03-20 update; 4 domains / 22 capabilities) per Microsoft FinOps Review (New) 60c02533-b280-4dec-ac5f-3f10cdd238b9, verified 2026-11-24"
 weight: 1.0
-verifiedAgainst: "docs/frameworks/finops-review-question-set.md (internal), FinOps Framework (learn.microsoft.com/cloud-computing/finops/framework/finops-framework, FinOps Foundation), verified 2026-08-01"
+verifiedAgainst: "docs/frameworks/finops-review-question-set.md (internal), Microsoft FinOps Review (New) (learn.microsoft.com/assessments/60c02533-b280-4dec-ac5f-3f10cdd238b9/), FinOps Foundation 2026 Framework update (finops.org/insights/2026-finops-framework/), FinOps Framework on Microsoft Learn (learn.microsoft.com/cloud-computing/finops/framework/capabilities), verified 2026-11-24"
 # Scores against the enumeration in docs/frameworks/finops-review-question-set.md (AB#6826, Feature
 # AB#6749, Epic AB#6454). EVERY rule below cites a FINOPS-* item from that file. Read it before
 # quoting any coverage figure -- it states plainly what it is and is not:
 #
 #   THE FINOPS REVIEW ITSELF IS INFERRED, NOT MICROSOFT-PUBLISHED. Microsoft names and describes
-#   the FinOps Review assessment (an interactive, self-guided tool) and publishes the FinOps
-#   Framework it is scored against in full, but the assessment's own question TEXT and NUMBERS are
-#   never published. The FINOPS-* identifiers below are Scout's own, built from the FinOps
-#   Framework's 22 published capabilities -- a rule citing FINOPS-U01 cites an inferred structure,
-#   not a Microsoft question number. Say so in every consumer of this file's output, not just here.
+#   the FinOps Review (New) assessment (an interactive, self-guided tool, assessment id
+#   60c02533-b280-4dec-ac5f-3f10cdd238b9; the older id ad1c0f6b-396b-44a4-924b-7a4c778a13d3 now
+#   renders the same page) and publishes the FinOps Framework it is scored against, but the
+#   assessment's own question TEXT and NUMBERS are never published. The FINOPS-* identifiers below
+#   are Scout's own, built from the FinOps Framework's published capabilities -- a rule citing
+#   FINOPS-U01 cites an inferred structure, not a Microsoft question number. Say so in every
+#   consumer of this file's output, not just here.
+#
+# FRAMEWORK 2026 ALIGNMENT (2026-11-24). The FinOps Foundation's 2026-03-20 framework update renamed
+# several capabilities and added Executive Strategy Alignment; the 2025 update added Scopes and
+# renamed "Cloud Policy & Governance" to "Policy & Governance". Rule titles below use the 2026
+# capability names. Rule IDs are UNCHANGED (existing answer files key on them), so a 2026 rename
+# never moves an id. Renames: Q04 Benchmarking -> KPIs & Benchmarking; O01 Architecting for the
+# cloud -> Architecting & Workload Placement; O02 Workload optimization -> Usage Optimization;
+# O05 Cloud sustainability -> Sustainability; M04 Policy and governance -> Governance, Policy &
+# Risk; M07 FinOps tools and services -> Automation, Tools & Services; M08 Intersecting frameworks
+# -> Intersecting Disciplines. FINOPS-M03 (Onboarding Workloads) is a Microsoft Learn capability no
+# longer in the FinOps Foundation 2026 list; it is kept and labelled as such. FINOPS-M09 (Executive
+# Strategy Alignment) is new in 2026 and manual. Total: 23 rules -- the 22 Microsoft Learn
+# capabilities plus M09 (the Foundation's own 2026 list drops Onboarding Workloads and adds
+# Executive Strategy Alignment).
 #
 # THE SHARP ACCEPTANCE CRITERION THIS FILE EXISTS TO MEET: cost data lives behind the EA/MCA
 # billing permission system, a DIFFERENT permission boundary than the ARM Reader role every other
@@ -89,11 +105,11 @@ rules:
     manual: false
 
   - id: FINOPS-Q04
-    title: "Cloud efficiency is benchmarked against internal teams or industry peers"
+    title: "KPIs & Benchmarking: cloud efficiency is measured with KPIs and benchmarked against internal teams or industry peers"
     severity: low
     query: null
     assert: { type: manual }
-    remediation: "Confirm a benchmarking practice exists (internal team-to-team, or industry peer). No benchmarking dataset exists for Scout to read."
+    remediation: "Confirm KPIs are defined and a benchmarking practice exists (internal team-to-team, or industry peer). Renamed from Benchmarking to KPIs & Benchmarking in the FinOps Framework 2026 update. No KPI or benchmarking dataset exists for Scout to read."
     manual: true
 
   - id: FINOPS-Q05
@@ -106,19 +122,19 @@ rules:
 
   # --- Optimize usage and cost (FINOPS-O01..O05) --------------------------------------------------
   - id: FINOPS-O01
-    title: "Cloud solutions are architected for cost efficiency during design/migration, not retrofitted"
+    title: "Architecting & Workload Placement: cloud solutions are architected for cost efficiency and placed deliberately during design/migration, not retrofitted"
     severity: low
     query: null
     assert: { type: manual }
-    remediation: "Confirm cost efficiency is a design-time architectural consideration (right SKU/tier from the start), not a post-deployment retrofit. Design-time decision, not observable from a deployed estate."
+    remediation: "Confirm cost efficiency and workload placement (region, SKU/tier, service choice) are design-time architectural considerations, not a post-deployment retrofit. Renamed from Architecting for the cloud to Architecting & Workload Placement in the FinOps Framework 2026 update. Design-time decision, not observable from a deployed estate."
     manual: true
 
   - id: FINOPS-O02
-    title: "Workload cost/usage is analyzed to identify efficiency opportunities"
+    title: "Usage Optimization: workload cost/usage is analyzed to identify efficiency opportunities"
     severity: medium
     query: "$.advisor[?(@.Category == 'Cost' && @.Impact == 'High')]"
     assert: { type: countEquals, value: 0, gate: "$.advisorAvailable" }
-    remediation: "Act on high-impact Advisor cost recommendations, and clean up orphaned disks/public IPs ($.costCleanup). The same evidence WAF-CO-02 scores under the Cost Optimization pillar, scored here under the FinOps Framework's own capability name -- not a second, independent detector."
+    remediation: "Act on high-impact Advisor cost recommendations, and clean up orphaned disks/public IPs ($.costCleanup). Renamed from Workload optimization to Usage Optimization in the FinOps Framework 2026 update. The same evidence WAF-CO-02 scores under the Cost Optimization pillar, scored here under the FinOps Framework's own capability name -- not a second, independent detector."
     manual: false
 
   - id: FINOPS-O03
@@ -145,14 +161,14 @@ rules:
     manual: false
 
   - id: FINOPS-O05
-    title: "Carbon emissions are measured alongside cost as part of cloud sustainability"
+    title: "Sustainability: carbon emissions are measured alongside cost as part of cloud sustainability"
     severity: low
     query: null
     assert: { type: manual }
-    remediation: "Confirm emissions are tracked via the Microsoft Emissions Impact Dashboard or the Carbon Optimization API. Scout has no Emissions/Carbon API collector."
+    remediation: "Confirm emissions are tracked via the Microsoft Emissions Impact Dashboard or the Carbon Optimization API. Renamed from Cloud sustainability to Sustainability in the FinOps Framework 2026 update. Scout has no Emissions/Carbon API collector."
     manual: true
 
-  # --- Manage the FinOps practice (FINOPS-M01..M08) -- almost entirely organisational -------------
+  # --- Manage the FinOps practice (FINOPS-M01..M09) -- almost entirely organisational -------------
   - id: FINOPS-M01
     title: "A FinOps education and enablement programme exists"
     severity: low
@@ -170,19 +186,19 @@ rules:
     manual: true
 
   - id: FINOPS-M03
-    title: "Workloads are onboarded to the FinOps practice based on financial/technical feasibility"
+    title: "Onboarding Workloads (Microsoft Learn capability, no longer in the FinOps Foundation 2026 list): workloads are onboarded to the FinOps practice based on financial/technical feasibility"
     severity: low
     query: null
     assert: { type: manual }
-    remediation: "Confirm a deliberate onboarding process exists for bringing workloads under FinOps practice. Organisational -- no ARM/API signal exists."
+    remediation: "Confirm a deliberate onboarding process exists for bringing workloads under FinOps practice. Onboarding Workloads is still listed on Microsoft Learn (learn.microsoft.com/cloud-computing/finops/framework/capabilities) but is no longer in the FinOps Foundation 2026 capability list; Scout keeps it so Microsoft Learn-aligned reviews stay complete. Organisational -- no ARM/API signal exists."
     manual: true
 
   - id: FINOPS-M04
-    title: "FinOps-specific policy and governance (cost-allocation tagging, spend guardrails) is enforced"
+    title: "Governance, Policy & Risk: FinOps-specific policy and governance (cost-allocation tagging, spend guardrails) is enforced"
     severity: low
     query: null
     assert: { type: manual }
-    remediation: "Confirm FinOps-specific tagging/spend-guardrail policy is enforced. $.tags[*] and $.governance.policyAssignments are generic governance signals, not FinOps-specific enforcement -- left manual rather than scored against a proxy that could pass on unrelated tagging/policy hygiene."
+    remediation: "Confirm FinOps-specific tagging/spend-guardrail policy is enforced and cost-related risk is managed. Renamed from Policy and governance to Governance, Policy & Risk in the FinOps Framework 2026 update. $.tags[*] and $.governance.policyAssignments are generic governance signals, not FinOps-specific enforcement -- left manual rather than scored against a proxy that could pass on unrelated tagging/policy hygiene."
     manual: true
 
   - id: FINOPS-M05
@@ -202,17 +218,25 @@ rules:
     manual: true
 
   - id: FINOPS-M07
-    title: "FinOps tools and services are selected and integrated to fit organizational needs"
+    title: "Automation, Tools & Services: FinOps tools, automation and services are selected and integrated to fit organizational needs"
     severity: low
     query: null
     assert: { type: manual }
-    remediation: "Confirm FinOps tooling (Cost Management, third-party FinOps platforms) is deliberately selected and integrated. Organisational/tooling choice, not an ARM/API signal."
+    remediation: "Confirm FinOps tooling (Cost Management, third-party FinOps platforms) and automation are deliberately selected and integrated. Renamed from FinOps tools and services to Automation, Tools & Services in the FinOps Framework 2026 update. Organisational/tooling choice, not an ARM/API signal."
     manual: true
 
   - id: FINOPS-M08
-    title: "FinOps practices are aligned with intersecting frameworks (ITAM, ITSM, security)"
+    title: "Intersecting Disciplines: FinOps practices are aligned with intersecting disciplines (ITAM, ITSM, security, sustainability)"
     severity: low
     query: null
     assert: { type: manual }
-    remediation: "Confirm FinOps practice is aligned with ITAM/ITSM/security processes rather than operating in isolation. Organisational -- no ARM/API signal exists."
+    remediation: "Confirm FinOps practice is aligned with ITAM/ITSM/security processes rather than operating in isolation. Renamed from Intersecting frameworks to Intersecting Disciplines in the FinOps Framework 2026 update. Organisational -- no ARM/API signal exists."
+    manual: true
+
+  - id: FINOPS-M09
+    title: "Executive Strategy Alignment: FinOps is aligned to executive priorities and multi-year investment strategy"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "Confirm FinOps informs executive priorities, multi-year investment strategy, product prioritisation and strategic decision support, rather than reporting only operational cost. New capability in the FinOps Foundation 2026-03-20 framework update (not in the earlier 22-capability Microsoft Learn list). Organisational -- no ARM/API signal exists."
     manual: true

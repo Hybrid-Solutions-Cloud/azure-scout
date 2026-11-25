@@ -119,6 +119,26 @@ Describe 'Guided menu — choices change the run' {
         (Start-AZSCWizard).Answers.ContainsKey('Scope') | Should -BeFalse
     }
 
+    It 'asks for a questionnaire answer file when the chosen assessments have questions' {
+        . (Join-Path $script:Root 'src/assess/Import-ScoutAssessmentAnswer.ps1')
+        . (Join-Path $script:Root 'src/assess/engine/Get-RuleSet.ps1')
+        $answerFile = Join-Path ([System.IO.Path]::GetTempPath()) ('wizard-answers-' + [guid]::NewGuid().ToString('N') + '.csv')
+        [pscustomobject]@{ RuleId = 'CASA-TR-01'; Answer = 'Yes' } | Export-Csv -LiteralPath $answerFile -NoTypeInformation
+        try {
+            $script:AnswerPromptSeen = $false
+            Mock Read-Host {
+                if ($Prompt -like '*Selection (number*') { return '3' }
+                if ($Prompt -like '*Answer file*') { $script:AnswerPromptSeen = $true; return $answerFile }
+                ''
+            }
+            $result = Start-AZSCWizard
+            $script:AnswerPromptSeen | Should -BeTrue
+            $result.Answers.AssessmentAnswers | Should -Be (Resolve-Path -LiteralPath $answerFile).ProviderPath
+            Format-AZSCWizardCommand -Answers $result.Answers | Should -Match '-AssessmentAnswers '
+        }
+        finally { Remove-Item -LiteralPath $answerFile -Force -ErrorAction SilentlyContinue }
+    }
+
     It 'returns nothing when the operator declines to start the run' {
         Mock Read-Host {
             if ($Prompt -like '*Start the run?*') { return 'n' }

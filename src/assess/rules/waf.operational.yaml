@@ -8,7 +8,8 @@ rules:
     title: "Diagnostic settings coverage above threshold"
     severity: medium
     query: "$.opsPosture.diagnosticCoverage[?(@.coveragePct >= 80)]"
-    assert: { type: exists }
+    # Gated: coverage is only known when the diagnostic-settings ARM sweep ran (AB#9300).
+    assert: { type: exists, gate: "$.opsPosture.diagnosticCoverageMeasured" }
     remediation: "Enable diagnostic settings to a central workspace for at least 80% of resource types."
     manual: false
 

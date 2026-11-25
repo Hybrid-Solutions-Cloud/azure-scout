@@ -221,6 +221,10 @@ function Invoke-ScoutAssessmentCore {
         # Export-React's own doc comments). Threaded to every Export-Report call below.
         [ValidateSet('Executive', 'Consultant', 'Data')]
         [string] $DefaultReportMode = 'Consultant',
+        # Questionnaire answers (CSV or JSON) for the assessments' manual questions. See
+        # src/assess/Import-ScoutAssessmentAnswer.ps1. Answered questions are scored and marked
+        # Source = Answer; data-evaluated rules are never overridden.
+        [string] $AssessmentAnswers,
         [Parameter(DontShow)]
         [string] $ReservedRunPath
     )
@@ -243,7 +247,7 @@ function Invoke-ScoutAssessmentCore {
     function Write-ScoutAssessmentLog {
         param(
             [Parameter(Mandatory)] [string] $Message,
-            [ValidateSet('DEBUG', 'VERBOSE')] [string] $Level = 'DEBUG'
+            [ValidateSet('DEBUG', 'VERBOSE', 'INFO', 'WARN')] [string] $Level = 'DEBUG'
         )
         if (Get-Command -Name 'Write-AZSCLog' -ErrorAction SilentlyContinue) {
             Write-AZSCLog -Level $Level -Message $Message
@@ -263,6 +267,14 @@ function Invoke-ScoutAssessmentCore {
 
     if ($PermissionAudit) {
         return Test-ScoutPermission -Assessment $Assessment -Manifest $manifest
+    }
+
+    # Read and validate the answer file before any collection starts, so a typo in the path or an
+    # unreadable file fails in seconds rather than after a forty-minute scan.
+    $assessmentAnswerTable = $null
+    if ($AssessmentAnswers) {
+        $assessmentAnswerTable = Import-ScoutAssessmentAnswer -Path $AssessmentAnswers
+        Write-ScoutAssessmentLog -Level 'INFO' -Message ("Assessment answers loaded: file={0}; answers={1}." -f $AssessmentAnswers, $assessmentAnswerTable.Count)
     }
 
     # Validate paths/scope before allocating a deliverable folder. Permission-only and invalid
@@ -561,9 +573,41 @@ function Invoke-ScoutAssessmentCore {
                 $name, @($findings).Count, $ruleTimer.Elapsed.ToString('dd\:hh\:mm\:ss\.fff')
         )
     }
+    # Questionnaire answers: score answered manual questions and stamp every finding's Source
+    # (Data / Answer / Unanswered). Findings are updated in place, so $findingsByAssessment, which
+    # holds the same objects, sees the answers too.
+    $allFindings = @(Set-ScoutFindingAnswer -Findings $allFindings -Answers $assessmentAnswerTable)
+    $answeredCount = @($allFindings | Where-Object { $_.Source -eq 'Answer' }).Count
+    $unansweredCount = @($allFindings | Where-Object { $_.Source -eq 'Unanswered' }).Count
+    Write-ScoutAssessmentLog -Level 'INFO' -Message ("Assessment questionnaire: answered={0}; unanswered={1}." -f $answeredCount, $unansweredCount)
+
     $scored = Get-Score -Findings $allFindings
     $queryContext = $null # Findings contain detached evidence; release the shared query tree.
     $scored | ConvertTo-Json -Depth 100 | Out-File "$runPath/findings.json"
+
+    # The questionnaire for this run's assessments, pre-filled with the answers it used: fill in
+    # the blanks and pass it back with -AssessmentAnswers (with -FromCollect to re-score this
+    # collection offline). assessment-answers.json records exactly what was applied.
+    try {
+        $questionRows = @(Get-ScoutAssessmentQuestion -Assessment $Assessment -Manifest $manifest -Answers $assessmentAnswerTable)
+        if ($questionRows.Count -gt 0) {
+            $questionRows | Export-Csv -LiteralPath (Join-Path $runPath 'assessment-questions.csv') -NoTypeInformation -Encoding utf8
+        }
+        $appliedAnswers = @($allFindings | Where-Object { $_.Source -eq 'Answer' } | ForEach-Object {
+                [ordered]@{ ruleId = $_.Id; assessment = $_.Assessment; answer = $_.Answer; note = $_.AnswerNote; answeredBy = $_.AnsweredBy; answeredAt = $_.AnsweredAt }
+            })
+        [ordered]@{
+            schema      = 'azurescout.assessment-answers/v1'
+            generatedAt = (Get-Date).ToUniversalTime().ToString('o')
+            source      = if ($AssessmentAnswers) { [System.IO.Path]::GetFileName($AssessmentAnswers) } else { $null }
+            questions   = $questionRows.Count
+            answers     = $appliedAnswers
+        } | ConvertTo-Json -Depth 6 | Out-File (Join-Path $runPath 'assessment-answers.json') -Encoding utf8
+        Write-ScoutAssessmentLog -Level 'VERBOSE' -Message ("Assessment questionnaire written: questions={0}; answered={1}." -f $questionRows.Count, $appliedAnswers.Count)
+    }
+    catch {
+        Write-ScoutAssessmentLog -Level 'WARN' -Message "Assessment questionnaire could not be written: $($_.Exception.Message)"
+    }
 
     # ---- DRIFT (cross-run) ----
     # Compare this run against the immediately previous run and append it to a

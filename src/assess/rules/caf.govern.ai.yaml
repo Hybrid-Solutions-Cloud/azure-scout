@@ -1,14 +1,20 @@
 area: "Artificial Intelligence"
 framework: "Cloud Governance"
 weight: 0.142857
-frameworkversion: "CAF Govern (learn.microsoft.com/azure/cloud-adoption-framework/govern), AI category per docs/frameworks/cloud-governance-question-set.md, verified 2026-08-01"
+# Per-category citations for this file:
+#   monitor-cloud-governance#configure-monitoring-for-ai-governance
+#   enforce-cloud-governance-policies#automate-ai-governance
+#   monitor-cloud-governance#azure-facilitation-configuring-cloud-governance-alerts (AI governance alerts)
+frameworkversion: "CAF Govern — 5-step process (team, assess risks, document, enforce, monitor) x 7 categories (RC, SC, CM, OP, DG, RM, AI); learn.microsoft.com/azure/cloud-adoption-framework/govern/; verified 2026-11-24"
 rules:
   - id: CGOV-AI-01
     title: "AI system outputs are monitored — abuse monitoring and content filtering configured"
     severity: high
     # No AI Foundry / content-filter configuration ingest exists in collect.json --
     # domains.ai.cognitiveAccounts records that a Cognitive Services account exists, not its
-    # content-filter or abuse-monitoring configuration.
+    # content-filter or abuse-monitoring configuration (content filters are raiPolicies child
+    # resources, and abuse monitoring is a service-side setting). CGOV-AI-03 scores the part that
+    # is readable: whether a content-filtering POLICY is assigned.
     query: null
     assert: { type: manual }
     remediation: "Confirm abuse monitoring and content filtering are configured on AI Foundry / Azure OpenAI deployments -- Scout does not currently collect this configuration."
@@ -17,8 +23,43 @@ rules:
   - id: CGOV-AI-02
     title: "Customer-facing AI systems are red-teamed on a recurring cadence"
     severity: medium
-    # Organisational/process fact -- no Azure artifact records a red-team cadence.
+    # Organisational/process fact -- no Azure artifact records a red-team cadence. Microsoft's
+    # example policy AI02 sets the cadence at monthly.
     query: null
     assert: { type: manual }
     remediation: "Confirm customer-facing AI systems are red-teamed on a recurring cadence. This is a process control with no Azure resource artifact for Scout to read."
     manual: true
+
+  - id: CGOV-AI-03
+    title: "AI content filtering is enforced by Azure Policy (a content-filtering policy is assigned)"
+    severity: high
+    # Microsoft's example policy AI01 ("Set AI content filtering configuration to medium or higher",
+    # monitored in Microsoft Foundry) and enforce-cloud-governance-policies#automate-ai-governance
+    # ("Govern output generation ... Use AI content filtering and AI abuse monitoring"). Azure Policy
+    # ships PREVIEW built-in definitions that mandate minimum content-filter levels on model
+    # deployments and agents (Cognitive Services category, verified in the built-in reference
+    # 2026-11-24): multi-severity control 930f48f9-f07e-427c-9494-52603581c6a9, prompt filtering
+    # f3a9c2e0-7b4d-4d8f-9c3a-2e1f6b9a8d4e, completion filtering af253d37-136a-42f8-a1fc-30010c083d41,
+    # control mode c1ad46c6-37f8-4af0-9c71-c208375c87dd, agent prompt filtering
+    # 9224c1cc-34fc-44f1-ad08-5c4b079c9ce6, agent multi-severity 595f98a5-b562-4ab6-b9c8-2ff9f39a3f7c.
+    # They are preview, so ids may change at GA; the display-name match is the fallback and also
+    # catches a custom content-filtering policy. This evidences that a content-filter policy is
+    # ASSIGNED, never that deployments are at 'medium or higher' -- that is the policy's own
+    # compliance state.
+    query: "$.governance.policyAssignments[?(@.properties.policyDefinitionId =~ /(930f48f9-f07e-427c-9494-52603581c6a9|f3a9c2e0-7b4d-4d8f-9c3a-2e1f6b9a8d4e|af253d37-136a-42f8-a1fc-30010c083d41|c1ad46c6-37f8-4af0-9c71-c208375c87dd|9224c1cc-34fc-44f1-ad08-5c4b079c9ce6|595f98a5-b562-4ab6-b9c8-2ff9f39a3f7c)/i || @.properties.displayName =~ /content (filter|safety)/i)]"
+    assert: { type: exists, gate: "$.governance.policyAssignmentsAvailable" }
+    remediation: "Assign the Cognitive Services content-filtering policies (minimum severity levels for model deployments and agents) at the scope that holds your AI resources, so a deployment cannot run with filtering below your policy's level."
+    manual: false
+
+  - id: CGOV-AI-04
+    title: "Microsoft Defender for AI Services is enabled so AI workload threats raise security alerts"
+    severity: medium
+    # monitor-cloud-governance#azure-facilitation-configuring-cloud-governance-alerts, "AI governance
+    # alerts": "Configure Defender for Cloud security alerts for Foundry". The plan is the
+    # Microsoft.Security/pricings entry named AI (the 'AI plan' in the pricings API reference). Same
+    # row shape and data-availability gate as CGOV-SC-04: no plan rows collected at all reads
+    # NotAssessed, never a Fail.
+    query: "$.security.defenderPlans[?(@.name =~ /^ai$/i && @.properties.pricingTier == 'Standard')]"
+    assert: { type: exists, gate: "$.security.defenderPlans[*]" }
+    remediation: "Enable the Defender for AI Services plan on subscriptions that host Azure OpenAI / Foundry resources, and route its alerts to the security owner."
+    manual: false

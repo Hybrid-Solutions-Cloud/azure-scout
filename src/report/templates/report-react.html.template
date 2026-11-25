@@ -112,6 +112,11 @@ a.kpi{text-decoration:none;color:inherit;display:block}
 .capnote{font-size:11px;color:var(--faint);margin:-8px 0 10px}
 ol{margin:4px 0 4px 20px;padding:0} ol li{margin:4px 0;max-width:74ch}
 .q{font-size:11.5px;color:var(--muted);margin-top:2px;max-width:70ch}
+.ansbox{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.ansbox select,.ansbox input{font:inherit;font-size:12px;padding:2px 6px;border:1px solid var(--line, #cbd5e1);border-radius:4px;background:var(--card, #fff);color:inherit}
+.ansbox input{flex:1 1 14em;min-width:10em}
+.p-ans{color:#1d4ed8;border-color:#93c5fd;background:#eff6ff;margin-left:6px}
+@media print{.ansbox{display:none}}
 .spot{background:var(--surface);border:2px solid var(--fail);border-radius:8px;padding:14px 18px;margin:12px 0}
 .spot .k{font-size:10px;font-weight:800;letter-spacing:.1em;color:var(--fail)}
 .prov{font-size:11px;color:var(--faint);margin-top:8px}
@@ -549,21 +554,68 @@ function gapBlock(f){
   return '<div class="finding" id="g-'+anchorId(f.id)+'"><h4>'+sevPill(f.severity)+' <span class="pill p-fail">Not met</span>&nbsp; '+esc(f.title)+' <span class="mono fid">'+esc(shortId(f.id))+'</span></h4>'+
     evidenceTable(f)+'<div class="fx">Why it matters</div><p>'+whyItMatters(f)+'</p>'+fixSteps(f)+'</div>';
 }
+/* ---- questionnaire answers ----
+   Manual questions (no Azure API can answer them) can be answered here. Answers are kept in this
+   browser session only; "Download answers" saves them as assessment-answers.json, which the next
+   run reads with Invoke-AzureScout -AssessmentAnswers (add -FromCollect to re-score this
+   collection without scanning again). The report itself is never modified. */
+var ANSWERS = {};
+(function seedAnswers(){
+  safeArr(DATA.assessments).forEach(function(a){ safeArr(a.findings).forEach(function(f){
+    if(f.source==='Answer' && f.ruleId) ANSWERS[f.ruleId] = { ruleId:f.ruleId, assessment:a.name, answer:f.answer||'', note:f.answerNote||'', answeredBy:f.answeredBy||'', answeredAt:f.answeredAt||'' };
+  }); });
+})();
+function answerSourceBadge(f){
+  return f.source==='Answer' ? ' <span class="pill p-ans" title="'+esc('Answered'+(f.answeredBy?' by '+f.answeredBy:'')+(f.answerNote?': '+f.answerNote:''))+'">Answered</span>' : '';
+}
+function answerControl(f){
+  if(!f.manual || !f.ruleId) return '';
+  var cur = ANSWERS[f.ruleId] || {};
+  var opts = ['','Yes','Partial','No','N/A'].map(function(o){ return '<option value="'+o+'"'+(String(cur.answer||'').toLowerCase()===o.toLowerCase()?' selected':'')+'>'+(o||'— answer —')+'</option>'; }).join('');
+  return '<div class="ansbox"><select class="ans-sel" data-rule="'+esc(f.ruleId)+'" aria-label="Answer for '+esc(f.ruleId)+'">'+opts+'</select>'+
+    '<input class="ans-note" data-rule="'+esc(f.ruleId)+'" placeholder="Note (optional)" value="'+esc(cur.note||'')+'" aria-label="Note for '+esc(f.ruleId)+'"></div>';
+}
+function answerCount(){ var n=0; for(var k in ANSWERS){ if(ANSWERS[k].answer) n++; } return n; }
+function buildAnswersJson(){
+  var list = [];
+  for(var k in ANSWERS){ if(ANSWERS[k].answer) list.push(ANSWERS[k]); }
+  list.sort(function(a,b){ return a.ruleId<b.ruleId?-1:a.ruleId>b.ruleId?1:0; });
+  return JSON.stringify({ schema:'azurescout.assessment-answers/v1', generatedAt:new Date().toISOString(), answers:list }, null, 2);
+}
+function wireAnswers(){
+  document.addEventListener('change', function(e){
+    var t = e.target; if(!t || !t.getAttribute) return;
+    var rule = t.getAttribute('data-rule'); if(!rule) return;
+    var cur = ANSWERS[rule] || { ruleId:rule, answer:'', note:'', answeredBy:'', answeredAt:'' };
+    if(t.classList.contains('ans-sel')) { cur.answer = t.value; cur.answeredAt = new Date().toISOString(); }
+    else if(t.classList.contains('ans-note')) { cur.note = t.value; }
+    else return;
+    ANSWERS[rule] = cur;
+    document.querySelectorAll('.ans-count').forEach(function(x){ x.textContent = String(answerCount()); });
+  });
+  document.addEventListener('click', function(e){
+    var b = e.target && e.target.closest && e.target.closest('.ans-download'); if(!b) return;
+    e.preventDefault();
+    dl('assessment-answers.json', buildAnswersJson(), 'application/json');
+  });
+}
 function registerTable(fs, gopage){
   function order(f){ return (f.status==='Fail'?0:f.status==='Pass'?1:2)*10 + (sevRank.hasOwnProperty(f.severity)?sevRank[f.severity]:3); }
   var rows = fs.slice().sort(function(a,b){return order(a)-order(b);}).map(function(f){
     var link = f.status==='Fail' ? ' <a class="jump goto" data-gopage="'+gopage+'" href="#g-'+anchorId(f.id)+'">fix ↓</a>' : '';
-    return '<tr><td class="mono"><a href="'+esc(betterLearnUrl(f))+'" rel="noopener">'+esc(shortId(f.id))+'</a></td><td>'+esc(f.title)+link+'</td><td>'+sevPill(f.severity)+'</td><td>'+statusPill(f.status)+'</td><td class="num">'+(f.evidenceCount||0)+'</td></tr>';
+    return '<tr><td class="mono"><a href="'+esc(betterLearnUrl(f))+'" rel="noopener">'+esc(shortId(f.id))+'</a></td><td>'+esc(f.title)+answerSourceBadge(f)+link+'</td><td>'+sevPill(f.severity)+'</td><td>'+statusPill(f.status)+'</td><td class="num">'+(f.evidenceCount||0)+'</td></tr>';
   }).join('');
   return '<div class="twrap"><table><tr><th>Check</th><th>What was evaluated in this tenant</th><th>Severity</th><th>Result</th><th class="num">Evidence</th></tr>'+rows+'</table></div>';
 }
 function manualAgenda(fs){
-  var ms = fs.filter(function(f){ return f.status!=='Pass' && f.status!=='Fail'; });
+  var ms = fs.filter(function(f){ return (f.status!=='Pass' && f.status!=='Fail') || f.source==='Answer'; });
   if(!ms.length) return '';
+  var questions = ms.filter(function(f){ return f.manual; }).length;
   var rows = ms.map(function(f){
-    return '<tr><td class="mono">'+esc(shortId(f.id))+'</td><td><b>'+esc(f.title)+'</b><div class="q">'+esc(f.remediation)+'</div></td><td>'+statusPill(f.status)+'</td><td>'+sevPill(f.severity)+'</td><td><a href="'+esc(betterLearnUrl(f))+'" rel="noopener">Learn →</a></td></tr>';
+    return '<tr><td class="mono">'+esc(shortId(f.id))+'</td><td><b>'+esc(f.title)+'</b>'+answerSourceBadge(f)+'<div class="q">'+esc(f.remediation)+'</div>'+answerControl(f)+'</td><td>'+statusPill(f.status)+'</td><td>'+sevPill(f.severity)+'</td><td><a href="'+esc(betterLearnUrl(f))+'" rel="noopener">Learn →</a></td></tr>';
   }).join('');
-  return '<div class="eyebrow">Review and availability agenda — '+ms.length+' unscored item'+(ms.length===1?'':'s')+'</div><div class="twrap"><table><tr><th>Check</th><th>Question or collection issue</th><th>Status</th><th>Severity</th><th></th></tr>'+rows+'</table></div>';
+  var help = questions ? '<p class="small ans-help">'+questions+' of these '+(questions===1?'is a question':'are questions')+' only a person can answer. Choose Yes, Partial, No or N/A, then <a href="#" class="ans-download">download answers</a> (<span class="ans-count">'+answerCount()+'</span> answered) and run again with <span class="mono">-AssessmentAnswers assessment-answers.json</span>. Add <span class="mono">-FromCollect</span> with this run\'s collect.json to re-score without scanning again.</p>' : '';
+  return '<div class="eyebrow">Review and availability agenda — '+ms.length+' item'+(ms.length===1?'':'s')+'</div>'+help+'<div class="twrap"><table><tr><th>Check</th><th>Question or collection issue</th><th>Status</th><th>Severity</th><th></th></tr>'+rows+'</table></div>';
 }
 
 /* ============================================================
@@ -2473,7 +2525,7 @@ function csvQuote(v){
   return '"'+s.replace(/"/g,'""')+'"';
 }
 function csvFindingsRows(rows){
-  var cols = ['id','title','assessment','area','severity','status','weight','remediation','learnUrl','evidenceCount'];
+  var cols = ['id','title','assessment','area','severity','status','source','answer','answerNote','weight','remediation','learnUrl','evidenceCount'];
   var lines = [cols.join(',')];
   rows.forEach(function(f){
     lines.push(cols.map(function(c){ return csvQuote(c==='id'?shortId(f.id):c==='learnUrl'?betterLearnUrl(f):f[c]); }).join(','));
@@ -2485,7 +2537,7 @@ function buildCsvFindings(){ return csvFindingsRows(allFindings); }
 // export menu's "Findings CSV" downloads just that register when a reader is deep in one
 // assessment — mirrors the old per-assessment CSV filter, adapted to the v6 page model.
 function buildCsvFindingsForCurrentAssessment(){
-  var cols = ['id','title','assessment','area','severity','status','weight','remediation','learnUrl','evidenceCount'];
+  var cols = ['id','title','assessment','area','severity','status','source','answer','answerNote','weight','remediation','learnUrl','evidenceCount'];
   var page = document.body.getAttribute('data-page') || '';
   if(page.indexOf('a-')!==0) return null;
   var rows = allFindings.filter(function(f){ return ('a-'+f.slug)===page; });
@@ -2516,6 +2568,7 @@ function initAbout(){
 }
 
 function wireInteractions(){
+  wireAnswers();
   document.addEventListener('keydown',function(e){var r=e.target.closest && e.target.closest('tr.rowclick');if(r && (e.key==='Enter'||e.key===' ')){e.preventDefault();showRowPopup(r.getAttribute('data-rk'),Number(r.getAttribute('data-ri')));}});
   document.querySelectorAll('[data-inventory-export]').forEach(function(b){b.addEventListener('click',function(){var k=b.getAttribute('data-inventory-export');dl(filenamePrefix()+'-'+k.replace(/[^a-z0-9_-]/gi,'-')+'.csv',buildCsvInventory(k),'text/csv');});});
   document.querySelectorAll('.nav').forEach(function(b){ b.addEventListener('click', function(){ setPage(b.getAttribute('data-page')); }); });

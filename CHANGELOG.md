@@ -7,6 +7,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.18.13] - 2026-11-25 - questionnaire answers and Microsoft's current assessments
+
+### Added
+
+- **Questionnaire answers.** Manual rules (questions no Azure API can answer) were always
+  Status = Manual and left out of every score, so CASA, DevOps Capability, FinOps, migration
+  readiness and the AI workload review could never be completed. Now:
+  - every assessment run writes `assessment-questions.csv` (and `assessment-answers.json`, what was applied);
+  - `-AssessmentAnswers <csv|json>` scores the answers (Yes / Partial / No / N/A); with `-FromCollect`
+    it re-scores an existing collection offline;
+  - the React report's review agenda has an answer box per question and a "download answers" link;
+  - the wizard asks for the answer file when the chosen assessments have questions;
+  - `Export-ScoutAssessmentQuestion` (new public cmdlet) writes the questionnaire without a scan;
+  - findings carry `Source` (Data / Answer / Unanswered); an answer never overrides a data-evaluated rule.
+- **`Workload: AVD`** reviews Azure Virtual Desktop in Azure (30 rules, 15 automated): zones,
+  session-host health, private access, Defender, update assessment, scaling plans, Start VM on
+  Connect, licence benefit, validation pools, scheduled agent updates. The existing AVD review
+  stays as the AVD-on-Azure-Local review. Adds host pool, session host and scaling plan fields and
+  a `compute.avdWorkspaces` dataset to the assessment collection (never the registration token).
+- **AI workload review covers all ten design areas** (63 rules, up from 34): Data platform,
+  Testing and evaluation, Workload personas (Scout-derived; Microsoft publishes no table), the AI
+  architecture pattern, and Microsoft's new fifth grounding recommendation. AI accounts, ML
+  workspaces and search services now carry `id`, `location`, local-auth and network fields.
+
+### Changed
+
+- **`Microsoft: SMART Migration` is now `CAF: Migrate readiness`** (49 rules, up from 11), built on
+  CAF Plan + CAF Migrate because Microsoft deletes SMART in January 2027. `SMART` and the old name
+  still resolve. C6 (Migrate project not public) is manual: Microsoft's own guide may need it public.
+- **`Assess: Cloud Governance` is now `CAF: Govern`** (54 rules, up from 18), built on the CAF Govern
+  methodology because Microsoft deletes its Cloud Governance assessment in January 2027; adds a
+  Governance Process domain (team, risk register, policies, audits). Old names still resolve.
+- **FinOps Review follows the FinOps Framework 2026** (Microsoft's FinOps Review (New)): seven
+  renamed capabilities, Executive Strategy Alignment added (23 rules); dead report links fixed.
+- **Wizard menu** groups workload reviews (AI, AVD, AVS, Azure Local) under their own heading.
+- **Docs:** Questionnaire Answers page; new and re-based framework pages in the sidebar; regenerated
+  Assessment Catalogue (47 assessments, 527 rules, 222 automated) and Framework Coverage.
+
+### Fixed
+
+- **Diagnostic-settings coverage was always 0%.** It counted `properties.diagnosticSettings`, which no
+  resource has (diagnostic settings are an ARM extension resource Resource Graph never indexes), so
+  CAF-MGT-01, CAF-MGT-05 and WAF-OE-01 failed in every tenant. Coverage is now measured from the
+  diagnostic-settings ARM sweep (resources checked vs resources with a setting), which assessment
+  runs now include; when it did not run, those rules report Not assessed instead of failing.
+- **CAF-AI-04 always reported Unknown**: AI account IDs were never collected. They are now.
+
 ## [3.18.12] - 2026-11-24 - the remaining discovered types get collectors
 
 ### Added
