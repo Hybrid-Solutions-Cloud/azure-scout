@@ -167,7 +167,7 @@ parallel record.
 | `waf-ai-search-checklist.md` | WAF-AISEARCH | Azure AI Search (no Microsoft service guide; product articles), 37 items |
 | `waf-analytics-checklist.md` | WAF-ANALYTICS | Databricks, Event Hubs, Log Analytics and Fabric guidance, 74 items |
 | `waf-data-services-checklist.md` | WAF-DATA | SQL, SQL MI, Cosmos DB, PostgreSQL, MySQL, Managed Redis, HorizonDB, Blob Storage guidance, 104 items |
-| `wara-aprl-checklist.md` | WARA | Well-Architected Reliability Assessment items from the Azure Proactive Resiliency Library, 38 items (36 automated) |
+| `wara-aprl-checklist.md` | WARA | Well-Architected Reliability Assessment items from the Azure Proactive Resiliency Library, 38 items (37 automated) |
 | `advisor-recommendations.md` | ADVISOR | Azure Advisor recommendations by category and impact, 15 items |
 | `waf-saas-checklist.md` | WAF-SAAS | SaaS workload, 10 design areas, 108 items (Scout-derived) |
 | `ai-readiness-question-set.md` | AI-READINESS | AI Readiness, Microsoft's 7 pillars, 64 items (Scout-derived questions) |

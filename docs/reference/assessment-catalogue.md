@@ -5,8 +5,8 @@ description: Every CAF, WAF and specialised assessment Azure Scout performs, wit
 # Assessment Catalogue
 
 Azure Scout ships **66 assessments** backed by **65 rule files** holding
-**1732 rules**, of which **650 are evaluated automatically** and
-**1082 require manual confirmation**.
+**1732 rules**, of which **669 are evaluated automatically** and
+**1063 require manual confirmation**.
 
 Run one, several, or all of them:
 
@@ -39,7 +39,7 @@ feeds the answers back. See [Questionnaire Answers](../assessment/questionnaire-
 | Assessment | What it covers | Rules | Automated | Manual | Gov | Rule files |
 |---|---|--:|--:|--:|:-:|---|
 | **CAF: Azure billing and Microsoft Entra tenant** | CAF landing zone design area — Azure billing and Microsoft Entra ID tenant setup | 6 | 0 | 6 | **Gov** | `caf.billing` |
-| **CAF: Azure Landing Zone** | CAF/WAF landing zone audit (all areas) | 93 | 59 | 34 | **Gov** | `caf.billing`<br>`caf.identity`<br>`caf.network`<br>`caf.resourceorg`<br>`caf.security`<br>`caf.management`<br>`caf.governance`<br>`caf.platformauto`<br>`waf.cost`<br>`waf.operational`<br>`waf.performance`<br>`waf.reliability`<br>`waf.security`<br>`xr.crossresource` |
+| **CAF: Azure Landing Zone** | CAF/WAF landing zone audit (all areas) | 93 | 60 | 33 | **Gov** | `caf.billing`<br>`caf.identity`<br>`caf.network`<br>`caf.resourceorg`<br>`caf.security`<br>`caf.management`<br>`caf.governance`<br>`caf.platformauto`<br>`waf.cost`<br>`waf.operational`<br>`waf.performance`<br>`waf.reliability`<br>`waf.security`<br>`xr.crossresource` |
 | **CAF: Govern** | CAF Govern methodology -- 1-10 maturity score per risk category (regulatory compliance, security, cost, operations, data, resource management, AI) plus the governance process (team, risk register, policies, audits); radar + heatmap report. Replaces Microsoft's Cloud Governance assessment, retired January 2027 | 54 | 26 | 28 | **Gov** | `caf.govern.ai`<br>`caf.govern.cm`<br>`caf.govern.dg`<br>`caf.govern.op`<br>`caf.govern.proc`<br>`caf.govern.rc`<br>`caf.govern.rm`<br>`caf.govern.sc` |
 | **CAF: Governance** | CAF landing zone design area — Governance (policy & compliance) | 7 | 4 | 3 | **Gov** | `caf.governance` |
 | **CAF: Identity and access management** | CAF landing zone design area — Identity and access management | 7 | 4 | 3 | **Gov** | `caf.identity` |
@@ -54,20 +54,20 @@ feeds the answers back. See [Questionnaire Answers](../assessment/questionnaire-
 
 | Assessment | What it covers | Rules | Automated | Manual | Gov | Rule files |
 |---|---|--:|--:|--:|:-:|---|
-| **WAF: Analytics** | Analytics technology review (Well-Architected guides for Azure Databricks, Event Hubs, Log Analytics and Microsoft Fabric) -- 74 items across all 5 pillars; see docs/frameworks/waf-analytics-checklist.md | 74 | 16 | 58 | **Gov** | `waf.analytics` |
-| **WAF: Azure AI Search** | Azure AI Search technology review (no Microsoft service guide; Scout reading of the product reliability, security, cost and performance articles) -- 37 items across all 5 pillars; tier, replicas, public access, private endpoints, key authentication | 37 | 7 | 30 | **Gov** | `waf.aisearch` |
+| **WAF: Analytics** | Analytics technology review (Well-Architected guides for Azure Databricks, Event Hubs, Log Analytics and Microsoft Fabric) -- 74 items across all 5 pillars; see docs/frameworks/waf-analytics-checklist.md | 74 | 18 | 56 | **Gov** | `waf.analytics` |
+| **WAF: Azure AI Search** | Azure AI Search technology review (no Microsoft service guide; Scout reading of the product reliability, security, cost and performance articles) -- 37 items across all 5 pillars; tier, replicas, public access, private endpoints, key authentication | 37 | 8 | 29 | **Gov** | `waf.aisearch` |
 | **WAF: Azure Local** | Well-Architected Framework — Azure Local (platform 2311+ and Azure Local VMs) workload review | 33 | 7 | 26 | **Gov** | `waf.azurelocal.cost`<br>`waf.azurelocal.operational`<br>`waf.azurelocal.performance`<br>`waf.azurelocal.reliability`<br>`waf.azurelocal.security` |
-| **WAF: Azure Machine Learning** | Azure Machine Learning technology review (Well-Architected service guide) -- 44 items across all 5 pillars; workspace network isolation, public access, private endpoints, identity; see docs/frameworks/waf-machine-learning-checklist.md | 44 | 5 | 39 | **Gov** | `waf.machinelearning` |
+| **WAF: Azure Machine Learning** | Azure Machine Learning technology review (Well-Architected service guide) -- 44 items across all 5 pillars; workspace network isolation, public access, private endpoints, identity; see docs/frameworks/waf-machine-learning-checklist.md | 44 | 6 | 38 | **Gov** | `waf.machinelearning` |
 | **WAF: Cost Optimization** | Well-Architected Framework — Cost Optimization pillar only | 9 | 6 | 3 | **Gov** | `waf.cost` |
-| **WAF: Data Services** | Data Services technology review (Well-Architected guides for Azure SQL Database, SQL Managed Instance, Cosmos DB, PostgreSQL, MySQL, Azure Managed Redis, HorizonDB and Blob Storage) -- 104 items across all 5 pillars; see docs/frameworks/waf-data-services-checklist.md | 104 | 44 | 60 | **Gov** | `waf.dataservices` |
+| **WAF: Data Services** | Data Services technology review (Well-Architected guides for Azure SQL Database, SQL Managed Instance, Cosmos DB, PostgreSQL, MySQL, Azure Managed Redis, HorizonDB and Blob Storage) -- 104 items across all 5 pillars; see docs/frameworks/waf-data-services-checklist.md | 104 | 49 | 55 | **Gov** | `waf.dataservices` |
 | **WAF: Go-Live** | Go-live readiness review -- 57 launch-gate items from the five Well-Architected design review checklists (SLOs and DR, security baseline, monitoring and alerting, cost guardrails, safe deployment, performance). Microsoft publishes only a landing page for its Go-Live assessment, so this is Scout's own review, not comparable to it | 57 | 35 | 22 | **Gov** | `waf.golive` |
-| **WAF: Maturity Model** | Well-Architected Framework — maturity levels per pillar (same rules as the five WAF pillar assessments, different output framing) | 35 | 22 | 13 | **Gov** | `waf.reliability`<br>`waf.security`<br>`waf.cost`<br>`waf.operational`<br>`waf.performance` |
+| **WAF: Maturity Model** | Well-Architected Framework — maturity levels per pillar (same rules as the five WAF pillar assessments, different output framing) | 35 | 23 | 12 | **Gov** | `waf.reliability`<br>`waf.security`<br>`waf.cost`<br>`waf.operational`<br>`waf.performance` |
 | **WAF: Mission Critical** | Mission-critical workload review -- 81 items across the 8 design areas of Microsoft's mission-critical guidance (application design, platform, data platform, networking, health modeling, deployment and testing, security, operations); 41 scored from collected data, 40 questionnaire items. Scout's reading of the guidance; Microsoft does not publish the assessment's questions | 81 | 41 | 40 | **Gov** | `waf.missioncritical` |
 | **WAF: Operational Excellence** | Well-Architected Framework — Operational Excellence pillar only | 6 | 4 | 2 | **Gov** | `waf.operational` |
 | **WAF: Performance Efficiency** | Well-Architected Framework — Performance Efficiency pillar only | 6 | 4 | 2 | **Gov** | `waf.performance` |
-| **WAF: Reliability** | Well-Architected Framework — Reliability pillar only | 7 | 3 | 4 | **Gov** | `waf.reliability` |
+| **WAF: Reliability** | Well-Architected Framework — Reliability pillar only | 7 | 4 | 3 | **Gov** | `waf.reliability` |
 | **WAF: Security** | Well-Architected Framework — Security pillar only | 7 | 5 | 2 | **Gov** | `waf.security` |
-| **WAF: Service Guides** | Well-Architected Framework service guides -- 214 items (126 automated) from the Configuration recommendations of 20 Azure service guides: AKS, App Service, Functions, Container Apps, API Management, Service Bus, Event Grid, Firewall, Application Gateway, Load Balancer, Virtual Network, Virtual Machines and scale sets, Disk, Application Insights, Front Door, Traffic Manager, Virtual WAN, ExpressRoute, Files and NetApp Files. A guide is assessed only when the estate has that service; see docs/frameworks/waf-service-guides-checklist.md | 214 | 126 | 88 |  | `waf.serviceguides` |
+| **WAF: Service Guides** | Well-Architected Framework service guides -- 214 items (126 automated) from the Configuration recommendations of 20 Azure service guides: AKS, App Service, Functions, Container Apps, API Management, Service Bus, Event Grid, Firewall, Application Gateway, Load Balancer, Virtual Network, Virtual Machines and scale sets, Disk, Application Insights, Front Door, Traffic Manager, Virtual WAN, ExpressRoute, Files and NetApp Files. A guide is assessed only when the estate has that service; see docs/frameworks/waf-service-guides-checklist.md | 214 | 130 | 84 |  | `waf.serviceguides` |
 | **WAF: Sustainability** | Sustainability workload review -- 67 items from the five pillar sustainability recommendation pages and sustainable AI design; idle and orphaned resources, autoscale, edge protections and Advisor cost findings are scored, carbon and application-efficiency items are questionnaire items. Scout's reading of the guidance | 67 | 20 | 47 | **Gov** | `waf.sustainability` |
 
 ## Service category slices (18)
@@ -79,9 +79,9 @@ feeds the answers back. See [Questionnaire Answers](../assessment/questionnaire-
 | **Assess: Analytics** | Analytics data governance and network isolation | 5 | 3 | 2 |  | `caf.analytics` |
 | **Assess: AVD Workload** | AVD-on-Azure-Local workload review (Well-Architected Framework) -- 20 items across all 5 pillars; scoped to AVD deployed on Azure Local, not general Azure Virtual Desktop | 20 | 6 | 14 |  | `waf.avd` |
 | **Assess: Compliance** | Regulatory compliance — scores every Azure Policy regulatory-compliance initiative assigned in the scanned scope (MCSB, CIS, ISO 27001, NIST, PCI-DSS, ...) from compliance state Azure already evaluated | — | — | — |  | `compliance.initiative` |
-| **Assess: Compute** | VM resilience, zones, backup, right-size, orphans | 22 | 13 | 9 |  | `waf.reliability`<br>`waf.cost`<br>`waf.performance` |
+| **Assess: Compute** | VM resilience, zones, backup, right-size, orphans | 22 | 14 | 8 |  | `waf.reliability`<br>`waf.cost`<br>`waf.performance` |
 | **Assess: Containers** | AKS private clusters, RBAC, registry hardening | 8 | 7 | 1 |  | `caf.containers` |
-| **Assess: Databases** | SQL/DB private access, TDE, zone redundancy | 7 | 3 | 4 |  | `caf.databases` |
+| **Assess: Databases** | SQL/DB private access, TDE, zone redundancy | 7 | 4 | 3 |  | `caf.databases` |
 | **Assess: Hybrid** | Arc onboarding, agent currency, Azure Local | 6 | 4 | 2 |  | `caf.hybrid` |
 | **Assess: Identity** | Identity & access — PIM, Conditional Access, RBAC | 7 | 4 | 3 | **Gov** | `caf.identity` |
 | **Assess: Integration** | Messaging redundancy and APIM network isolation | 6 | 6 | 0 |  | `caf.integration` |
@@ -90,8 +90,8 @@ feeds the answers back. See [Questionnaire Answers](../assessment/questionnaire-
 | **Assess: Monitor** | Monitoring, alerting, diagnostics coverage | 12 | 9 | 3 |  | `caf.management`<br>`waf.operational` |
 | **Assess: Networking** | Network topology, firewall, DDoS, exposure, private link | 7 | 6 | 1 |  | `caf.network` |
 | **Assess: Security** | Defender, Key Vault, secure score, exposure | 14 | 11 | 3 |  | `caf.security`<br>`waf.security` |
-| **Assess: Storage** | Storage public access, TLS, encryption, redundancy | 6 | 4 | 2 |  | `caf.storage` |
-| **Assess: Web** | App Service HTTPS-only, TLS, managed identity | 6 | 4 | 2 |  | `caf.web` |
+| **Assess: Storage** | Storage public access, TLS, encryption, redundancy | 6 | 5 | 1 |  | `caf.storage` |
+| **Assess: Web** | App Service HTTPS-only, TLS, managed identity | 6 | 5 | 1 |  | `caf.web` |
 
 ## Specialised and workload assessments (22)
 
@@ -107,13 +107,13 @@ feeds the answers back. See [Questionnaire Answers](../assessment/questionnaire-
 | **Microsoft: GenAIOps Maturity** | GenAIOps Maturity Model Assessment -- 30 Scout-derived items (28 questionnaire items, 2 automated checks): four maturity levels (initial, defined, managed, optimized) across seven dimensions. Scout reports the share of statements met per dimension and does not reproduce Microsoft's 0-28 points | 30 | 2 | 28 | **Gov** | `genaiops.maturity` |
 | **Microsoft: Generative AI Technical** | Technical Assessment for Generative AI in Azure -- 50 Scout-derived items (40 questionnaire items, 10 automated checks): team skills, solution design, grounding data, security, responsible AI, reliability, operations and cost. Microsoft does not publish the questions; items are Scout's reading of the WAF AI workload and Microsoft Foundry guidance | 50 | 10 | 40 | **Gov** | `genai.technical` |
 | **Microsoft: Platform Engineering** | Platform Engineering Technical Assessment -- Microsoft's Platform Engineering Capability Model (investment, adoption, governance, provisioning and management, interfaces, measurement and feedback), 36 items; Scout-derived questions (Microsoft does not publish the text). 30 are questionnaire items; 6 read Azure Policy, role assignments, budgets, deployment records and Azure DevOps pipelines | 36 | 6 | 30 | **Gov** | `platform.engineering` |
-| **Microsoft: Well-Architected Reliability Assessment** | Well-Architected Reliability Assessment (WARA) from the data Scout already collected, backed by the Azure Proactive Resiliency Library (APRL) -- 38 items (36 automated) across compute, containers, web, databases, storage, backup, networking and integration: zones, redundancy SKUs, backup coverage, Key Vault protection, gateway and load-balancer SKUs | 38 | 36 | 2 |  | `wara.reliability` |
+| **Microsoft: Well-Architected Reliability Assessment** | Well-Architected Reliability Assessment (WARA) from the data Scout already collected, backed by the Azure Proactive Resiliency Library (APRL) -- 38 items (36 automated) across compute, containers, web, databases, storage, backup, networking and integration: zones, redundancy SKUs, backup coverage, Key Vault protection, gateway and load-balancer SKUs | 38 | 37 | 1 |  | `wara.reliability` |
 | **Scout: Cost Optimization** | Cost / TCO data pull | 9 | 6 | 3 |  | `waf.cost` |
 | **Scout: Cross-Resource** | Findings that require two collected datasets correlated | 6 | 6 | 0 |  | `xr.crossresource` |
 | **Scout: Governance Baseline** | Management sub-bundle — policy assignments, locks, budgets | 7 | 4 | 3 | **Gov** | `caf.governance` |
 | **Scout: Monitoring Baseline** | Monitor sub-bundle (subset of "Assess: Monitor") — diagnostic settings coverage only | 6 | 4 | 2 |  | `waf.operational` |
 | **Scout: Update Manager** | Management sub-bundle (subset of "Assess: Management") — patch/update compliance only | 6 | 5 | 1 |  | `caf.management` |
-| **Workload: AVD** | Azure Virtual Desktop workload review (AVD in Azure) -- 30 items across all 5 WAF pillars from Microsoft's current AVD guidance; host pools, session hosts, scaling plans, workspaces, private endpoints and session-host VMs | 30 | 15 | 15 |  | `waf.avd.azure` |
+| **Workload: AVD** | Azure Virtual Desktop workload review (AVD in Azure) -- 30 items across all 5 WAF pillars from Microsoft's current AVD guidance; host pools, session hosts, scaling plans, workspaces, private endpoints and session-host VMs | 30 | 16 | 14 |  | `waf.avd.azure` |
 | **Workload: AVS** | Azure VMware Solution workload — Reliability, Security, and Governance coverage (no published WAF pillar service guide exists for AVS; see docs/frameworks/waf-avs-workload-checklist.md) | 26 | 8 | 18 | **Gov** | `avs.workload` |
 | **Workload: AVS Landing Zone** | Azure VMware Solution Landing Zone Assessment Review — platform readiness (see docs/frameworks/avs-landing-zone-question-set.md) | 25 | 9 | 16 | **Gov** | `caf.avslandingzone` |
 | **Workload: Oracle on Azure IaaS** | Oracle on Azure IaaS workload review -- 34 items across all 5 WAF pillars from Microsoft's Oracle on Azure VM guidance; automated checks cover VMs built from Oracle Marketplace images, the rest is answered through the questionnaire. Not Oracle Database@Azure | 34 | 9 | 25 |  | `waf.oracle` |
@@ -136,7 +136,7 @@ Each file declares one framework area. An assessment selects files by glob.
 | `caf.avslandingzone` | 25 | 9 | 16 |
 | `caf.billing` | 6 | 0 | 6 |
 | `caf.containers` | 8 | 7 | 1 |
-| `caf.databases` | 7 | 3 | 4 |
+| `caf.databases` | 7 | 4 | 3 |
 | `caf.govern.ai` | 4 | 2 | 2 |
 | `caf.govern.cm` | 8 | 5 | 3 |
 | `caf.govern.dg` | 6 | 4 | 2 |
@@ -155,8 +155,8 @@ Each file declares one framework area. An assessment selects files by glob.
 | `caf.platformauto` | 6 | 2 | 4 |
 | `caf.resourceorg` | 6 | 4 | 2 |
 | `caf.security` | 7 | 6 | 1 |
-| `caf.storage` | 6 | 4 | 2 |
-| `caf.web` | 6 | 4 | 2 |
+| `caf.storage` | 6 | 5 | 1 |
+| `caf.web` | 6 | 5 | 1 |
 | `casa.security` | 31 | 12 | 19 |
 | `compliance.initiative` | 0 | 0 | 0 |
 | `devops.capability` | 18 | 9 | 9 |
@@ -166,32 +166,32 @@ Each file declares one framework area. An assessment selects files by glob.
 | `platform.engineering` | 36 | 6 | 30 |
 | `smart.migration` | 49 | 18 | 31 |
 | `waf.ai` | 63 | 9 | 54 |
-| `waf.aisearch` | 37 | 7 | 30 |
-| `waf.analytics` | 74 | 16 | 58 |
+| `waf.aisearch` | 37 | 8 | 29 |
+| `waf.analytics` | 74 | 18 | 56 |
 | `waf.avd` | 20 | 6 | 14 |
-| `waf.avd.azure` | 30 | 15 | 15 |
+| `waf.avd.azure` | 30 | 16 | 14 |
 | `waf.azurelocal.cost` | 6 | 2 | 4 |
 | `waf.azurelocal.operational` | 6 | 4 | 2 |
 | `waf.azurelocal.performance` | 6 | 0 | 6 |
 | `waf.azurelocal.reliability` | 6 | 1 | 5 |
 | `waf.azurelocal.security` | 9 | 0 | 9 |
 | `waf.cost` | 9 | 6 | 3 |
-| `waf.dataservices` | 104 | 44 | 60 |
+| `waf.dataservices` | 104 | 49 | 55 |
 | `waf.golive` | 57 | 35 | 22 |
-| `waf.machinelearning` | 44 | 5 | 39 |
+| `waf.machinelearning` | 44 | 6 | 38 |
 | `waf.missioncritical` | 81 | 41 | 40 |
 | `waf.operational` | 6 | 4 | 2 |
 | `waf.oracle` | 34 | 9 | 25 |
 | `waf.performance` | 6 | 4 | 2 |
-| `waf.reliability` | 7 | 3 | 4 |
+| `waf.reliability` | 7 | 4 | 3 |
 | `waf.saas` | 108 | 13 | 95 |
 | `waf.sap` | 38 | 14 | 24 |
 | `waf.security` | 7 | 5 | 2 |
-| `waf.serviceguides` | 214 | 126 | 88 |
+| `waf.serviceguides` | 214 | 130 | 84 |
 | `waf.sustainability` | 67 | 20 | 47 |
-| `wara.reliability` | 38 | 36 | 2 |
+| `wara.reliability` | 38 | 37 | 1 |
 | `xr.crossresource` | 6 | 6 | 0 |
 
-**Total — 65 files, 1732 rules, 650 automated, 1082 manual.**
+**Total — 65 files, 1732 rules, 669 automated, 1063 manual.**
 
 

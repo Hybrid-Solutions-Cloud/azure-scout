@@ -66,10 +66,10 @@ BeforeAll {
 Describe 'Technology review rule files' {
     BeforeAll {
         $script:Reviews = @(
-            @{ File = 'waf.machinelearning'; Framework = 'WAF-ML'; Doc = 'waf-machine-learning-checklist.md'; Rules = 44; Auto = 5 }
-            @{ File = 'waf.aisearch'; Framework = 'WAF-AISEARCH'; Doc = 'waf-ai-search-checklist.md'; Rules = 37; Auto = 7 }
-            @{ File = 'waf.analytics'; Framework = 'WAF-ANALYTICS'; Doc = 'waf-analytics-checklist.md'; Rules = 74; Auto = 16 }
-            @{ File = 'waf.dataservices'; Framework = 'WAF-DATA'; Doc = 'waf-data-services-checklist.md'; Rules = 104; Auto = 44 }
+            @{ File = 'waf.machinelearning'; Framework = 'WAF-ML'; Doc = 'waf-machine-learning-checklist.md'; Rules = 44; Auto = 6 }
+            @{ File = 'waf.aisearch'; Framework = 'WAF-AISEARCH'; Doc = 'waf-ai-search-checklist.md'; Rules = 37; Auto = 8 }
+            @{ File = 'waf.analytics'; Framework = 'WAF-ANALYTICS'; Doc = 'waf-analytics-checklist.md'; Rules = 74; Auto = 18 }
+            @{ File = 'waf.dataservices'; Framework = 'WAF-DATA'; Doc = 'waf-data-services-checklist.md'; Rules = 104; Auto = 49 }
         )
     }
 
@@ -89,10 +89,10 @@ Describe 'Technology review rule files' {
     }
 
     It '<File> declares framework <Framework>, a version and the number of automated rules <Auto>' -ForEach @(
-        @{ File = 'waf.machinelearning'; Framework = 'WAF-ML'; Auto = 5 }
-        @{ File = 'waf.aisearch'; Framework = 'WAF-AISEARCH'; Auto = 7 }
-        @{ File = 'waf.analytics'; Framework = 'WAF-ANALYTICS'; Auto = 16 }
-        @{ File = 'waf.dataservices'; Framework = 'WAF-DATA'; Auto = 44 }
+        @{ File = 'waf.machinelearning'; Framework = 'WAF-ML'; Auto = 6 }
+        @{ File = 'waf.aisearch'; Framework = 'WAF-AISEARCH'; Auto = 8 }
+        @{ File = 'waf.analytics'; Framework = 'WAF-ANALYTICS'; Auto = 18 }
+        @{ File = 'waf.dataservices'; Framework = 'WAF-DATA'; Auto = 49 }
     ) {
         $set = & $script:Module { param($f) Get-RuleSet -Patterns $f } $File
         $set.Framework | Should -Be $Framework
@@ -418,7 +418,7 @@ Describe 'Technology review: Analytics' {
     }
 
     It 'keeps the capacity and workspace-tier judgement items Manual with their evidence attached' {
-        foreach ($id in 'WAF-ANALYTICS-RE-07', 'WAF-ANALYTICS-RE-08', 'WAF-ANALYTICS-CO-07', 'WAF-ANALYTICS-PE-04') {
+        foreach ($id in 'WAF-ANALYTICS-RE-08', 'WAF-ANALYTICS-CO-07', 'WAF-ANALYTICS-PE-04') {
             $script:AnBad[$id].Status | Should -Be 'Manual'
             $script:AnBad[$id].EvidenceCount | Should -Be 3
         }
@@ -529,6 +529,27 @@ Describe 'Technology review: Data Services' {
                 $stos += & $stoRow 'sto4' 'BlobStorage' 'Standard_LRS' $false $true 'TLS1_1' $true $true 'Microsoft.Storage' 'Enabled'
             }
 
+            # ---- phase 4 batch 2 per-resource ARM reads, each with its Measured flag ----
+            # Blob service: sto has every protection off, sto2 has soft delete but no versioning or restore, sto3 is protected.
+            $blobRow = {
+                param($Name, $Delete, $Container, $Versioning, $Pitr)
+                [ordered]@{ storageAccountId = (& $id "Microsoft.Storage/storageAccounts/$Name").ToLowerInvariant(); name = $Name; resourceGroup = 'rg'; subscriptionId = 's'; location = 'x'
+                    deleteRetentionEnabled = $Delete; deleteRetentionDays = $(if ($Delete) { 14 } else { $null }); containerDeleteRetentionEnabled = $Container; containerDeleteRetentionDays = $(if ($Container) { 14 } else { $null })
+                    versioningEnabled = $Versioning; changeFeedEnabled = $Pitr; pointInTimeRestoreEnabled = $Pitr }
+            }
+            $blobs = @($(if ($Compliant) { & $blobRow 'sto' $true $true $true $true } else { & $blobRow 'sto' $false $false $false $false }))
+            if (-not $Compliant) { $blobs += (& $blobRow 'sto2' $true $true $false $false), (& $blobRow 'sto3' $true $true $true $true) }
+            # SQL auditing and failover groups, one row per server: srv is Disabled with no group, srv2 has an unreadable state and no group, srv3 is audited and in two groups.
+            $auditRow = { param($Name, $State) [ordered]@{ sqlServerId = (& $id "Microsoft.Sql/servers/$Name").ToLowerInvariant(); name = $Name; resourceGroup = 'rg'; subscriptionId = 's'; location = 'x'; auditingState = $State; azureMonitorTargetEnabled = ($State -eq 'Enabled') } }
+            $fogRow = { param($Name, $Count) [ordered]@{ sqlServerId = (& $id "Microsoft.Sql/servers/$Name").ToLowerInvariant(); name = $Name; resourceGroup = 'rg'; subscriptionId = 's'; location = 'x'; failoverGroupCount = $Count; automaticFailoverGroupCount = $Count; hasAutomaticFailover = ($Count -gt 0); failoverPolicies = @(if ($Count -gt 0) { 'Automatic' }) } }
+            $audits = @($(if ($Compliant) { & $auditRow 'srv' 'Enabled' } else { & $auditRow 'srv' 'Disabled' }))
+            $fogs = @($(if ($Compliant) { & $fogRow 'srv' 1 } else { & $fogRow 'srv' 0 }))
+            if (-not $Compliant) { $audits += (& $auditRow 'srv2' $null), (& $auditRow 'srv3' 'Enabled'); $fogs += (& $fogRow 'srv2' 0), (& $fogRow 'srv3' 2) }
+            # Redis Enterprise databases: the cluster `red` has the default database, with keys and plaintext allowed on the bad estate.
+            $redDbs = @([ordered]@{ redisEnterpriseId = (& $id 'Microsoft.Cache/red').ToLowerInvariant(); name = 'default'; clusterName = 'red'; resourceGroup = 'rg'; subscriptionId = 's'; location = 'x'
+                    accessKeysAuthentication = $(if ($Compliant) { 'Disabled' } else { 'Enabled' }); clientProtocol = $(if ($Compliant) { 'Encrypted' } else { 'Plaintext' })
+                    persistenceAofEnabled = $false; persistenceAofFrequency = $null; persistenceRdbEnabled = $Compliant; persistenceRdbFrequency = $null; geoReplicationLinkCount = 0 })
+
             $pe = @()
             if ($Compliant) { $pe = @((Get-TestPrivateEndpoint $srv.id), (Get-TestPrivateEndpoint $cos.id), (Get-TestPrivateEndpoint $reds[0].id), (Get-TestPrivateEndpoint $reds[1].id), (Get-TestPrivateEndpoint $sto.id)) }
             else { $pe = @((Get-TestPrivateEndpoint $srv2.id), (Get-TestPrivateEndpoint $srv3.id)) }
@@ -545,8 +566,14 @@ Describe 'Technology review: Data Services' {
                         postgreSqlFlexibleServers = $pgs
                         mySqlFlexibleServers      = $mys
                         redisCaches               = $reds
+                        sqlServerAuditingMeasured = $true
+                        sqlServerAuditing         = $audits
+                        sqlFailoverGroupsMeasured = $true
+                        sqlFailoverGroups         = $fogs
+                        redisEnterpriseDatabasesMeasured = $true
+                        redisEnterpriseDatabases  = $redDbs
                     }
-                    storage   = [ordered]@{ storageAccounts = $stos }
+                    storage   = [ordered]@{ storageAccounts = $stos; blobServicePropertiesMeasured = $true; blobServiceProperties = $blobs }
                     security  = [ordered]@{ keyVaults = @() }
                 }
                 networking = [ordered]@{ privateEndpoints = @($pe) }
@@ -558,7 +585,7 @@ Describe 'Technology review: Data Services' {
                 opsPosture = [ordered]@{
                     diagnosticCoverageMeasured = $true
                     diagnosticCoverage         = @(
-                        foreach ($t in 'microsoft.sql/servers/databases', 'microsoft.documentdb/databaseaccounts', 'microsoft.dbforpostgresql/flexibleservers', 'microsoft.dbformysql/flexibleservers', 'microsoft.storage/storageaccounts') {
+                        foreach ($t in 'microsoft.sql/servers/databases', 'microsoft.documentdb/databaseaccounts', 'microsoft.dbforpostgresql/flexibleservers', 'microsoft.dbformysql/flexibleservers', 'microsoft.storage/storageaccounts', 'microsoft.sql/managedinstances', 'microsoft.cache/redis', 'microsoft.cache/redisenterprise') {
                             [ordered]@{ type = $t; total = 1; withDiag = [int]($cov / 100); coveragePct = $cov }
                         }
                     )
@@ -596,6 +623,10 @@ Describe 'Technology review: Data Services' {
         @{ Id = 'WAF-DATA-BLOB-05' }
         @{ Id = 'WAF-DATA-BLOB-09' }
         @{ Id = 'WAF-DATA-BLOB-12' }
+        @{ Id = 'WAF-DATA-SQL-02' }    # no failover group
+        @{ Id = 'WAF-DATA-SQL-11' }    # auditing not enabled
+        @{ Id = 'WAF-DATA-MI-08' }     # managed instance with no diagnostic setting
+        @{ Id = 'WAF-DATA-RED-08' }    # classic and Enterprise Redis with no diagnostic setting
     ) {
         $script:DtBad[$Id].Status | Should -Be 'Fail'
         $script:DtGood[$Id].Status | Should -Be 'Pass'
@@ -620,12 +651,17 @@ Describe 'Technology review: Data Services' {
         @{ Id = 'WAF-DATA-PG-04'; Count = 2 }      # pg (Disabled) and pg2 (null)
         @{ Id = 'WAF-DATA-MYS-01'; Count = 2 }     # my (Disabled) and my2 (empty); my3 is SameZone
         @{ Id = 'WAF-DATA-RED-01'; Count = 2 }     # red (HA Disabled) and redc (Basic); redc2 is Standard
-        @{ Id = 'WAF-DATA-RED-06'; Count = 2 }     # redc (null) and redc2 (false); the Enterprise cache is skipped
-        @{ Id = 'WAF-DATA-RED-07'; Count = 2 }     # redc (non-TLS port, 1.0) and redc2 (1.1)
+        @{ Id = 'WAF-DATA-RED-06'; Count = 2 }     # redc2 (classic, keys on) and the Enterprise default database (keys Enabled); redc (null flag) is not scored and the cluster row never matches
+        @{ Id = 'WAF-DATA-RED-07'; Count = 3 }     # redc (non-TLS port, 1.0), redc2 (1.1) and the Enterprise default database (Plaintext)
         @{ Id = 'WAF-DATA-BLOB-03'; Count = 3 }    # sto (TLS1_0), sto2 (empty: absent means 1.0), sto4 (TLS1_1)
         @{ Id = 'WAF-DATA-BLOB-06'; Count = 3 }    # sto (true), sto2 (null: absent means allowed), sto4 (true)
         @{ Id = 'WAF-DATA-BLOB-15'; Count = 3 }    # sto (Enabled), sto2 (empty), sto4 (Enabled); sto3 is perimeter
         @{ Id = 'WAF-DATA-BLOB-16'; Count = 3 }    # Storage, StorageV1 and BlobStorage
+        @{ Id = 'WAF-DATA-SQL-02'; Count = 2 }     # srv and srv2 have no failover group; srv3 has two
+        @{ Id = 'WAF-DATA-SQL-11'; Count = 2 }     # srv (Disabled) and srv2 (unreadable state); srv3 is Enabled
+        @{ Id = 'WAF-DATA-BLOB-10'; Count = 2 }    # sto (everything off) and sto2 (no versioning or restore); sto3 is protected
+        @{ Id = 'WAF-DATA-MI-08'; Count = 1 }      # the managed-instance coverage row at 0 percent
+        @{ Id = 'WAF-DATA-RED-08'; Count = 2 }     # the classic and the Enterprise coverage rows at 0 percent
     ) {
         $script:DtBad[$Id].Status | Should -Be 'Fail'
         $script:DtBad[$Id].EvidenceCount | Should -Be $Count
@@ -653,10 +689,11 @@ Describe 'Technology review: Data Services' {
     }
 
     It 'keeps the items ARM cannot answer Manual, with their evidence attached' {
-        foreach ($id in 'WAF-DATA-SQL-02', 'WAF-DATA-SQL-18', 'WAF-DATA-COS-17', 'WAF-DATA-PG-09', 'WAF-DATA-MYS-08', 'WAF-DATA-RED-09', 'WAF-DATA-BLOB-14') {
+        foreach ($id in 'WAF-DATA-RED-02', 'WAF-DATA-SQL-18', 'WAF-DATA-COS-17', 'WAF-DATA-PG-09', 'WAF-DATA-MYS-08', 'WAF-DATA-RED-09', 'WAF-DATA-BLOB-14') {
             $script:DtBad[$id].Status | Should -Be 'Manual' -Because "$id needs a human"
         }
         $script:DtBad['WAF-DATA-COS-17'].EvidenceCount | Should -Be 4
+        $script:DtBad['WAF-DATA-RED-02'].EvidenceCount | Should -Be 1   # the Enterprise databases are attached with persistence and link counts
         $script:DtBad['WAF-DATA-MYS-08'].EvidenceCount | Should -Be 3
         $script:DtBad['WAF-DATA-RED-09'].EvidenceCount | Should -Be 3
         $script:DtBad['WAF-DATA-BLOB-14'].EvidenceCount | Should -Be 4
@@ -726,7 +763,8 @@ Describe 'Technology review: settings where an absent value is itself the findin
         @{ Case = 'COS-08 passes public access limited by an IP rule'; Pattern = 'waf.dataservices'; Id = 'WAF-DATA-COS-08'; Path = 'domains.databases.cosmosDbAccounts'; Row = @{ publicNetworkAccess = 'Enabled'; vnetFilterEnabled = $false; ipRuleCount = 2 }; Status = 'Pass'; Count = 0 }
         @{ Case = 'COS-11 lists a null key flag'; Pattern = 'waf.dataservices'; Id = 'WAF-DATA-COS-11'; Path = 'domains.databases.cosmosDbAccounts'; Row = @{ cmkEnabled = $null }; Status = 'Manual'; Count = 1 }
         # ---- Redis: the classic-only access-key rule ----
-        @{ Case = 'RED-06 flags a classic cache with a null access-key flag'; Pattern = 'waf.dataservices'; Id = 'WAF-DATA-RED-06'; Path = 'domains.databases.redisCaches'; Row = @{ accessKeyAuthDisabled = $null }; Status = 'Fail'; Count = 1 }
+        @{ Case = 'RED-06 flags a classic cache whose access-key flag is explicitly false'; Pattern = 'waf.dataservices'; Id = 'WAF-DATA-RED-06'; Path = 'domains.databases.redisCaches'; Row = @{ accessKeyAuthDisabled = $false }; Status = 'Fail'; Count = 1 }
+        @{ Case = 'RED-06 does not score a classic cache that returned no access-key flag (null)'; Pattern = 'waf.dataservices'; Id = 'WAF-DATA-RED-06'; Path = 'domains.databases.redisCaches'; Row = @{ accessKeyAuthDisabled = $null }; Status = 'Pass'; Count = 0 }
         @{ Case = 'RED-06 is not assessed when only Redis Enterprise caches exist'; Pattern = 'waf.dataservices'; Id = 'WAF-DATA-RED-06'; Path = 'domains.databases.redisCaches'; Row = @{ type = 'microsoft.cache/redisenterprise'; accessKeyAuthDisabled = $null }; Status = 'NotAssessed'; Count = 0 }
         @{ Case = 'RED-07 does not flag an absent TLS version'; Pattern = 'waf.dataservices'; Id = 'WAF-DATA-RED-07'; Path = 'domains.databases.redisCaches'; Row = @{ minimumTlsVersion = '' }; Status = 'Pass'; Count = 0 }
         @{ Case = 'RED-07 flags the non-TLS port'; Pattern = 'waf.dataservices'; Id = 'WAF-DATA-RED-07'; Path = 'domains.databases.redisCaches'; Row = @{ nonSslPortEnabled = $true }; Status = 'Fail'; Count = 1 }
@@ -798,10 +836,10 @@ Describe 'Technology reviews on an estate with none of the resources' {
     }
 
     It '<File> reports every automated rule NotAssessed and never Pass, Fail or Error' -ForEach @(
-        @{ File = 'waf.machinelearning'; Auto = 5 }
-        @{ File = 'waf.aisearch'; Auto = 7 }
-        @{ File = 'waf.analytics'; Auto = 16 }
-        @{ File = 'waf.dataservices'; Auto = 44 }
+        @{ File = 'waf.machinelearning'; Auto = 6 }
+        @{ File = 'waf.aisearch'; Auto = 8 }
+        @{ File = 'waf.analytics'; Auto = 18 }
+        @{ File = 'waf.dataservices'; Auto = 49 }
     ) {
         $findings = $script:Empty[$File]
         @($findings | Where-Object { $_.Status -in 'Pass', 'Fail', 'Partial', 'Error' }).Count | Should -Be 0
@@ -809,11 +847,102 @@ Describe 'Technology reviews on an estate with none of the resources' {
     }
 
     It '<File> returns every other rule as Manual' -ForEach @(
-        @{ File = 'waf.machinelearning'; Manual = 39 }
-        @{ File = 'waf.aisearch'; Manual = 30 }
-        @{ File = 'waf.analytics'; Manual = 58 }
-        @{ File = 'waf.dataservices'; Manual = 60 }
+        @{ File = 'waf.machinelearning'; Manual = 38 }
+        @{ File = 'waf.aisearch'; Manual = 29 }
+        @{ File = 'waf.analytics'; Manual = 56 }
+        @{ File = 'waf.dataservices'; Manual = 55 }
     ) {
         @($script:Empty[$File] | Where-Object Status -eq 'Manual').Count | Should -Be $Manual
+    }
+}
+
+Describe 'Technology review: per-resource ARM reads and diagnostic coverage (phase 4 batch 2)' {
+    BeforeAll {
+        $p = $script:P
+        # Build a collect object from dotted-path datasets. Every dataset the rule gates on carries its
+        # sibling <name>Measured flag, set from -Flags, exactly as the collect pipeline shapes it.
+        function New-TestCollect {
+            param([hashtable] $Data, [hashtable] $Flags = @{})
+            $root = [ordered]@{}
+            foreach ($entry in @($Data.GetEnumerator()) + @($Flags.GetEnumerator())) {
+                $segments = @($entry.Key -split '\.')
+                $cursor = $root
+                for ($i = 0; $i -lt $segments.Count - 1; $i++) {
+                    if (-not $cursor.Contains($segments[$i])) { $cursor[$segments[$i]] = [ordered]@{} }
+                    $cursor = $cursor[$segments[$i]]
+                }
+                $cursor[$segments[-1]] = $entry.Value
+            }
+            $root
+        }
+        function Get-Coverage { param([string] $Type, [double] $Pct) [ordered]@{ type = $Type; total = 2; withDiag = [int]($Pct / 50); coveragePct = $Pct } }
+        $script:Sa = "$p/Microsoft.Storage/storageAccounts/edge".ToLowerInvariant()
+        $script:Sql = "$p/Microsoft.Sql/servers/edge".ToLowerInvariant()
+        $script:Eh = "$p/Microsoft.EventHub/namespaces/edge"
+        $script:Red = "$p/Microsoft.Cache/redisEnterprise/edge"
+        function New-BlobRow { param([hashtable] $Over = @{}) $r = [ordered]@{ storageAccountId = $script:Sa; name = 'edge'; deleteRetentionEnabled = $true; deleteRetentionDays = 14; containerDeleteRetentionEnabled = $true; containerDeleteRetentionDays = 14; versioningEnabled = $true; changeFeedEnabled = $true; pointInTimeRestoreEnabled = $true }; foreach ($k in $Over.Keys) { $r[$k] = $Over[$k] }; $r }
+        function New-ClassicCache { param($KeyAuthOff) [ordered]@{ id = "$p/Microsoft.Cache/Redis/classic"; name = 'classic'; type = 'microsoft.cache/redis'; sku = 'Premium'; publicNetworkAccess = 'Disabled'; minimumTlsVersion = '1.2'; nonSslPortEnabled = $false; accessKeyAuthDisabled = $KeyAuthOff; highAvailability = '' } }
+        function New-EnterpriseCache { [ordered]@{ id = $script:Red; name = 'edge'; type = 'microsoft.cache/redisenterprise'; sku = 'Balanced_B5'; publicNetworkAccess = 'Disabled'; minimumTlsVersion = '1.2'; nonSslPortEnabled = $null; accessKeyAuthDisabled = $null; highAvailability = 'Enabled' } }
+        function New-RedisDb { param($Keys, $Protocol) [ordered]@{ redisEnterpriseId = $script:Red.ToLowerInvariant(); name = 'default'; clusterName = 'edge'; accessKeysAuthentication = $Keys; clientProtocol = $Protocol; persistenceAofEnabled = $false; persistenceRdbEnabled = $false; geoReplicationLinkCount = 0 } }
+        function New-EhNamespace { param($Geo, $Id = $script:Eh) [ordered]@{ id = $Id; name = 'edge'; zoneRedundant = $true; geoReplicaCount = $Geo; skuName = 'Premium' } }
+        function New-GeoDr { param($Configured, $Id = $script:Eh.ToLowerInvariant()) [ordered]@{ eventHubNamespaceId = $Id; name = 'edge'; geoDrConfigured = $Configured } }
+    }
+
+    It '<Case>' -ForEach @(
+        # ---- WAF-DATA-BLOB-10: blob service data protection ----
+        @{ Case = 'BLOB-10 passes an account with all four protections on'; Id = 'WAF-DATA-BLOB-10'; Pattern = 'waf.dataservices'; Status = 'Pass'; Count = 0; Build = { New-TestCollect @{ 'domains.storage.blobServiceProperties' = @(New-BlobRow) } @{ 'domains.storage.blobServicePropertiesMeasured' = $true } } }
+        @{ Case = 'BLOB-10 flags blob soft delete off'; Id = 'WAF-DATA-BLOB-10'; Pattern = 'waf.dataservices'; Status = 'Fail'; Count = 1; Build = { New-TestCollect @{ 'domains.storage.blobServiceProperties' = @(New-BlobRow @{ deleteRetentionEnabled = $false; deleteRetentionDays = $null }) } @{ 'domains.storage.blobServicePropertiesMeasured' = $true } } }
+        @{ Case = 'BLOB-10 flags container soft delete off'; Id = 'WAF-DATA-BLOB-10'; Pattern = 'waf.dataservices'; Status = 'Fail'; Count = 1; Build = { New-TestCollect @{ 'domains.storage.blobServiceProperties' = @(New-BlobRow @{ containerDeleteRetentionEnabled = $false }) } @{ 'domains.storage.blobServicePropertiesMeasured' = $true } } }
+        @{ Case = 'BLOB-10 flags versioning off'; Id = 'WAF-DATA-BLOB-10'; Pattern = 'waf.dataservices'; Status = 'Fail'; Count = 1; Build = { New-TestCollect @{ 'domains.storage.blobServiceProperties' = @(New-BlobRow @{ versioningEnabled = $false }) } @{ 'domains.storage.blobServicePropertiesMeasured' = $true } } }
+        @{ Case = 'BLOB-10 flags point-in-time restore off'; Id = 'WAF-DATA-BLOB-10'; Pattern = 'waf.dataservices'; Status = 'Fail'; Count = 1; Build = { New-TestCollect @{ 'domains.storage.blobServiceProperties' = @(New-BlobRow @{ pointInTimeRestoreEnabled = $false }) } @{ 'domains.storage.blobServicePropertiesMeasured' = $true } } }
+        @{ Case = 'BLOB-10 is NotAssessed, never Pass, when the blob service was never read'; Id = 'WAF-DATA-BLOB-10'; Pattern = 'waf.dataservices'; Status = 'NotAssessed'; Count = 0; Build = { New-TestCollect @{ 'domains.storage.blobServiceProperties' = @() } @{ 'domains.storage.blobServicePropertiesMeasured' = $false } } }
+        @{ Case = 'BLOB-10 is NotAssessed when rows exist but the Measured flag is false'; Id = 'WAF-DATA-BLOB-10'; Pattern = 'waf.dataservices'; Status = 'NotAssessed'; Count = 0; Build = { New-TestCollect @{ 'domains.storage.blobServiceProperties' = @(New-BlobRow @{ versioningEnabled = $false }) } @{ 'domains.storage.blobServicePropertiesMeasured' = $false } } }
+        @{ Case = 'BLOB-10 passes when the read answered but no account had a blob service'; Id = 'WAF-DATA-BLOB-10'; Pattern = 'waf.dataservices'; Status = 'Pass'; Count = 0; Build = { New-TestCollect @{ 'domains.storage.blobServiceProperties' = @() } @{ 'domains.storage.blobServicePropertiesMeasured' = $true } } }
+        # ---- WAF-DATA-SQL-02: failover groups ----
+        @{ Case = 'SQL-02 flags a server with no failover group'; Id = 'WAF-DATA-SQL-02'; Pattern = 'waf.dataservices'; Status = 'Fail'; Count = 1; Build = { New-TestCollect @{ 'domains.databases.sqlFailoverGroups' = @([ordered]@{ sqlServerId = $script:Sql; name = 'edge'; failoverGroupCount = 0; automaticFailoverGroupCount = 0; hasAutomaticFailover = $false }) } @{ 'domains.databases.sqlFailoverGroupsMeasured' = $true } } }
+        @{ Case = 'SQL-02 passes a server in a failover group'; Id = 'WAF-DATA-SQL-02'; Pattern = 'waf.dataservices'; Status = 'Pass'; Count = 0; Build = { New-TestCollect @{ 'domains.databases.sqlFailoverGroups' = @([ordered]@{ sqlServerId = $script:Sql; name = 'edge'; failoverGroupCount = 1; automaticFailoverGroupCount = 0; hasAutomaticFailover = $false }) } @{ 'domains.databases.sqlFailoverGroupsMeasured' = $true } } }
+        @{ Case = 'SQL-02 is NotAssessed when the failover groups were never read'; Id = 'WAF-DATA-SQL-02'; Pattern = 'waf.dataservices'; Status = 'NotAssessed'; Count = 0; Build = { New-TestCollect @{ 'domains.databases.sqlFailoverGroups' = @() } @{ 'domains.databases.sqlFailoverGroupsMeasured' = $false } } }
+        # ---- WAF-DATA-SQL-11: auditing ----
+        @{ Case = 'SQL-11 passes an audited server'; Id = 'WAF-DATA-SQL-11'; Pattern = 'waf.dataservices'; Status = 'Pass'; Count = 0; Build = { New-TestCollect @{ 'domains.databases.sqlServerAuditing' = @([ordered]@{ sqlServerId = $script:Sql; name = 'edge'; auditingState = 'Enabled'; azureMonitorTargetEnabled = $true }) } @{ 'domains.databases.sqlServerAuditingMeasured' = $true } } }
+        @{ Case = 'SQL-11 flags auditing Disabled'; Id = 'WAF-DATA-SQL-11'; Pattern = 'waf.dataservices'; Status = 'Fail'; Count = 1; Build = { New-TestCollect @{ 'domains.databases.sqlServerAuditing' = @([ordered]@{ sqlServerId = $script:Sql; name = 'edge'; auditingState = 'Disabled'; azureMonitorTargetEnabled = $false }) } @{ 'domains.databases.sqlServerAuditingMeasured' = $true } } }
+        @{ Case = 'SQL-11 flags an auditing state the service did not return (null)'; Id = 'WAF-DATA-SQL-11'; Pattern = 'waf.dataservices'; Status = 'Fail'; Count = 1; Build = { New-TestCollect @{ 'domains.databases.sqlServerAuditing' = @([ordered]@{ sqlServerId = $script:Sql; name = 'edge'; auditingState = $null; azureMonitorTargetEnabled = $false }) } @{ 'domains.databases.sqlServerAuditingMeasured' = $true } } }
+        @{ Case = 'SQL-11 is NotAssessed when auditing was never read'; Id = 'WAF-DATA-SQL-11'; Pattern = 'waf.dataservices'; Status = 'NotAssessed'; Count = 0; Build = { New-TestCollect @{ 'domains.databases.sqlServerAuditing' = @() } @{ 'domains.databases.sqlServerAuditingMeasured' = $false } } }
+        # ---- WAF-DATA-RED-06 / RED-07: classic caches and Redis Enterprise databases in one query ----
+        @{ Case = 'RED-06 assesses a classic-only estate with no Enterprise sweep (flag false = keys on)'; Id = 'WAF-DATA-RED-06'; Pattern = 'waf.dataservices'; Status = 'Fail'; Count = 1; Build = { New-TestCollect @{ 'domains.databases.redisCaches' = @(New-ClassicCache $false); 'domains.databases.redisEnterpriseDatabases' = @() } @{ 'domains.databases.redisEnterpriseDatabasesMeasured' = $false } } }
+        @{ Case = 'RED-06 passes a classic cache with access keys disabled and no Enterprise sweep'; Id = 'WAF-DATA-RED-06'; Pattern = 'waf.dataservices'; Status = 'Pass'; Count = 0; Build = { New-TestCollect @{ 'domains.databases.redisCaches' = @(New-ClassicCache $true); 'domains.databases.redisEnterpriseDatabases' = @() } @{ 'domains.databases.redisEnterpriseDatabasesMeasured' = $false } } }
+        @{ Case = 'RED-06 flags a Redis Enterprise database with access keys Enabled and never the cluster row'; Id = 'WAF-DATA-RED-06'; Pattern = 'waf.dataservices'; Status = 'Fail'; Count = 1; Build = { New-TestCollect @{ 'domains.databases.redisCaches' = @(New-EnterpriseCache); 'domains.databases.redisEnterpriseDatabases' = @(New-RedisDb 'Enabled' 'Encrypted') } @{ 'domains.databases.redisEnterpriseDatabasesMeasured' = $true } } }
+        @{ Case = 'RED-06 passes a Redis Enterprise database with access keys Disabled'; Id = 'WAF-DATA-RED-06'; Pattern = 'waf.dataservices'; Status = 'Pass'; Count = 0; Build = { New-TestCollect @{ 'domains.databases.redisCaches' = @(New-EnterpriseCache); 'domains.databases.redisEnterpriseDatabases' = @(New-RedisDb 'Disabled' 'Encrypted') } @{ 'domains.databases.redisEnterpriseDatabasesMeasured' = $true } } }
+        @{ Case = 'RED-06 is NotAssessed when only Redis Enterprise clusters exist and their databases were never read'; Id = 'WAF-DATA-RED-06'; Pattern = 'waf.dataservices'; Status = 'NotAssessed'; Count = 0; Build = { New-TestCollect @{ 'domains.databases.redisCaches' = @(New-EnterpriseCache); 'domains.databases.redisEnterpriseDatabases' = @() } @{ 'domains.databases.redisEnterpriseDatabasesMeasured' = $false } } }
+        @{ Case = 'RED-06 counts both a bad classic cache and a bad Enterprise database'; Id = 'WAF-DATA-RED-06'; Pattern = 'waf.dataservices'; Status = 'Fail'; Count = 2; Build = { New-TestCollect @{ 'domains.databases.redisCaches' = @((New-ClassicCache $false), (New-EnterpriseCache)); 'domains.databases.redisEnterpriseDatabases' = @(New-RedisDb 'Enabled' 'Encrypted') } @{ 'domains.databases.redisEnterpriseDatabasesMeasured' = $true } } }
+        @{ Case = 'RED-07 flags a Redis Enterprise database that allows plaintext clients'; Id = 'WAF-DATA-RED-07'; Pattern = 'waf.dataservices'; Status = 'Fail'; Count = 1; Build = { New-TestCollect @{ 'domains.databases.redisCaches' = @(New-EnterpriseCache); 'domains.databases.redisEnterpriseDatabases' = @(New-RedisDb 'Disabled' 'Plaintext') } @{ 'domains.databases.redisEnterpriseDatabasesMeasured' = $true } } }
+        @{ Case = 'RED-07 passes a Redis Enterprise database that requires encrypted clients'; Id = 'WAF-DATA-RED-07'; Pattern = 'waf.dataservices'; Status = 'Pass'; Count = 0; Build = { New-TestCollect @{ 'domains.databases.redisCaches' = @(New-EnterpriseCache); 'domains.databases.redisEnterpriseDatabases' = @(New-RedisDb 'Disabled' 'Encrypted') } @{ 'domains.databases.redisEnterpriseDatabasesMeasured' = $true } } }
+        @{ Case = 'RED-02 stays Manual and attaches the Enterprise databases'; Id = 'WAF-DATA-RED-02'; Pattern = 'waf.dataservices'; Status = 'Manual'; Count = 1; Build = { New-TestCollect @{ 'domains.databases.redisEnterpriseDatabases' = @(New-RedisDb 'Disabled' 'Encrypted') } @{ 'domains.databases.redisEnterpriseDatabasesMeasured' = $true } } }
+        # ---- WAF-ANALYTICS-RE-07: Event Hubs geo-DR, joined to geo-replication ----
+        @{ Case = 'RE-07 flags a namespace with neither a geo-DR pairing nor geo-replication'; Id = 'WAF-ANALYTICS-RE-07'; Pattern = 'waf.analytics'; Status = 'Fail'; Count = 1; Build = { New-TestCollect @{ 'domains.integration.eventHubGeoDr' = @(New-GeoDr $false); 'domains.integration.eventHubNamespaces' = @(New-EhNamespace 1) } @{ 'domains.integration.eventHubGeoDrMeasured' = $true } } }
+        @{ Case = 'RE-07 passes a namespace that is paired'; Id = 'WAF-ANALYTICS-RE-07'; Pattern = 'waf.analytics'; Status = 'Pass'; Count = 0; Build = { New-TestCollect @{ 'domains.integration.eventHubGeoDr' = @(New-GeoDr $true); 'domains.integration.eventHubNamespaces' = @(New-EhNamespace 1) } @{ 'domains.integration.eventHubGeoDrMeasured' = $true } } }
+        @{ Case = 'RE-07 passes an unpaired namespace that uses geo-replication, whatever the id casing'; Id = 'WAF-ANALYTICS-RE-07'; Pattern = 'waf.analytics'; Status = 'Pass'; Count = 0; Build = { New-TestCollect @{ 'domains.integration.eventHubGeoDr' = @(New-GeoDr $false $script:Eh.ToUpperInvariant()); 'domains.integration.eventHubNamespaces' = @(New-EhNamespace 2) } @{ 'domains.integration.eventHubGeoDrMeasured' = $true } } }
+        @{ Case = 'RE-07 is NotAssessed when geo-DR was never read'; Id = 'WAF-ANALYTICS-RE-07'; Pattern = 'waf.analytics'; Status = 'NotAssessed'; Count = 0; Build = { New-TestCollect @{ 'domains.integration.eventHubGeoDr' = @(); 'domains.integration.eventHubNamespaces' = @(New-EhNamespace 1) } @{ 'domains.integration.eventHubGeoDrMeasured' = $false } } }
+        # ---- diagnostic-settings coverage of the newly swept types ----
+        @{ Case = 'ML-OE-07 flags a workspace with no diagnostic setting'; Id = 'WAF-ML-OE-07'; Pattern = 'waf.machinelearning'; Status = 'Fail'; Count = 1; Build = { New-TestCollect @{ 'opsPosture.diagnosticCoverage' = @(Get-Coverage 'microsoft.machinelearningservices/workspaces' 50) } } }
+        @{ Case = 'ML-OE-07 passes full coverage'; Id = 'WAF-ML-OE-07'; Pattern = 'waf.machinelearning'; Status = 'Pass'; Count = 0; Build = { New-TestCollect @{ 'opsPosture.diagnosticCoverage' = @(Get-Coverage 'microsoft.machinelearningservices/workspaces' 100) } } }
+        @{ Case = 'ML-OE-07 is NotAssessed when no workspace was checked, even if other types were'; Id = 'WAF-ML-OE-07'; Pattern = 'waf.machinelearning'; Status = 'NotAssessed'; Count = 0; Build = { New-TestCollect @{ 'opsPosture.diagnosticCoverage' = @(Get-Coverage 'microsoft.databricks/workspaces' 0) } } }
+        @{ Case = 'AISEARCH-SE-10 flags a search service with no diagnostic setting'; Id = 'WAF-AISEARCH-SE-10'; Pattern = 'waf.aisearch'; Status = 'Fail'; Count = 1; Build = { New-TestCollect @{ 'opsPosture.diagnosticCoverage' = @(Get-Coverage 'microsoft.search/searchservices' 0) } } }
+        @{ Case = 'AISEARCH-SE-10 passes full coverage'; Id = 'WAF-AISEARCH-SE-10'; Pattern = 'waf.aisearch'; Status = 'Pass'; Count = 0; Build = { New-TestCollect @{ 'opsPosture.diagnosticCoverage' = @(Get-Coverage 'microsoft.search/searchservices' 100) } } }
+        @{ Case = 'AISEARCH-SE-10 is NotAssessed with no coverage rows'; Id = 'WAF-AISEARCH-SE-10'; Pattern = 'waf.aisearch'; Status = 'NotAssessed'; Count = 0; Build = { New-TestCollect @{ 'opsPosture.diagnosticCoverage' = @() } } }
+        @{ Case = 'ANALYTICS-OE-03 flags a Databricks workspace with no diagnostic setting'; Id = 'WAF-ANALYTICS-OE-03'; Pattern = 'waf.analytics'; Status = 'Fail'; Count = 1; Build = { New-TestCollect @{ 'opsPosture.diagnosticCoverage' = @(Get-Coverage 'microsoft.databricks/workspaces' 50) } } }
+        @{ Case = 'ANALYTICS-OE-03 passes full coverage'; Id = 'WAF-ANALYTICS-OE-03'; Pattern = 'waf.analytics'; Status = 'Pass'; Count = 0; Build = { New-TestCollect @{ 'opsPosture.diagnosticCoverage' = @(Get-Coverage 'microsoft.databricks/workspaces' 100) } } }
+        @{ Case = 'DATA-MI-08 flags a managed instance with no diagnostic setting'; Id = 'WAF-DATA-MI-08'; Pattern = 'waf.dataservices'; Status = 'Fail'; Count = 1; Build = { New-TestCollect @{ 'opsPosture.diagnosticCoverage' = @(Get-Coverage 'microsoft.sql/managedinstances' 0) } } }
+        @{ Case = 'DATA-MI-08 passes full coverage'; Id = 'WAF-DATA-MI-08'; Pattern = 'waf.dataservices'; Status = 'Pass'; Count = 0; Build = { New-TestCollect @{ 'opsPosture.diagnosticCoverage' = @(Get-Coverage 'microsoft.sql/managedinstances' 100) } } }
+        @{ Case = 'DATA-MI-08 is NotAssessed when only SQL servers (not managed instances) were checked'; Id = 'WAF-DATA-MI-08'; Pattern = 'waf.dataservices'; Status = 'NotAssessed'; Count = 0; Build = { New-TestCollect @{ 'opsPosture.diagnosticCoverage' = @(Get-Coverage 'microsoft.sql/servers' 0) } } }
+        @{ Case = 'DATA-RED-08 flags a classic Redis cache with no diagnostic setting'; Id = 'WAF-DATA-RED-08'; Pattern = 'waf.dataservices'; Status = 'Fail'; Count = 1; Build = { New-TestCollect @{ 'opsPosture.diagnosticCoverage' = @(Get-Coverage 'microsoft.cache/redis' 0) } } }
+        @{ Case = 'DATA-RED-08 flags a Redis Enterprise cluster with no diagnostic setting'; Id = 'WAF-DATA-RED-08'; Pattern = 'waf.dataservices'; Status = 'Fail'; Count = 1; Build = { New-TestCollect @{ 'opsPosture.diagnosticCoverage' = @(Get-Coverage 'microsoft.cache/redisenterprise' 50) } } }
+        @{ Case = 'DATA-RED-08 passes when both Redis types are fully covered'; Id = 'WAF-DATA-RED-08'; Pattern = 'waf.dataservices'; Status = 'Pass'; Count = 0; Build = { New-TestCollect @{ 'opsPosture.diagnosticCoverage' = @((Get-Coverage 'microsoft.cache/redis' 100), (Get-Coverage 'microsoft.cache/redisenterprise' 100)) } } }
+        @{ Case = 'DATA-RED-08 is NotAssessed when no Redis type was checked'; Id = 'WAF-DATA-RED-08'; Pattern = 'waf.dataservices'; Status = 'NotAssessed'; Count = 0; Build = { New-TestCollect @{ 'opsPosture.diagnosticCoverage' = @(Get-Coverage 'microsoft.storage/storageaccounts' 0) } } }
+    ) {
+        $collect = & $Build
+        $findings = ConvertTo-ById (Invoke-ScoutTestRuleSet -Pattern $Pattern -Collect $collect -Assessment 'phase4b2')
+        @($findings.Values | Where-Object Status -eq 'Error').Count | Should -Be 0
+        $findings[$Id].Status | Should -Be $Status
+        $findings[$Id].EvidenceCount | Should -Be $Count
     }
 }

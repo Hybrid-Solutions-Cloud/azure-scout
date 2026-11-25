@@ -161,6 +161,12 @@ BeforeAll {
                     [ordered]@{ name = 'db-null'; zoneRedundant = $null; tier = 'Basic' }
                 )
                 sqlServers                = @([ordered]@{ name = 'sql1' })
+                # phase 4 batch 2: one row per server whose failover-group list answered (count 0 = none)
+                sqlFailoverGroupsMeasured = $true
+                sqlFailoverGroups         = @(
+                    [ordered]@{ sqlServerId = '/subscriptions/s/resourcegroups/rg/providers/microsoft.sql/servers/sql-nofog'; name = 'sql-nofog'; failoverGroupCount = 0; automaticFailoverGroupCount = 0; hasAutomaticFailover = $false }
+                    [ordered]@{ sqlServerId = '/subscriptions/s/resourcegroups/rg/providers/microsoft.sql/servers/sql-fog'; name = 'sql-fog'; failoverGroupCount = 1; automaticFailoverGroupCount = 1; hasAutomaticFailover = $true }
+                )
                 cosmosDbAccounts          = @(
                     [ordered]@{ name = 'cosmos-ok'; regionCount = 2; zoneRedundantRegionCount = 2 }
                     [ordered]@{ name = 'cosmos-partial'; regionCount = 2; zoneRedundantRegionCount = 1 }   # the documented gap: not listed
@@ -238,6 +244,8 @@ BeforeAll {
                     [ordered]@{ name = 'master'; zoneRedundant = $false; tier = 'System' }
                     [ordered]@{ name = 'db-ok'; zoneRedundant = $true; tier = 'Premium' }
                 )
+                sqlFailoverGroupsMeasured = $true
+                sqlFailoverGroups         = @([ordered]@{ sqlServerId = '/subscriptions/s/resourcegroups/rg/providers/microsoft.sql/servers/sql-fog'; name = 'sql-fog'; failoverGroupCount = 1; automaticFailoverGroupCount = 1; hasAutomaticFailover = $true })
                 cosmosDbAccounts          = @([ordered]@{ name = 'cosmos-ok'; regionCount = 2; zoneRedundantRegionCount = 2 })
                 redisCaches               = @(
                     [ordered]@{ name = 'redis-zonal'; type = 'microsoft.cache/redis'; sku = 'Premium'; zoneCount = 3; zonalAllocationPolicy = 'UserDefined'; highAvailability = '' }
@@ -263,7 +271,7 @@ BeforeAll {
             security    = [ordered]@{ keyVaults = @() }
             containers  = [ordered]@{ aksClusters = @(); containerRegistries = @() }
             web         = [ordered]@{ appServicePlans = @() }
-            databases   = [ordered]@{ sqlDatabases = @(); sqlServers = @(); cosmosDbAccounts = @(); redisCaches = @(); postgreSqlFlexibleServers = @(); mySqlFlexibleServers = @() }
+            databases   = [ordered]@{ sqlDatabases = @(); sqlServers = @(); sqlFailoverGroups = @(); sqlFailoverGroupsMeasured = $false; cosmosDbAccounts = @(); redisCaches = @(); postgreSqlFlexibleServers = @(); mySqlFlexibleServers = @() }
             integration = [ordered]@{ apiManagement = @(); eventHubNamespaces = @() }
         }
     }
@@ -322,13 +330,13 @@ Describe 'WARA: Well-Architected Reliability Assessment (APRL-backed)' {
         $script:WaraSet = & $script:Module { Get-RuleSet -Patterns 'wara.reliability' }
     }
 
-    It 'loads one rule file named WARA with 38 rules, 36 automated and 2 manual' {
+    It 'loads one rule file named WARA with 38 rules, 37 automated and 1 manual' {
         @($script:WaraSet).Count | Should -Be 1
         $script:WaraSet.Framework | Should -Be 'WARA'
         $script:WaraSet.FrameworkVersion | Should -Not -BeNullOrEmpty
         @($script:WaraSet.Rules).Count | Should -Be 38
-        @($script:WaraSet.Rules | Where-Object { -not $_.manual }).Count | Should -Be 36
-        @($script:WaraSet.Rules | Where-Object { $_.manual }).Count | Should -Be 2
+        @($script:WaraSet.Rules | Where-Object { -not $_.manual }).Count | Should -Be 37
+        @($script:WaraSet.Rules | Where-Object { $_.manual }).Count | Should -Be 1
     }
 
     It 'has unique ids, and each title and remediation starts with its own id' {
@@ -386,6 +394,7 @@ Describe 'WARA: Well-Architected Reliability Assessment (APRL-backed)' {
         @{ Id = 'WARA-ASP-01'; Count = 1 }    # B1 only; P1v3 and the consumption Y1 plan are not findings
         @{ Id = 'WARA-ASP-02'; Count = 3 }    # Standard not zone redundant, Premium on one instance, Premium with a null flag; Basic and consumption are out of scope
         @{ Id = 'WARA-SQL-01'; Count = 2 }    # db-bad and db-null; master and db-ok are not findings
+        @{ Id = 'WARA-SQL-02'; Count = 1 }    # sql-nofog has no failover group; sql-fog has one
         @{ Id = 'WARA-COSMOS-01'; Count = 3 } # one region, no zone-redundant region, null counts; the partly zone-redundant account is the documented gap
         @{ Id = 'WARA-REDIS-01'; Count = 3 }  # classic Standard, classic one-zone with null policy, Enterprise with HA Disabled
         @{ Id = 'WARA-PGSQL-01'; Count = 4 }  # SameZone, Disabled, null and empty
@@ -413,7 +422,7 @@ Describe 'WARA: Well-Architected Reliability Assessment (APRL-backed)' {
     }
 
     It 'reports <Id> as Manual with its evidence attached' -ForEach @(
-        @{ Id = 'WARA-SQL-02' }, @{ Id = 'WARA-ER-02' }
+        @{ Id = 'WARA-ER-02' }
     ) {
         $script:WaraBadById[$Id].Status | Should -Be 'Manual'
         $script:WaraBadById[$Id].EvidenceCount | Should -BeGreaterThan 0
@@ -444,10 +453,22 @@ Describe 'WARA: Well-Architected Reliability Assessment (APRL-backed)' {
     It 'passes every automated rule on the healthy estate' {
         $healthy = @(Invoke-ScoutTestRuleSet -Pattern 'wara.reliability' -Collect $script:WaraHealthy -Assessment 'x')
         $automated = @($script:WaraSet.Rules | Where-Object { -not $_.manual } | ForEach-Object { $_.id })
-        $automated.Count | Should -Be 36
+        $automated.Count | Should -Be 37
         foreach ($id in $automated) {
             ($healthy | Where-Object Id -eq $id).Status | Should -Be 'Pass' -Because "$id must pass an estate that meets its condition"
         }
+    }
+
+    It 'reports WARA-SQL-02 NotAssessed, not Pass, when the failover groups were never read, and Pass when every server has one' {
+        $unread = [ordered]@{ domains = [ordered]@{ databases = [ordered]@{ sqlServers = @([ordered]@{ name = 'sql1' }); sqlFailoverGroups = @(); sqlFailoverGroupsMeasured = $false } } }
+        $f = @(Invoke-ScoutTestRuleSet -Pattern 'wara.reliability' -Collect $unread -Assessment 'x') | Where-Object Id -eq 'WARA-SQL-02'
+        $f.Status | Should -Be 'NotAssessed'
+
+        $rowsButUnmeasured = [ordered]@{ domains = [ordered]@{ databases = [ordered]@{ sqlFailoverGroups = @([ordered]@{ sqlServerId = '/s/x'; failoverGroupCount = 0 }); sqlFailoverGroupsMeasured = $false } } }
+        (@(Invoke-ScoutTestRuleSet -Pattern 'wara.reliability' -Collect $rowsButUnmeasured -Assessment 'x') | Where-Object Id -eq 'WARA-SQL-02').Status | Should -Be 'NotAssessed'
+
+        $allGrouped = [ordered]@{ domains = [ordered]@{ databases = [ordered]@{ sqlFailoverGroups = @([ordered]@{ sqlServerId = '/s/x'; failoverGroupCount = 2 }); sqlFailoverGroupsMeasured = $true } } }
+        (@(Invoke-ScoutTestRuleSet -Pattern 'wara.reliability' -Collect $allGrouped -Assessment 'x') | Where-Object Id -eq 'WARA-SQL-02').Status | Should -Be 'Pass'
     }
 
     It 'reports every rule NotAssessed on an estate with none of the services' {

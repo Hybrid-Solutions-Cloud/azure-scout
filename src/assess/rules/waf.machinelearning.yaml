@@ -334,14 +334,14 @@ rules:
     assert: { type: manual }
     remediation: "WAF-ML-OE-06. Enable Application Insights on online endpoints and monitor training infrastructure against baselines. Application Insights components are attached as evidence."
     manual: true
-  # type not yet in the diagnostic-settings sweep (proposed in the report) [MLG-OE-R]
+  # diagnostic-settings coverage for the Machine Learning workspace type [MLG-OE-R]
   - id: WAF-ML-OE-07
     title: "WAF-ML-OE-07. Resource logs are collected for Machine Learning workspaces"
     severity: medium
-    query: "$.opsPosture.diagnosticCoverage[?(@.type == 'microsoft.machinelearningservices/workspaces')]"
-    assert: { type: manual }
-    remediation: "WAF-ML-OE-07. Route workspace resource logs to Log Analytics. Machine Learning is not in the diagnostic-settings sweep yet; coverage rows for the type are attached once it is."
-    manual: true
+    query: "$.opsPosture.diagnosticCoverage[?(@.type == 'microsoft.machinelearningservices/workspaces' && @.coveragePct < 100)]"
+    assert: { type: countEquals, value: 0, gate: "$.opsPosture.diagnosticCoverage[?(@.type == 'microsoft.machinelearningservices/workspaces')]" }
+    remediation: "WAF-ML-OE-07. Some Machine Learning workspaces have no diagnostic setting. Route workspace resource logs to Log Analytics. Only the presence of a diagnostic setting is read, not which log categories it carries."
+    manual: false
   # environment choice, not collected [MLG-OE-C, MLG-OE-R]
   - id: WAF-ML-OE-08
     title: "WAF-ML-OE-08. Curated environments are used where available"

@@ -198,15 +198,21 @@ Describe 'Get-ScoutArmChildResource - supported-dataset contract' {
             'AZSC/ARMChild/LAWorkspaceSavedSearches'
             'AZSC/ARMChild/LAWorkspaceTables'
             'AZSC/ARMChild/SentinelDataConnectors'
-            # AB#6769. The Log Analytics workspace in $script:Parents is one of the twenty parent
-            # types the diagnostic-settings sweep is scoped to, so it emits here too. This entry
+            # AB#6769. The Log Analytics workspace in $script:Parents is one of the parent types
+            # the diagnostic-settings sweep is scoped to, so it emits here too. This entry
             # is the canary for that scope: if a type is ever added to
             # $DiagnosticSettingParentTypes that also appears above, this list grows and the run
             # got more expensive.
             'AZSC/ARMChild/ResourceDiagnosticSettings'
             'AZSC/ARMChild/AzureLocalVirtualMachineInstances'
         )
-        $Rows.Count | Should -Be 16 -Because 'MLEndpoints emits one online and one batch endpoint, the LA workspace yields tables, Sentinel connectors, and a diagnostic setting, the Arc machine yields one Azure Local VM instance, and Search indexes are data-plane-only'
+        # 16 before AB#9300 phase 4 batch 2. That batch added the machine learning workspaces
+        # (all three: standard, hub and project), the search service and the Application Insights
+        # component in $script:Parents to the diagnostic sweep, so each now yields one more
+        # diagnostic-settings row: 16 + 5 = 21. None of the eight new datasets emits here because
+        # $script:Parents holds no storage account, SQL server, web app, Event Hubs namespace or
+        # Redis Enterprise cluster.
+        $Rows.Count | Should -Be 21 -Because 'MLEndpoints emits one online and one batch endpoint, the LA workspace yields tables, Sentinel connectors, and a diagnostic setting, the Arc machine yields one Azure Local VM instance, Search indexes are data-plane-only, and five more parents (three ML workspaces, the search service and the App Insights component) each yield one diagnostic setting'
     }
 
     It 'preserves raw child properties and stamps parent linkage on every row' {
@@ -249,8 +255,13 @@ Describe 'Get-ScoutArmChildResource - supported-dataset contract' {
 
     It 'excludes ML Hub/Project workspaces and non-RemoteApp AVD groups before calling ARM' {
         $null = Get-ScoutArmChildResource -Resources $script:Parents
-        ($script:ArmCalls -join "`n") | Should -Not -Match 'ml-hub'
-        ($script:ArmCalls -join "`n") | Should -Not -Match 'ml-project'
+        # The ML child datasets (computes, data, models, ...) skip Hub and Project workspaces. A
+        # Hub or Project is still a workspace that can carry a diagnostic setting, and since
+        # AB#9300 phase 4 batch 2 the diagnostic sweep asks it, so only the non-diagnostic calls
+        # are held to the exclusion.
+        $childCalls = @($script:ArmCalls | Where-Object { $_ -notmatch 'Microsoft\.Insights/diagnosticSettings' })
+        ($childCalls -join "`n") | Should -Not -Match 'ml-hub'
+        ($childCalls -join "`n") | Should -Not -Match 'ml-project'
         ($script:ArmCalls -join "`n") | Should -Not -Match 'desktop-one'
         ($script:ArmCalls -join "`n") | Should -Match 'ml-standard'
         ($script:ArmCalls -join "`n") | Should -Match 'remoteapps-one'
@@ -512,6 +523,16 @@ Describe 'Get-ScoutArmChildResource - selection, ordering and resilience' {
             @{ Dataset = 'ResourceDiagnosticSettings'; Parent = Get-TestParent -Type 'microsoft.keyvault/vaults' -Name 'kv'; NotFoundIsEmpty = $false }
             @{ Dataset = 'ReservationUtilization'; Parent = Get-TestParent -Type 'microsoft.capacity/reservationorders/reservations' -Name 'reservation'; NotFoundIsEmpty = $false }
             @{ Dataset = 'AzureLocalVirtualMachineInstances'; Parent = Get-TestParent -Type 'microsoft.hybridcompute/machines' -Name 'arc'; NotFoundIsEmpty = $true }
+            # AB#9300 phase 4, batch 2. Every one is read with -NotFoundIsEmpty: a missing
+            # singleton or an absent list is ordinary empty data, not a failure.
+            @{ Dataset = 'StorageBlobServiceProperties'; Parent = Get-TestParent -Type 'microsoft.storage/storageaccounts' -Name 'storage'; NotFoundIsEmpty = $true }
+            @{ Dataset = 'StorageFileServiceProperties'; Parent = Get-TestParent -Type 'microsoft.storage/storageaccounts' -Name 'storage'; NotFoundIsEmpty = $true }
+            @{ Dataset = 'SqlServerAuditing'; Parent = Get-TestParent -Type 'microsoft.sql/servers' -Name 'sql'; NotFoundIsEmpty = $true }
+            @{ Dataset = 'SqlFailoverGroups'; Parent = Get-TestParent -Type 'microsoft.sql/servers' -Name 'sql'; NotFoundIsEmpty = $true }
+            @{ Dataset = 'WebAppConfig'; Parent = Get-TestParent -Type 'microsoft.web/sites' -Name 'web'; NotFoundIsEmpty = $true }
+            @{ Dataset = 'WebAppBasicAuth'; Parent = Get-TestParent -Type 'microsoft.web/sites' -Name 'web'; NotFoundIsEmpty = $true }
+            @{ Dataset = 'EventHubGeoDr'; Parent = Get-TestParent -Type 'microsoft.eventhub/namespaces' -Name 'hub'; NotFoundIsEmpty = $true }
+            @{ Dataset = 'RedisEnterpriseDatabases'; Parent = Get-TestParent -Type 'microsoft.cache/redisenterprise' -Name 'redis'; NotFoundIsEmpty = $true }
         )
         $declaredDatasets = @(
             (Get-Command Get-ScoutArmChildResource).Parameters['Dataset'].Attributes |
@@ -712,6 +733,320 @@ Describe 'Get-ScoutArmChildResource - selection, ordering and resilience' {
             $health[0].Operation | Should -Be $case.Operation
             $health[0].ResourceTypes | Should -Be @("AZSC/ARMChild/$($case.Dataset)")
         }
+    }
+}
+
+Describe 'Get-ScoutArmChildResource - per-resource settings (AB#9300 phase 4, batch 2)' {
+    BeforeAll {
+        # Each marker is planted in a property the allow-list must NOT carry. If one reaches a row,
+        # a source operation or a health record, the projection leaked.
+        $script:Sentinels = @(
+            'SENTINEL-KEY-001', 'SENTINEL-SUBID-002', 'SENTINEL-STORAGE-003', 'SENTINEL-PARTNER-004',
+            'SENTINEL-APPSETTING-005', 'SENTINEL-CONN-006', 'SENTINEL-PATH-007', 'SENTINEL-NAMESPACE-008',
+            'SENTINEL-ALIAS-009', 'SENTINEL-NICK-010', 'SENTINEL-LINKED-011', 'SENTINEL-ARGS-012',
+            'SENTINEL-ORIGIN-013', 'SENTINEL-DOC-014', 'SENTINEL-DB-015', 'SENTINEL-IPRULE-016'
+        )
+
+        function Get-Batch2Payload {
+            param([string]$Path)
+            $trimmed = ($Path -split '\?')[0]
+            switch -Regex ($trimmed) {
+                '/blobServices/default$' {
+                    return @{
+                        id = $trimmed; name = 'default'; type = 'Microsoft.Storage/storageAccounts/blobServices'
+                        sku = @{ name = 'Standard_LRS' }
+                        properties = @{
+                            deleteRetentionPolicy = @{ enabled = $true; days = 14; allowPermanentDelete = $false }
+                            containerDeleteRetentionPolicy = @{ enabled = $true; days = 7 }
+                            isVersioningEnabled = $true
+                            changeFeed = @{ enabled = $false; retentionInDays = 3 }
+                            restorePolicy = @{ enabled = $true; days = 6 }
+                            cors = @{ corsRules = @(@{ allowedOrigins = @('https://SENTINEL-ORIGIN-013') }) }
+                            staticWebsite = @{ enabled = $true; indexDocument = 'SENTINEL-DOC-014' }
+                        }
+                    }
+                }
+                '/fileServices/default$' {
+                    return @{
+                        id = $trimmed; name = 'default'; type = 'Microsoft.Storage/storageAccounts/fileServices'
+                        properties = @{
+                            shareDeleteRetentionPolicy = @{ enabled = $true; days = 9 }
+                            protocolSettings = @{ smb = @{ versions = 'SMB3.0;SMB3.1.1'; channelEncryption = 'AES-256-GCM'; authenticationMethods = 'Kerberos' } }
+                            cors = @{ corsRules = @(@{ allowedOrigins = @('https://SENTINEL-ORIGIN-013') }) }
+                        }
+                    }
+                }
+                '/auditingSettings/default$' {
+                    return @{
+                        id = $trimmed; name = 'default'; type = 'Microsoft.Sql/servers/auditingSettings'
+                        properties = @{
+                            state = 'Enabled'; isAzureMonitorTargetEnabled = $true; retentionDays = 90
+                            storageAccountAccessKey = 'SENTINEL-KEY-001'
+                            storageAccountSubscriptionId = 'SENTINEL-SUBID-002'
+                            storageEndpoint = 'https://SENTINEL-STORAGE-003.blob.core.windows.net'
+                        }
+                    }
+                }
+                '/failoverGroups$' {
+                    return @{ value = @(
+                            @{
+                                id = "$trimmed/fg-one"; name = 'fg-one'; type = 'Microsoft.Sql/servers/failoverGroups'
+                                properties = @{
+                                    readWriteEndpoint = @{ failoverPolicy = 'Automatic'; failoverWithDataLossGracePeriodMinutes = 60 }
+                                    readOnlyEndpoint = @{ failoverPolicy = 'Disabled' }
+                                    replicationRole = 'Primary'; replicationState = 'CATCH_UP'
+                                    partnerServers = @(@{ id = '/subscriptions/x/resourceGroups/y/providers/Microsoft.Sql/servers/SENTINEL-PARTNER-004'; location = 'westus'; replicationRole = 'Secondary' })
+                                    databases = @('/subscriptions/x/resourceGroups/y/providers/Microsoft.Sql/servers/s/databases/SENTINEL-DB-015', '/subscriptions/x/resourceGroups/y/providers/Microsoft.Sql/servers/s/databases/other')
+                                }
+                            }
+                            @{
+                                id = "$trimmed/fg-two"; name = 'fg-two'; type = 'Microsoft.Sql/servers/failoverGroups'
+                                properties = @{ readWriteEndpoint = @{ failoverPolicy = 'Manual' }; replicationRole = 'Secondary' }
+                            }
+                        ) }
+                }
+                '/config/web$' {
+                    return @{
+                        id = $trimmed; name = 'web'; type = 'Microsoft.Web/sites/config'
+                        properties = @{
+                            ftpsState = 'FtpsOnly'; alwaysOn = $true; remoteDebuggingEnabled = $false
+                            http20Enabled = $true; minTlsVersion = '1.2'; scmMinTlsVersion = '1.2'
+                            healthCheckPath = '/SENTINEL-PATH-007'
+                            appSettings = @(@{ name = 'SECRET_NAME'; value = 'SENTINEL-APPSETTING-005' })
+                            connectionStrings = @(@{ name = 'db'; connectionString = 'SENTINEL-CONN-006'; type = 'SQLAzure' })
+                            ipSecurityRestrictions = @(@{ ip_address = 'SENTINEL-IPRULE-016/32'; action = 'Allow' })
+                        }
+                    }
+                }
+                '/basicPublishingCredentialsPolicies/(ftp|scm)$' {
+                    return @{ id = $trimmed; name = 'webapp/' + $Matches[1]; type = 'Microsoft.Web/sites/basicPublishingCredentialsPolicies'; properties = @{ allow = ($Matches[1] -eq 'scm') } }
+                }
+                '/disasterRecoveryConfigs$' {
+                    return @{ value = @(@{
+                                id = "$trimmed/alias-one"; name = 'alias-one'; type = 'Microsoft.EventHub/namespaces/disasterrecoveryconfigs'
+                                properties = @{
+                                    provisioningState = 'Succeeded'; role = 'Primary'
+                                    partnerNamespace = '/subscriptions/x/resourceGroups/y/providers/Microsoft.EventHub/namespaces/SENTINEL-NAMESPACE-008'
+                                    alternateName = 'SENTINEL-ALIAS-009'
+                                }
+                            }) }
+                }
+                '/databases$' {
+                    return @{ value = @(@{
+                                id = "$trimmed/default"; name = 'default'; type = 'Microsoft.Cache/redisEnterprise/databases'
+                                properties = @{
+                                    accessKeysAuthentication = 'Disabled'; clientProtocol = 'Encrypted'; port = 10000
+                                    persistence = @{ aofEnabled = $true; aofFrequency = '1s'; rdbEnabled = $false }
+                                    geoReplication = @{
+                                        groupNickname = 'SENTINEL-NICK-010'
+                                        linkedDatabases = @(@{ id = '/subscriptions/x/resourceGroups/y/providers/Microsoft.Cache/redisEnterprise/r/databases/SENTINEL-LINKED-011' }, @{ id = '/x/SENTINEL-LINKED-011-b' })
+                                    }
+                                    modules = @(@{ name = 'RedisJSON'; args = 'SENTINEL-ARGS-012' })
+                                }
+                            }) }
+                }
+                '/diagnosticSettings$' {
+                    return @{ value = @(@{ id = "$trimmed/toWorkspace"; name = 'toWorkspace'; type = 'Microsoft.Insights/diagnosticSettings'; properties = @{ logs = @() } }) }
+                }
+                default { return @{ value = @() } }
+            }
+        }
+
+        function Set-Batch2Stub {
+            $script:ArmCalls = [System.Collections.Generic.List[string]]::new()
+            function global:Invoke-AzRestMethod {
+                param([string]$Path, [string]$Uri, [string]$Method, [Parameter(ValueFromRemainingArguments)]$Rest)
+                $null = $Method, $Rest
+                $request = if ($Uri) { $Uri } else { $Path }
+                $script:ArmCalls.Add($request)
+                [pscustomobject]@{ StatusCode = 200; Content = (Get-Batch2Payload -Path $request | ConvertTo-Json -Depth 12 -Compress) }
+            }
+        }
+
+        $script:Batch2Datasets = @(
+            'StorageBlobServiceProperties', 'StorageFileServiceProperties', 'SqlServerAuditing', 'SqlFailoverGroups',
+            'WebAppConfig', 'WebAppBasicAuth', 'EventHubGeoDr', 'RedisEnterpriseDatabases'
+        )
+        $script:Batch2Parents = @(
+            Get-TestParent -Type 'microsoft.storage/storageaccounts' -Name 'st-v2' -Kind 'StorageV2'
+            Get-TestParent -Type 'microsoft.sql/servers' -Name 'sql-one'
+            Get-TestParent -Type 'microsoft.web/sites' -Name 'web-one'
+            Get-TestParent -Type 'microsoft.eventhub/namespaces' -Name 'eh-one'
+            Get-TestParent -Type 'microsoft.cache/redisenterprise' -Name 'redis-one'
+        )
+    }
+
+    BeforeEach { Set-Batch2Stub }
+
+    It 'declares the eight datasets, after the existing ones, and sweeps them under All' {
+        $declared = @(
+            (Get-Command Get-ScoutArmChildResource).Parameters['Dataset'].Attributes |
+                Where-Object { $_ -is [System.Management.Automation.ValidateSetAttribute] } |
+                ForEach-Object ValidValues | Where-Object { $_ -ne 'All' }
+        )
+        @($script:Batch2Datasets | Where-Object { $declared -notcontains $_ }) | Should -BeNullOrEmpty
+        @($declared | Select-Object -Last 8) | Should -Be $script:Batch2Datasets
+
+        $rows = @(Get-ScoutArmChildResource -Resources $script:Batch2Parents)
+        $types = @($rows.TYPE | Select-Object -Unique)
+        foreach ($dataset in $script:Batch2Datasets) { $types | Should -Contain "AZSC/ARMChild/$dataset" }
+    }
+
+    It 'issues exactly one GET per parent (two per web app for basic auth) at the documented path and API version' {
+        $null = Get-ScoutArmChildResource -Resources $script:Batch2Parents -Dataset $script:Batch2Datasets
+        $id = { param($name) @($script:Batch2Parents | Where-Object name -eq $name)[0].id }
+        $script:ArmCalls | Should -Be @(
+            "$(& $id 'st-v2')/blobServices/default?api-version=2023-05-01"
+            "$(& $id 'st-v2')/fileServices/default?api-version=2023-05-01"
+            "$(& $id 'sql-one')/auditingSettings/default?api-version=2021-11-01"
+            "$(& $id 'sql-one')/failoverGroups?api-version=2021-11-01"
+            "$(& $id 'web-one')/config/web?api-version=2022-09-01"
+            "$(& $id 'web-one')/basicPublishingCredentialsPolicies/ftp?api-version=2022-09-01"
+            "$(& $id 'web-one')/basicPublishingCredentialsPolicies/scm?api-version=2022-09-01"
+            "$(& $id 'eh-one')/disasterRecoveryConfigs?api-version=2021-11-01"
+            "$(& $id 'redis-one')/databases?api-version=2025-04-01"
+        )
+    }
+
+    It 'never lets a secret-bearing neighbour of an allow-listed setting into a row, an operation or a health record' {
+        $health = [System.Collections.Generic.List[object]]::new()
+        $operations = [System.Collections.Generic.List[object]]::new()
+        $rows = @(Get-ScoutArmChildResource -Resources $script:Batch2Parents -Dataset $script:Batch2Datasets `
+                -CollectionHealth $health -SourceOperations $operations)
+        $rows.Count | Should -BeGreaterThan 8
+
+        $everything = (@($rows) + @($operations) + @($health) | ConvertTo-Json -Depth 12)
+        foreach ($sentinel in $script:Sentinels) {
+            $everything | Should -Not -Match ([regex]::Escape($sentinel)) -Because "$sentinel sits in a property the allow-list excludes"
+        }
+        # Positive control: the planted payload really was read, so the absence above is the
+        # projection's doing and not an empty fixture.
+        $everything | Should -Match 'FtpsOnly'
+        $everything | Should -Match 'RedisJSON|persistence'
+    }
+
+    It 'keeps only the allow-listed settings on each row' {
+        $rows = @(Get-ScoutArmChildResource -Resources $script:Batch2Parents -Dataset $script:Batch2Datasets)
+        $byType = { param($dataset) @($rows | Where-Object TYPE -eq "AZSC/ARMChild/$dataset") }
+
+        $blob = (& $byType 'StorageBlobServiceProperties')[0]
+        $blob.properties.deleteRetentionPolicy.enabled | Should -BeTrue
+        $blob.properties.deleteRetentionPolicy.days | Should -Be 14
+        $blob.properties.containerDeleteRetentionPolicy.days | Should -Be 7
+        $blob.properties.isVersioningEnabled | Should -BeTrue
+        $blob.properties.restorePolicy.enabled | Should -BeTrue
+        @($blob.properties.PSObject.Properties.Name | Sort-Object) | Should -Be @('changeFeed', 'containerDeleteRetentionPolicy', 'deleteRetentionPolicy', 'isVersioningEnabled', 'restorePolicy')
+
+        $file = (& $byType 'StorageFileServiceProperties')[0]
+        $file.properties.protocolSettings.smb.versions | Should -Be 'SMB3.0;SMB3.1.1'
+        @($file.properties.PSObject.Properties.Name | Sort-Object) | Should -Be @('protocolSettings', 'shareDeleteRetentionPolicy')
+
+        $audit = (& $byType 'SqlServerAuditing')[0]
+        @($audit.properties.PSObject.Properties.Name | Sort-Object) | Should -Be @('isAzureMonitorTargetEnabled', 'state')
+
+        $groups = & $byType 'SqlFailoverGroups'
+        $groups.Count | Should -Be 2
+        $groups[0].properties.partnerServerCount | Should -Be 1
+        $groups[0].properties.databaseCount | Should -Be 2
+        $groups[1].properties.partnerServerCount | Should -Be 0 -Because 'a count of an absent array is 0, not null'
+        $groups[0].properties.PSObject.Properties['partnerServers'] | Should -BeNullOrEmpty
+
+        $config = (& $byType 'WebAppConfig')[0]
+        $config.properties.healthCheckPathSet | Should -BeTrue
+        $config.properties.PSObject.Properties['healthCheckPath'] | Should -BeNullOrEmpty
+        foreach ($forbidden in 'appSettings', 'connectionStrings', 'ipSecurityRestrictions') {
+            $config.properties.PSObject.Properties[$forbidden] | Should -BeNullOrEmpty
+        }
+
+        $geoDr = (& $byType 'EventHubGeoDr')[0]
+        @($geoDr.properties.PSObject.Properties.Name | Sort-Object) | Should -Be @('provisioningState', 'role')
+
+        $redis = (& $byType 'RedisEnterpriseDatabases')[0]
+        $redis.properties.accessKeysAuthentication | Should -Be 'Disabled'
+        $redis.properties.persistence.aofEnabled | Should -BeTrue
+        $redis.properties.geoReplication.linkedDatabaseCount | Should -Be 2
+        $redis.properties.geoReplication.PSObject.Properties['linkedDatabases'] | Should -BeNullOrEmpty
+        $redis.properties.geoReplication.PSObject.Properties['groupNickname'] | Should -BeNullOrEmpty
+    }
+
+    It 'stamps the policy name on each basic-auth row, one GET per policy' {
+        $rows = @(Get-ScoutArmChildResource -Resources $script:Batch2Parents -Dataset WebAppBasicAuth)
+        $rows.Count | Should -Be 2
+        @($rows.properties.policy) | Should -Be @('ftp', 'scm')
+        @($rows.properties.allow) | Should -Be @($false, $true)
+    }
+
+    It 'records the parent id on every source operation of the new datasets' {
+        $operations = [System.Collections.Generic.List[object]]::new()
+        $null = Get-ScoutArmChildResource -Resources $script:Batch2Parents -Dataset $script:Batch2Datasets -SourceOperations $operations
+        $operations.Count | Should -Be 9
+        foreach ($operation in $operations) {
+            $operation.PSObject.Properties['ParentId'] | Should -Not -BeNullOrEmpty -Because "$($operation.Dataset) must say which parent it covered"
+            $operation.Uri | Should -BeLike "$($operation.ParentId)/*"
+            $operation.Status | Should -Be 'Success'
+        }
+    }
+
+    It 'does not ask a FileStorage account about blobs or a BlobStorage account about files (FeatureNotSupportedForAccount, seen live)' {
+        $parents = @(
+            Get-TestParent -Type 'microsoft.storage/storageaccounts' -Name 'file-only' -Kind 'FileStorage'
+            Get-TestParent -Type 'microsoft.storage/storageaccounts' -Name 'blob-only' -Kind 'BlockBlobStorage'
+        )
+        $null = Get-ScoutArmChildResource -Resources $parents -Dataset StorageBlobServiceProperties, StorageFileServiceProperties
+        $script:ArmCalls.Count | Should -Be 2
+        $script:ArmCalls | Should -Contain "$($parents[0].id)/fileServices/default?api-version=2023-05-01"
+        $script:ArmCalls | Should -Contain "$($parents[1].id)/blobServices/default?api-version=2023-05-01"
+    }
+
+    It 'skips Basic-tier Event Hubs namespaces (no geo-DR there) but asks Standard and SKU-less ones' {
+        $parents = @(
+            [pscustomobject]@{ id = '/subscriptions/s/resourceGroups/r/providers/Microsoft.EventHub/namespaces/basic'; type = 'microsoft.eventhub/namespaces'; name = 'basic'; sku = [pscustomobject]@{ name = 'Basic'; tier = 'Basic' } }
+            [pscustomobject]@{ id = '/subscriptions/s/resourceGroups/r/providers/Microsoft.EventHub/namespaces/standard'; type = 'microsoft.eventhub/namespaces'; name = 'standard'; sku = [pscustomobject]@{ name = 'Standard' } }
+            [pscustomobject]@{ id = '/subscriptions/s/resourceGroups/r/providers/Microsoft.EventHub/namespaces/nosku'; type = 'microsoft.eventhub/namespaces'; name = 'nosku' }
+        )
+        $null = Get-ScoutArmChildResource -Resources $parents -Dataset EventHubGeoDr
+        $script:ArmCalls.Count | Should -Be 2
+        ($script:ArmCalls -join "`n") | Should -Not -Match '/namespaces/basic/'
+        ($script:ArmCalls -join "`n") | Should -Match '/namespaces/standard/'
+        ($script:ArmCalls -join "`n") | Should -Match '/namespaces/nosku/'
+    }
+
+    It 'records an answered-but-absent singleton as Empty with its parent id, without a row or a warning' {
+        function global:Invoke-AzRestMethod {
+            param([string]$Path, [string]$Method, [Parameter(ValueFromRemainingArguments)]$Rest)
+            $null = $Path, $Method, $Rest
+            [pscustomobject]@{ StatusCode = 404; Content = '{"error":{"code":"ResourceNotFound"}}' }
+        }
+        $operations = [System.Collections.Generic.List[object]]::new()
+        $rows = @(Get-ScoutArmChildResource -Resources @($script:Batch2Parents[0]) -Dataset StorageBlobServiceProperties `
+                -SourceOperations $operations -WarningVariable warned -WarningAction SilentlyContinue)
+        $rows.Count | Should -Be 0
+        @($warned).Count | Should -Be 0
+        $operations[0].Status | Should -Be 'Empty'
+        $operations[0].ParentId | Should -Be $script:Batch2Parents[0].id
+    }
+
+    It 'sweeps diagnostic settings on the fourteen added parent types and still not on virtual machines or disks' {
+        $added = @(
+            'microsoft.machinelearningservices/workspaces', 'microsoft.search/searchservices',
+            'microsoft.databricks/workspaces', 'microsoft.sql/managedinstances', 'microsoft.cache/redis',
+            'microsoft.cache/redisenterprise', 'microsoft.network/loadbalancers',
+            'microsoft.network/publicipaddresses', 'microsoft.network/virtualnetworkgateways',
+            'microsoft.network/trafficmanagerprofiles', 'microsoft.eventgrid/topics',
+            'microsoft.insights/components', 'microsoft.desktopvirtualization/hostpools',
+            'microsoft.desktopvirtualization/workspaces'
+        )
+        $parents = @($added | ForEach-Object { Get-TestParent -Type $_ -Name 'res' })
+        $parents += Get-TestParent -Type 'microsoft.compute/virtualmachines' -Name 'vm'
+        $parents += Get-TestParent -Type 'microsoft.compute/disks' -Name 'disk'
+        $parents += Get-TestParent -Type 'microsoft.network/networkinterfaces' -Name 'nic'
+
+        $rows = @(Get-ScoutArmChildResource -Resources $parents -Dataset ResourceDiagnosticSettings)
+
+        $rows.Count | Should -Be 14
+        @($rows.PARENTTYPE | Sort-Object) | Should -Be @($added | Sort-Object)
+        ($script:ArmCalls -join "`n") | Should -Not -Match 'virtualmachines|/disks/|networkinterfaces'
+        @($script:ArmCalls | Where-Object { $_ -match 'api-version=2021-05-01-preview$' }).Count | Should -Be 14
     }
 }
 }

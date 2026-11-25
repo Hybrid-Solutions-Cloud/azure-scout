@@ -72,14 +72,21 @@ rules:
     assert: { type: countEquals, value: 0, gate: "$.domains.integration.eventHubNamespaces[*]" }
     remediation: "WAF-ANALYTICS-RE-06. The namespaces listed are not zone redundant. Create namespaces in a region with availability zones and enable zone redundancy for automatic datacentre-level failover."
     manual: false
-  # namespaces attached with geoReplicaCount; geo-disaster-recovery pairing is a child resource that is not collected, so a count of 0 does not prove a gap [EH-RE-C, EH-RE-R]
+  # eventHubGeoDr has one row per namespace whose geo-DR list answered (geoDrConfigured false = no pairing). A namespace that uses geo-replication instead (geoReplicaCount above 1: the list holds the primary plus each replica) is matched to the right-hand rows and excluded, so only a namespace with neither is a finding. Gated on the Measured flag [EH-RE-C, EH-RE-R]
   - id: WAF-ANALYTICS-RE-07
     title: "WAF-ANALYTICS-RE-07. Geo-replication or geo-disaster recovery is configured for regional failure"
     severity: high
-    query: "$.domains.integration.eventHubNamespaces[*]"
-    assert: { type: manual }
-    remediation: "WAF-ANALYTICS-RE-07. Use geo-replication on Dedicated namespaces or geo-DR pairing with an alias on Standard and Premium, and test the failover. Namespaces are attached with their geo-replica count; the geo-DR pairing is a child resource and is not collected, so a zero count is not proof of a gap."
-    manual: true
+    join:
+      left: "$.domains.integration.eventHubGeoDr[?(@.geoDrConfigured == false)]"
+      leftKey: "eventHubNamespaceId"
+      right: "$.domains.integration.eventHubNamespaces[?(@.geoReplicaCount > 1)]"
+      rightKey: "id"
+      mode: "leftOnly"
+      leftLabel: "Event Hubs namespace without geo-DR pairing"
+      rightLabel: "geo-replicated namespace"
+    assert: { type: countEquals, value: 0, gate: "$.domains.integration.eventHubGeoDrMeasured" }
+    remediation: "WAF-ANALYTICS-RE-07. The namespaces listed have neither a geo-disaster-recovery pairing nor geo-replication. Use geo-replication on Premium and Dedicated namespaces or geo-DR pairing with an alias on Standard and Premium, and test the failover. A Basic-tier namespace supports neither and needs a tier change first."
+    manual: false
   # namespaces attached with skuName, capacity, maxThroughputUnits and autoInflateEnabled; whether they suit the load is judgement [EH-RE-C, EH-RE-R]
   - id: WAF-ANALYTICS-RE-08
     title: "WAF-ANALYTICS-RE-08. Capacity is planned: throughput units, partition count and auto-inflate suit the load"
@@ -461,14 +468,14 @@ rules:
     assert: { type: manual }
     remediation: "WAF-ANALYTICS-OE-02. Use Databricks Repos or Git folders with Azure DevOps or GitHub Actions pipelines."
     manual: true
-  # type not yet in the diagnostic-settings sweep (proposed in the report) [DBX-OE-R]
+  # diagnostic-settings coverage for the Databricks workspace type; the log categories a setting carries and the alert rules are not collected [DBX-OE-R]
   - id: WAF-ANALYTICS-OE-03
     title: "WAF-ANALYTICS-OE-03. Databricks diagnostic settings send platform, audit and cluster logs to Log Analytics with alert rules"
     severity: high
-    query: "$.opsPosture.diagnosticCoverage[?(@.type == 'microsoft.databricks/workspaces')]"
-    assert: { type: manual }
-    remediation: "WAF-ANALYTICS-OE-03. Turn on all log categories to a workspace and alert on cluster failures, job errors and capacity limits. Databricks is not in the diagnostic-settings sweep yet; coverage rows are attached once it is."
-    manual: true
+    query: "$.opsPosture.diagnosticCoverage[?(@.type == 'microsoft.databricks/workspaces' && @.coveragePct < 100)]"
+    assert: { type: countEquals, value: 0, gate: "$.opsPosture.diagnosticCoverage[?(@.type == 'microsoft.databricks/workspaces')]" }
+    remediation: "WAF-ANALYTICS-OE-03. Some Databricks workspaces have no diagnostic setting. Turn on all log categories to a workspace and alert on cluster failures, job errors and capacity limits. Only the presence of a diagnostic setting is read; which categories it carries and the alert rules are not collected, so confirm those by hand."
+    manual: false
   # data-plane practice [DBX-OE-R]
   - id: WAF-ANALYTICS-OE-04
     title: "WAF-ANALYTICS-OE-04. Pipelines enforce data-quality expectations, and workspace artefacts are backed up"

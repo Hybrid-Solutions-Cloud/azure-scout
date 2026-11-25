@@ -12,16 +12,22 @@
 # Azure HorizonDB has no collected dataset yet, so its items are all manual. The settings the first pass lacked (SQL server
 # id, TLS and Entra-only flags, backup redundancy, Cosmos regions and failover, PostgreSQL and MySQL high availability,
 # Redis access keys and TLS, storage shared-key access and key source) are now projected, so those items are automated.
-# What is still manual is what ARM does not carry on the parent resource: child resources (failover groups, backup
-# policies, audit settings), data-plane configuration, client code and judgement about workload fit.
+# Phase 4 batch 2 added the per-resource ARM reads for SQL failover groups and server auditing, the blob service
+# data-protection settings, Redis Enterprise databases and the diagnostic-settings coverage of managed instances and
+# Redis, so SQL-02, SQL-11, MI-08, RED-06, RED-08 and BLOB-10 are automated too. Each of those reads has a sibling
+# <name>Measured flag, and the rule is gated on it (or on the type's coverage rows), so a run that never read the
+# setting reports Not assessed instead of a pass. What is still manual is what ARM does not carry on the parent
+# resource: backup policies, data-plane configuration, client code and judgement about workload fit.
 #
 # Absent-means-bad: an ARG projection yields '' for a missing string and null for a missing boolean. Newtonsoft JSONPath
 # never matches a MISSING property with == or !=, but a null or '' value does match !=, so the filters below are written
 # as "is not the good value" (never "is the bad value") wherever absence is itself the finding: storage minimumTlsVersion
 # absent (older accounts default to TLS 1.0), allowSharedKeyAccess absent (allowed), the SQL Entra-only flag absent (SQL
-# authentication only). Redis access-key authentication is only projected for classic caches (microsoft.cache/redis);
-# Redis Enterprise keeps it on a child database, so that rule is scoped to the classic type and gated on it.
-# Every automated rule is gated on its resources (or their diagnostic-coverage rows) existing.
+# authentication only). Redis access-key authentication is projected on a classic cache (microsoft.cache/redis) as
+# accessKeyAuthDisabled, and on a Redis Enterprise cache's child database as accessKeysAuthentication, so WAF-DATA-RED-06
+# reads both datasets in one query; a filter cannot mix && and ||, so it matches an explicit false on a classic cache
+# rather than "not true" (which would also match every Redis Enterprise cluster row, whose flag is always null).
+# Every automated rule is gated on its resources (or their diagnostic-coverage rows, or a Measured flag) existing.
 area: "Data services"
 framework: WAF-DATA
 frameworkversion: "Azure Well-Architected Framework service guides for Azure SQL Database, SQL Managed Instance, Cosmos DB, Database for PostgreSQL, Database for MySQL, Azure Managed Redis, Azure HorizonDB and Blob Storage (Microsoft's review question text unpublished), docs/frameworks/waf-data-services-checklist.md, retrieved 2026-11-25 (104 items)"
@@ -39,14 +45,14 @@ rules:
     assert: { type: countEquals, value: 0, gate: "$.domains.databases.sqlDatabases[*]" }
     remediation: "WAF-DATA-SQL-01. The databases listed are not zone redundant. Configure zone redundancy so compute and storage span availability zones and survive a zone outage without losing committed data."
     manual: false
-  # failover groups and replica links are child resources, not collected (proposed in the report); servers attached [SQL-RE-C, SQL-RE-R]
+  # one sqlFailoverGroups row per server whose failover-group list answered (failoverGroupCount 0 = none); gated on its Measured flag so a run that never read them is Not assessed, not a pass. Active geo-replication links are NOT collected, so a server that uses links instead of a group is a finding to record as an exception [SQL-RE-C, SQL-RE-R]
   - id: WAF-DATA-SQL-02
     title: "WAF-DATA-SQL-02. Active geo-replication or failover groups protect against a regional failure"
     severity: high
-    query: "$.domains.databases.sqlServers[*]"
-    assert: { type: manual }
-    remediation: "WAF-DATA-SQL-02. Use failover groups for automatic failover with unchanged listener endpoints, or active geo-replication for a readable secondary. The failover group and replica links are not collected."
-    manual: true
+    query: "$.domains.databases.sqlFailoverGroups[?(@.failoverGroupCount < 1)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.databases.sqlFailoverGroupsMeasured" }
+    remediation: "WAF-DATA-SQL-02. The servers listed have no failover group. Use failover groups for automatic failover with unchanged listener endpoints, or active geo-replication for a readable secondary. Active geo-replication links are not collected, so a server that protects its databases with links alone is a finding to record as an exception rather than a gap."
+    manual: false
   # backup policy is a child resource, not collected [SQL-RE-R]
   - id: WAF-DATA-SQL-03
     title: "WAF-DATA-SQL-03. Backups cover point-in-time restore, geo-restore and long-term retention, with immutability"
@@ -120,14 +126,14 @@ rules:
     assert: { type: countEquals, value: 0, gate: "$.domains.databases.sqlServers[*]" }
     remediation: "WAF-DATA-SQL-10. The subscriptions listed do not have Defender for SQL on the Standard tier. Enable vulnerability assessment and advanced threat protection. (Checked per subscription.)"
     manual: false
-  # auditing and column encryption are not collected [SQL-SE-R]
+  # sqlServerAuditing auditingState: only Enabled passes (Disabled and an unreadable state are findings). The immutable-storage target and column encryption are not collected, so the rule scores the auditing half only [SQL-SE-R]
   - id: WAF-DATA-SQL-11
     title: "WAF-DATA-SQL-11. Auditing is on with immutable storage, and sensitive data is protected with Always Encrypted or ledger"
     severity: medium
-    query: null
-    assert: { type: manual }
-    remediation: "WAF-DATA-SQL-11. Track events with SQL auditing to immutable storage and use Always Encrypted (with enclaves) or ledger tables for sensitive data."
-    manual: true
+    query: "$.domains.databases.sqlServerAuditing[?(@.auditingState != 'Enabled')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.databases.sqlServerAuditingMeasured" }
+    remediation: "WAF-DATA-SQL-11. Auditing is not enabled on the servers listed. Track events with SQL auditing, to immutable storage where evidence must not be altered. Only the auditing state is read: whether the audit target is immutable, and whether Always Encrypted (with enclaves) or ledger tables protect sensitive data, are not collected, so confirm those by hand."
+    manual: false
 
   # ---- SQL, Cost optimization --------------------------------------------------------------
   # elastic pools attached; databases are in the reliability item [SQL-CO-R]
@@ -260,14 +266,14 @@ rules:
     assert: { type: manual }
     remediation: "WAF-DATA-MI-07. Enable vulnerability assessment and threat protection, disable unused SQL Agent and apply deny-by-default NSG rules with unique route tables per subnet."
     manual: true
-  # type not yet in the diagnostic-settings sweep (proposed in the report) [MI-SE]
+  # diagnostic-settings coverage for the managed-instance type; the blob-storage target, immutability and the separate operator audit are not collected [MI-SE]
   - id: WAF-DATA-MI-08
     title: "WAF-DATA-MI-08. Server and operator auditing go to blob storage and Azure Monitor logs"
     severity: medium
-    query: "$.opsPosture.diagnosticCoverage[?(@.type == 'microsoft.sql/managedinstances')]"
-    assert: { type: manual }
-    remediation: "WAF-DATA-MI-08. Configure dual-destination auditing with immutable storage and a separate operator audit. Managed instances are not in the diagnostic-settings sweep yet."
-    manual: true
+    query: "$.opsPosture.diagnosticCoverage[?(@.type == 'microsoft.sql/managedinstances' && @.coveragePct < 100)]"
+    assert: { type: countEquals, value: 0, gate: "$.opsPosture.diagnosticCoverage[?(@.type == 'microsoft.sql/managedinstances')]" }
+    remediation: "WAF-DATA-MI-08. Some managed instances have no diagnostic setting, so their audit events do not reach Azure Monitor logs. Configure dual-destination auditing (Azure Monitor logs plus blob storage with immutability) and a separate operator audit. Only the presence of a diagnostic setting is read; the blob target, immutability and operator audit are not collected, so confirm those by hand."
+    manual: false
 
   # ---- MI, Cost optimization ---------------------------------------------------------------
   # instances attached with sku and vCores [MI-CO]
@@ -633,13 +639,13 @@ rules:
     assert: { type: countEquals, value: 0, gate: "$.domains.databases.redisCaches[*]" }
     remediation: "WAF-DATA-RED-01. The caches listed have no high availability: a Redis Enterprise cache with it disabled, or a classic Basic-tier cache (no replica). Enable high availability, or move to Standard or Premium, so replica shards fail over; use a zone-capable region so they fail over across zones (zone count and allocation policy are collected for review)."
     manual: false
-  # replication and persistence are not collected [AMR-RE-R]
+  # Redis Enterprise databases attached with persistence and the geo-replication link count; whether that matches the recovery need, and scheduled exports, are judgement [AMR-RE-R]
   - id: WAF-DATA-RED-02
     title: "WAF-DATA-RED-02. Active geo-replication, persistence and scheduled exports match the recovery need"
     severity: medium
-    query: null
+    query: "$.domains.databases.redisEnterpriseDatabases[*]"
     assert: { type: manual }
-    remediation: "WAF-DATA-RED-02. Configure geo-replication for regional recovery, choose RDB or AOF persistence (not with geo-replication) and test imports."
+    remediation: "WAF-DATA-RED-02. Configure geo-replication for regional recovery, choose RDB or AOF persistence (not with geo-replication) and test imports. Redis Enterprise databases are attached with their persistence settings and geo-replication link count; whether those match the recovery need, and scheduled exports, are not scored."
     manual: true
   # client code, not ARM [AMR-RE-R]
   - id: WAF-DATA-RED-03
@@ -674,30 +680,30 @@ rules:
     assert: { type: countEquals, value: 0, gate: "$.domains.databases.redisCaches[*]" }
     remediation: "WAF-DATA-RED-05. The caches listed have no private endpoint. Create one and configure private DNS."
     manual: false
-  # disableAccessKeyAuthentication is projected for classic caches only (Redis Enterprise keeps it on a child database), so the rule and its gate are scoped to the classic type [AMR-SE-R]
+  # two sources in one query: a classic cache carries disableAccessKeyAuthentication (read as an explicit false = keys allowed), a Redis Enterprise cache keeps accessKeysAuthentication on its child database (redisEnterpriseDatabases). A filter cannot mix && and ||, so the cluster rows of Redis Enterprise (which carry neither field set) never match, and a classic cache that returns no flag at all is not scored. The gate opens on any classic cache or any database that reported its setting, so a classic-only estate is still assessed [AMR-SE-R]
   - id: WAF-DATA-RED-06
     title: "WAF-DATA-RED-06. Access-key authentication is disabled in favour of Microsoft Entra authentication"
     severity: medium
-    query: "$.domains.databases.redisCaches[?(@.type == 'microsoft.cache/redis' && @.accessKeyAuthDisabled != true)]"
-    assert: { type: countEquals, value: 0, gate: "$.domains.databases.redisCaches[?(@.type == 'microsoft.cache/redis')]" }
-    remediation: "WAF-DATA-RED-06. The classic caches listed still accept access keys (an absent flag is read as keys allowed). Move clients to Entra ID with a managed identity, then disable access-key authentication (plan for connection resets). Redis Enterprise caches are not assessed here: their key setting is on the child database, which is not collected."
+    query: "$.domains.databases['redisCaches','redisEnterpriseDatabases'][?(@.accessKeyAuthDisabled == false || @.accessKeysAuthentication == 'Enabled')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.databases['redisCaches','redisEnterpriseDatabases'][?(@.type == 'microsoft.cache/redis' || @.accessKeysAuthentication == 'Enabled' || @.accessKeysAuthentication == 'Disabled')]" }
+    remediation: "WAF-DATA-RED-06. The classic caches or Redis Enterprise databases listed still accept access keys. Move clients to Entra ID with a managed identity, then disable access-key authentication (plan for connection resets). A classic cache that returns no access-key setting is not scored, and a Redis Enterprise cluster is assessed through its databases, so a cluster whose databases could not be read is not assessed."
     manual: false
-  # enableNonSslPort and minimumTlsVersion; an absent TLS version is unknown rather than 1.0, so it is not flagged [AMR-SE-R]
+  # enableNonSslPort and minimumTlsVersion on a cache, plus clientProtocol on a Redis Enterprise database (Plaintext = non-TLS); an absent TLS version is unknown rather than 1.0, so it is not flagged [AMR-SE-R]
   - id: WAF-DATA-RED-07
     title: "WAF-DATA-RED-07. Non-TLS access is disabled and the minimum TLS version is 1.2"
     severity: medium
-    query: "$.domains.databases.redisCaches[?(@.nonSslPortEnabled == true || @.minimumTlsVersion == '1.0' || @.minimumTlsVersion == '1.1')]"
+    query: "$.domains.databases['redisCaches','redisEnterpriseDatabases'][?(@.nonSslPortEnabled == true || @.minimumTlsVersion == '1.0' || @.minimumTlsVersion == '1.1' || @.clientProtocol == 'Plaintext')]"
     assert: { type: countEquals, value: 0, gate: "$.domains.databases.redisCaches[*]" }
-    remediation: "WAF-DATA-RED-07. The caches listed accept non-TLS connections or TLS older than 1.2. Disable the non-TLS port and set the minimum TLS version to 1.2. Certificate validation by clients and customer-managed keys (set at creation) are not collected, so confirm them by hand."
+    remediation: "WAF-DATA-RED-07. The caches or Redis Enterprise databases listed accept non-TLS connections or TLS older than 1.2. Disable the non-TLS port (or set the database client protocol to Encrypted) and set the minimum TLS version to 1.2. Certificate validation by clients and customer-managed keys (set at creation) are not collected, so confirm them by hand."
     manual: false
-  # type not yet in the diagnostic-settings sweep (proposed in the report) [AMR-SE-R]
+  # diagnostic-settings coverage for both Redis types (classic and Enterprise); which log categories (ConnectionEvents) a setting carries, and the activity and sign-in logs, are not collected [AMR-SE-R]
   - id: WAF-DATA-RED-08
     title: "WAF-DATA-RED-08. ConnectionEvents diagnostics and activity logs are collected"
     severity: medium
-    query: "$.opsPosture.diagnosticCoverage[?(@.type == 'microsoft.cache/redisenterprise')]"
-    assert: { type: manual }
-    remediation: "WAF-DATA-RED-08. Enable ConnectionEvents on each instance and collect activity and sign-in logs. Redis is not in the diagnostic-settings sweep yet."
-    manual: true
+    query: "$.opsPosture.diagnosticCoverage[?(@.type =~ /^microsoft[.]cache.redis/ && @.coveragePct < 100)]"
+    assert: { type: countEquals, value: 0, gate: "$.opsPosture.diagnosticCoverage[?(@.type =~ /^microsoft[.]cache.redis/)]" }
+    remediation: "WAF-DATA-RED-08. Some Redis caches have no diagnostic setting. Enable ConnectionEvents on each instance and collect activity and sign-in logs. Only the presence of a diagnostic setting is read; the log categories it carries and the activity and sign-in logs are not collected, so confirm those by hand."
+    manual: false
 
   # ---- RED, Cost optimization --------------------------------------------------------------
   # caches attached with sku (read from properties.sku for classic caches), family, capacity and highAvailability [AMR-CO-R]
@@ -901,14 +907,14 @@ rules:
     assert: { type: countEquals, value: 0, gate: "$.domains.storage.storageAccounts[*]" }
     remediation: "WAF-DATA-BLOB-09. The accounts listed use locally redundant storage. Use ZRS, GRS or GZRS for data that must survive a zone or regional failure; read-access options let applications read from the secondary."
     manual: false
-  # the blob-service data-protection settings are not collected (proposed in the report); accounts attached [BLOB-RE-R]
+  # blobServiceProperties, one row per account that answered; a feature the account never enabled reads false, so each switch is an explicit == false. Gated on the Measured flag so a run that never read the blob service is Not assessed [BLOB-RE-R]
   - id: WAF-DATA-BLOB-10
     title: "WAF-DATA-BLOB-10. Soft delete, versioning and point-in-time restore are enabled"
     severity: medium
-    query: "$.domains.storage.storageAccounts[*]"
-    assert: { type: manual }
-    remediation: "WAF-DATA-BLOB-10. Enable container and blob soft delete, versioning and point-in-time restore so deletes and corruption are recoverable."
-    manual: true
+    query: "$.domains.storage.blobServiceProperties[?(@.deleteRetentionEnabled == false || @.containerDeleteRetentionEnabled == false || @.versioningEnabled == false || @.pointInTimeRestoreEnabled == false)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.storage.blobServicePropertiesMeasured" }
+    remediation: "WAF-DATA-BLOB-10. The accounts listed lack blob soft delete, container soft delete, versioning or point-in-time restore. Enable all four so deletes and corruption are recoverable (point-in-time restore needs soft delete, versioning and the change feed first). Accounts with a hierarchical namespace (Data Lake Storage) and premium accounts do not support versioning or point-in-time restore: record those as exceptions."
+    manual: false
   # protected items attached (estate-wide) [BLOB-RE-C, BLOB-RE-R]
   - id: WAF-DATA-BLOB-11
     title: "WAF-DATA-BLOB-11. Vaulted backup for blobs and a tested recovery plan exist"

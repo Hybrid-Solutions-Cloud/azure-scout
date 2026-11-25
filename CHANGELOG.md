@@ -7,6 +7,64 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.18.16] - 2026-11-25 - per-resource settings, read in parallel
+
+### Added
+
+- **Eight per-resource datasets** (one ARM GET per parent; each with a `<name>Measured` flag so rules report Not
+  assessed when the read did not happen): storage blob service (soft delete, container soft delete, versioning, change
+  feed, point-in-time restore) and file service (share soft delete, SMB versions, channel encryption, authentication
+  methods); SQL server auditing and failover groups; App Service web config (FTPS, Always On, health check set, remote
+  debugging, HTTP/2, TLS) and basic-auth publishing policies; Event Hubs geo-DR (configured or not); Redis Enterprise
+  databases (access keys, client protocol, persistence, geo-replication). Responses are reduced to an allow-list before
+  a row exists; storage keys, app settings, connection strings and partner ids never reach collect.json (tested).
+- **Diagnostic-settings coverage for 14 more resource types**: ML workspaces, AI Search, Databricks, SQL managed
+  instances, Redis, load balancers, public IPs, gateways, Traffic Manager, Event Grid topics, Application Insights and
+  AVD host pools and workspaces.
+- **19 more checks scored from data** (669 of 1,732): blob and file soft delete, SQL auditing and failover groups,
+  App Service FTP/basic auth/Always On/health check, Event Hubs geo-DR, Redis Enterprise keys, and diagnostics for the
+  newly covered types (Data Services, Service Guides, Analytics, AI Search, ML, AVD, WARA, CAF storage/databases/web,
+  WAF reliability).
+
+### Changed
+
+- **The ARM child sweep runs eight requests at a time** for diagnostic settings and the new datasets (live: 110 reads
+  33 s to 3.7 s, identical rows and operations; a sequential path remains for tests and when no token is available).
+- **Throttling and server errors** back off 1, 2, 4, 8 s and honour Retry-After (capped at 60 s) over five attempts.
+
+### Fixed
+
+- A classic Redis cache with no `disableAccessKeyAuthentication` flag read as unknown and was never flagged; it now reads
+  as access keys allowed, Azure's default.
+
+### Collection detail
+
+### Added
+
+- **Eight per-resource settings datasets** for checks Resource Graph cannot answer, each one ARM GET per parent
+  (collection only; no rule reads them yet): `domains.storage.blobServiceProperties` and `fileServiceProperties` (soft
+  delete, versioning, change feed, point-in-time restore, SMB versions / channel encryption / authentication),
+  `domains.databases.sqlServerAuditing`, `sqlFailoverGroups` and `redisEnterpriseDatabases`, `domains.web.webAppConfig`
+  (FTPS, Always On, health check set, remote debugging, HTTP/2, TLS floors) and `webAppBasicAuth`, and
+  `domains.integration.eventHubGeoDr`. Each is keyed by the lower-cased parent resource id and has a sibling
+  `<dataset>Measured` flag that is true only when a GET was answered, so a rule reports Not assessed rather than a
+  false Pass when the sweep did not run or every request was denied. Only an allow-list of scalar settings is kept from
+  each response: never a SQL auditing storage key, app setting, connection string, failover-group partner server,
+  Event Hubs partner namespace or Redis access key (enforced by test, end to end).
+- **Diagnostic settings are now swept on 14 more parent types**: Machine Learning workspaces, AI Search, Databricks,
+  SQL Managed Instance, Redis, Redis Enterprise, load balancers, public IP addresses, virtual network gateways, Traffic
+  Manager profiles, Event Grid topics, Application Insights, and Azure Virtual Desktop host pools and workspaces. This
+  adds one request per resource (public IP addresses are the high-count type).
+
+### Changed
+
+- The assessment collect and a full inventory now make the extra requests above, and the diagnostic-settings sweep
+  with them is **parallel**: one request per resource, 8 at a time (`-ThrottleLimit`, default 8; 1 = sequential), then
+  applied in input order so rows, source operations and collection health are identical to a sequential run. On a
+  110-request sweep this took 4 seconds instead of 40. A request is sequential only when `Invoke-AzRestMethod` is a
+  test stub or no Az token can be acquired. The token is acquired once per sweep and never logged.
+
+
 ## [3.18.15] - 2026-11-25 - more assessment answered from data, and WAF service guides
 
 ### Added

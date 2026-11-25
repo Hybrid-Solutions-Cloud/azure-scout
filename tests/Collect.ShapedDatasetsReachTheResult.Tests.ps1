@@ -67,6 +67,21 @@ Describe 'Every dataset ConvertFrom-ScoutInventory shapes can reach the collect 
         $lost -join ', ' | Should -BeNullOrEmpty -Because 'a dataset with no typed query is only copied into $r if Invoke-Collect assigns it explicitly; anything listed here is collected and then silently discarded'
     }
 
+    It 'copies each AB#9300 phase 4 batch 2 dataset and its Measured flag explicitly -- no typed query can produce them' {
+        # Eight per-resource ARM GET datasets. Each has a `...Measured` sibling that decides whether
+        # a rule reports NotAssessed, so a dataset copied without its flag, or a flag dropped on the
+        # floor, would turn "the sweep did not run" into a silent Pass.
+        $batch2 = 'blobServiceProperties', 'fileServiceProperties', 'sqlServerAuditing', 'sqlFailoverGroups',
+        'webAppConfig', 'webAppBasicAuth', 'eventHubGeoDr', 'redisEnterpriseDatabases'
+        foreach ($key in $batch2) {
+            foreach ($name in $key, "${key}Measured") {
+                $script:ShapedKeys | Should -Contain $name -Because "ConvertFrom-ScoutInventory must shape $name"
+                $script:ExplicitCopyKeys | Should -Contain $name -Because "Invoke-Collect must copy $name across explicitly"
+                $script:TypedQueryKeys | Should -Not -Contain $name -Because "$name has no KQL; a typed-query entry would shadow the shaped rows"
+            }
+        }
+    }
+
     It 'never guards a $r lookup with PSObject.Properties' {
         # `$r` is a hashtable. `$r.PSObject.Properties['x']` resolves the dictionary adapter's own
         # members (Keys/Values/Count), never the keys -- so such a guard is unconditionally false

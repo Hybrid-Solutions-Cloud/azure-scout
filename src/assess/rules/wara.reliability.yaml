@@ -202,10 +202,13 @@ rules:
     severity: high
     aprl: "74c2491d-048b-0041-a140-935960220e20"
     source: "https://github.com/Azure/Azure-Proactive-Resiliency-Library-v2/tree/main/azure-resources/Sql/servers"
-    query: "$.domains.databases.sqlServers[*]"
-    assert: { type: manual, gate: "$.domains.databases.sqlServers[*]" }
-    remediation: "WARA-SQL-02. Replicas and failover groups are child resources Scout does not collect, so the SQL servers are attached as evidence. Confirm each critical database has a readable secondary in another region, ideally in a failover group the application reaches through the group endpoint."
-    manual: true
+    # domains.databases.sqlFailoverGroups has one row per server whose failover-group list answered
+    # (failoverGroupCount 0 = none). Scout cannot tell a critical database from a test one, so every server is
+    # scored, and active geo-replication links (which are not collected) are not seen. Gated on the Measured flag.
+    query: "$.domains.databases.sqlFailoverGroups[?(@.failoverGroupCount < 1)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.databases.sqlFailoverGroupsMeasured" }
+    remediation: "WARA-SQL-02. The SQL servers listed have no failover group. Put each critical database in a failover group (or give it a readable geo-replica in another region) and have the application connect through the group endpoint. Active geo-replication links are not collected, so a server whose critical databases are protected by links alone, and a server that holds only non-critical databases, are exceptions to record."
+    manual: false
   - id: WARA-COSMOS-01
     title: "WARA-COSMOS-01. Cosmos DB accounts span more than one region and use availability zones"
     severity: high

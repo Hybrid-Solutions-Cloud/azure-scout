@@ -39,7 +39,7 @@ Log Analytics workspaces now carry location, pricing tier, daily cap, public net
 | WAF-ANALYTICS-RE-04 | Delta time travel retention and the Unity Catalog metastore are protected | ❌ Manual — data-plane configuration | DBX-RE-R |
 | WAF-ANALYTICS-RE-05 | Jobs retry with backoff and streaming checkpoints sit on zone-redundant storage | ❌ Manual — job and checkpoint configuration, not ARM | DBX-RE-R |
 | WAF-ANALYTICS-RE-06 | Event Hubs namespaces are zone redundant | ✅ namespace zoneRedundant | EH-RE-R |
-| WAF-ANALYTICS-RE-07 | Geo-replication or geo-disaster recovery is configured for regional failure | ❌ Manual — namespaces attached with geo-replica count; geo-DR pairing is a child resource, not collected, so a zero count is not proof of a gap | EH-RE-C, EH-RE-R |
+| WAF-ANALYTICS-RE-07 | Geo-replication or geo-disaster recovery is configured for regional failure | ✅ `eventHubGeoDr` `geoDrConfigured` false and no geo-replication (`geoReplicaCount` above 1), joined by namespace id; gated on `eventHubGeoDrMeasured` | EH-RE-C, EH-RE-R |
 | WAF-ANALYTICS-RE-08 | Capacity is planned: throughput units, partition count and auto-inflate suit the load | ❌ Manual — namespaces attached with tier, capacity, auto-inflate and throughput ceiling; the load and the partition count are not collected | EH-RE-C, EH-RE-R |
 | WAF-ANALYTICS-RE-09 | Alerts cover consumer lag, throughput utilisation and throttling, tied to SLOs | ❌ Manual — metric alert rules attached (estate-wide) | EH-RE-R |
 | WAF-ANALYTICS-RE-10 | The Log Analytics workspace is in a region with data resilience and co-located with the workload and its collection endpoints | ❌ Manual — workspaces attached with region and replication flag; the zone-capable region list and the workload region are not collected | LA-RE-R |
@@ -101,7 +101,7 @@ Log Analytics workspaces now carry location, pricing tier, daily cap, public net
 |---|---|---|---|
 | WAF-ANALYTICS-OE-01 | Databricks workspaces are deployed with ARM or Bicep, with environment parameters | ❌ Manual — deployment method is not an ARM property | DBX-OE-R |
 | WAF-ANALYTICS-OE-02 | Notebooks and code are in Git with CI/CD | ❌ Manual — practice, not ARM | DBX-OE-R |
-| WAF-ANALYTICS-OE-03 | Databricks diagnostic settings send platform, audit and cluster logs to Log Analytics with alert rules | ❌ Manual — type not yet in the diagnostic-settings sweep (proposed in the report) | DBX-OE-R |
+| WAF-ANALYTICS-OE-03 | Databricks diagnostic settings send platform, audit and cluster logs to Log Analytics with alert rules | ✅ diagnostic-settings coverage for the Databricks workspace type (a setting present; categories and alert rules are not read) | DBX-OE-R |
 | WAF-ANALYTICS-OE-04 | Pipelines enforce data-quality expectations, and workspace artefacts are backed up | ❌ Manual — data-plane practice | DBX-OE-R |
 | WAF-ANALYTICS-OE-05 | Cluster lifecycle policies and environment-specific RBAC separate development, test and production | ❌ Manual — workspace configuration | DBX-OE-R |
 | WAF-ANALYTICS-OE-06 | Event Hubs namespaces and hubs are deployed as code through staged pipelines | ❌ Manual — deployment method is not an ARM property | EH-OE-R |
@@ -132,12 +132,12 @@ Log Analytics workspaces now carry location, pricing tier, daily cap, public net
 
 | Pillar | Items | Automated (✅) | Manual (❌) |
 |---|---|---|---|
-| Reliability | 16 | 3 | 13 |
+| Reliability | 16 | 4 | 12 |
 | Security | 22 | 10 | 12 |
 | Cost optimization | 13 | 2 | 11 |
-| Operational excellence | 13 | 0 | 13 |
+| Operational excellence | 13 | 1 | 12 |
 | Performance efficiency | 10 | 1 | 9 |
-| **Total** | **74** | **16** | **58** |
+| **Total** | **74** | **18** | **56** |
 
 Every automated item is gated on its resources (or its diagnostic-coverage rows) existing, so an estate
 without them reports the item Not assessed. The rules live in `src/assess/rules/waf.analytics.yaml`.

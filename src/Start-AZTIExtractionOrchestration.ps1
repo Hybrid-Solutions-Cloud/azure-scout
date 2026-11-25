@@ -107,7 +107,13 @@ function Resolve-AZSCExtractionCategoryPlan {
         'LAWorkspaceTables', 'SentinelDataConnectors', 'SentinelIngestion',
         'StorageBlobContainers', 'StorageFileShares', 'StorageLifecyclePolicies', 'StorageQueues',
         'StorageTables', 'BackupInstances', 'ResourceDiagnosticSettings', 'ReservationUtilization',
-        'AzureLocalVirtualMachineInstances'
+        'AzureLocalVirtualMachineInstances',
+        # AB#9300 phase 4, batch 2. No collector manifest declares these yet, so a category-limited
+        # inventory never asks for them; they are listed so a manifest that does declare one is
+        # honoured instead of silently dropped.
+        'StorageBlobServiceProperties', 'StorageFileServiceProperties', 'SqlServerAuditing',
+        'SqlFailoverGroups', 'WebAppConfig', 'WebAppBasicAuth', 'EventHubGeoDr',
+        'RedisEnterpriseDatabases'
     )
     $armChildDataset = @($armChildNames | Where-Object { $_ -in $supportedArmChildren } | Sort-Object -Unique)
     $specialApiTypes = @(

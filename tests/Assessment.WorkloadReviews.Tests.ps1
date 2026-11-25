@@ -55,6 +55,14 @@ BeforeAll {
         domains    = [ordered]@{ storage = [ordered]@{ storageAccounts = @() } }
         management = [ordered]@{ backupProtectedItems = @() }
         monitor    = [ordered]@{ dataCollectionRules = @(); activityLogAlertRules = @() }
+        # phase 4 batch 2: host pools and workspaces are in the diagnostic-settings sweep; one pool is uncovered
+        opsPosture = [ordered]@{
+            diagnosticCoverageMeasured = $true
+            diagnosticCoverage         = @(
+                [ordered]@{ type = 'microsoft.desktopvirtualization/hostpools'; total = 3; withDiag = 2; coveragePct = 66.7 }
+                [ordered]@{ type = 'microsoft.desktopvirtualization/workspaces'; total = 1; withDiag = 1; coveragePct = 100 }
+            )
+        }
     }
     $script:AvdFindings = @(Invoke-ScoutTestRuleSet -Pattern 'waf.avd.azure' -Collect $script:AvdCollect -Assessment 'Workload: AVD')
     $script:AvdById = @{}; foreach ($f in $script:AvdFindings) { $script:AvdById[[string]$f.Id] = $f }
@@ -97,6 +105,7 @@ Describe 'Workload: AVD (AVD in Azure)' {
         @{ Id = 'WAF-AVDAZ-CO-04'; Status = 'Fail' }   # pooled-bad at the default limit
         @{ Id = 'WAF-AVDAZ-OE-01'; Status = 'Pass' }   # pooled-ok is a validation pool
         @{ Id = 'WAF-AVDAZ-OE-02'; Status = 'Fail' }   # pooled-bad not scheduled
+        @{ Id = 'WAF-AVDAZ-OE-03'; Status = 'Fail' }   # one host pool has no diagnostic setting; the workspace is covered
         @{ Id = 'WAF-AVDAZ-OE-04'; Status = 'Fail' }   # sh-bad update failed
         @{ Id = 'WAF-AVDAZ-SE-06'; Status = 'Manual' }
     ) {
@@ -115,7 +124,28 @@ Describe 'Workload: AVD (AVD in Azure)' {
         }
         $findings = @(Invoke-ScoutTestRuleSet -Pattern 'waf.avd.azure' -Collect $empty -Assessment 'Workload: AVD')
         @($findings | Where-Object { $_.Status -in 'Pass', 'Fail', 'Partial', 'Error' }).Count | Should -Be 0
-        @($findings | Where-Object Status -eq 'NotAssessed').Count | Should -Be 15
+        @($findings | Where-Object Status -eq 'NotAssessed').Count | Should -Be 16
+    }
+
+    It 'scores WAF-AVDAZ-OE-03 from the host-pool and workspace coverage rows only' {
+        $collect = { param($rows) [ordered]@{ opsPosture = [ordered]@{ diagnosticCoverageMeasured = $true; diagnosticCoverage = @($rows) } } }
+        $covered = @(
+            [ordered]@{ type = 'microsoft.desktopvirtualization/hostpools'; total = 2; withDiag = 2; coveragePct = 100 }
+            [ordered]@{ type = 'microsoft.desktopvirtualization/workspaces'; total = 1; withDiag = 1; coveragePct = 100 }
+        )
+        $uncoveredWorkspace = @(
+            [ordered]@{ type = 'microsoft.desktopvirtualization/hostpools'; total = 2; withDiag = 2; coveragePct = 100 }
+            [ordered]@{ type = 'microsoft.desktopvirtualization/workspaces'; total = 1; withDiag = 0; coveragePct = 0 }
+        )
+        $otherTypeOnly = @([ordered]@{ type = 'microsoft.storage/storageaccounts'; total = 1; withDiag = 0; coveragePct = 0 })
+        $run = { param($c) (@(Invoke-ScoutTestRuleSet -Pattern 'waf.avd.azure' -Collect $c -Assessment 'Workload: AVD') | Where-Object Id -eq 'WAF-AVDAZ-OE-03') }
+        (& $run (& $collect $covered)).Status | Should -Be 'Pass'
+        $bad = & $run (& $collect $uncoveredWorkspace)
+        $bad.Status | Should -Be 'Fail'
+        $bad.EvidenceCount | Should -Be 1
+        $bad.Manual | Should -BeFalse
+        (& $run (& $collect $otherTypeOnly)).Status | Should -Be 'NotAssessed'
+        (& $run (& $collect @())).Status | Should -Be 'NotAssessed'
     }
 }
 

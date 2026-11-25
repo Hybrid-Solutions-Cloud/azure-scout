@@ -181,14 +181,14 @@ rules:
     assert: { type: manual }
     remediation: "WAF-AISEARCH-SE-09. Use the Search Service Contributor, Index Data Contributor and Index Data Reader roles, with custom roles for single-index access in multitenant designs."
     manual: true
-  # type not yet in the diagnostic-settings sweep (proposed in the report) [SEC]
+  # diagnostic-settings coverage for the search service type; the alert rules are not collected [SEC]
   - id: WAF-AISEARCH-SE-10
     title: "WAF-AISEARCH-SE-10. Diagnostic logging is on and alerts watch for anomalous activity"
     severity: medium
-    query: "$.opsPosture.diagnosticCoverage[?(@.type == 'microsoft.search/searchservices')]"
-    assert: { type: manual }
-    remediation: "WAF-AISEARCH-SE-10. Send diagnostic logs to Azure Monitor and alert on query spikes and failed authentication. Search is not in the diagnostic-settings sweep yet; coverage rows are attached once it is."
-    manual: true
+    query: "$.opsPosture.diagnosticCoverage[?(@.type == 'microsoft.search/searchservices' && @.coveragePct < 100)]"
+    assert: { type: countEquals, value: 0, gate: "$.opsPosture.diagnosticCoverage[?(@.type == 'microsoft.search/searchservices')]" }
+    remediation: "WAF-AISEARCH-SE-10. Some search services have no diagnostic setting. Send diagnostic logs to Azure Monitor and alert on query spikes and failed authentication. Only the presence of a diagnostic setting is read; the alert rules are not tied to a service, so confirm those by hand."
+    manual: false
   # ipRuleCount is a COUNT of networkRuleSet.ipRules (null when there is no rule set); services with public access on and no rule are findings [SEC]
   - id: WAF-AISEARCH-SE-11
     title: "WAF-AISEARCH-SE-11. An IP firewall or network security perimeter limits inbound access when public access stays on"

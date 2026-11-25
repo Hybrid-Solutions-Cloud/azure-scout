@@ -239,10 +239,11 @@ rules:
   - id: WAF-AVDAZ-OE-03
     title: "WAF-AVDAZ-OE-03. Host pools, workspaces and session hosts send diagnostics to Log Analytics"
     severity: high
-    query: "$.monitor.dataCollectionRules[*]"
-    assert: { type: manual }
-    remediation: "WAF-AVDAZ-OE-03. Confirm host pool and workspace diagnostic settings go to Log Analytics (AVD Insights) and session hosts run the Azure Monitor agent with a data collection rule. AVD resources are not in the diagnostic-settings sweep yet; data collection rules are attached."
-    manual: true
+    # diagnostic-settings coverage of host pools and workspaces; the Azure Monitor agent and data collection rules on session hosts are not tied to a host pool, so they are not scored
+    query: "$.opsPosture.diagnosticCoverage[?(@.type =~ /^microsoft[.]desktopvirtualization.(hostpools|workspaces)$/ && @.coveragePct < 100)]"
+    assert: { type: countEquals, value: 0, gate: "$.opsPosture.diagnosticCoverage[?(@.type =~ /^microsoft[.]desktopvirtualization.(hostpools|workspaces)$/)]" }
+    remediation: "WAF-AVDAZ-OE-03. Some host pools or workspaces have no diagnostic setting. Send host pool and workspace diagnostics to Log Analytics (AVD Insights). Session hosts also need the Azure Monitor agent with a data collection rule; that is not scored here, so confirm it by hand."
+    manual: false
   - id: WAF-AVDAZ-OE-04
     title: "WAF-AVDAZ-OE-04. No session-host component update has failed"
     severity: medium
