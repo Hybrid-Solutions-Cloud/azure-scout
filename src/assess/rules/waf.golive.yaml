@@ -1,0 +1,442 @@
+# waf.golive.yaml — Go-live readiness assessment (AB#9300)
+#
+# Stands in for the "Go-Live | Well-Architected Review" assessment
+# (learn.microsoft.com/assessments/b0f9a229-5f82-4f19-ae61-b7be31131f4e), for which Scout found
+# only a landing page: no questions, no design areas, no guidance article.
+#
+# This is therefore Scout's OWN production-readiness review, built from the five Well-Architected
+# design review checklists and focused on launch gates (SLOs defined, disaster recovery tested,
+# monitoring and alerting, security baseline, cost guardrails, safe deployment). It is NOT
+# Microsoft's question list and its score is not comparable to a Go-Live Assessment result.
+#
+# Written ONLY against docs/frameworks/waf-go-live-checklist.md. 57 items: 35 automated,
+# 22 manual. Each automated rule is gated on its data being present, so an estate without
+# the resource reports Not assessed rather than a pass.
+area: "Go-live readiness"
+framework: WAF-GOLIVE
+frameworkversion: "Scout production-readiness review built from the five Azure Well-Architected design review checklists (Microsoft publishes no Go-Live question set), docs/frameworks/waf-go-live-checklist.md, retrieved 2026-11-25 (57 items)"
+weight: 1.0
+verifiedAgainst: "docs/frameworks/waf-go-live-checklist.md (Scout enumeration of learn.microsoft.com/azure/well-architected/<pillar>/checklist), verified 2026-11-25"
+rules:
+  # ---- Reliability gates (RE) -----------------------------------------------------------------
+  - id: WAF-GOLIVE-RE-01
+    title: "WAF-GOLIVE-RE-01. Critical user and system flows are identified and rated by business criticality"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-GOLIVE-RE-01. Confirm every flow is listed and rated on a criticality scale so recovery and testing effort follows business impact."
+    manual: true
+  - id: WAF-GOLIVE-RE-02
+    title: "WAF-GOLIVE-RE-02. Reliability and recovery targets (SLO, RTO, RPO) are defined and agreed"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-GOLIVE-RE-02. Confirm numeric availability, recovery time and recovery point targets exist per flow, agreed with the business, and are the basis of the health model."
+    manual: true
+  - id: WAF-GOLIVE-RE-03
+    title: "WAF-GOLIVE-RE-03. Failure mode analysis is complete, with mitigations for each dependency"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-GOLIVE-RE-03. Confirm dependencies and failure points are mapped and each has a documented mitigation."
+    manual: true
+  - id: WAF-GOLIVE-RE-04
+    title: "WAF-GOLIVE-RE-04. Virtual machines are deployed in availability zones"
+    severity: high
+    query: "$.compute.virtualMachines[?(@.zoneEligible == true && @.zoneRedundant == false)]"
+    assert: { type: countEquals, value: 0, gate: "$.compute.virtualMachines[*]" }
+    remediation: "WAF-GOLIVE-RE-04. The virtual machines listed run in a region that has availability zones but are not placed in one. Spread critical machines across zones before launch."
+    manual: false
+  - id: WAF-GOLIVE-RE-05
+    title: "WAF-GOLIVE-RE-05. AKS node pools are spread across availability zones"
+    severity: high
+    query: "$.domains.containers.aksClusters[?(@.allPoolsZoned == false)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.containers.aksClusters[*]" }
+    remediation: "WAF-GOLIVE-RE-05. The clusters listed have node pools that are not zone-spread. Use zones for the control plane and agent nodes."
+    manual: false
+  - id: WAF-GOLIVE-RE-06
+    title: "WAF-GOLIVE-RE-06. SQL databases are zone-redundant"
+    severity: high
+    query: "$.domains.databases.sqlDatabases[?(@.zoneRedundant == false && @.tier != 'System')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.databases.sqlDatabases[*]" }
+    remediation: "WAF-GOLIVE-RE-06. The databases listed are not zone-redundant. Enable zone redundancy for production data. System databases are excluded."
+    manual: false
+  - id: WAF-GOLIVE-RE-07
+    title: "WAF-GOLIVE-RE-07. Storage accounts use zone-redundant or geo-redundant replication"
+    severity: medium
+    query: "$.domains.storage.storageAccounts[?(@.sku == 'Standard_LRS' || @.sku == 'Premium_LRS')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.storage.storageAccounts[*]" }
+    remediation: "WAF-GOLIVE-RE-07. The accounts listed use locally redundant storage. Use ZRS, GRS or GZRS for production data."
+    manual: false
+  - id: WAF-GOLIVE-RE-08
+    title: "WAF-GOLIVE-RE-08. No autoscale setting is switched off"
+    severity: medium
+    query: "$.monitor.autoscaleSettings[?(@.enabled == false)]"
+    assert: { type: countEquals, value: 0, gate: "$.monitor.autoscaleSettings[*]" }
+    remediation: "WAF-GOLIVE-RE-08. The autoscale settings listed are disabled. Confirm the scaling strategy matches expected usage and needs no manual intervention."
+    manual: false
+  - id: WAF-GOLIVE-RE-09
+    title: "WAF-GOLIVE-RE-09. Virtual machines are protected by Azure Backup"
+    severity: high
+    join:
+      left: "$.compute.virtualMachines[*]"
+      leftKey: "id"
+      right: "$.management.backupProtectedItems[*]"
+      rightKey: "sourceResourceId"
+      mode: leftOnly
+      leftLabel: "virtual machine"
+      rightLabel: "backup protected item"
+    assert: { type: countEquals, value: 0, gate: "$.compute.virtualMachines[*]" }
+    remediation: "WAF-GOLIVE-RE-09. The virtual machines listed have no protected item. Put them under a backup policy before launch, or record that the machine is stateless and replaceable."
+    manual: false
+  - id: WAF-GOLIVE-RE-10
+    title: "WAF-GOLIVE-RE-10. No protected item reports a failed last backup"
+    severity: high
+    query: "$.management.backupProtectedItems[?(@.lastBackupStatus =~ /fail/i)]"
+    assert: { type: countEquals, value: 0, gate: "$.management.backupProtectedItems[*]" }
+    remediation: "WAF-GOLIVE-RE-10. The protected items listed report a failed last backup. Fix the cause and confirm a restore works before go-live."
+    manual: false
+  - id: WAF-GOLIVE-RE-11
+    title: "WAF-GOLIVE-RE-11. Resiliency has been tested with load and fault-injection tests that meet the targets"
+    severity: high
+    query: "$.devops.chaosExperiments[*]"
+    assert: { type: manual }
+    remediation: "WAF-GOLIVE-RE-11. Confirm load, scale and chaos tests were run against a production-like environment and the workload met its recovery targets. Chaos experiments are attached as evidence."
+    manual: true
+  - id: WAF-GOLIVE-RE-12
+    title: "WAF-GOLIVE-RE-12. A disaster recovery plan is documented and has been tested end to end"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-GOLIVE-RE-12. Confirm the DR plan covers every component and the whole system, aligns to the recovery targets, and a recovery test has passed."
+    manual: true
+  - id: WAF-GOLIVE-RE-13
+    title: "WAF-GOLIVE-RE-13. Enabled metric alert rules are wired to an action group"
+    severity: high
+    query: "$.monitor.metricAlertRules[?(@.enabled == true && @.actionGroupCount == 0)]"
+    assert: { type: countEquals, value: 0, gate: "$.monitor.metricAlertRules[*]" }
+    remediation: "WAF-GOLIVE-RE-13. The alert rules listed fire without notifying anyone. Attach an action group so health signals reach the people who respond."
+    manual: false
+  - id: WAF-GOLIVE-RE-14
+    title: "WAF-GOLIVE-RE-14. High-impact Advisor reliability recommendations are addressed"
+    severity: high
+    query: "$.advisor[?(@.Category =~ /HighAvailability|Reliability/i && @.Impact == 'High')]"
+    assert: { type: countEquals, value: 0, gate: "$.advisorAvailable" }
+    remediation: "WAF-GOLIVE-RE-14. High-impact Advisor reliability recommendations are open. Resolve them or record an accepted risk before launch."
+    manual: false
+
+  # ---- Security gates (SE) --------------------------------------------------------------------
+  - id: WAF-GOLIVE-SE-01
+    title: "WAF-GOLIVE-SE-01. A security baseline is established and the workload is measured against it"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-GOLIVE-SE-01. Confirm a baseline aligned to compliance, industry standards and platform recommendations exists and the workload has been measured against it. Secure score is not read by this assessment."
+    manual: true
+  - id: WAF-GOLIVE-SE-02
+    title: "WAF-GOLIVE-SE-02. Microsoft Defender for Servers is enabled"
+    severity: high
+    query: "$.security.defenderPlans[?(@.name == 'VirtualMachines' && @.properties.pricingTier != 'Standard')]"
+    assert: { type: countEquals, value: 0, gate: "$.compute.virtualMachines[*]" }
+    remediation: "WAF-GOLIVE-SE-02. Defender for Servers is not on the Standard tier in the subscriptions listed. Enable it before launch. (Checked per subscription, not per workload.)"
+    manual: false
+  - id: WAF-GOLIVE-SE-03
+    title: "WAF-GOLIVE-SE-03. Microsoft Defender for SQL is enabled"
+    severity: high
+    query: "$.domains.databases.sqlDefenderPricing[?(@.pricingTier != 'Standard')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.databases.sqlServers[*]" }
+    remediation: "WAF-GOLIVE-SE-03. Defender for SQL is not on the Standard tier in the subscriptions listed. Enable it wherever SQL servers run."
+    manual: false
+  - id: WAF-GOLIVE-SE-04
+    title: "WAF-GOLIVE-SE-04. Azure Policy assignments enforce the security baseline"
+    severity: high
+    query: "$.governance.policyAssignments[*]"
+    assert: { type: exists, gate: "$.governance.policyAssignmentsAvailable" }
+    remediation: "WAF-GOLIVE-SE-04. No policy assignment was found. Assign policy so the baseline is enforced, not just documented. This is an estate-wide existence signal."
+    manual: false
+  - id: WAF-GOLIVE-SE-05
+    title: "WAF-GOLIVE-SE-05. Access is least-privilege, conditional and auditable for users, operators and workload identities"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-GOLIVE-SE-05. Confirm Conditional Access and MFA, just-in-time elevation, managed identities for workloads, and audited non-identity access. Conditional Access is read from Microsoft Graph, not this assessment."
+    manual: true
+  - id: WAF-GOLIVE-SE-06
+    title: "WAF-GOLIVE-SE-06. No network security group rule opens RDP or SSH to the internet"
+    severity: high
+    query: "$.networking.nsgPublicInbound[?(@.port =~ /^(22|3389|[*])$/)]"
+    assert: { type: countEquals, value: 0, gate: "$.subscriptions[*]" }
+    remediation: "WAF-GOLIVE-SE-06. The NSG rules listed allow inbound SSH, RDP or all ports from any source. Close them and use Azure Bastion or just-in-time access. Port ranges and multi-port rules are not evaluated."
+    manual: false
+  - id: WAF-GOLIVE-SE-07
+    title: "WAF-GOLIVE-SE-07. Storage accounts deny public network access by default"
+    severity: high
+    query: "$.domains.storage.storageAccounts[?(@.networkDefaultDeny == false)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.storage.storageAccounts[*]" }
+    remediation: "WAF-GOLIVE-SE-07. The accounts listed accept traffic from all networks. Set the firewall default action to Deny and use private endpoints."
+    manual: false
+  - id: WAF-GOLIVE-SE-08
+    title: "WAF-GOLIVE-SE-08. SQL servers do not allow public network access"
+    severity: high
+    query: "$.domains.databases.sqlServers[?(@.publicNetworkAccess == 'Enabled')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.databases.sqlServers[*]" }
+    remediation: "WAF-GOLIVE-SE-08. The servers listed allow public network access. Use private endpoints and disable the public endpoint."
+    manual: false
+  - id: WAF-GOLIVE-SE-09
+    title: "WAF-GOLIVE-SE-09. Storage accounts require secure transfer"
+    severity: medium
+    query: "$.domains.storage.storageAccounts[?(@.httpsOnly == false)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.storage.storageAccounts[*]" }
+    remediation: "WAF-GOLIVE-SE-09. The accounts listed accept unencrypted HTTP. Require secure transfer."
+    manual: false
+  - id: WAF-GOLIVE-SE-10
+    title: "WAF-GOLIVE-SE-10. Storage accounts require TLS 1.2 or later"
+    severity: medium
+    query: "$.domains.storage.storageAccounts[?(@.minTls == 'TLS1_0' || @.minTls == 'TLS1_1')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.storage.storageAccounts[*]" }
+    remediation: "WAF-GOLIVE-SE-10. The accounts listed still accept TLS 1.0 or 1.1. Set the minimum TLS version to 1.2."
+    manual: false
+  - id: WAF-GOLIVE-SE-11
+    title: "WAF-GOLIVE-SE-11. Key vaults have soft delete and purge protection"
+    severity: high
+    query: "$.domains.security.keyVaults[?(@.softDelete == false || @.purgeProtection != true)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.security.keyVaults[*]" }
+    remediation: "WAF-GOLIVE-SE-11. The vaults listed lack soft delete or purge protection. Protect secrets, keys and certificates against accidental or malicious permanent deletion."
+    manual: false
+  - id: WAF-GOLIVE-SE-12
+    title: "WAF-GOLIVE-SE-12. Web application firewall policies run in Prevention mode"
+    severity: high
+    query: "$.security.wafPolicies[?(@.mode == 'Detection')]"
+    assert: { type: countEquals, value: 0, gate: "$.security.wafPolicies[*]" }
+    remediation: "WAF-GOLIVE-SE-12. The WAF policies listed only log. Switch to Prevention before exposing the workload."
+    manual: false
+  - id: WAF-GOLIVE-SE-13
+    title: "WAF-GOLIVE-SE-13. Threat monitoring is live and incident response procedures have been tested"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-GOLIVE-SE-13. Confirm threat detection feeds the security operations process, alerts are triaged, and incident response (including disaster recovery) has been rehearsed with named owners."
+    manual: true
+  - id: WAF-GOLIVE-SE-14
+    title: "WAF-GOLIVE-SE-14. Secure development practice and a security testing regimen cover the release"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-GOLIVE-SE-14. Confirm secure-development controls ran, and testing covers prevention, validation of mitigations and detection (including penetration testing where warranted)."
+    manual: true
+  - id: WAF-GOLIVE-SE-15
+    title: "WAF-GOLIVE-SE-15. High-impact Advisor security recommendations are addressed"
+    severity: high
+    query: "$.advisor[?(@.Category == 'Security' && @.Impact == 'High')]"
+    assert: { type: countEquals, value: 0, gate: "$.advisorAvailable" }
+    remediation: "WAF-GOLIVE-SE-15. High-impact Advisor security recommendations are open. Resolve them or record an accepted risk before launch."
+    manual: false
+
+  # ---- Cost guardrail gates (CO) --------------------------------------------------------------
+  - id: WAF-GOLIVE-CO-01
+    title: "WAF-GOLIVE-CO-01. A cost model exists with a budget that includes a buffer for unplanned spend"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-GOLIVE-CO-01. Confirm initial, run-rate and ongoing costs are modelled and a budget is agreed."
+    manual: true
+  - id: WAF-GOLIVE-CO-02
+    title: "WAF-GOLIVE-CO-02. Cost Management budgets with alerts exist"
+    severity: medium
+    query: "$.governance.budgets[*]"
+    assert: { type: exists, gate: "$.governance.budgetsAvailable" }
+    remediation: "WAF-GOLIVE-CO-02. No budget was found. Define budgets with threshold alerts so spend against the model is watched from day one."
+    manual: false
+  - id: WAF-GOLIVE-CO-03
+    title: "WAF-GOLIVE-CO-03. Cost data is reviewed against the budget, with anomaly detection and alerts"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-GOLIVE-CO-03. Confirm daily cost data is captured, stakeholders review it against the budget, and anomaly alerts notify the owner."
+    manual: true
+  - id: WAF-GOLIVE-CO-04
+    title: "WAF-GOLIVE-CO-04. A policy limits what can be deployed (allowed locations, sizes or resource types)"
+    severity: medium
+    query: "$.governance.policyAssignments[?(@.properties.displayName =~ /allowed (locations|virtual machine|resource)|not allowed resource types/i)]"
+    assert: { type: exists, gate: "$.governance.policyAssignmentsAvailable" }
+    remediation: "WAF-GOLIVE-CO-04. No spending-guardrail policy was found. Restrict regions, sizes and resource types so a new workload cannot overspend by default. This is a name heuristic."
+    manual: false
+  - id: WAF-GOLIVE-CO-05
+    title: "WAF-GOLIVE-CO-05. No unattached managed disks remain"
+    severity: low
+    query: "$.costCleanup.orphanedDisks[*]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.storage.managedDisks[*]" }
+    remediation: "WAF-GOLIVE-CO-05. The disks listed are not attached to any machine. Remove the leftovers of the build-out before launch."
+    manual: false
+  - id: WAF-GOLIVE-CO-06
+    title: "WAF-GOLIVE-CO-06. No public IP addresses are left unassociated"
+    severity: low
+    query: "$.costCleanup.orphanedPips[*]"
+    assert: { type: countEquals, value: 0, gate: "$.subscriptions[*]" }
+    remediation: "WAF-GOLIVE-CO-06. The public IP addresses listed have no IP configuration. Release them."
+    manual: false
+  - id: WAF-GOLIVE-CO-07
+    title: "WAF-GOLIVE-CO-07. High-impact Advisor cost recommendations are addressed"
+    severity: medium
+    query: "$.advisor[?(@.Category == 'Cost' && @.Impact == 'High')]"
+    assert: { type: countEquals, value: 0, gate: "$.advisorAvailable" }
+    remediation: "WAF-GOLIVE-CO-07. High-impact Advisor cost recommendations are open. Right-size or remove what Advisor flags."
+    manual: false
+  - id: WAF-GOLIVE-CO-08
+    title: "WAF-GOLIVE-CO-08. Rates, reservations and licence benefits have been evaluated for steady-state usage"
+    severity: low
+    query: "$.finops.reservations[*]"
+    assert: { type: manual }
+    remediation: "WAF-GOLIVE-CO-08. Confirm commitment discounts and licence portability were weighed against the expected run rate. Reservations are attached as evidence."
+    manual: true
+  - id: WAF-GOLIVE-CO-09
+    title: "WAF-GOLIVE-CO-09. Non-production and disaster recovery environments are sized and scheduled to their purpose"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-GOLIVE-CO-09. Confirm preproduction and recovery environments are sized to the need and run only for the hours required."
+    manual: true
+
+  # ---- Safe deployment and operations gates (OE) ----------------------------------------------
+  - id: WAF-GOLIVE-OE-01
+    title: "WAF-GOLIVE-OE-01. Standard operating practices and runbooks exist for routine, ad-hoc and emergency operations"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-GOLIVE-OE-01. Confirm runbooks are written, owned and reachable by the on-call team."
+    manual: true
+  - id: WAF-GOLIVE-OE-02
+    title: "WAF-GOLIVE-OE-02. Infrastructure is deployed from code through a standard IaC approach"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-GOLIVE-OE-02. Confirm every resource is defined declaratively in source control and deployed by pipeline, with no portal-only configuration."
+    manual: true
+  - id: WAF-GOLIVE-OE-03
+    title: "WAF-GOLIVE-OE-03. Changes flow through automated pipelines with quality gates and testing across environments"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-GOLIVE-OE-03. Confirm one pipeline promotes changes through every environment, with automated tests and approval gates, and no route around it."
+    manual: true
+  - id: WAF-GOLIVE-OE-04
+    title: "WAF-GOLIVE-OE-04. A safe deployment plan exists, with progressive exposure and a tested rollback"
+    severity: high
+    query: "$.domains.web.webAppDeploymentSlots[*]"
+    assert: { type: manual }
+    remediation: "WAF-GOLIVE-OE-04. Confirm releases are small and incremental, exposed progressively, rollback has been rehearsed, and emergency deployment is planned. App Service deployment slots are attached as evidence."
+    manual: true
+  - id: WAF-GOLIVE-OE-05
+    title: "WAF-GOLIVE-OE-05. A Log Analytics workspace exists to receive operational telemetry"
+    severity: medium
+    query: "$.management.logAnalyticsWorkspaces[*]"
+    assert: { type: exists, gate: "$.subscriptions[*]" }
+    remediation: "WAF-GOLIVE-OE-05. No Log Analytics workspace was found. Collect telemetry, metrics and logs from infrastructure and code into one place."
+    manual: false
+  - id: WAF-GOLIVE-OE-06
+    title: "WAF-GOLIVE-OE-06. Diagnostic settings cover at least 80% of each resource type"
+    severity: high
+    query: "$.opsPosture.diagnosticCoverage[?(@.coveragePct < 80)]"
+    assert: { type: countEquals, value: 0, gate: "$.opsPosture.diagnosticCoverageMeasured" }
+    remediation: "WAF-GOLIVE-OE-06. The resource types listed have diagnostic settings on fewer than 80% of their resources. Enable diagnostics before launch so an incident can be diagnosed."
+    manual: false
+  - id: WAF-GOLIVE-OE-07
+    title: "WAF-GOLIVE-OE-07. An enabled action group exists to route alerts"
+    severity: medium
+    query: "$.monitor.actionGroups[?(@.enabled == true)]"
+    assert: { type: exists, gate: "$.subscriptions[*]" }
+    remediation: "WAF-GOLIVE-OE-07. No enabled action group was found. Define who is told, and how, when an alert fires."
+    manual: false
+  - id: WAF-GOLIVE-OE-08
+    title: "WAF-GOLIVE-OE-08. An incident management process with defined roles is documented and has been rehearsed"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-GOLIVE-OE-08. Confirm roles, escalation paths and recovery procedures exist and the on-call team has practised them."
+    manual: true
+  - id: WAF-GOLIVE-OE-09
+    title: "WAF-GOLIVE-OE-09. Virtual machines use platform-orchestrated patching"
+    severity: medium
+    query: "$.compute.virtualMachines[?(@.patchMode != 'AutomaticByPlatform')]"
+    assert: { type: countEquals, value: 0, gate: "$.compute.virtualMachines[*]" }
+    remediation: "WAF-GOLIVE-OE-09. The virtual machines listed do not use automatic patching by platform. Automate routine operations that give clear return."
+    manual: false
+  - id: WAF-GOLIVE-OE-10
+    title: "WAF-GOLIVE-OE-10. High-impact Advisor operational excellence recommendations are addressed"
+    severity: medium
+    query: "$.advisor[?(@.Category =~ /OperationalExcellence/i && @.Impact == 'High')]"
+    assert: { type: countEquals, value: 0, gate: "$.advisorAvailable" }
+    remediation: "WAF-GOLIVE-OE-10. High-impact Advisor operational excellence recommendations are open. Resolve them or record an accepted risk."
+    manual: false
+
+  # ---- Performance gates (PE) -----------------------------------------------------------------
+  - id: WAF-GOLIVE-PE-01
+    title: "WAF-GOLIVE-PE-01. Numeric performance targets are defined for every workload flow"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-GOLIVE-PE-01. Confirm targets (latency, throughput, concurrency) are tied to requirements for each flow."
+    manual: true
+  - id: WAF-GOLIVE-PE-02
+    title: "WAF-GOLIVE-PE-02. Capacity planning is done for launch load and expected growth, including quotas"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-GOLIVE-PE-02. Confirm capacity was planned for launch peaks and seasonal change and subscription quotas are raised where needed."
+    manual: true
+  - id: WAF-GOLIVE-PE-03
+    title: "WAF-GOLIVE-PE-03. No Free or Shared App Service plan is used"
+    severity: medium
+    query: "$.domains.web.appServicePlans[?(@.sku == 'F1' || @.sku == 'D1')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.web.appServicePlans[*]" }
+    remediation: "WAF-GOLIVE-PE-03. The plans listed are on Free or Shared tiers, which have quota limits and no SLA. Move production apps to a paid tier."
+    manual: false
+  - id: WAF-GOLIVE-PE-04
+    title: "WAF-GOLIVE-PE-04. No Azure AI Search service is on the Free tier"
+    severity: medium
+    query: "$.domains.ai.searchServices[?(@.sku == 'free')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.ai.searchServices[*]" }
+    remediation: "WAF-GOLIVE-PE-04. The services listed use the Free tier, which has no SLA and shared capacity. Use a paid tier for production."
+    manual: false
+  - id: WAF-GOLIVE-PE-05
+    title: "WAF-GOLIVE-PE-05. Application performance telemetry exists for web applications"
+    severity: medium
+    query: "$.monitor.appInsights[*]"
+    assert: { type: exists, gate: "$.domains.web.webApps[*]" }
+    remediation: "WAF-GOLIVE-PE-05. Web apps exist but no Application Insights component was found. Measure performance consistently so degradation and scaling gaps are visible after launch."
+    manual: false
+  - id: WAF-GOLIVE-PE-06
+    title: "WAF-GOLIVE-PE-06. Standard, Premium and Isolated App Service plans are scaled by an enabled autoscale setting"
+    severity: medium
+    join:
+      left: "$.domains.web.appServicePlans[?(@.sku =~ /^(S|P|I)/)]"
+      leftKey: "id"
+      right: "$.monitor.autoscaleSettings[?(@.enabled == true)]"
+      rightKey: "targetResourceUri"
+      mode: leftOnly
+      leftLabel: "App Service plan"
+      rightLabel: "enabled autoscale setting"
+    assert: { type: countEquals, value: 0, gate: "$.domains.web.appServicePlans[*]" }
+    remediation: "WAF-GOLIVE-PE-06. The plans listed have no enabled autoscale setting. Use controlled, reliable scaling on the workload's scale unit."
+    manual: false
+  - id: WAF-GOLIVE-PE-07
+    title: "WAF-GOLIVE-PE-07. Performance has been tested in a production-like environment against the targets"
+    severity: high
+    query: "$.devops.loadTesting[*]"
+    assert: { type: manual }
+    remediation: "WAF-GOLIVE-PE-07. Confirm load and performance tests ran against a production-like environment and met the numeric targets. Azure Load Testing resources are attached as evidence."
+    manual: true
+  - id: WAF-GOLIVE-PE-08
+    title: "WAF-GOLIVE-PE-08. Critical flows are prioritized, and a response plan exists for live performance issues"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-GOLIVE-PE-08. Confirm resources and tuning favour the most important flows, and lines of communication and responsibilities exist for a performance incident."
+    manual: true
+  - id: WAF-GOLIVE-PE-09
+    title: "WAF-GOLIVE-PE-09. High-impact Advisor performance recommendations are addressed"
+    severity: medium
+    query: "$.advisor[?(@.Category == 'Performance' && @.Impact == 'High')]"
+    assert: { type: countEquals, value: 0, gate: "$.advisorAvailable" }
+    remediation: "WAF-GOLIVE-PE-09. High-impact Advisor performance recommendations are open. Resolve them or record an accepted risk before launch."
+    manual: false

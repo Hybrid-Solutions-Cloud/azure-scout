@@ -1,0 +1,802 @@
+# waf.saas.yaml -- Azure Well-Architected SaaS workload assessment (AB#9300)
+#
+# Scout's rule set for Microsoft's "Azure Well-Architected SaaS workload" assessment
+# (learn.microsoft.com/assessments/d349c8c3-fe9c-4829-afdd-a5228e72a570), built from the SaaS workload
+# guidance (learn.microsoft.com/azure/well-architected/saas/).
+#
+# Written ONLY against docs/frameworks/waf-saas-checklist.md. Microsoft does not publish the
+# assessment's question text, so every item is SCOUT-DERIVED: Scout's reading of the recommendations in
+# each SaaS design-area article. The SAAS-* ids are Scout's, not Microsoft's question numbers.
+#
+# WHY `framework: WAF-SAAS`, NOT `framework: WAF`. The SaaS guidance is organised by SaaS design area
+# (billing, governance, identity, compute, networking, data, DevOps, incident management, AI), each of
+# which cuts across several WAF pillars. Filing it under `framework: WAF` would require naming one of
+# the five pillars as `area:`; a workload review gets its own Scout-internal axis instead, the same way
+# WAF-AI and WAF-AVD do.
+#
+# Most of the assessment is organisational (pricing, tenancy decisions, on-call, post-incident review),
+# so most rules are `manual: true` and are answered with -AssessmentAnswers. Where collected Azure data
+# bears on a question it is attached as evidence. Automated rules score only properties that exist in
+# collect.json, and each is gated on the resources it judges: an estate without them reports Not
+# assessed, never a pass.
+area: "SaaS workload"
+framework: WAF-SAAS
+frameworkversion: "Azure Well-Architected SaaS workload guidance (learn.microsoft.com/azure/well-architected/saas/) + assessment (questions unpublished), docs/frameworks/waf-saas-checklist.md, verified 2026-11-25 (Scout-derived items across the SaaS design areas)"
+weight: 1.0
+verifiedAgainst: "docs/frameworks/waf-saas-checklist.md (Scout enumeration of learn.microsoft.com/azure/well-architected/saas/*), verified 2026-11-25"
+rules:
+  # ---- Billing and cost management (BC) -- 10 items --------------------
+  - id: SAAS-BC-01
+    title: "SAAS-BC-01. Billing meters are meaningful to customers"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-BC-01. Organisational -- confirm billing meters are ones customers understand (users, business transactions) rather than technical counters such as raw API requests."
+    manual: true
+  - id: SAAS-BC-02
+    title: "SAAS-BC-02. Billing tiers and SKUs are defined systematically, not per customer"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-BC-02. Organisational -- confirm billing plans are a small set of defined tiers, and that no solution is customised to give one customer a one-off price."
+    manual: true
+  - id: SAAS-BC-03
+    title: "SAAS-BC-03. Billing is aligned with cost of goods sold"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-BC-03. Organisational -- confirm scenarios where heavy resource use does not raise the customer's bill have been identified, and the pricing or cost model adjusted."
+    manual: true
+  - id: SAAS-BC-04
+    title: "SAAS-BC-04. A cost model covers marginal cost per customer and scale points"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-BC-04. Organisational -- confirm a baseline cost model exists for dedicated, shared and customer-hosted resources, with scale points (customers, users, transactions) that tie cost to revenue."
+    manual: true
+  - id: SAAS-BC-05
+    title: "SAAS-BC-05. Budgets guard against overspend"
+    severity: medium
+    query: "$.governance.budgets[*]"
+    assert: { type: countGreaterThan, value: 0, gate: "$.governance.budgetsAvailable" }
+    remediation: "SAAS-BC-05. No Azure budget was found in scope. Set budgets per customer (resource group or tag scope) or per service so overspend is caught early."
+    manual: false
+  - id: SAAS-BC-06
+    title: "SAAS-BC-06. Cost is attributable to customers through tags or customer-specific resource groups"
+    severity: medium
+    query: "$.tags[*]"
+    assert: { type: manual }
+    remediation: "SAAS-BC-06. Organisational -- confirm dedicated resources carry customer tags, and shared resources have an agreed cost-split method based on customer size or usage metrics. The related Azure resources are attached as evidence."
+    manual: true
+  - id: SAAS-BC-07
+    title: "SAAS-BC-07. Azure billing constructs are used to lower cost of goods sold"
+    severity: low
+    query: "$.finops.reservations[*]"
+    assert: { type: manual }
+    remediation: "SAAS-BC-07. Organisational -- confirm reservations, savings plans, credits and dev/test subscription pricing are used where commitments are predictable (reservations are attached as evidence)."
+    manual: true
+  - id: SAAS-BC-08
+    title: "SAAS-BC-08. Unused resources are removed and utilisation is reviewed with Azure Advisor"
+    severity: low
+    query: "$.costCleanup.orphanedDisks[*]"
+    assert: { type: manual }
+    remediation: "SAAS-BC-08. Organisational -- confirm unused resources are removed and utilisation is reviewed regularly (orphaned disks are attached as evidence)."
+    manual: true
+  - id: SAAS-BC-09
+    title: "SAAS-BC-09. Service quotas and limits are understood before scale points are reached"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-BC-09. Organisational -- confirm quotas and limits for each service are known, and a plan exists (bin packing, more subscriptions, new stamps) for approaching them."
+    manual: true
+  - id: SAAS-BC-10
+    title: "SAAS-BC-10. Azure Marketplace publishing has been considered"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-BC-10. Organisational -- confirm publishing through Azure Marketplace, including managed applications for customer-hosted deployments, was evaluated for billing and onboarding."
+    manual: true
+
+  # ---- Governance and compliance (GV) -- 10 items --------------------
+  - id: SAAS-GV-01
+    title: "SAAS-GV-01. A naming convention and tagging strategy identify workload, environment and customer"
+    severity: medium
+    query: "$.tags[*]"
+    assert: { type: manual }
+    remediation: "SAAS-GV-01. Organisational -- confirm resources follow a consistent naming convention and carry tags for workload, environment and, for dedicated deployments, customer. The related Azure resources are attached as evidence."
+    manual: true
+  - id: SAAS-GV-02
+    title: "SAAS-GV-02. Azure Policy assignments enforce standards"
+    severity: high
+    query: "$.governance.policyAssignments[*]"
+    assert: { type: exists, gate: "$.governance.policyAssignmentsAvailable" }
+    remediation: "SAAS-GV-02. No Azure Policy assignment was found in scope. Use Azure Policy to define a catalogue of permitted services, SKUs and regions and to evaluate compliance, applied uniformly to every principal."
+    manual: false
+  - id: SAAS-GV-03
+    title: "SAAS-GV-03. Resource locks protect critical resources"
+    severity: medium
+    query: "$.governance.resourceLocks[*]"
+    assert: { type: exists, gate: "$.governance.resourceLocksAvailable" }
+    remediation: "SAAS-GV-03. No resource lock was found in scope. Apply locks to production resources, resource groups and subscriptions to prevent accidental deletion or change, with a documented emergency path."
+    manual: false
+  - id: SAAS-GV-04
+    title: "SAAS-GV-04. Defender for Cloud assesses compliance against a security baseline (Defender CSPM)"
+    severity: high
+    query: "$.security.defenderPlans[?(@.name == 'CloudPosture' && @.properties.pricingTier != 'Standard')]"
+    assert: { type: countEquals, value: 0, gate: "$.security.defenderPlans[?(@.name == 'CloudPosture')]" }
+    remediation: "SAAS-GV-04. Defender CSPM is not on the Standard tier in the subscriptions listed. Enable it so configuration is assessed continuously against the Microsoft cloud security benchmark or the standards customers require."
+    manual: false
+  - id: SAAS-GV-05
+    title: "SAAS-GV-05. Access is least privilege, with privileged assignments and subscription owners limited"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-GV-05. Organisational -- confirm job-function roles are preferred over privileged administrator roles, and the number of subscription owners is limited and reviewed."
+    manual: true
+  - id: SAAS-GV-06
+    title: "SAAS-GV-06. Roles are assigned to groups rather than to individual users"
+    severity: medium
+    query: "$.governance.roleAssignments[?(@.properties.principalType == 'User')]"
+    assert: { type: manual }
+    remediation: "SAAS-GV-06. Organisational -- confirm role assignments go to groups; assignments made directly to users are attached as evidence."
+    manual: true
+  - id: SAAS-GV-07
+    title: "SAAS-GV-07. A security baseline is adopted early in the design"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-GV-07. Organisational -- confirm a baseline such as the Microsoft cloud security benchmark was adopted from the start of the design rather than retrofitted."
+    manual: true
+  - id: SAAS-GV-08
+    title: "SAAS-GV-08. The Microsoft Entra tenant strategy is deliberate"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-GV-08. Organisational -- confirm internal, production and non-production SaaS resources share one Entra tenant unless a documented requirement, such as a high-security government customer, demands separate tenants."
+    manual: true
+  - id: SAAS-GV-09
+    title: "SAAS-GV-09. Customer compliance obligations are identified and evidenced"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-GV-09. Organisational -- confirm the regulatory standards customers need (for example SOC 2, ISO 27001, HIPAA, PCI DSS) are listed, mapped to policy initiatives and evidenced."
+    manual: true
+  - id: SAAS-GV-10
+    title: "SAAS-GV-10. Cost Management and cost alerts are enabled"
+    severity: medium
+    query: "$.finops.anomalies[*]"
+    assert: { type: manual }
+    remediation: "SAAS-GV-10. Organisational -- confirm Microsoft Cost Management is used and budget, anomaly and scheduled cost alerts notify the people who can act (detected cost anomalies are attached as evidence)."
+    manual: true
+
+  # ---- Resource organization (RO) -- 7 items --------------------
+  - id: SAAS-RO-01
+    title: "SAAS-RO-01. Regions are chosen for availability zones, service availability and data residency"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-RO-01. Organisational -- confirm production regions support availability zones and the services needed, and meet each customer's data residency requirements."
+    manual: true
+  - id: SAAS-RO-02
+    title: "SAAS-RO-02. The number of regions is the minimum that meets requirements"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-RO-02. Organisational -- confirm multi-region deployment is justified by resilience, latency or residency needs and not adopted by default."
+    manual: true
+  - id: SAAS-RO-03
+    title: "SAAS-RO-03. The split between shared and per-customer resources is decided and documented"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-RO-03. Organisational -- confirm which components are shared (identity and billing at minimum) and which are deployed per customer, with the isolation, security and performance trade-offs recorded."
+    manual: true
+  - id: SAAS-RO-04
+    title: "SAAS-RO-04. Pre-production does not use shared production resources"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-RO-04. Organisational -- confirm pre-production stages have their own resources, even where production shares resources across customers."
+    manual: true
+  - id: SAAS-RO-05
+    title: "SAAS-RO-05. The Deployment Stamps pattern is considered for scale and isolation"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-RO-05. Organisational -- confirm stamps (independent, identical instances of the solution) were evaluated, with a known capacity per stamp and a threshold for adding one."
+    manual: true
+  - id: SAAS-RO-06
+    title: "SAAS-RO-06. Resource lifetimes and lifecycles are defined"
+    severity: medium
+    query: "$.tags[*]"
+    assert: { type: manual }
+    remediation: "SAAS-RO-06. Organisational -- confirm shared and customer-specific resources are distinguished and customer resources can be created and removed with onboarding and offboarding. The related Azure resources are attached as evidence."
+    manual: true
+  - id: SAAS-RO-07
+    title: "SAAS-RO-07. The landing zone follows ISV guidance"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-RO-07. Organisational -- confirm the Azure landing zone is configured consistently across subscriptions in line with the ISV considerations for landing zones."
+    manual: true
+
+  # ---- Identity and access management (ID) -- 10 items --------------------
+  - id: SAAS-ID-01
+    title: "SAAS-ID-01. The tenancy and deployment model drive the identity design"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-ID-01. Organisational -- confirm the identity provider is partitioned for multiple tenants as its guidance describes, and the blast radius of an identity misconfiguration across all tenants was weighed."
+    manual: true
+  - id: SAAS-ID-02
+    title: "SAAS-ID-02. Each user has one account, with access granted per tenant"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-ID-02. Organisational -- confirm a user who needs several customer tenants has one set of credentials, with access granted tenant by tenant."
+    manual: true
+  - id: SAAS-ID-03
+    title: "SAAS-ID-03. Identity requirements and a provider capability matrix are documented"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-ID-03. Organisational -- confirm required features (federation, branding and custom flows, tenant isolation, audit export) are listed and mapped against provider capabilities, including cost at expected user growth."
+    manual: true
+  - id: SAAS-ID-04
+    title: "SAAS-ID-04. An identity-as-a-service provider is used, not a self-built one"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-ID-04. Organisational -- confirm the application does not use a self-built identity solution, and any self-hosted open source provider has a documented justification."
+    manual: true
+  - id: SAAS-ID-05
+    title: "SAAS-ID-05. Federated sign-in is planned, with onboarding automated and priced"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-ID-05. Organisational -- confirm OIDC and SAML federation, home realm discovery and an automated onboarding process for each customer identity provider exist, and the cost is reflected in pricing."
+    manual: true
+  - id: SAAS-ID-06
+    title: "SAAS-ID-06. Cross-tenant data access is blocked unless explicitly permitted"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-ID-06. Organisational -- confirm authorization prevents a user reaching another tenant's data, and cross-tenant access (for example consultants) is granted explicitly."
+    manual: true
+  - id: SAAS-ID-07
+    title: "SAAS-ID-07. The authorization model and the store for authorization data are chosen deliberately"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-ID-07. Organisational -- confirm role-based or resource-based authorization was chosen, with static data in the identity provider (token claims) and fast-changing data in the application."
+    manual: true
+  - id: SAAS-ID-08
+    title: "SAAS-ID-08. Customers manage permissions for their own users"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-ID-08. Organisational -- confirm permission management is delegated to tenant administrators through a controlled interface rather than through your support team."
+    manual: true
+  - id: SAAS-ID-09
+    title: "SAAS-ID-09. Workloads authenticate with managed identities, not stored credentials"
+    severity: medium
+    query: "$.domains.identity.managedIdentities[*]"
+    assert: { type: manual }
+    remediation: "SAAS-ID-09. Organisational -- confirm application components authenticate to Azure services with managed identities (user-assigned identities are attached as evidence)."
+    manual: true
+  - id: SAAS-ID-10
+    title: "SAAS-ID-10. Data residency for identity data is planned"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-ID-10. Organisational -- confirm where user identity data is stored is known, and users are directed to the sign-in region that matches their data location."
+    manual: true
+
+  # ---- Compute (CP) -- 10 items --------------------
+  - id: SAAS-CP-01
+    title: "SAAS-CP-01. The compute platform fits requirements and starts with the least complex option the team knows"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-CP-01. Organisational -- confirm hosting model (IaaS or PaaS), workload type, team expertise, management overhead and total cost of ownership were weighed."
+    manual: true
+  - id: SAAS-CP-02
+    title: "SAAS-CP-02. Compute needs are modelled and load tested"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-CP-02. Organisational -- confirm CPU, memory, network and GPU needs were modelled, with load testing used to find bottlenecks and scaling thresholds."
+    manual: true
+  - id: SAAS-CP-03
+    title: "SAAS-CP-03. Tenant isolation is enforced in the compute platform and in the application"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-CP-03. Organisational -- confirm the platform's isolation features meet the tenancy model, and shared caches and local disks cannot leak data between tenants."
+    manual: true
+  - id: SAAS-CP-04
+    title: "SAAS-CP-04. Resource consumption is monitored per customer to catch noisy neighbours"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-CP-04. Organisational -- confirm per-customer resource metrics exist and usage limits stop one tenant degrading the others."
+    manual: true
+  - id: SAAS-CP-05
+    title: "SAAS-CP-05. Autoscale settings are enabled"
+    severity: medium
+    query: "$.monitor.autoscaleSettings[?(@.enabled == false)]"
+    assert: { type: countEquals, value: 0, gate: "$.monitor.autoscaleSettings[*]" }
+    remediation: "SAAS-CP-05. The autoscale settings listed are disabled. Enable them, or remove them if unused, so capacity follows load and cost follows capacity."
+    manual: false
+  - id: SAAS-CP-06
+    title: "SAAS-CP-06. Workloads scale horizontally and are stateless where possible"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-CP-06. Organisational -- confirm horizontal scaling is preferred, state is held in an external store and caching reduces compute load."
+    manual: true
+  - id: SAAS-CP-07
+    title: "SAAS-CP-07. A scaling threshold for deploying a new stamp is defined"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-CP-07. Organisational -- confirm each stamp's capacity is known, tenants are consolidated onto as few resources as practical, and a threshold triggers a new stamp."
+    manual: true
+  - id: SAAS-CP-08
+    title: "SAAS-CP-08. Virtual machines are deployed across availability zones where the region has them"
+    severity: high
+    query: "$.compute.virtualMachines[?(@.zoneEligible == true && @.zoneRedundant == false)]"
+    assert: { type: countEquals, value: 0, gate: "$.compute.virtualMachines[*]" }
+    remediation: "SAAS-CP-08. The virtual machines listed are not zone-redundant in a region that supports zones. Spread them across zones so one datacentre outage does not take the service down."
+    manual: false
+  - id: SAAS-CP-09
+    title: "SAAS-CP-09. AKS node pools span availability zones"
+    severity: high
+    query: "$.domains.containers.aksClusters[?(@.allPoolsZoned == false)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.containers.aksClusters[*]" }
+    remediation: "SAAS-CP-09. The AKS clusters listed have node pools outside availability zones. Zone every node pool so a datacentre outage does not remove the cluster."
+    manual: false
+  - id: SAAS-CP-10
+    title: "SAAS-CP-10. Reliability targets are defined and failure modes are tested"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-CP-10. Organisational -- confirm SLOs and customer SLAs are defined, transient faults are handled in the application and chaos testing has been performed."
+    manual: true
+
+  # ---- Networking (NW) -- 10 items --------------------
+  - id: SAAS-NW-01
+    title: "SAAS-NW-01. The network topology matches the tenancy model"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-NW-01. Organisational -- confirm flat, hub-and-spoke or no-network topology was chosen deliberately, with a decision on which components are shared (for example Firewall, Bastion, Front Door) and which are dedicated."
+    manual: true
+  - id: SAAS-NW-02
+    title: "SAAS-NW-02. A catalogue of internet-exposed endpoints exists, with protection decided for each"
+    severity: high
+    query: "$.networking.nsgPublicInbound[*]"
+    assert: { type: manual }
+    remediation: "SAAS-NW-02. Organisational -- confirm every internet-facing endpoint is catalogued with host, ports and justification (NSG rules open to the internet are attached as evidence)."
+    manual: true
+  - id: SAAS-NW-03
+    title: "SAAS-NW-03. Web front ends sit behind a reverse proxy with a web application firewall"
+    severity: high
+    query: "$.networking.applicationGateways[?(@.wafEnabled == false)]"
+    assert: { type: countEquals, value: 0, gate: "$.networking.applicationGateways[*]" }
+    remediation: "SAAS-NW-03. The Application Gateways listed have no web application firewall enabled. Enable WAF (or front the service with Azure Front Door and WAF) and avoid exposing App Service or AKS directly to the internet."
+    manual: false
+  - id: SAAS-NW-04
+    title: "SAAS-NW-04. Internet-facing endpoints are protected against DDoS attacks"
+    severity: medium
+    query: "$.security.ddosProtectionPlans[*]"
+    assert: { type: manual }
+    remediation: "SAAS-NW-04. Organisational -- confirm Azure Front Door or Azure DDoS Protection covers public endpoints (DDoS protection plans are attached as evidence)."
+    manual: true
+  - id: SAAS-NW-05
+    title: "SAAS-NW-05. Storage accounts deny network access by default"
+    severity: high
+    query: "$.domains.storage.storageAccounts[?(@.networkDefaultDeny == false)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.storage.storageAccounts[*]" }
+    remediation: "SAAS-NW-05. The storage accounts listed allow access from all networks. Set the default network action to Deny and allow only approved networks or private endpoints."
+    manual: false
+  - id: SAAS-NW-06
+    title: "SAAS-NW-06. Internal traffic uses private connectivity"
+    severity: medium
+    query: "$.networking.privateEndpoints[*]"
+    assert: { type: manual }
+    remediation: "SAAS-NW-06. Organisational -- confirm traffic between components and to data stores stays private through Private Link or service endpoints (private endpoints are attached as evidence)."
+    manual: true
+  - id: SAAS-NW-07
+    title: "SAAS-NW-07. Outbound traffic is controlled and SNAT capacity is planned"
+    severity: medium
+    query: "$.networking.natGateways[*]"
+    assert: { type: manual }
+    remediation: "SAAS-NW-07. Organisational -- confirm egress is inspected where customers require it, and NAT Gateway or a firewall provides SNAT ports at scale (NAT gateways are attached as evidence)."
+    manual: true
+  - id: SAAS-NW-08
+    title: "SAAS-NW-08. Cross-network connectivity prefers private paths and IP ranges are planned"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-NW-08. Organisational -- confirm connections to customer networks and other clouds use Private Link, peering, VPN or ExpressRoute, and IP plans avoid overlap with customer ranges."
+    manual: true
+  - id: SAAS-NW-09
+    title: "SAAS-NW-09. Customer-hosted deployments use Azure Managed Applications"
+    severity: medium
+    query: "$.management.managedApplications[*]"
+    assert: { type: manual }
+    remediation: "SAAS-NW-09. Organisational -- confirm resources deployed into customer subscriptions use Managed Applications, with a plan to reach them for monitoring and updates (managed applications are attached as evidence)."
+    manual: true
+  - id: SAAS-NW-10
+    title: "SAAS-NW-10. Public access is disabled by default on Azure resources"
+    severity: medium
+    query: "$.domains.storage.storageAccounts[?(@.publicAccess == true)]"
+    assert: { type: manual }
+    remediation: "SAAS-NW-10. Organisational -- confirm new resources are created with public network access disabled and private ingress chosen where possible (storage accounts allowing public blob access are attached as evidence)."
+    manual: true
+
+  # ---- Data (DT) -- 14 items --------------------
+  - id: SAAS-DT-01
+    title: "SAAS-DT-01. Transactional and analytical data stores are separate"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-DT-01. Organisational -- confirm operational data stores are kept separate from reporting and analytics stores."
+    manual: true
+  - id: SAAS-DT-02
+    title: "SAAS-DT-02. The number of data store types is minimised and managed services are preferred"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-DT-02. Organisational -- confirm the data stores in use match team expertise and are managed services where possible, with a reason for each additional store type."
+    manual: true
+  - id: SAAS-DT-03
+    title: "SAAS-DT-03. Database segmentation per customer is decided"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-DT-03. Organisational -- confirm whether each customer has a dedicated database (recommended for business-to-business) or shares one with tenant-scoped access, and why."
+    manual: true
+  - id: SAAS-DT-04
+    title: "SAAS-DT-04. Data stores are deployed in the same region as the application"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-DT-04. Organisational -- confirm applications and their databases share a region to avoid egress cost and latency."
+    manual: true
+  - id: SAAS-DT-05
+    title: "SAAS-DT-05. Customer-defined data uses a standard design, not per-customer schema changes"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-DT-05. Organisational -- confirm the same schema and deployment process is used for every customer."
+    manual: true
+  - id: SAAS-DT-06
+    title: "SAAS-DT-06. Capacity is modelled per customer size"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-DT-06. Organisational -- confirm customers are sized (small, medium, large) and mapped to pooled or dedicated capacity such as elastic pools or autoscale throughput."
+    manual: true
+  - id: SAAS-DT-07
+    title: "SAAS-DT-07. Reliability targets for data are quantified and zone-redundant stores are used"
+    severity: high
+    query: "$.domains.databases.sqlDatabases[?(@.zoneRedundant == false)]"
+    assert: { type: manual }
+    remediation: "SAAS-DT-07. Organisational -- confirm recovery time and recovery point objectives exist and production data stores are zone redundant (SQL databases that are not zone redundant are attached as evidence)."
+    manual: true
+  - id: SAAS-DT-08
+    title: "SAAS-DT-08. Backups are kept in a geo-redundant form and recovery is tested"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-DT-08. Organisational -- confirm data store backups are replicated across regions and a restore has been tested."
+    manual: true
+  - id: SAAS-DT-09
+    title: "SAAS-DT-09. SQL servers have public network access disabled"
+    severity: high
+    query: "$.domains.databases.sqlServers[?(@.publicNetworkAccess == 'Enabled')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.databases.sqlServers[*]" }
+    remediation: "SAAS-DT-09. The SQL servers listed allow public network access. Disable it and use private endpoints for application access."
+    manual: false
+  - id: SAAS-DT-10
+    title: "SAAS-DT-10. Cosmos DB accounts have public network access disabled"
+    severity: high
+    query: "$.domains.databases.cosmosDbAccounts[?(@.publicNetworkAccess == 'Enabled')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.databases.cosmosDbAccounts[*]" }
+    remediation: "SAAS-DT-10. The Cosmos DB accounts listed allow public network access. Disable it and use private endpoints for application access."
+    manual: false
+  - id: SAAS-DT-11
+    title: "SAAS-DT-11. Cosmos DB accounts do not rely on account keys"
+    severity: high
+    query: "$.domains.databases.cosmosDbAccounts[?(@.disableLocalAuth != true)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.databases.cosmosDbAccounts[*]" }
+    remediation: "SAAS-DT-11. The Cosmos DB accounts listed still accept account keys. Disable local authentication and use managed identities with Microsoft Entra ID."
+    manual: false
+  - id: SAAS-DT-12
+    title: "SAAS-DT-12. A data retention strategy is planned and enforced"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-DT-12. Organisational -- confirm retention periods follow compliance and business need, with time-to-live or archival used to avoid keeping unnecessary history."
+    manual: true
+  - id: SAAS-DT-13
+    title: "SAAS-DT-13. Requests on shared data stores are scoped to a single tenant"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-DT-13. Organisational -- confirm the application includes the tenant identifier in every query against a shared store, to prevent cross-tenant leakage."
+    manual: true
+  - id: SAAS-DT-14
+    title: "SAAS-DT-14. Customers do not get direct access to production data stores"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-DT-14. Organisational -- confirm customer data access is through application-tier reports, exports or APIs, or at most a read-only replica."
+    manual: true
+
+  # ---- Deployment (DevOps) practices (DO) -- 12 items --------------------
+  - id: SAAS-DO-01
+    title: "SAAS-DO-01. Each customer lifecycle event is documented and automated where practical"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-DO-01. Organisational -- confirm onboarding, change (for example a tier change) and offboarding are documented step by step, shared responsibilities are communicated to the customer, and scripts or a control plane run them."
+    manual: true
+  - id: SAAS-DO-02
+    title: "SAAS-DO-02. Infrastructure is deployed as code"
+    severity: high
+    query: "$.management.deployments[*]"
+    assert: { type: manual }
+    remediation: "SAAS-DO-02. Organisational -- confirm infrastructure is deployed with Bicep, Terraform or similar rather than the portal (ARM deployments are attached as evidence)."
+    manual: true
+  - id: SAAS-DO-03
+    title: "SAAS-DO-03. Core infrastructure is separated from customer-level infrastructure"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-DO-03. Organisational -- confirm core and per-customer infrastructure have separate lifecycles, pipelines and schedules."
+    manual: true
+  - id: SAAS-DO-04
+    title: "SAAS-DO-04. Customers are mapped to the infrastructure that serves them"
+    severity: medium
+    query: "$.tags[*]"
+    assert: { type: manual }
+    remediation: "SAAS-DO-04. Organisational -- confirm a central customer record or resource tags show which customers run on which infrastructure, for capacity planning and cost attribution. The related Azure resources are attached as evidence."
+    manual: true
+  - id: SAAS-DO-05
+    title: "SAAS-DO-05. Updates roll out progressively using safe deployment practices"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-DO-05. Organisational -- confirm updates reach early-adopter customer groups first, with health checks gating each stage."
+    manual: true
+  - id: SAAS-DO-06
+    title: "SAAS-DO-06. Configuration is treated as code and deployed with the same rigor"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-DO-06. Organisational -- confirm configuration changes are tested and rolled out progressively like code."
+    manual: true
+  - id: SAAS-DO-07
+    title: "SAAS-DO-07. A version and change-management policy is communicated to customers"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-DO-07. Organisational -- confirm customers know who triggers updates, how often, and how old versions are deprecated, with few versions in production."
+    manual: true
+  - id: SAAS-DO-08
+    title: "SAAS-DO-08. The product is not customised per customer"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-DO-08. Organisational -- confirm differing needs are met through tiers or feature flags, not customer-specific builds."
+    manual: true
+  - id: SAAS-DO-09
+    title: "SAAS-DO-09. A rollback plan exists for failed deployments"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-DO-09. Organisational -- confirm rollback criteria, approvals and steps are defined and rehearsed."
+    manual: true
+  - id: SAAS-DO-10
+    title: "SAAS-DO-10. Testing runs at several stages"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-DO-10. Organisational -- confirm unit tests run at build, integration tests after deployment, and performance and security (penetration) tests run regularly, with an agreed action when a test fails."
+    manual: true
+  - id: SAAS-DO-11
+    title: "SAAS-DO-11. Customers are told about upcoming and completed deployments"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-DO-11. Organisational -- confirm customers are notified of planned and completed changes."
+    manual: true
+  - id: SAAS-DO-12
+    title: "SAAS-DO-12. Established DevOps tooling is used instead of custom tooling"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-DO-12. Organisational -- confirm deployments use industry-proven tooling and the team is not maintaining a custom deployment system."
+    manual: true
+
+  # ---- Incident management (IM) -- 13 items --------------------
+  - id: SAAS-IM-01
+    title: "SAAS-IM-01. The organisation accepts 24x7 live-site responsibility with a staffed on-call rotation"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-IM-01. Organisational -- confirm engineers are on call out of hours, rotated fairly, with expectations and compensation agreed."
+    manual: true
+  - id: SAAS-IM-02
+    title: "SAAS-IM-02. A frontline support team handles cases and escalates to engineering"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-IM-02. Organisational -- confirm a frontline team (in-house or a vendor) gathers information and escalates complex cases to engineering."
+    manual: true
+  - id: SAAS-IM-03
+    title: "SAAS-IM-03. Incident tooling covers monitoring, escalation and controlled production change"
+    severity: medium
+    query: "$.monitor.actionGroups[*]"
+    assert: { type: manual }
+    remediation: "SAAS-IM-03. Organisational -- confirm tooling tracks system state and customer-reported problems, escalates to on-call engineers and supports making production changes (action groups are attached as evidence)."
+    manual: true
+  - id: SAAS-IM-04
+    title: "SAAS-IM-04. Azure Monitor action groups are enabled"
+    severity: high
+    query: "$.monitor.actionGroups[?(@.enabled == false)]"
+    assert: { type: countEquals, value: 0, gate: "$.monitor.actionGroups[*]" }
+    remediation: "SAAS-IM-04. The action groups listed are disabled, so alerts routed to them notify nobody. Enable them or remove them from alert rules."
+    manual: false
+  - id: SAAS-IM-05
+    title: "SAAS-IM-05. Severity levels and an escalation path are defined"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-IM-05. Organisational -- confirm severity levels based on customer impact, with response expectations and an escalation path (including to Microsoft support), are documented."
+    manual: true
+  - id: SAAS-IM-06
+    title: "SAAS-IM-06. Architecture, owners and key contacts are documented for triage"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-IM-06. Organisational -- confirm architecture layout, component details, data classifications, owners and contacts are documented and kept current."
+    manual: true
+  - id: SAAS-IM-07
+    title: "SAAS-IM-07. Responders can reach logs and make controlled production changes"
+    severity: medium
+    query: "$.management.logAnalyticsWorkspaces[*]"
+    assert: { type: manual }
+    remediation: "SAAS-IM-07. Organisational -- confirm the incident team can read logs and make production changes through a secure, audited process (Log Analytics workspaces are attached as evidence)."
+    manual: true
+  - id: SAAS-IM-08
+    title: "SAAS-IM-08. A commercial status page and a communications manager keep customers informed"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-IM-08. Organisational -- confirm a status page hosted outside your own platform exists and one person owns customer communication during an incident."
+    manual: true
+  - id: SAAS-IM-09
+    title: "SAAS-IM-09. Recovery is prioritised over diagnosis during an incident"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-IM-09. Organisational -- confirm responders are expected to restore service first, for example by rolling back or routing around a component, before finding the cause."
+    manual: true
+  - id: SAAS-IM-10
+    title: "SAAS-IM-10. Internal post-incident reviews track remediation with clear accountability"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-IM-10. Organisational -- confirm every significant incident has a review covering technical and process causes, with remediation items owned and dated."
+    manual: true
+  - id: SAAS-IM-11
+    title: "SAAS-IM-11. Customer-facing post-incident reviews are published"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-IM-11. Organisational -- confirm customers receive human-reviewed post-incident summaries with enough detail to understand cause and mitigation."
+    manual: true
+  - id: SAAS-IM-12
+    title: "SAAS-IM-12. A mission-critical support plan exists with platform vendors"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-IM-12. Organisational -- confirm a support plan with Microsoft and other vendors gives responsive help during an outage."
+    manual: true
+  - id: SAAS-IM-13
+    title: "SAAS-IM-13. Alert rules cover availability and performance of the service"
+    severity: medium
+    query: "$.monitor.metricAlertRules[*]"
+    assert: { type: manual }
+    remediation: "SAAS-IM-13. Organisational -- confirm alert rules detect customer-visible problems before customers report them (metric alert rules are attached as evidence)."
+    manual: true
+
+  # ---- AI strategy for SaaS (AI) -- 12 items --------------------
+  - id: SAAS-AI-01
+    title: "SAAS-AI-01. AI strategy is set at leadership level with a clear vision and principles"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-AI-01. Organisational -- confirm senior leadership has a documented AI vision, principles and desired outcomes aligned with the product strategy."
+    manual: true
+  - id: SAAS-AI-02
+    title: "SAAS-AI-02. A named owner or working group is accountable for AI initiatives"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-AI-02. Organisational -- confirm a directly responsible individual or working group reviews AI experiments against strategy and prevents drift and duplication."
+    manual: true
+  - id: SAAS-AI-03
+    title: "SAAS-AI-03. A shared inventory of AI use cases separates foundational, conversational, agentic and multi-agent uses"
+    severity: medium
+    query: "$.domains.ai.cognitiveAccounts[*]"
+    assert: { type: manual }
+    remediation: "SAAS-AI-03. Organisational -- confirm current and planned AI features are inventoried by progression (Azure AI accounts are attached as evidence)."
+    manual: true
+  - id: SAAS-AI-04
+    title: "SAAS-AI-04. The AI strategy is communicated and teams are trained in AI"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-AI-04. Organisational -- confirm everyone from developers to product managers and marketing understands the AI goals, and education is provided."
+    manual: true
+  - id: SAAS-AI-05
+    title: "SAAS-AI-05. AI initiatives map to measurable business outcomes"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-AI-05. Organisational -- confirm each AI initiative is tied to a business metric (efficiency, cost or customer value)."
+    manual: true
+  - id: SAAS-AI-06
+    title: "SAAS-AI-06. Humans stay in the loop for critical judgments"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-AI-06. Organisational -- confirm AI augments decisions and critical judgments stay with people, with users able to accept, edit or reject AI output."
+    manual: true
+  - id: SAAS-AI-07
+    title: "SAAS-AI-07. AI governance defines the model lifecycle"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-AI-07. Organisational -- confirm policies with named accountability cover deployment, monitoring, update and retirement of models."
+    manual: true
+  - id: SAAS-AI-08
+    title: "SAAS-AI-08. Build, buy or customise is decided for each AI capability"
+    severity: medium
+    query: "$.domains.ai.mlWorkspaces[*]"
+    assert: { type: manual }
+    remediation: "SAAS-AI-08. Organisational -- confirm each capability (prebuilt model, grounded model, fine-tuning, custom model) has a recorded rationale (machine learning workspaces are attached as evidence)."
+    manual: true
+  - id: SAAS-AI-09
+    title: "SAAS-AI-09. GenAIOps practices are part of DevOps and CI/CD"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-AI-09. Organisational -- confirm model evaluation, prompt iteration and technology change tracking are built into the delivery pipeline."
+    manual: true
+  - id: SAAS-AI-10
+    title: "SAAS-AI-10. Responsible AI principles are embedded in foundational practices"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-AI-10. Organisational -- confirm responsible AI expertise exists and the principles are applied to product decisions and customer commitments."
+    manual: true
+  - id: SAAS-AI-11
+    title: "SAAS-AI-11. Shared models are not trained on raw customer data without explicit permission"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-AI-11. Organisational -- confirm customer data is used for shared model training or cross-customer analytics only where permitted and anonymised."
+    manual: true
+  - id: SAAS-AI-12
+    title: "SAAS-AI-12. The product can be used by AI agents through APIs"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "SAAS-AI-12. Organisational -- confirm the product exposes secure, documented APIs (and, where relevant, MCP endpoints) so agents can act on a customer's behalf."
+    manual: true

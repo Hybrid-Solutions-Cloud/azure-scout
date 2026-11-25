@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.18.14] - 2026-11-25 - Microsoft's workload, technology and questionnaire assessments
+
+### Added
+
+- **18 Microsoft assessments** (65 assessments, 1,507 rules, 471 automated). Microsoft publishes none of
+  their question text; each is Scout's reading of the named guidance (docs/frameworks/*), with every
+  automated item gated on its resources so an estate without them reports Not assessed.
+  - Workload reviews: `Workload: SAP on Azure` (38), `Workload: Oracle on Azure IaaS` (34),
+    `Workload: SaaS` (108).
+  - Well-Architected reviews: `WAF: Mission Critical` (81), `WAF: Sustainability` (67), `WAF: Go-Live`
+    (57, Scout's own: Microsoft publishes only a landing page), `WAF: Azure Machine Learning` (44),
+    `WAF: Azure AI Search` (37), `WAF: Analytics` (74), `WAF: Data Services` (100).
+  - `Microsoft: Well-Architected Reliability Assessment` (31, from the Azure Proactive Resiliency
+    Library) and `Microsoft: Azure Advisor` (15, recommendations by category and impact).
+  - Questionnaire-led: `Microsoft: AI Readiness` (64), `Microsoft: Generative AI Technical` (50),
+    `Microsoft: GenAIOps Maturity` (30), `Microsoft: Platform Engineering` (36),
+    `Microsoft: Analytics Journey Tracker` (52), `Microsoft: App and Data Modernization` (62).
+- **Microsoft Assessment Coverage** page: every assessment in Microsoft's catalog and the Scout
+  assessment that runs it, including the two Microsoft retires in January 2027 and the non-Azure ones
+  not yet covered. A test keeps the names on it in step with the registry.
+- `Get-ScoutRawInventory -ResourceGraphDiscoveryTable` collects named discovery tables only.
+
+### Fixed
+
+- **Infrastructure-as-code rules could never pass.** WAF-OE-02/08, CAF platform automation and the
+  DevOps capability rules test `management.deployments[*].properties.templateHash`, but that dataset
+  only listed resource groups. Assessment runs now read ARM deployment history from Resource Graph's
+  `deploymentresources` table (one more round-trip), and each resource group deployed from a template
+  carries its template hash and template deployment count.
+
 ## [3.18.13] - 2026-11-25 - questionnaire answers and Microsoft's current assessments
 
 ### Added

@@ -1,0 +1,337 @@
+# wara.reliability.yaml -- Well-Architected Reliability Assessment (WARA) style checks, backed by the
+# Azure Proactive Resiliency Library (APRL) (AB#9300)
+#
+# WARA is Microsoft's automated reliability review: its PowerShell module (Azure/Well-Architected-
+# Reliability-Assessment) runs the Azure Resource Graph queries APRL publishes per resource type and
+# turns the hits into a reliability action plan. This file does the same job from the data Scout has
+# ALREADY collected into collect.json, so it needs no extra Azure call and no extra permission.
+#
+# Written ONLY against docs/frameworks/wara-aprl-checklist.md. Every rule cites an item id from that
+# page; each item names the APRL recommendation (aprlGuid) it paraphrases and the repo path it was
+# read from. APRL is MIT licensed (github.com/Azure/Azure-Proactive-Resiliency-Library-v2); nothing
+# here is copied from it, the wording and the conditions are Scout's, and the conditions use only
+# properties Scout really collects. Where APRL needs a property Scout does not collect yet, the item
+# is either a Manual rule that attaches the nearest evidence, or it is listed in the doc under
+# "Needs a new projection" with no rule at all (a rule on an uncollected property would score the
+# estate on nothing).
+#
+# Every rule is gated on its own resource type existing, so an estate without that service reports
+# the rule Not assessed rather than passed or failed.
+#
+# Known simplifications, repeated in each affected remediation so a reader is never surprised:
+#   - Scout's zone-eligibility signal for virtual machines is a documented region list, not the
+#     per-SKU zone capability APRL's own query uses.
+#   - SQL databases, AKS clusters, storage accounts and Event Hubs namespaces carry no `location`
+#     in Scout's projection, so "no zone" findings can include a region that has no zones. The
+#     remediation says to record an exception in that case.
+area: "Reliability (WARA / APRL)"
+framework: WARA
+frameworkversion: "Azure Proactive Resiliency Library v2 (APRL) azure-resources/*/recommendations.yaml on main + Microsoft Learn reliability guides by service, docs/frameworks/wara-aprl-checklist.md, read 2026-11-25 (31 items: 21 automated, 10 manual)"
+weight: 1.0
+verifiedAgainst: "docs/frameworks/wara-aprl-checklist.md (Scout enumeration of github.com/Azure/Azure-Proactive-Resiliency-Library-v2 and learn.microsoft.com/azure/reliability/overview-reliability-guidance), verified 2026-11-25"
+rules:
+  # ---- Compute: virtual machines and disks (WARA-VM, WARA-DSK) --------------------------------
+  - id: WARA-VM-01
+    title: "WARA-VM-01. Virtual machines in a region with availability zones are deployed to a zone"
+    severity: high
+    aprl: "2bd0be95-a825-6f47-a8c6-3db1fb5eb387"
+    source: "https://github.com/Azure/Azure-Proactive-Resiliency-Library-v2/tree/main/azure-resources/Compute/virtualMachines"
+    query: "$.compute.virtualMachines[?(@.zoneEligible == true && @.zoneRedundant == false)]"
+    assert: { type: countEquals, value: 0, gate: "$.compute.virtualMachines[*]" }
+    remediation: "WARA-VM-01. The virtual machines listed run in a region that has availability zones but are not placed in one, so a single datacenter failure takes them down. Redeploy them into zones (or behind a zone-redundant scale set). Scout judges zone support from a fixed region list, not the VM size, so a size that cannot use zones is an exception to record, not a defect."
+    manual: false
+  - id: WARA-VM-02
+    title: "WARA-VM-02. Every virtual machine has an Azure Backup protected item"
+    severity: medium
+    aprl: "1981f704-97b9-b645-9c57-33f8ded9261a"
+    source: "https://github.com/Azure/Azure-Proactive-Resiliency-Library-v2/tree/main/azure-resources/Compute/virtualMachines"
+    join:
+      left: "$.compute.virtualMachines[*]"
+      leftKey: "id"
+      right: "$.management.backupProtectedItems[*]"
+      rightKey: "sourceResourceId"
+      mode: leftOnly
+      leftLabel: "virtual machine"
+      rightLabel: "backup protected item"
+    assert: { type: countEquals, value: 0, gate: "$.compute.virtualMachines[*]" }
+    remediation: "WARA-VM-02. The virtual machines listed have no protected item in any Recovery Services vault in scope. Put them on a backup policy, or record why the workload is stateless or protected another way (Site Recovery alone is not a backup)."
+    manual: false
+  - id: WARA-VM-03
+    title: "WARA-VM-03. Production virtual machines do not run on burstable B-series sizes"
+    severity: high
+    aprl: "3201dba8-d1da-4826-98a4-104066545170"
+    source: "https://github.com/Azure/Azure-Proactive-Resiliency-Library-v2/tree/main/azure-resources/Compute/virtualMachines"
+    query: "$.compute.virtualMachines[?(@.size =~ /^Standard_B/i)]"
+    assert: { type: countEquals, value: 0, gate: "$.compute.virtualMachines[*]" }
+    remediation: "WARA-VM-03. The virtual machines listed use a burstable B-series size, which throttles to a baseline CPU once its credits run out. That is fine for dev and test; for production that needs steady CPU move to a non-burstable family. Scout cannot tell production from test, so confirm the environment before acting."
+    manual: false
+  - id: WARA-DSK-01
+    title: "WARA-DSK-01. Attached managed disks are Premium SSD or better where the workload needs a higher uptime SLA"
+    severity: medium
+    aprl: "df0ff862-814d-45a3-95e4-4fad5a244ba6"
+    source: "https://github.com/Azure/Azure-Proactive-Resiliency-Library-v2/tree/main/azure-resources/Compute/virtualMachines"
+    query: "$.domains.storage.managedDisks[?(@.diskState == 'Attached' && @.sku =~ /^(Standard_LRS|StandardSSD_LRS|StandardSSD_ZRS)$/i)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.storage.managedDisks[?(@.diskState == 'Attached')]" }
+    remediation: "WARA-DSK-01. The attached disks listed are Standard HDD or Standard SSD. A single-instance virtual machine only gets the higher availability SLA when every disk is Premium SSD, Premium SSD v2 or Ultra. Move disks of mission-critical VMs to Premium; leave dev and test disks as they are."
+    manual: false
+
+  # ---- Containers: AKS and Container Registry (WARA-AKS, WARA-ACR) ---------------------------
+  - id: WARA-AKS-01
+    title: "WARA-AKS-01. Every AKS node pool spans availability zones"
+    severity: high
+    aprl: "4f63619f-5001-439c-bacb-8de891287727"
+    source: "https://github.com/Azure/Azure-Proactive-Resiliency-Library-v2/tree/main/azure-resources/ContainerService/managedClusters"
+    query: "$.domains.containers.aksClusters[?(@.allPoolsZoned == false)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.containers.aksClusters[*]" }
+    remediation: "WARA-AKS-01. The clusters listed have at least one node pool with no availability zone. Zones cannot be added to an existing pool: add a zonal pool, move workloads, and remove the old one. Scout does not collect the cluster region, so a cluster in a region without zones is an exception to record."
+    manual: false
+  - id: WARA-AKS-02
+    title: "WARA-AKS-02. AKS clusters use Microsoft Entra ID integration instead of local accounts"
+    severity: high
+    aprl: "ca324d71-54b0-4a3e-b9e4-10e767daa9fc"
+    source: "https://github.com/Azure/Azure-Proactive-Resiliency-Library-v2/tree/main/azure-resources/ContainerService/managedClusters"
+    query: "$.domains.containers.aksClusters[?(@.aadIntegrated == false)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.containers.aksClusters[*]" }
+    remediation: "WARA-AKS-02. The clusters listed have no Microsoft Entra ID integration, so access runs on local Kubernetes accounts that cannot be audited per person. Enable Entra integration with Azure RBAC for Kubernetes and disable local accounts."
+    manual: false
+  - id: WARA-AKS-03
+    title: "WARA-AKS-03. Production clusters are on the Standard or Premium tier with autoscaling and at least three system nodes"
+    severity: high
+    aprl: "0611251f-e70f-4243-8ddd-cfe894bec2e7"
+    source: "https://github.com/Azure/Azure-Proactive-Resiliency-Library-v2/tree/main/azure-resources/ContainerService/managedClusters"
+    query: "$.domains.containers.aksClusters[*]"
+    assert: { type: manual, gate: "$.domains.containers.aksClusters[*]" }
+    remediation: "WARA-AKS-03. The cluster tier (Free has no uptime SLA), cluster autoscaler setting and system-pool node count are not in Scout's AKS projection, so the clusters are attached as evidence. Confirm production clusters are on Standard or Premium, the autoscaler is on, and the system pool keeps at least three nodes."
+    manual: true
+  - id: WARA-ACR-01
+    title: "WARA-ACR-01. Container registries that serve production are on the Premium tier (zone redundancy and geo-replication)"
+    severity: medium
+    aprl: "eb005943-40a8-194b-9db2-474d430046b7"
+    source: "https://github.com/Azure/Azure-Proactive-Resiliency-Library-v2/tree/main/azure-resources/ContainerRegistry/registries"
+    query: "$.domains.containers.containerRegistries[?(@.sku =~ /^(Basic|Standard)$/i)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.containers.containerRegistries[*]" }
+    remediation: "WARA-ACR-01. The registries listed are Basic or Standard, which cannot use zone redundancy or geo-replication. Move registries that production deployments pull from to Premium and replicate to the regions you deploy in. A registry used only by dev and test can stay as it is."
+    manual: false
+
+  # ---- Web: App Service plans (WARA-ASP) ------------------------------------------------------
+  - id: WARA-ASP-01
+    title: "WARA-ASP-01. App Service plans are on a Standard, Premium or Isolated tier"
+    severity: high
+    aprl: "b2113023-a553-2e41-9789-597e2fb54c31"
+    source: "https://github.com/Azure/Azure-Proactive-Resiliency-Library-v2/tree/main/azure-resources/Web/serverFarms"
+    query: "$.domains.web.appServicePlans[?(@.sku =~ /^(F1|D1|B1|B2|B3|Free|Shared|Basic)$/i)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.web.appServicePlans[*]" }
+    remediation: "WARA-ASP-01. The plans listed are Free, Shared or Basic. Those tiers have no zone support, no deployment slots, limited scale-out and (Free, Shared) no SLA. Move production apps to Standard, Premium v3 or Isolated v2."
+    manual: false
+  - id: WARA-ASP-02
+    title: "WARA-ASP-02. Production App Service plans are zone redundant and run at least two instances"
+    severity: high
+    aprl: "88cb90c2-3b99-814b-9820-821a63f600dd"
+    source: "https://github.com/Azure/Azure-Proactive-Resiliency-Library-v2/tree/main/azure-resources/Web/serverFarms"
+    query: "$.domains.web.appServicePlans[*]"
+    assert: { type: manual, gate: "$.domains.web.appServicePlans[*]" }
+    remediation: "WARA-ASP-02. Scout's App Service plan projection has the SKU and OS kind only, not the zone-redundancy flag or the instance count, so the plans are attached as evidence. Confirm production plans have zone redundancy on and a minimum of two instances (three if warm-up is slow)."
+    manual: true
+
+  # ---- Databases and caches (WARA-SQL, WARA-COSMOS, WARA-REDIS, WARA-PGSQL, WARA-MYSQL) -------
+  - id: WARA-SQL-01
+    title: "WARA-SQL-01. Azure SQL databases are zone redundant"
+    severity: high
+    aprl: "c0085c32-84c0-c247-bfa9-e70977cbf108"
+    source: "https://github.com/Azure/Azure-Proactive-Resiliency-Library-v2/tree/main/azure-resources/Sql/servers"
+    query: "$.domains.databases.sqlDatabases[?(@.zoneRedundant != true && @.name != 'master')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.databases.sqlDatabases[?(@.name != 'master')]" }
+    remediation: "WARA-SQL-01. The databases listed are not zone redundant, so their replicas share one datacenter. Turn zone redundancy on (supported on the General Purpose, Premium, Business Critical and Hyperscale tiers in regions with zones). The master system database is excluded. Scout does not collect the region, so a database in a region without zones is an exception to record."
+    manual: false
+  - id: WARA-SQL-02
+    title: "WARA-SQL-02. Critical SQL databases are replicated to another region (geo-replication or a failover group)"
+    severity: high
+    aprl: "74c2491d-048b-0041-a140-935960220e20"
+    source: "https://github.com/Azure/Azure-Proactive-Resiliency-Library-v2/tree/main/azure-resources/Sql/servers"
+    query: "$.domains.databases.sqlServers[*]"
+    assert: { type: manual, gate: "$.domains.databases.sqlServers[*]" }
+    remediation: "WARA-SQL-02. Replicas and failover groups are child resources Scout does not collect, so the SQL servers are attached as evidence. Confirm each critical database has a readable secondary in another region, ideally in a failover group the application reaches through the group endpoint."
+    manual: true
+  - id: WARA-COSMOS-01
+    title: "WARA-COSMOS-01. Cosmos DB accounts span more than one region, use availability zones and fail over automatically"
+    severity: high
+    aprl: "43663217-a1d3-844b-80ea-571a2ce37c6c"
+    source: "https://github.com/Azure/Azure-Proactive-Resiliency-Library-v2/tree/main/azure-resources/DocumentDB/databaseAccounts"
+    query: "$.domains.databases.cosmosDbAccounts[*]"
+    assert: { type: manual, gate: "$.domains.databases.cosmosDbAccounts[*]" }
+    remediation: "WARA-COSMOS-01. Scout's Cosmos DB projection has the API kind, public access and local-auth setting, not the region list, zone flags or failover policy, so the accounts are attached as evidence. Confirm each production account has a second region, zone redundancy in its regions and service-managed failover turned on."
+    manual: true
+  - id: WARA-REDIS-01
+    title: "WARA-REDIS-01. Production Redis caches are zone redundant (Premium or Enterprise tier)"
+    severity: high
+    aprl: "5a44bd30-ae6a-4b81-9b68-dc3a8ffca4d8"
+    source: "https://github.com/Azure/Azure-Proactive-Resiliency-Library-v2/tree/main/azure-resources/Cache/Redis"
+    query: "$.domains.databases.redisCaches[*]"
+    assert: { type: manual, gate: "$.domains.databases.redisCaches[*]" }
+    remediation: "WARA-REDIS-01. Scout collects the cache SKU but not the zone placement, so the caches are attached as evidence. Basic and Standard caches cannot span zones; confirm production caches are Premium or Enterprise with zones selected."
+    manual: true
+  - id: WARA-PGSQL-01
+    title: "WARA-PGSQL-01. PostgreSQL flexible servers use zone-redundant high availability"
+    severity: high
+    aprl: "ca87914f-aac4-4783-ab67-82a6f936f194"
+    source: "https://github.com/Azure/Azure-Proactive-Resiliency-Library-v2/tree/main/azure-resources/DBforPostgreSQL/flexibleServers"
+    query: "$.domains.databases.postgreSqlFlexibleServers[*]"
+    assert: { type: manual, gate: "$.domains.databases.postgreSqlFlexibleServers[*]" }
+    remediation: "WARA-PGSQL-01. The high-availability mode is not in Scout's PostgreSQL projection, so the servers are attached as evidence. Confirm production servers run a standby replica in another zone, geo-redundant backup, and at least one cross-region read replica where the recovery target needs it."
+    manual: true
+  - id: WARA-MYSQL-01
+    title: "WARA-MYSQL-01. MySQL flexible servers use zone-redundant high availability"
+    severity: high
+    aprl: "88856605-53d8-4bbd-a75b-4a7b14939d32"
+    source: "https://github.com/Azure/Azure-Proactive-Resiliency-Library-v2/tree/main/azure-resources/DBforMySQL/flexibleServers"
+    query: "$.domains.databases.mySqlFlexibleServers[*]"
+    assert: { type: manual, gate: "$.domains.databases.mySqlFlexibleServers[*]" }
+    remediation: "WARA-MYSQL-01. The high-availability mode is not in Scout's MySQL projection, so the servers are attached as evidence. Confirm production servers run a standby replica in another zone, geo-redundant backup, and a cross-region read replica where the recovery target needs it."
+    manual: true
+
+  # ---- Storage and Key Vault (WARA-STG, WARA-KV) ----------------------------------------------
+  - id: WARA-STG-01
+    title: "WARA-STG-01. Storage accounts use zone or geo redundancy, not locally redundant storage"
+    severity: high
+    aprl: "e6c7e1cc-2f47-264d-aa50-1da421314472"
+    source: "https://github.com/Azure/Azure-Proactive-Resiliency-Library-v2/tree/main/azure-resources/Storage/storageAccounts"
+    query: "$.domains.storage.storageAccounts[?(@.sku =~ /_LRS$/i)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.storage.storageAccounts[*]" }
+    remediation: "WARA-STG-01. The accounts listed are locally redundant (LRS), so all copies sit in one datacenter. Change to ZRS, GRS or GZRS (and RA- variants where reads must survive a region loss). Accounts holding only rebuildable data, such as scratch or diagnostic output, can stay LRS."
+    manual: false
+  - id: WARA-KV-01
+    title: "WARA-KV-01. Key Vault soft delete is on"
+    severity: high
+    aprl: "1cca00d2-d9ab-8e42-a788-5d40f49405cb"
+    source: "https://github.com/Azure/Azure-Proactive-Resiliency-Library-v2/tree/main/azure-resources/KeyVault/vaults"
+    # Soft delete is mandatory on every vault created today and the property is omitted on new
+    # vaults, so only an explicit false is a finding; null/absent reads as on.
+    query: "$.domains.security.keyVaults[?(@.softDelete == false)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.security.keyVaults[*]" }
+    remediation: "WARA-KV-01. The vaults listed have soft delete explicitly off, so a deleted vault or secret cannot be recovered. Turn it on; it cannot be turned off again once enabled."
+    manual: false
+  - id: WARA-KV-02
+    title: "WARA-KV-02. Key Vault purge protection is on"
+    severity: medium
+    aprl: "70fcfe6d-00e9-5544-a63a-fff42b9f2edb"
+    source: "https://github.com/Azure/Azure-Proactive-Resiliency-Library-v2/tree/main/azure-resources/KeyVault/vaults"
+    query: "$.domains.security.keyVaults[?(@.purgeProtection != true)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.security.keyVaults[*]" }
+    remediation: "WARA-KV-02. The vaults listed do not have purge protection, so someone with access can permanently erase a soft-deleted vault or secret before the retention period ends. Enable purge protection (it cannot be disabled afterwards), after confirming the vault name will not need re-using inside the retention window."
+    manual: false
+
+  # ---- Backup vaults (WARA-RSV) ---------------------------------------------------------------
+  # Both rules read `$.management.recoveryVaults`, which the single-pass inventory shapes from the
+  # ordinary resources table (softDelete, storageType and crossRegion are string-valued there).
+  - id: WARA-RSV-01
+    title: "WARA-RSV-01. Recovery Services vault soft delete is not disabled"
+    severity: medium
+    aprl: "9e39919b-78af-4a0b-b70f-c548dae97c25"
+    source: "https://github.com/Azure/Azure-Proactive-Resiliency-Library-v2/tree/main/azure-resources/RecoveryServices/vaults"
+    query: "$.management.recoveryVaults[?(@.softDelete =~ /^disabled$/i)]"
+    assert: { type: countEquals, value: 0, gate: "$.management.recoveryVaults[*]" }
+    remediation: "WARA-RSV-01. The vaults listed have soft delete for backups turned off, so a deleted or tampered backup is gone at once. Set the vault's soft delete state to Enabled (or Always-on) so deleted backups stay recoverable for the retention period."
+    manual: false
+  - id: WARA-RSV-02
+    title: "WARA-RSV-02. Geo-redundant backup vaults have cross-region restore enabled"
+    severity: medium
+    aprl: "1549b91f-2ea0-4d4f-ba2a-4596becbe3de"
+    source: "https://github.com/Azure/Azure-Proactive-Resiliency-Library-v2/tree/main/azure-resources/RecoveryServices/vaults"
+    query: "$.management.recoveryVaults[?(@.storageType =~ /^geo/i && @.crossRegion =~ /^false$/i)]"
+    assert: { type: countEquals, value: 0, gate: "$.management.recoveryVaults[?(@.storageType =~ /^geo/i)]" }
+    remediation: "WARA-RSV-02. The vaults listed keep geo-redundant backups but have cross-region restore off, so backups replicated to the paired region cannot be restored there unless Microsoft declares a disaster. Turn cross-region restore on so you can restore in the paired region on demand."
+    manual: false
+
+  # ---- Networking (WARA-LB, WARA-AGW, WARA-VPN, WARA-ER, WARA-FW) -----------------------------
+  - id: WARA-LB-01
+    title: "WARA-LB-01. Load balancers use the Standard SKU"
+    severity: high
+    aprl: "38c3bca1-97a1-eb42-8cd3-838b243f35ba"
+    source: "https://github.com/Azure/Azure-Proactive-Resiliency-Library-v2/tree/main/azure-resources/Network/loadBalancers"
+    query: "$.networking.loadBalancers[?(@.sku =~ /^basic$/i)]"
+    assert: { type: countEquals, value: 0, gate: "$.networking.loadBalancers[*]" }
+    remediation: "WARA-LB-01. The load balancers listed are Basic, which has no availability-zone support and no SLA, and Microsoft has retired it. Migrate them to Standard with the Basic-to-Standard upgrade guidance, then make the frontends zone redundant."
+    manual: false
+  - id: WARA-AGW-01
+    title: "WARA-AGW-01. Application gateways use the v2 SKU"
+    severity: high
+    aprl: "7893f0b3-8622-1d47-beed-4b50a19f7895"
+    source: "https://github.com/Azure/Azure-Proactive-Resiliency-Library-v2/tree/main/azure-resources/Network/applicationGateways"
+    query: "$.networking.applicationGateways[?(@.tier =~ /^(Standard|WAF)$/i)]"
+    assert: { type: countEquals, value: 0, gate: "$.networking.applicationGateways[*]" }
+    remediation: "WARA-AGW-01. The gateways listed are the v1 SKU (Standard or WAF tier). Application Gateway v1 reached retirement on 28 April 2026 with no SLA, so traffic through it is not guaranteed. Migrate to Standard v2 or WAF v2, which add autoscale, zone redundancy and a static address."
+    manual: false
+  - id: WARA-AGW-02
+    title: "WARA-AGW-02. Application gateways span availability zones and autoscale"
+    severity: high
+    aprl: "c9c00f2a-3888-714b-a72b-b4c9e8fcffb2"
+    source: "https://github.com/Azure/Azure-Proactive-Resiliency-Library-v2/tree/main/azure-resources/Network/applicationGateways"
+    query: "$.networking.applicationGateways[*]"
+    assert: { type: manual, gate: "$.networking.applicationGateways[*]" }
+    remediation: "WARA-AGW-02. The gateway zones and autoscale configuration are not in Scout's application gateway projection, so the gateways are attached as evidence. Confirm each v2 gateway lists all zones in its region and has autoscale with a sensible minimum instance count."
+    manual: true
+  - id: WARA-VPN-01
+    title: "WARA-VPN-01. VPN gateways use zone-redundant (AZ) SKUs"
+    severity: high
+    aprl: "5b1933a6-90e4-f642-a01f-e58594e5aab2"
+    source: "https://github.com/Azure/Azure-Proactive-Resiliency-Library-v2/tree/main/azure-resources/Network/virtualNetworkGateways"
+    query: "$.networking.vpnGateways[?(@.gatewayType =~ /^vpn$/i && @.sku =~ /^(Basic|Standard|HighPerformance|VpnGw1|VpnGw2|VpnGw3|VpnGw4|VpnGw5)$/i)]"
+    assert: { type: countEquals, value: 0, gate: "$.networking.vpnGateways[?(@.gatewayType =~ /^vpn$/i)]" }
+    remediation: "WARA-VPN-01. The VPN gateways listed are on a SKU without AZ in its name (Basic, legacy Standard or High Performance, or non-AZ VpnGw1-5). Those SKUs are not zone redundant and the non-AZ VpnGw SKUs retire on 30 September 2026. Resize to the matching AZ SKU, with a Standard public IP."
+    manual: false
+  - id: WARA-VPN-02
+    title: "WARA-VPN-02. VPN gateways run in active-active mode"
+    severity: medium
+    aprl: "281a2713-c0e0-3c48-b596-19f590c46671"
+    source: "https://github.com/Azure/Azure-Proactive-Resiliency-Library-v2/tree/main/azure-resources/Network/virtualNetworkGateways"
+    query: "$.networking.vpnGateways[?(@.gatewayType =~ /^vpn$/i && @.sku != 'Basic' && @.activeActive != true)]"
+    assert: { type: countEquals, value: 0, gate: "$.networking.vpnGateways[?(@.gatewayType =~ /^vpn$/i)]" }
+    remediation: "WARA-VPN-02. The VPN gateways listed run active-standby, so a maintenance event or failure drops the tunnels until the standby takes over. Enable active-active (two gateway IPs, two tunnels per site) and make the on-premises device accept both."
+    manual: false
+  - id: WARA-ER-01
+    title: "WARA-ER-01. ExpressRoute gateways use zone-redundant (AZ) SKUs"
+    severity: high
+    aprl: "bbe668b7-eb5c-c746-8b82-70afdedf0cae"
+    source: "https://github.com/Azure/Azure-Proactive-Resiliency-Library-v2/tree/main/azure-resources/Network/virtualNetworkGateways"
+    query: "$.networking.vpnGateways[?(@.gatewayType =~ /^expressroute$/i && @.sku =~ /^(Basic|Standard|HighPerformance|UltraPerformance)$/i)]"
+    assert: { type: countEquals, value: 0, gate: "$.networking.vpnGateways[?(@.gatewayType =~ /^expressroute$/i)]" }
+    remediation: "WARA-ER-01. The ExpressRoute gateways listed are on a non-zone-redundant SKU (Basic, Standard, High Performance or Ultra Performance). Move to ErGw1AZ, ErGw2AZ, ErGw3AZ or ErGwScale so the gateway spreads across zones."
+    manual: false
+  - id: WARA-ER-02
+    title: "WARA-ER-02. ExpressRoute connectivity uses two circuits at different peering locations"
+    severity: high
+    aprl: "4d703025-dafc-f840-a183-5dc440456134"
+    source: "https://github.com/Azure/Azure-Proactive-Resiliency-Library-v2/tree/main/azure-resources/Network/expressRouteCircuits"
+    query: "$.networking.expressRouteCircuits[*]"
+    assert: { type: manual, gate: "$.networking.expressRouteCircuits[*]" }
+    remediation: "WARA-ER-02. Which circuit connects to which gateway is not collected, so every circuit is attached with its provider and peering location. Confirm each virtual network gateway connects to two circuits at different peering locations, with both links active-active."
+    manual: true
+  - id: WARA-FW-01
+    title: "WARA-FW-01. Azure Firewalls are deployed across availability zones"
+    severity: high
+    aprl: "c72b7fee-1fa0-5b4b-98e5-54bcae95bb74"
+    source: "https://github.com/Azure/Azure-Proactive-Resiliency-Library-v2/tree/main/azure-resources/Network/azureFirewalls"
+    query: "$.networking.azureFirewalls[*]"
+    assert: { type: manual, gate: "$.networking.azureFirewalls[*]" }
+    remediation: "WARA-FW-01. The firewall zone list is not in Scout's Azure Firewall projection, so the firewalls are attached as evidence. Confirm each firewall in a region with zones lists all of them; zones can only be set when the firewall is created, so a fix means redeploying."
+    manual: true
+
+  # ---- Integration and messaging (WARA-APIM, WARA-EH) -----------------------------------------
+  - id: WARA-APIM-01
+    title: "WARA-APIM-01. API Management instances that need zone redundancy are on the Premium tier"
+    severity: medium
+    aprl: "baf3bfc0-32a2-4c0c-926d-c9bf0b49808e"
+    source: "https://github.com/Azure/Azure-Proactive-Resiliency-Library-v2/tree/main/azure-resources/ApiManagement/service"
+    query: "$.domains.integration.apiManagement[?(@.sku =~ /^(Developer|Basic|Standard)$/i)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.integration.apiManagement[*]" }
+    remediation: "WARA-APIM-01. The instances listed are Developer, Basic or Standard. The Developer tier has no SLA, and none of these three can spread across availability zones or add regions. Use Premium for production APIs that must survive a datacenter loss; a non-production instance can stay as it is."
+    manual: false
+  - id: WARA-EH-01
+    title: "WARA-EH-01. Event Hubs namespaces are zone redundant"
+    severity: high
+    aprl: "84636c6c-b317-4722-b603-7b1ffc16384b"
+    source: "https://github.com/Azure/Azure-Proactive-Resiliency-Library-v2/tree/main/azure-resources/EventHub/namespaces"
+    query: "$.domains.integration.eventHubNamespaces[?(@.zoneRedundant != true)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.integration.eventHubNamespaces[*]" }
+    remediation: "WARA-EH-01. The namespaces listed are not zone redundant. Zone redundancy is on by default for new namespaces in regions with zones, but templates can switch it off and older namespaces may predate it. Scout does not collect the region, so a namespace in a region without zones is an exception to record."
+    manual: false

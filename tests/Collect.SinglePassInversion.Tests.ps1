@@ -282,7 +282,7 @@ Describe 'AB#5648 — Resource Graph round-trip count per entry point' {
 
     BeforeEach { New-CountingSearchAzGraph }
 
-    It 'the DEFAULT assessment collect reaches Resource Graph exactly 7 times' {
+    It 'the DEFAULT assessment collect reaches Resource Graph exactly 8 times' {
         Invoke-Collect -WarningAction SilentlyContinue | Out-Null
 
         # Four raw tables carrying the `project id,name,type,tenantId,kind` marker, plus two more raw
@@ -296,7 +296,12 @@ Describe 'AB#5648 — Resource Graph round-trip count per entry point' {
         # other raw-pass table, but not derivable from `resources`/`networkresources` at all, so
         # collecting them costs two more round-trips. Raising this number further is a deliberate
         # contract change, and an EIGHTH would need the same justification in writing.
-        $script:argQueries.Count | Should -Be 7 -Because 'the inverted path is one raw pass (resourcecontainers, resources, networkresources, recoveryservicesresources, patchassessmentresources, patchinstallationresources) plus sqlDefenderPricing'
+        #
+        # The EIGHTH (AB#9300): `deploymentresources`. ARM deployment history is only in that table,
+        # and it is the one signal of infrastructure-as-code the assessment rules score (WAF-OE-02/08,
+        # CAF platform automation, DevOps, Platform Engineering). Without it those rules read a
+        # property no collected row carried and could never pass.
+        $script:argQueries.Count | Should -Be 8 -Because 'the inverted path is one raw pass (resourcecontainers, resources, networkresources, recoveryservicesresources, patchassessmentresources, patchinstallationresources, deploymentresources) plus sqlDefenderPricing'
 
         # patchassessmentresources/patchinstallationresources deliberately omit the `project
         # $columns` clause every OTHER raw table carries (Get-ScoutRawInventory.ps1's AB#6731
@@ -305,7 +310,9 @@ Describe 'AB#5648 — Resource Graph round-trip count per entry point' {
         # projection). That means the `project id,name,type,tenantId,kind` marker below only ever
         # matches 4 of the 6 raw-pass queries, not all 6 -- an accident of the heuristic, not a
         # sign the patch queries are typed/live queries.
-        @($script:argQueries | Where-Object { $_ -match 'project id,name,type,tenantId,kind' }).Count | Should -Be 4
+        # 5 since AB#9300: deploymentresources carries the same projection marker.
+        @($script:argQueries | Where-Object { $_ -match 'project id,name,type,tenantId,kind' }).Count | Should -Be 5
+        @($script:argQueries | Where-Object { $_ -match '^deploymentresources' }).Count | Should -Be 1
         @($script:argQueries | Where-Object { $_ -match 'microsoft\.security/pricings' }).Count | Should -Be 1
         @($script:argQueries | Where-Object { $_ -match '^patchassessmentresources' }).Count | Should -Be 1
         @($script:argQueries | Where-Object { $_ -match '^patchinstallationresources' }).Count | Should -Be 1

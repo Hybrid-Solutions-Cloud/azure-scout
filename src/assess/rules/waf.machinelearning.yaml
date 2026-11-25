@@ -1,0 +1,392 @@
+# waf.machinelearning.yaml -- Azure Machine Learning technology review (AB#9300)
+#
+# Scores Scout's reading of the Azure Machine Learning Well-Architected service guide, the scope of Microsoft's
+# "Azure Machine Learning" Well-Architected review (learn.microsoft.com/assessments/eec33ce4-4ef0-4bd2-9f69-1956e50465d4).
+# Microsoft does not publish that assessment's question text, so every item is Scout's reading of the guide's
+# per-pillar design checklists and configuration-recommendation tables, enumerated in
+# docs/frameworks/waf-machine-learning-checklist.md. Every rule cites an id from that file; do not add a rule that
+# cites an id it does not list, and do not re-date frameworkversion without re-running the verification there.
+#
+# WHY framework: WAF-ML and not WAF. The technology review spans all five pillars for one service, so its single area
+# scalar cannot name one pillar. WAF-ML is a Scout-internal axis, registered in the restructure test allow-list the
+# same way WAF-AI and WAF-AVD are.
+#
+# Only what the collection carries is automated: a workspace's managed-network isolation mode, public network access,
+# private endpoint, identity type. Compute clusters and instances, online endpoints and model registries are child
+# resources that are not collected, so their items stay manual rather than guessed. Every automated rule is gated on
+# workspaces existing, so an estate with none reports them Not assessed.
+area: "Azure Machine Learning"
+framework: WAF-ML
+frameworkversion: "Azure Well-Architected Framework Azure Machine Learning service guide (Microsoft's technology-review question text unpublished), docs/frameworks/waf-machine-learning-checklist.md, retrieved 2026-11-25 (44 items)"
+weight: 1.0
+verifiedAgainst: "docs/frameworks/waf-machine-learning-checklist.md (Scout enumeration of learn.microsoft.com/azure/well-architected/service-guides/azure-machine-learning), verified 2026-11-25"
+rules:
+
+  # ---- Reliability -------------------------------------------------------------------------
+  # the hosts models run on (AKS, managed online endpoints) are not collected; workspaces attached [MLG-RE-C]
+  - id: WAF-ML-RE-01
+    title: "WAF-ML-RE-01. Models are deployed to environments that support availability zones"
+    severity: high
+    query: "$.domains.ai.mlWorkspaces[*]"
+    assert: { type: manual }
+    remediation: "WAF-ML-RE-01. Deploy models to zone-capable hosts such as AKS spread across zones, and consider a multi-region topology. The workspaces are listed as evidence; the hosts models run on are not collected."
+    manual: true
+  # capacity-planning judgement [MLG-RE-C]
+  - id: WAF-ML-RE-02
+    title: "WAF-ML-RE-02. Compute for training and inferencing is sized to the workload"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ML-RE-02. Confirm compute SKU and scale settings were chosen from resource planning for both training and inferencing."
+    manual: true
+  # workspace purpose is not an ARM property; workspaces attached [MLG-RE-C]
+  - id: WAF-ML-RE-03
+    title: "WAF-ML-RE-03. Exploratory workspaces are separate from production workspaces"
+    severity: medium
+    query: "$.domains.ai.mlWorkspaces[*]"
+    assert: { type: manual }
+    remediation: "WAF-ML-RE-03. Confirm exploratory and production work run in different workspaces. The workspaces are listed; ARM does not record their purpose."
+    manual: true
+  # endpoint deployments are child resources, not collected [MLG-RE-C]
+  - id: WAF-ML-RE-04
+    title: "WAF-ML-RE-04. Managed online endpoints use a blue-green or traffic-split release"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ML-RE-04. Confirm new model versions are released with blue-green deployments to limit downtime and risk."
+    manual: true
+  # architecture judgement [MLG-RE-C]
+  - id: WAF-ML-RE-05
+    title: "WAF-ML-RE-05. Compute type (clusters, instances, external inference hosts) is chosen from reliability needs and SLAs"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ML-RE-05. Confirm each flow runs on compute whose SLA matches what it needs."
+    manual: true
+  # training code, not ARM [MLG-RE-C, MLG-RE-R]
+  - id: WAF-ML-RE-06
+    title: "WAF-ML-RE-06. Long training runs checkpoint so they can resume after interruption"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ML-RE-06. Confirm large-model training uses checkpointing (Azure Container for PyTorch, the TensorFlow Estimator class, or the Run object and FileDataset class)."
+    manual: true
+  # recovery plans are not collected; workspaces attached [MLG-RE-C]
+  - id: WAF-ML-RE-07
+    title: "WAF-ML-RE-07. A recovery strategy covers the workspace and its dependencies (Key Vault, Storage, Container Registry)"
+    severity: high
+    query: "$.domains.ai.mlWorkspaces[*]"
+    assert: { type: manual }
+    remediation: "WAF-ML-RE-07. Machine Learning has no automatic failover. Confirm a documented, tested recovery strategy covers the workspace and every dependency."
+    manual: true
+  # workspaces attached with their region [MLG-RE-R]
+  - id: WAF-ML-RE-08
+    title: "WAF-ML-RE-08. A multi-region deployment is considered for models that must survive a regional outage"
+    severity: medium
+    query: "$.domains.ai.mlWorkspaces[*]"
+    assert: { type: manual }
+    remediation: "WAF-ML-RE-08. Deploy critical models to more than one region and test the failover."
+    manual: true
+  # compute clusters are child resources, not collected [MLG-RE-R]
+  - id: WAF-ML-RE-09
+    title: "WAF-ML-RE-09. Compute clusters used for batch inferencing use the Dedicated VM tier"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ML-RE-09. Low-priority VMs can be preempted; use the Dedicated tier for batch jobs that must not be interrupted."
+    manual: true
+
+  # ---- Security ----------------------------------------------------------------------------
+  # baseline compliance is not an ARM property [MLG-SE-R]
+  - id: WAF-ML-SE-01
+    title: "WAF-ML-SE-01. The Azure security baseline for Machine Learning is applied and monitored"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ML-SE-01. Apply the baseline and monitor network, identity, data-protection and privileged-access controls in Microsoft Defender for Cloud."
+    manual: true
+  # workspace managed-network isolation mode [MLG-SE-C, MLG-SE-R]
+  - id: WAF-ML-SE-02
+    title: "WAF-ML-SE-02. Workspaces use managed virtual network isolation"
+    severity: high
+    query: "$.domains.ai.mlWorkspaces[?(@.isolationMode != 'AllowOnlyApprovedOutbound' && @.isolationMode != 'AllowInternetOutbound')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.ai.mlWorkspaces[*]" }
+    remediation: "WAF-ML-SE-02. The workspaces listed have no managed virtual network. Enable managed network isolation; if you cannot, place compute in a dedicated subnet away from the workspace private endpoints."
+    manual: false
+  # workspace publicNetworkAccess [MLG-SE-C, MLG-SE-R]
+  - id: WAF-ML-SE-03
+    title: "WAF-ML-SE-03. Workspace public network access is disabled"
+    severity: high
+    query: "$.domains.ai.mlWorkspaces[?(@.publicAccess != 'Disabled')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.ai.mlWorkspaces[*]" }
+    remediation: "WAF-ML-SE-03. The workspaces listed allow public network access. Disable it and reach the workspace over its private endpoint."
+    manual: false
+  # workspace to private endpoint join [MLG-SE-R]
+  - id: WAF-ML-SE-04
+    title: "WAF-ML-SE-04. Each workspace is reachable through a private endpoint"
+    severity: medium
+    join:
+      left: "$.domains.ai.mlWorkspaces[?(@.workspaceKind != 'Project')]"
+      leftKey: "id"
+      right: "$.networking.privateEndpoints[*]"
+      rightKey: "targetResourceId"
+      mode: "leftOnly"
+      leftLabel: "machine learning workspace"
+      rightLabel: "private endpoint"
+    assert: { type: countEquals, value: 0, gate: "$.domains.ai.mlWorkspaces[*]" }
+    remediation: "WAF-ML-SE-04. The workspaces listed have no private endpoint. Add one and connect over it so access is limited to private IP addresses. (Foundry project workspaces share their hub's endpoint and are skipped.)"
+    manual: false
+  # managedNetwork.isolationMode is AllowOnlyApprovedOutbound [MLG-SE-C, MLG-SE-R]
+  - id: WAF-ML-SE-05
+    title: "WAF-ML-SE-05. Managed outbound access is set to Allow only approved outbound"
+    severity: medium
+    query: "$.domains.ai.mlWorkspaces[?(@.isolationMode != 'AllowOnlyApprovedOutbound')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.ai.mlWorkspaces[*]" }
+    remediation: "WAF-ML-SE-05. The workspaces listed allow outbound internet traffic. Set the outbound mode to 'Allow only approved outbound' and approve each destination by private endpoint, service tag or FQDN, to limit data exfiltration."
+    manual: false
+  # the workspace-to-dependency link is not collected; storage accounts with no default-deny firewall attached [MLG-SE-R]
+  - id: WAF-ML-SE-06
+    title: "WAF-ML-SE-06. Dependent services (Storage, Key Vault, Container Registry) use private endpoints with public access disabled"
+    severity: high
+    query: "$.domains.storage.storageAccounts[?(@.networkDefaultDeny == false)]"
+    assert: { type: manual }
+    remediation: "WAF-ML-SE-06. Confirm each dependency of the workspace has a private endpoint and public access disabled. Nothing in ARM links a storage account to a workspace, so the accounts without a default-deny firewall are listed as evidence."
+    manual: true
+  # workspace identity type [MLG-SE-R]
+  - id: WAF-ML-SE-07
+    title: "WAF-ML-SE-07. Workspaces authenticate to other services with managed identities"
+    severity: medium
+    query: "$.domains.ai.mlWorkspaces[?(@.identityType == '' || @.identityType == 'None')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.ai.mlWorkspaces[*]" }
+    remediation: "WAF-ML-SE-07. The workspaces listed have no managed identity. Assign a system- or user-assigned identity and use it instead of stored credentials."
+    manual: false
+  # compute resources are child resources, not collected [MLG-SE-R]
+  - id: WAF-ML-SE-08
+    title: "WAF-ML-SE-08. Local authentication is disabled on compute clusters and instances"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ML-SE-08. Disable local authentication on compute so identity and credentials are managed centrally (Azure Policy can enforce it)."
+    manual: true
+  # compute resources are child resources, not collected [MLG-SE-R]
+  - id: WAF-ML-SE-09
+    title: "WAF-ML-SE-09. The public SSH port is closed on compute clusters (remoteLoginPortPublicAccess = Disabled)"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ML-SE-09. Set remoteLoginPortPublicAccess to Disabled on compute clusters, and apply the equivalent on other compute."
+    manual: true
+  # compute resources are child resources, not collected [MLG-SE-R]
+  - id: WAF-ML-SE-10
+    title: "WAF-ML-SE-10. Compute gets no public IP address (enableNodePublicIp = false)"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ML-SE-10. Set enableNodePublicIp to false when provisioning compute clusters and instances."
+    manual: true
+  # image age is not collected [MLG-SE-R]
+  - id: WAF-ML-SE-11
+    title: "WAF-ML-SE-11. Compute instances are recreated to pick up the latest operating system image"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ML-SE-11. Recreate compute instances on a schedule so they run the current, patched image."
+    manual: true
+  # role assignments attached; scope-to-workspace review is judgement [MLG-SE-C, MLG-SE-R]
+  - id: WAF-ML-SE-12
+    title: "WAF-ML-SE-12. Workspace access uses Microsoft Entra groups and least-privilege RBAC, per use case"
+    severity: medium
+    query: "$.governance.roleAssignments[*]"
+    assert: { type: manual }
+    remediation: "WAF-ML-SE-12. Confirm workspaces are split by use case or project and access is granted to Entra groups with least-privilege roles. Role assignments are attached as evidence."
+    manual: true
+  # registry and package policy is workspace configuration, not collected [MLG-SE-C, MLG-SE-R]
+  - id: WAF-ML-SE-13
+    title: "WAF-ML-SE-13. Model catalog deployments, container registries and Python packages are restricted to approved sources"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ML-SE-13. Restrict model deployments to specific registries, limit compute to approved container registries and package sources, and require signed training code."
+    manual: true
+  # the workspace encryption setting is not collected (proposed projection in the report) [MLG-SE-C, MLG-SE-R]
+  - id: WAF-ML-SE-14
+    title: "WAF-ML-SE-14. Data at rest uses customer-managed keys where required"
+    severity: medium
+    query: "$.domains.ai.mlWorkspaces[*]"
+    assert: { type: manual }
+    remediation: "WAF-ML-SE-14. Where a regulation requires you to manage encryption keys, configure customer-managed keys for the workspace. The workspaces are listed; the encryption setting is not collected."
+    manual: true
+  # network policy, not collected [MLG-SE-R]
+  - id: WAF-ML-SE-15
+    title: "WAF-ML-SE-15. Data exfiltration prevention limits egress to approved storage accounts"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ML-SE-15. Implement data-loss prevention, for example a service endpoint policy that allows egress only to specific storage accounts."
+    manual: true
+
+  # ---- Cost optimization -------------------------------------------------------------------
+  # architecture judgement [MLG-CO-C, MLG-CO-R]
+  - id: WAF-ML-CO-01
+    title: "WAF-ML-CO-01. Compute SKU family (CPU, GPU, memory-optimised) is matched to the workload and the choice is documented"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ML-CO-01. Test several families, record the baseline, and revisit as the model and data change."
+    manual: true
+  # compute clusters are child resources, not collected [MLG-CO-R]
+  - id: WAF-ML-CO-02
+    title: "WAF-ML-CO-02. Compute clusters autoscale to a minimum of zero nodes with a deliberate idle time"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ML-CO-02. Configure autoscaling with minimum nodes 0 on training clusters and tune the idle-before-scale-down time to how iterative the work is."
+    manual: true
+  # compute instances are child resources, not collected [MLG-CO-C, MLG-CO-R]
+  - id: WAF-ML-CO-03
+    title: "WAF-ML-CO-03. Compute instances shut down when idle or on a schedule"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ML-CO-03. Enable idle shutdown or a start and stop schedule on compute instances so they do not accrue cost while unused."
+    manual: true
+  # job definition, not ARM [MLG-CO-R]
+  - id: WAF-ML-CO-04
+    title: "WAF-ML-CO-04. Training runs have termination policies"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ML-CO-04. Set early-termination policies so under-performing runs stop."
+    manual: true
+  # architecture judgement [MLG-CO-C, MLG-CO-R]
+  - id: WAF-ML-CO-05
+    title: "WAF-ML-CO-05. Low-priority VMs are used for batch work that tolerates interruption, and training is tested for parallelisation"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ML-CO-05. Use low-priority VMs for non-time-sensitive batch work and test parallel components to run on cheaper SKUs."
+    manual: true
+  # reservations attached [MLG-CO-C, MLG-CO-R]
+  - id: WAF-ML-CO-06
+    title: "WAF-ML-CO-06. Reserved VM Instances cover steady, predictable usage"
+    severity: low
+    query: "$.finops.reservations[*]"
+    assert: { type: manual }
+    remediation: "WAF-ML-CO-06. Buy reservations when one- to three-year usage is well understood. Reservations are attached as evidence."
+    manual: true
+  # quota and utilisation are not collected [MLG-CO-C]
+  - id: WAF-ML-CO-07
+    title: "WAF-ML-CO-07. Policies and quotas bound compute, and CPU and GPU utilisation is monitored"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ML-CO-07. Apply policies and quotas to enforce upper and lower limits, and scale down or tune code when resources are under-used."
+    manual: true
+
+  # ---- Operational excellence --------------------------------------------------------------
+  # workspaces attached for counting [MLG-OE-R]
+  - id: WAF-ML-OE-01
+    title: "WAF-ML-OE-01. The number of workspaces is kept to what separation requirements need"
+    severity: low
+    query: "$.domains.ai.mlWorkspaces[*]"
+    assert: { type: manual }
+    remediation: "WAF-ML-OE-01. Minimise workspaces to reduce maintenance, keeping separate ones only where security or lifecycle needs demand it. The workspaces are listed."
+    manual: true
+  # registry contents are not collected [MLG-OE-C, MLG-OE-R]
+  - id: WAF-ML-OE-02
+    title: "WAF-ML-OE-02. Model catalogs and registries store, version and share machine learning assets"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ML-OE-02. Use model registries to version models and keep lineage to the job and datasets, supporting A/B and canary releases and rollback."
+    manual: true
+  # pipeline practice, not ARM [MLG-OE-C]
+  - id: WAF-ML-OE-03
+    title: "WAF-ML-OE-03. MLOps pipelines automate data preparation, training and scoring"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ML-OE-03. Build end-to-end automated pipelines; prefer scripts to notebooks for training so they fit pipelines."
+    manual: true
+  # deployment method is not an ARM property [MLG-OE-C]
+  - id: WAF-ML-OE-04
+    title: "WAF-ML-OE-04. Workspaces, compute and environments are deployed with infrastructure as code"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ML-OE-04. Define workspaces, compute clusters and instances in Bicep, ARM or Terraform and deploy through a pipeline."
+    manual: true
+  # model-monitor configuration is not collected [MLG-OE-C, MLG-OE-R]
+  - id: WAF-ML-OE-05
+    title: "WAF-ML-OE-05. Deployed model performance and data drift are monitored"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ML-OE-05. Monitor model performance and detect drift on datasets so degradation is caught."
+    manual: true
+  # Application Insights components attached (link to endpoints is not collected) [MLG-OE-C, MLG-OE-R]
+  - id: WAF-ML-OE-06
+    title: "WAF-ML-OE-06. Online endpoints send telemetry to Application Insights"
+    severity: medium
+    query: "$.monitor.appInsights[*]"
+    assert: { type: manual }
+    remediation: "WAF-ML-OE-06. Enable Application Insights on online endpoints and monitor training infrastructure against baselines. Application Insights components are attached as evidence."
+    manual: true
+  # type not yet in the diagnostic-settings sweep (proposed in the report) [MLG-OE-R]
+  - id: WAF-ML-OE-07
+    title: "WAF-ML-OE-07. Resource logs are collected for Machine Learning workspaces"
+    severity: medium
+    query: "$.opsPosture.diagnosticCoverage[?(@.type == 'microsoft.machinelearningservices/workspaces')]"
+    assert: { type: manual }
+    remediation: "WAF-ML-OE-07. Route workspace resource logs to Log Analytics. Machine Learning is not in the diagnostic-settings sweep yet; coverage rows for the type are attached once it is."
+    manual: true
+  # environment choice, not collected [MLG-OE-C, MLG-OE-R]
+  - id: WAF-ML-OE-08
+    title: "WAF-ML-OE-08. Curated environments are used where available"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ML-OE-08. Use curated environments to speed deployment and avoid unnecessary image builds."
+    manual: true
+
+  # ---- Performance efficiency --------------------------------------------------------------
+  # target-setting, not ARM [MLG-PE-C]
+  - id: WAF-ML-PE-01
+    title: "WAF-ML-PE-01. Acceptable training time and retrain frequency are defined"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ML-PE-01. Set a training-time target and retrain cadence; they drive the compute and CPU-versus-GPU choice."
+    manual: true
+  # target-setting, not ARM [MLG-PE-C]
+  - id: WAF-ML-PE-02
+    title: "WAF-ML-PE-02. Performance targets (response time, requests per second, error rate, uptime) are defined for deployed models"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ML-PE-02. Write the targets down; they are the benchmark for compute and scaling decisions."
+    manual: true
+  # compute resources are child resources, not collected [MLG-PE-C, MLG-PE-R]
+  - id: WAF-ML-PE-03
+    title: "WAF-ML-PE-03. Compute clusters, not instances, are used where autoscaling is needed for training"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ML-PE-03. Prefer compute clusters for scale-out training; choose CPU first and GPU only where the workload benefits, and test to set the baseline."
+    manual: true
+  # autoscale settings attached (link to endpoints is not collected) [MLG-PE-C, MLG-PE-R]
+  - id: WAF-ML-PE-04
+    title: "WAF-ML-PE-04. Deployment environments autoscale to demand"
+    severity: medium
+    query: "$.monitor.autoscaleSettings[*]"
+    assert: { type: manual }
+    remediation: "WAF-ML-PE-04. Use the cluster autoscaler for AKS, and Azure Monitor autoscale for online endpoints. Autoscale settings are attached as evidence."
+    manual: true
+  # monitoring configuration, not collected [MLG-PE-C, MLG-PE-R]
+  - id: WAF-ML-PE-05
+    title: "WAF-ML-PE-05. Deployed model and endpoint infrastructure are monitored against baselines"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ML-PE-05. Monitor model performance, endpoint latency and requests per minute, and training resource use, and act on the results."
+    manual: true

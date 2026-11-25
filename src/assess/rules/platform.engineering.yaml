@@ -1,0 +1,290 @@
+# platform.engineering.yaml -- Platform Engineering Technical Assessment (AB#9300)
+#
+# Scores Microsoft's Platform Engineering Capability Model (investment, adoption, governance,
+# provisioning and management, interfaces, measurement and feedback) as used by the Platform
+# Engineering Technical Assessment (learn.microsoft.com/assessments/86bf5228-7b58-4854-b932-ac71402e0be4).
+#
+# Written ONLY against docs/frameworks/platform-engineering-question-set.md. Microsoft does not
+# publish the assessment's question text, so every item is Scout's reading of the published capability
+# model, labelled Scout-derived. The PLATENG-* ids are Scout's, not Microsoft's.
+#
+# Most items are organisational questions no Azure API can answer. They are manual rules: Scout lists
+# them in assessment-questions.csv and a person answers them (docs/assessment/questionnaire-answers.md).
+# The few automated rules are gated on the data they read being present, so an estate without it
+# reports them Not assessed rather than passed or failed:
+#   - policy items gate on $.governance.policyAssignmentsAvailable
+#   - the role assignment item gates on $.governance.roleAssignmentsAvailable
+#   - the budget item gates on $.governance.budgetsAvailable
+#   - the infrastructure-as-code item gates on deployment records existing
+#   - the YAML pipeline item gates on $.devops.available (needs -IncludeDevOps)
+# Dev Center, Dev Box, Application Insights and autoscale data is attached to manual questions as
+# evidence only: a platform can be built on other tools, so its absence proves nothing.
+area: "Platform engineering"
+framework: PLATFORM-ENG
+frameworkversion: "Microsoft Platform Engineering Capability Model (six capabilities, five stages) on Microsoft Learn, assessment questions unpublished, docs/frameworks/platform-engineering-question-set.md, retrieved 2026-11-25 (36 items, Scout-derived)"
+weight: 1.0
+verifiedAgainst: "docs/frameworks/platform-engineering-question-set.md (Scout enumeration of learn.microsoft.com/platform-engineering/*), verified 2026-11-25"
+rules:
+  # ---- Investment (PLATENG-INV) ----
+  - id: PLATENG-INV-01
+    title: "PLATENG-INV-01. Budget and people are deliberately allocated to maintain common platform capabilities, not left to voluntary effort"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "PLATENG-INV-01. Confirm a persistent, funded team (DevOps, Engineering Enablement, Developer Experience, Shared Tools, Platform) owns the common capabilities, and that the work is costed in its budget rather than done by people on top of their other responsibilities."
+    manual: true
+  - id: PLATENG-INV-02
+    title: "PLATENG-INV-02. The platform team is run like a product team, with product management, design, research and content roles alongside engineering"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PLATENG-INV-02. Confirm the platform team is staffed and managed like other product teams and funded against its roadmap, not treated only as a cost centre."
+    manual: true
+  - id: PLATENG-INV-03
+    title: "PLATENG-INV-03. A product roadmap, built from requirements gathered across engineering teams, sets the scope and priorities of the platform"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PLATENG-INV-03. Confirm the platform team publishes a roadmap with expected impact and engages engineering teams to collect requirements, instead of building one-off solutions for whoever asks."
+    manual: true
+  - id: PLATENG-INV-04
+    title: "PLATENG-INV-04. Return on the platform investment is shown with measures beyond delivery speed, such as developer satisfaction and business outcomes"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PLATENG-INV-04. Confirm return on investment is measured by more than the size of backlogs or speed of delivery, for example developer satisfaction and the effect on business outcomes."
+    manual: true
+  - id: PLATENG-INV-05
+    title: "PLATENG-INV-05. Teams outside the platform team, engineering and non-engineering, have explicit funding to contribute to the platform"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "PLATENG-INV-05. Confirm contributing teams are funded to add capabilities to the platform, so knowledge is shared across the organization rather than only through the central team."
+    manual: true
+
+  # ---- Adoption (PLATENG-ADO) ----
+  - id: PLATENG-ADO-01
+    title: "PLATENG-ADO-01. Engineering teams can discover the platform's services, tools and technologies from a catalogue or portal, not by word of mouth"
+    severity: medium
+    query: "$.devops.deploymentEnvironmentTypes[*]"
+    assert: { type: manual }
+    remediation: "PLATENG-ADO-01. Confirm capabilities are published where engineers look for them (a portal, catalogue or inventory) so a team does not need to be told a supported capability exists. Dev Center catalogs and environment types are attached as evidence where they exist."
+    manual: true
+  - id: PLATENG-ADO-02
+    title: "PLATENG-ADO-02. The platform states the value of each capability, and teams choose it over building their own rather than because it is mandated"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PLATENG-ADO-02. Confirm product teams pick platform capabilities because they reduce cognitive load and operational effort, not only because a directive requires it."
+    manual: true
+  - id: PLATENG-ADO-03
+    title: "PLATENG-ADO-03. Use of platform capabilities is supported by templates, documentation, support forums and a clear route to help"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PLATENG-ADO-03. Confirm every supported capability has templates, documentation and a support channel, so a team can adopt it without deep help from the platform team."
+    manual: true
+  - id: PLATENG-ADO-04
+    title: "PLATENG-ADO-04. Internal advocates (champions, ambassadors, developer advocates) run an internal user community around the platform"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "PLATENG-ADO-04. Confirm there are named champions in the product teams and a community where problems and solutions are shared."
+    manual: true
+  - id: PLATENG-ADO-05
+    title: "PLATENG-ADO-05. Engineering teams can contribute fixes and features back to the platform through reviewed pull requests"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "PLATENG-ADO-05. Confirm contribution routes exist (inner source): teams can raise pull requests against platform capabilities and platform engineers review them."
+    manual: true
+
+  # ---- Governance (PLATENG-GOV) ----
+  - id: PLATENG-GOV-01
+    title: "PLATENG-GOV-01. Security, compliance and remediation policies are defined, centrally managed and documented for every team"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "PLATENG-GOV-01. Confirm one set of security, compliance and remediation policies is defined centrally and shared across teams, instead of being decided project by project."
+    manual: true
+  - id: PLATENG-GOV-02
+    title: "PLATENG-GOV-02. Security and compliance policies are implemented as Azure Policy assignments"
+    severity: high
+    query: "$.governance.policyAssignments[*]"
+    assert: { type: countGreaterThan, value: 0, gate: "$.governance.policyAssignmentsAvailable" }
+    remediation: "PLATENG-GOV-02. Assign Azure Policy (built-in or custom initiatives) at management group or subscription scope so guardrails apply to every team without a manual review. The query lists the policy assignments Scout found."
+    manual: false
+  - id: PLATENG-GOV-03
+    title: "PLATENG-GOV-03. Assigned Azure policies are enforced rather than left in audit-only (DoNotEnforce) mode"
+    severity: medium
+    query: "$.governance.policyAssignments[?(@.properties.enforcementMode == 'DoNotEnforce')]"
+    assert: { type: countEquals, value: 0, gate: "$.governance.policyAssignmentsAvailable" }
+    remediation: "PLATENG-GOV-03. Switch the policy assignments listed here from DoNotEnforce to Default once their effect is understood. An assignment that does not enforce records drift but prevents none of it."
+    manual: false
+  - id: PLATENG-GOV-04
+    title: "PLATENG-GOV-04. Policy is managed as code: stored in version control, reviewed, tested and rolled out in rings"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PLATENG-GOV-04. Confirm policy definitions and assignments live in a repository, are reviewed and tested, and roll out gradually, so a faulty policy has a limited blast radius."
+    manual: true
+  - id: PLATENG-GOV-05
+    title: "PLATENG-GOV-05. Threats and policy violations are monitored, audited and corrected through a defined process"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "PLATENG-GOV-05. Confirm platform activity is audited regularly and violations lead to corrective action by a defined process, not only after an incident."
+    manual: true
+  - id: PLATENG-GOV-06
+    title: "PLATENG-GOV-06. Access to platform resources follows a formal role-based model aligned to job functions, with access provisioned through automation"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PLATENG-GOV-06. Confirm roles and permissions are defined for each job function and granted through an automated, auditable route rather than request by request."
+    manual: true
+  - id: PLATENG-GOV-07
+    title: "PLATENG-GOV-07. Access is granted through groups and roles rather than to many individual users"
+    severity: medium
+    query: "$.governance.roleAssignments[?(@.properties.principalType == 'User')]"
+    assert: { type: countLessThan, value: 50, gate: "$.governance.roleAssignmentsAvailable" }
+    remediation: "PLATENG-GOV-07. Move the direct user role assignments to Entra security groups. A large number of user-level assignments is a sign that access is granted request by request. This is a proxy: it counts direct user assignments, not whether the role model fits job functions."
+    manual: false
+  - id: PLATENG-GOV-08
+    title: "PLATENG-GOV-08. Cost is governed: budgets exist for the subscriptions the platform serves"
+    severity: medium
+    query: "$.governance.budgets[*]"
+    assert: { type: countGreaterThan, value: 0, gate: "$.governance.budgetsAvailable" }
+    remediation: "PLATENG-GOV-08. Create Azure budgets with alerts at subscription or management group scope so cost overruns are noticed by the owning team. The query lists the budgets Scout found."
+    manual: false
+  - id: PLATENG-GOV-09
+    title: "PLATENG-GOV-09. Data and intellectual property are governed, including classification, licensing and code ownership"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PLATENG-GOV-09. Confirm the platform enforces how data is classified and handled, and that licensing and code-ownership expectations are set for the code and assets teams build on it."
+    manual: true
+
+  # ---- Provisioning and management (PLATENG-PRV) ----
+  - id: PLATENG-PRV-01
+    title: "PLATENG-PRV-01. Infrastructure is provisioned from infrastructure-as-code templates, not by hand in the portal"
+    severity: medium
+    query: "$.management.deployments[?(@.properties.templateHash)]"
+    assert: { type: exists, gate: "$.management.deployments[*]" }
+    remediation: "PLATENG-PRV-01. Provision through Bicep, Terraform or ARM templates held in source control. The query looks for deployment records that carry a template hash; at least one is needed to pass. This shows IaC is used somewhere, not that every resource was deployed that way."
+    manual: false
+  - id: PLATENG-PRV-02
+    title: "PLATENG-PRV-02. Delivery pipelines are defined as code (YAML) rather than built in the classic editor"
+    severity: medium
+    query: "$.devops.pipelines[?(@.ConfigurationType == 'yaml')]"
+    assert: { type: percentageAtLeast, value: 70, denominatorQuery: "$.devops.pipelines[*]", gate: "$.devops.available" }
+    remediation: "PLATENG-PRV-02. Convert classic-editor pipelines to YAML, which can be reviewed, versioned and reused as templates. At least 70 percent of pipelines should be YAML. Needs Azure DevOps access (-IncludeDevOps)."
+    manual: false
+  - id: PLATENG-PRV-03
+    title: "PLATENG-PRV-03. Provisioning requests follow a structured workflow with paved paths (golden paths) and approvals only where needed"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PLATENG-PRV-03. Confirm requests for infrastructure and services go through predefined templates and workflows, so most requests need no manual intervention."
+    manual: true
+  - id: PLATENG-PRV-04
+    title: "PLATENG-PRV-04. Provisioning is automated inside CI/CD pipelines, with governance and compliance checks built into the workflow"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "PLATENG-PRV-04. Confirm provisioning runs as pipeline steps and that policy and compliance checks are part of the same workflow, not a later review."
+    manual: true
+  - id: PLATENG-PRV-05
+    title: "PLATENG-PRV-05. Teams create standardized, preconfigured environments themselves, within controlled limits"
+    severity: medium
+    query: "$.devops.deploymentEnvironmentTypes[*]"
+    assert: { type: manual }
+    remediation: "PLATENG-PRV-05. Confirm teams can create environments from approved templates without raising a ticket. Dev Center catalogs and environment types (Azure Deployment Environments) are attached as evidence where they exist."
+    manual: true
+  - id: PLATENG-PRV-06
+    title: "PLATENG-PRV-06. Resource allocation and use are visible on central dashboards, and scaling is automated from usage patterns"
+    severity: low
+    query: "$.monitor.autoscaleSettings[*]"
+    assert: { type: manual }
+    remediation: "PLATENG-PRV-06. Confirm resource allocation and utilization across services is tracked centrally and scaling responds to usage. Autoscale settings are attached as evidence."
+    manual: true
+
+  # ---- Interfaces (PLATENG-INT) ----
+  - id: PLATENG-INT-01
+    title: "PLATENG-INT-01. Consistent, standard interfaces exist to provision and observe platform capabilities, with golden paths documented as templates"
+    severity: medium
+    query: "$.devops.devCenters[*]"
+    assert: { type: manual }
+    remediation: "PLATENG-INT-01. Confirm users can see what capabilities exist and request them through one consistent interface, with documentation and templates for the common paths. Dev Center and project resources are attached as evidence."
+    manual: true
+  - id: PLATENG-INT-02
+    title: "PLATENG-INT-02. Development environments are set up through the platform from a common path, not assembled by each team"
+    severity: medium
+    query: "$.devops.devBoxPools[*]"
+    assert: { type: manual }
+    remediation: "PLATENG-INT-02. Confirm engineers get a standard development environment through the platform (for example Dev Box or cloud development environments). Dev Box pools are attached as evidence where they exist."
+    manual: true
+  - id: PLATENG-INT-03
+    title: "PLATENG-INT-03. Tools to observe and diagnose deployed resources are provided on demand through the platform"
+    severity: medium
+    query: "$.monitor.appInsights[*]"
+    assert: { type: manual }
+    remediation: "PLATENG-INT-03. Confirm engineers can see logs, metrics and traces of what they deployed without building their own observability. Application Insights components are attached as evidence."
+    manual: true
+  - id: PLATENG-INT-04
+    title: "PLATENG-INT-04. An inventory or service catalogue lets users find assets and avoid duplicating them"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "PLATENG-INT-04. Confirm there is an inventory of provisioned assets, services and templates that teams search before building something new."
+    manual: true
+
+  # ---- Measurement and feedback (PLATENG-MFB) ----
+  - id: PLATENG-MFB-01
+    title: "PLATENG-MFB-01. Platform success is measured with value-centric metrics tied to business goals, not only activity counts"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PLATENG-MFB-01. Confirm the platform is measured against business outcomes such as cost savings, time to value or revenue effects, and not only against counts such as bugs fixed."
+    manual: true
+  - id: PLATENG-MFB-02
+    title: "PLATENG-MFB-02. Software delivery performance of platform users (deployment frequency, lead time, change failure rate, time to restore) is measured"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PLATENG-MFB-02. Confirm the four DORA measures are tracked for teams using the platform and used to find bottlenecks. Scout does not read pipeline run history, so it cannot measure these."
+    manual: true
+  - id: PLATENG-MFB-03
+    title: "PLATENG-MFB-03. User feedback is collected through structured mechanisms built into the platform, not only ad hoc"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PLATENG-MFB-03. Confirm feedback is gathered through surveys or in-product channels on a regular cycle, from a wide group of users."
+    manual: true
+  - id: PLATENG-MFB-04
+    title: "PLATENG-MFB-04. Feedback is analysed and correlated with performance metrics to drive the platform roadmap"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "PLATENG-MFB-04. Confirm feedback is analysed in depth, tied to performance data and fed into roadmap decisions rather than only reactive changes."
+    manual: true
+  - id: PLATENG-MFB-05
+    title: "PLATENG-MFB-05. Executives, platform users and product teams all take part in feedback loops"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "PLATENG-MFB-05. Confirm stakeholders across levels, including executives, contribute to and see the results of platform feedback."
+    manual: true
+  - id: PLATENG-MFB-06
+    title: "PLATENG-MFB-06. Lessons learned and platform documentation are kept current and shared with all stakeholders"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "PLATENG-MFB-06. Confirm outcomes of feedback and lessons learned are documented, kept up to date and accessible to everyone who uses or funds the platform."
+    manual: true
+  - id: PLATENG-MFB-07
+    title: "PLATENG-MFB-07. Platform goals are set as objectives and key results (OKRs) agreed with leadership and scoped to business objectives"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "PLATENG-MFB-07. Confirm platform goals are scoped to business objectives (quality, security, compliance, time to value, cost) and agreed with leadership as OKRs or an equivalent measurable form."
+    manual: true

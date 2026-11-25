@@ -1,0 +1,152 @@
+# advisor.recommendations.yaml -- Azure Advisor recommendations assessment (AB#9300)
+#
+# Scores what Azure Advisor itself reports for the estate, across its five categories. Advisor
+# names them HighAvailability (shown in the portal as Reliability), Security, Performance, Cost and
+# OperationalExcellence, and rates every recommendation High, Medium or Low impact.
+#
+# Written ONLY against docs/frameworks/advisor-recommendations.md. Advisor is Microsoft's own
+# recommendation engine, so these rules do not re-derive its findings: they count them, per category
+# and impact, and they flag the recommendation families Scout can recognise from the text Advisor
+# attaches (service retirements).
+#
+# Data. `$.advisor[]` holds one row per Advisor recommendation with Category, Impact, ImpactedField,
+# ImpactedValue, Subscription, ShortDescriptionProblem and ShortDescriptionSolution
+# (src/ingest/Import-AdvisorScores.ps1). The inventory pass reads only Medium and High impact
+# recommendations and does not carry the recommendation's lifecycle status, so:
+#   - there is no Low-impact rule (Low rows are never collected), and
+#   - a recommendation someone has dismissed or postponed in Advisor still counts here.
+# Both limits are stated in the doc, with the projection that would remove them.
+#
+# Every rule that reads `$.advisor` is gated on `$.advisorAvailable`, so a run that skipped Advisor
+# or could not read it reports Not assessed instead of a clean pass. The score rule reads
+# `$.management.advisorScores` and is gated on that dataset instead.
+area: "Azure Advisor"
+framework: ADVISOR
+frameworkversion: "Azure Advisor recommendation categories and impact levels (learn.microsoft.com/azure/advisor), docs/frameworks/advisor-recommendations.md, read 2026-11-25 (15 items: 12 automated, 3 manual)"
+weight: 1.0
+verifiedAgainst: "docs/frameworks/advisor-recommendations.md (Scout enumeration of learn.microsoft.com/azure/advisor/advisor-overview, advisor-azure-resource-graph and the five advisor-reference-*-recommendations pages), verified 2026-11-25"
+rules:
+  # ---- Reliability (ADVISOR-RE) ---------------------------------------------------------------
+  - id: ADVISOR-RE-01
+    title: "ADVISOR-RE-01. No High-impact Advisor reliability recommendation is open"
+    severity: high
+    query: "$.advisor[?(@.Category == 'HighAvailability' && @.Impact == 'High')]"
+    assert: { type: countEquals, value: 0, gate: "$.advisorAvailable" }
+    remediation: "ADVISOR-RE-01. Advisor lists High-impact reliability recommendations for the resources shown (zone redundancy, backup, upgrades before retirement and similar). Work through them in the Advisor Reliability blade, or dismiss each with a recorded reason. A dismissed recommendation still counts here until Scout carries Advisor's status field."
+    manual: false
+  - id: ADVISOR-RE-02
+    title: "ADVISOR-RE-02. No Medium-impact Advisor reliability recommendation is open"
+    severity: medium
+    query: "$.advisor[?(@.Category == 'HighAvailability' && @.Impact == 'Medium')]"
+    assert: { type: countEquals, value: 0, gate: "$.advisorAvailable" }
+    remediation: "ADVISOR-RE-02. Advisor lists Medium-impact reliability recommendations for the resources shown. Review them in the Advisor Reliability blade and schedule or dismiss each one."
+    manual: false
+  - id: ADVISOR-RE-03
+    title: "ADVISOR-RE-03. No Advisor recommendation warns of a service retirement or deprecation"
+    severity: high
+    # Advisor raises retirement and upgrade notices as ordinary recommendations (the Reliability
+    # category's service-upgrade-and-retirement subcategory). Scout does not carry the subcategory,
+    # so this reads the problem text. The pattern is Scout's, not Advisor's, and can miss a
+    # recommendation worded differently.
+    query: "$.advisor[?(@.ShortDescriptionProblem =~ /retir|deprecat|end of (support|life)|no longer (supported|available)/i)]"
+    assert: { type: countEquals, value: 0, gate: "$.advisorAvailable" }
+    remediation: "ADVISOR-RE-03. The recommendations listed announce that a service, SKU or API version the resource uses is being retired or is no longer supported. Migrate before the retirement date in the recommendation; after it the resource can stop working or lose its SLA."
+    manual: false
+
+  # ---- Security (ADVISOR-SE) ------------------------------------------------------------------
+  - id: ADVISOR-SE-01
+    title: "ADVISOR-SE-01. No High-impact Advisor security recommendation is open"
+    severity: high
+    query: "$.advisor[?(@.Category == 'Security' && @.Impact == 'High')]"
+    assert: { type: countEquals, value: 0, gate: "$.advisorAvailable" }
+    remediation: "ADVISOR-SE-01. Advisor (which surfaces Microsoft Defender for Cloud recommendations) lists High-impact security recommendations for the resources shown. Fix them in Defender for Cloud, where their current status is authoritative."
+    manual: false
+  - id: ADVISOR-SE-02
+    title: "ADVISOR-SE-02. No Medium-impact Advisor security recommendation is open"
+    severity: medium
+    query: "$.advisor[?(@.Category == 'Security' && @.Impact == 'Medium')]"
+    assert: { type: countEquals, value: 0, gate: "$.advisorAvailable" }
+    remediation: "ADVISOR-SE-02. Advisor lists Medium-impact security recommendations for the resources shown. Review them in Defender for Cloud and schedule or exempt each one."
+    manual: false
+
+  # ---- Performance (ADVISOR-PE) ---------------------------------------------------------------
+  - id: ADVISOR-PE-01
+    title: "ADVISOR-PE-01. No High-impact Advisor performance recommendation is open"
+    severity: high
+    query: "$.advisor[?(@.Category == 'Performance' && @.Impact == 'High')]"
+    assert: { type: countEquals, value: 0, gate: "$.advisorAvailable" }
+    remediation: "ADVISOR-PE-01. Advisor lists High-impact performance recommendations for the resources shown (undersized or throttled services, missing indexes, scale limits). Work through them in the Advisor Performance blade."
+    manual: false
+  - id: ADVISOR-PE-02
+    title: "ADVISOR-PE-02. No Medium-impact Advisor performance recommendation is open"
+    severity: medium
+    query: "$.advisor[?(@.Category == 'Performance' && @.Impact == 'Medium')]"
+    assert: { type: countEquals, value: 0, gate: "$.advisorAvailable" }
+    remediation: "ADVISOR-PE-02. Advisor lists Medium-impact performance recommendations for the resources shown. Review them in the Advisor Performance blade."
+    manual: false
+
+  # ---- Cost (ADVISOR-CO) ----------------------------------------------------------------------
+  - id: ADVISOR-CO-01
+    title: "ADVISOR-CO-01. No High-impact Advisor cost recommendation is open"
+    severity: high
+    query: "$.advisor[?(@.Category == 'Cost' && @.Impact == 'High')]"
+    assert: { type: countEquals, value: 0, gate: "$.advisorAvailable" }
+    remediation: "ADVISOR-CO-01. Advisor lists High-impact cost recommendations for the resources shown (idle or oversized resources, reservation and savings-plan opportunities). Act on them or dismiss each with a recorded reason."
+    manual: false
+  - id: ADVISOR-CO-02
+    title: "ADVISOR-CO-02. No Medium-impact Advisor cost recommendation is open"
+    severity: medium
+    query: "$.advisor[?(@.Category == 'Cost' && @.Impact == 'Medium')]"
+    assert: { type: countEquals, value: 0, gate: "$.advisorAvailable" }
+    remediation: "ADVISOR-CO-02. Advisor lists Medium-impact cost recommendations for the resources shown. Review them in the Advisor Cost blade."
+    manual: false
+
+  # ---- Operational excellence (ADVISOR-OE) ----------------------------------------------------
+  - id: ADVISOR-OE-01
+    title: "ADVISOR-OE-01. No High-impact Advisor operational excellence recommendation is open"
+    severity: high
+    query: "$.advisor[?(@.Category == 'OperationalExcellence' && @.Impact == 'High')]"
+    assert: { type: countEquals, value: 0, gate: "$.advisorAvailable" }
+    remediation: "ADVISOR-OE-01. Advisor lists High-impact operational excellence recommendations for the resources shown (missing Service Health alerts, outdated agents and API versions, retiring features). Work through them in the Advisor Operational excellence blade."
+    manual: false
+  - id: ADVISOR-OE-02
+    title: "ADVISOR-OE-02. No Medium-impact Advisor operational excellence recommendation is open"
+    severity: medium
+    query: "$.advisor[?(@.Category == 'OperationalExcellence' && @.Impact == 'Medium')]"
+    assert: { type: countEquals, value: 0, gate: "$.advisorAvailable" }
+    remediation: "ADVISOR-OE-02. Advisor lists Medium-impact operational excellence recommendations for the resources shown. Review them in the Advisor Operational excellence blade."
+    manual: false
+
+  # ---- Advisor score (ADVISOR-SC) -------------------------------------------------------------
+  - id: ADVISOR-SC-01
+    title: "ADVISOR-SC-01. No Advisor score is below 70 percent"
+    severity: medium
+    # 70 is Scout's threshold, not a Microsoft one: Advisor publishes no pass mark for its score.
+    # The score rows come from microsoft.advisor/advisorscore (percentage per subscription).
+    query: "$.management.advisorScores[?(@.lastRefreshedScore < 70)]"
+    assert: { type: countEquals, value: 0, gate: "$.management.advisorScores[?(@.lastRefreshedScore >= 0)]" }
+    remediation: "ADVISOR-SC-01. The Advisor scores listed are under 70 percent. Open Advisor's score view, sort recommendations by potential score increase, and start with the largest. The 70 percent line is Scout's own; Microsoft publishes no pass mark."
+    manual: false
+
+  # ---- Governance of the recommendation backlog (ADVISOR-GOV) ---------------------------------
+  - id: ADVISOR-GOV-01
+    title: "ADVISOR-GOV-01. Postponed and dismissed recommendations carry a recorded reason and a review date"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "ADVISOR-GOV-01. Scout does not read Advisor's recommendation status, so it cannot see what has been postponed or dismissed. In Advisor, filter by status and confirm every postponed or dismissed recommendation has a reason, an owner and a date to look at it again."
+    manual: true
+  - id: ADVISOR-GOV-02
+    title: "ADVISOR-GOV-02. Low-impact recommendations are reviewed on a schedule"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "ADVISOR-GOV-02. Scout reads only Medium and High impact recommendations, so Low-impact ones are never in this report. Confirm someone reviews the Low-impact list in Advisor at least quarterly."
+    manual: true
+  - id: ADVISOR-GOV-03
+    title: "ADVISOR-GOV-03. Advisor recommendation alerts are routed to an action group"
+    severity: medium
+    query: "$.monitor.activityLogAlertRules[*]"
+    assert: { type: manual }
+    remediation: "ADVISOR-GOV-03. Activity-log alert rules are attached (estate-wide, not filtered to Advisor). Confirm at least one is enabled for the Recommendation category and routes to an action group the operations team watches, so new High-impact recommendations are noticed."
+    manual: true

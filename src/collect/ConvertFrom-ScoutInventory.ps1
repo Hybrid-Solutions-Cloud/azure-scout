@@ -321,14 +321,37 @@ function ConvertFrom-ScoutInventory {
     )
 
     # ---- deployments (resource groups) ----
+    # One row per resource group. When ARM deployment history was collected (Resource Graph's
+    # deploymentresources table), a resource group that has at least one template deployment also
+    # carries properties.templateHash (its most recent one) and properties.templateDeploymentCount,
+    # which is what the infrastructure-as-code rules test (`deployments[?(@.properties.templateHash)]`).
+    # Before AB#9300 no row ever carried it, so those rules could never pass.
+    $templateDeploymentsByGroup = @{}
+    foreach ($deployment in @(Select-ByType 'microsoft.resources/deployments')) {
+        $hash = [string] (Get-ScoutProp $deployment 'properties.templateHash')
+        $deploymentGroup = [string] (Get-ScoutProp $deployment 'resourceGroup')
+        if ([string]::IsNullOrWhiteSpace($hash) -or [string]::IsNullOrWhiteSpace($deploymentGroup)) { continue }
+        $groupKey = ('{0}|{1}' -f [string] (Get-ScoutProp $deployment 'subscriptionId'), $deploymentGroup).ToLowerInvariant()
+        if (-not $templateDeploymentsByGroup.ContainsKey($groupKey)) { $templateDeploymentsByGroup[$groupKey] = [System.Collections.Generic.List[object]]::new() }
+        $templateDeploymentsByGroup[$groupKey].Add($deployment)
+    }
     $result['deployments'] = @(
         $containers |
             Where-Object { [string] (Get-ScoutProp $_ 'type') -ieq 'microsoft.resources/subscriptions/resourcegroups' } |
             ForEach-Object {
-                [pscustomobject]@{
+                $row = [ordered]@{
                     name           = [string] (Get-ScoutProp $_ 'name')
                     subscriptionId = [string] (Get-ScoutProp $_ 'subscriptionId')
                 }
+                $groupKey = ('{0}|{1}' -f $row.subscriptionId, $row.name).ToLowerInvariant()
+                if ($templateDeploymentsByGroup.ContainsKey($groupKey)) {
+                    $templated = @($templateDeploymentsByGroup[$groupKey] | Sort-Object { [string] (Get-ScoutProp $_ 'properties.timestamp') } -Descending)
+                    $row['properties'] = [pscustomobject]@{
+                        templateHash            = [string] (Get-ScoutProp $templated[0] 'properties.templateHash')
+                        templateDeploymentCount = $templated.Count
+                    }
+                }
+                [pscustomobject]$row
             }
     )
 

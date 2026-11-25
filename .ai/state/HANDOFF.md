@@ -1,5 +1,17 @@
 # Handoff
 
+## Session 2026-11-25 (continued) — run every known assessment: phases 2 and 3 (3.18.14)
+
+3.18.13 released and installed (verify needed one retry while the Gallery caught up). Phases 2 and 3
+built by six parallel agents (each created only new rule/doc/test files; I wired the registry,
+sidebar, frameworks index and allow-list): 18 new assessments, 65 total, 1,507 rules. All rely on data
+already in collect.json; SAP and Oracle automated items read $.discovery.Resources. Each agent listed
+collection fields that would automate more items (VM availability set / scale set / image / disks /
+NICs; SAP, VMSS and public-IP datasets; database HA and backup; Advisor status and type id; Event Hubs
+and Log Analytics settings; diagnostic sweep for ML, Search, Databricks, Redis, SQL MI) -- that is
+phase 4 work along with the WAF service-guide audit. Fixed IaC rules (deploymentresources). New page
+docs/reference/microsoft-assessment-coverage.md. Phase 5 (non-Azure) not started.
+
 ## Session 2026-11-25 — run every known assessment: phases 0 and 1 (3.18.13)
 
 Goal set by the operator 2026-11-24: Scout must run every known Microsoft assessment, with the menu,

@@ -1,0 +1,333 @@
+# waf.aisearch.yaml -- Azure AI Search technology review (AB#9300)
+#
+# Scores Scout's reading of Azure AI Search guidance, the scope of Microsoft's search Well-Architected review
+# (learn.microsoft.com/assessments/783533b2-403a-4985-8c60-97db4910f741, still titled "Azure Cognitive Search | Well-Architected
+# Review" after the old product name). Microsoft publishes no Well-Architected service guide for Azure AI Search (the
+# service-guide catalog was checked on 2026-11-25) and does not publish the review's questions, so every item is Scout's
+# reading of the product reliability, security, performance and cost articles, enumerated in
+# docs/frameworks/waf-ai-search-checklist.md. Every rule cites an id from that file.
+#
+# The service is now documented as Foundry IQ (Azure AI Search). It has a Serverless pricing model with no replica
+# count, so replica rules skip sku serverless, and Free-tier is flagged separately.
+#
+# WHY framework: WAF-AISEARCH and not WAF: a technology review spans all five pillars, so no single pillar area fits;
+# it is a Scout-internal axis like WAF-AI. Every automated rule is gated on search services existing.
+area: "Azure AI Search"
+framework: WAF-AISEARCH
+frameworkversion: "Azure AI Search product guidance on Microsoft Learn (no Well-Architected service guide exists; Microsoft's review question text unpublished), docs/frameworks/waf-ai-search-checklist.md, retrieved 2026-11-25 (37 items)"
+weight: 1.0
+verifiedAgainst: "docs/frameworks/waf-ai-search-checklist.md (Scout enumeration of learn.microsoft.com/azure/search/*), verified 2026-11-25"
+rules:
+
+  # ---- Reliability -------------------------------------------------------------------------
+  # service sku [REL]
+  - id: WAF-AISEARCH-RE-01
+    title: "WAF-AISEARCH-RE-01. The service is on a billable tier (not Free)"
+    severity: high
+    query: "$.domains.ai.searchServices[?(@.sku == 'free')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.ai.searchServices[*]" }
+    remediation: "WAF-AISEARCH-RE-01. The search services listed are on the Free tier, which has no SLA. Move production services to a billable tier."
+    manual: false
+  # replicaCount below 2 on a billable dedicated tier [REL, ARCH]
+  - id: WAF-AISEARCH-RE-02
+    title: "WAF-AISEARCH-RE-02. Dedicated services have at least two replicas"
+    severity: high
+    query: "$.domains.ai.searchServices[?(@.sku != 'free' && @.sku != 'serverless' && @.replicaCount < 2)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.ai.searchServices[*]" }
+    remediation: "WAF-AISEARCH-RE-02. The search services listed have fewer than two replicas, so they do not meet the read SLA and are not zone redundant. Add replicas; serverless services manage capacity themselves and are skipped."
+    manual: false
+  # whether a workload writes to the index is not collected; services below three replicas attached [REL]
+  - id: WAF-AISEARCH-RE-03
+    title: "WAF-AISEARCH-RE-03. Services that update indexes have at least three replicas"
+    severity: medium
+    query: "$.domains.ai.searchServices[?(@.sku != 'free' && @.sku != 'serverless' && @.replicaCount < 3)]"
+    assert: { type: manual }
+    remediation: "WAF-AISEARCH-RE-03. The read-write SLA needs three replicas on dedicated tiers. Services with fewer are listed; confirm whether the workload writes to the index."
+    manual: true
+  # region support list is not collected; services attached with region [REL]
+  - id: WAF-AISEARCH-RE-04
+    title: "WAF-AISEARCH-RE-04. The service is in a region that supports availability zones"
+    severity: medium
+    query: "$.domains.ai.searchServices[*]"
+    assert: { type: manual }
+    remediation: "WAF-AISEARCH-RE-04. Deploy in a zone-capable region on Basic or higher with two or more replicas so capacity spreads across zones. The service regions are attached."
+    manual: true
+  # architecture judgement; services attached [REL]
+  - id: WAF-AISEARCH-RE-05
+    title: "WAF-AISEARCH-RE-05. A multi-region approach exists for regional failure"
+    severity: medium
+    query: "$.domains.ai.searchServices[*]"
+    assert: { type: manual }
+    remediation: "WAF-AISEARCH-RE-05. Search is a single-region service with no automatic index replication or failover. Confirm a second service, index synchronisation and request routing exist where regional resilience is required."
+    manual: true
+  # data-plane recovery, not ARM [REL]
+  - id: WAF-AISEARCH-RE-06
+    title: "WAF-AISEARCH-RE-06. The index can be rebuilt or restored from source data"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AISEARCH-RE-06. Search is not a primary data store and has no self-service backup. Confirm source data is retained to rebuild, and test the index backup-and-restore sample before relying on it."
+    manual: true
+  # resource locks attached [REL, SEC]
+  - id: WAF-AISEARCH-RE-07
+    title: "WAF-AISEARCH-RE-07. A delete lock protects the search service"
+    severity: medium
+    query: "$.governance.resourceLocks[*]"
+    assert: { type: manual }
+    remediation: "WAF-AISEARCH-RE-07. Apply a Delete lock (it protects the service but not individual indexes). Resource locks are attached as evidence."
+    manual: true
+  # client code, not ARM [REL]
+  - id: WAF-AISEARCH-RE-08
+    title: "WAF-AISEARCH-RE-08. Clients retry transient faults with exponential backoff"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AISEARCH-RE-08. Confirm applications retry read and write calls with exponential backoff; vectorizer failures fail the whole query and there is no keyword fallback."
+    manual: true
+  # activity-log alert rules attached (estate-wide) [REL]
+  - id: WAF-AISEARCH-RE-09
+    title: "WAF-AISEARCH-RE-09. Resource Health and Service Health alerts are configured"
+    severity: medium
+    query: "$.monitor.activityLogAlertRules[*]"
+    assert: { type: manual }
+    remediation: "WAF-AISEARCH-RE-09. Zone failures are not notified automatically; create Resource Health and Service Health alerts. Activity-log alert rules are attached."
+    manual: true
+  # dependency review, not ARM [REL]
+  - id: WAF-AISEARCH-RE-10
+    title: "WAF-AISEARCH-RE-10. Dependencies of indexers, skills and vectorizers are reliable"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AISEARCH-RE-10. Confirm the data sources, model deployments, custom skills and the storage used by the enrichment cache or knowledge store meet the reliability the search service depends on."
+    manual: true
+
+  # ---- Security ----------------------------------------------------------------------------
+  # publicNetworkAccess [SEC]
+  - id: WAF-AISEARCH-SE-01
+    title: "WAF-AISEARCH-SE-01. Inbound public network access is disabled"
+    severity: high
+    query: "$.domains.ai.searchServices[?(@.publicAccess != 'disabled' && @.publicAccess != 'Disabled' && @.publicAccess != 'SecuredByPerimeter')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.ai.searchServices[*]" }
+    remediation: "WAF-AISEARCH-SE-01. The search services listed accept public network traffic. Disable public network access and use a private endpoint or a network security perimeter."
+    manual: false
+  # search service to private endpoint join [SEC]
+  - id: WAF-AISEARCH-SE-02
+    title: "WAF-AISEARCH-SE-02. Each search service has a private endpoint"
+    severity: high
+    join:
+      left: "$.domains.ai.searchServices[*]"
+      leftKey: "id"
+      right: "$.networking.privateEndpoints[*]"
+      rightKey: "targetResourceId"
+      mode: "leftOnly"
+      leftLabel: "search service"
+      rightLabel: "private endpoint"
+    assert: { type: countEquals, value: 0, gate: "$.domains.ai.searchServices[*]" }
+    remediation: "WAF-AISEARCH-SE-02. The search services listed have no private endpoint. Add one so clients on a virtual network reach the service over Private Link."
+    manual: false
+  # disableLocalAuth [SEC]
+  - id: WAF-AISEARCH-SE-03
+    title: "WAF-AISEARCH-SE-03. API-key authentication is disabled in favour of Microsoft Entra role-based access"
+    severity: high
+    query: "$.domains.ai.searchServices[?(@.disableLocalAuth != true)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.ai.searchServices[*]" }
+    remediation: "WAF-AISEARCH-SE-03. The search services listed still accept API keys. Enable role-based access, assign least-privilege roles, and set disableLocalAuth to true unless a key is required (then rotate admin keys on a schedule)."
+    manual: false
+  # the identity type is not collected (proposed projection in the report); services attached [SEC]
+  - id: WAF-AISEARCH-SE-04
+    title: "WAF-AISEARCH-SE-04. The service has a managed identity for outbound connections"
+    severity: medium
+    query: "$.domains.ai.searchServices[*]"
+    assert: { type: manual }
+    remediation: "WAF-AISEARCH-SE-04. Give the service a system- or user-assigned identity and connect to data sources, Key Vault and models with it instead of connection strings."
+    manual: true
+  # shared private links are child resources, not collected [SEC]
+  - id: WAF-AISEARCH-SE-05
+    title: "WAF-AISEARCH-SE-05. Outbound connections to protected data use shared private links, a trusted-service exception or firewall exceptions"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AISEARCH-SE-05. Confirm indexers reach private data sources over shared private links or the trusted-service exception."
+    manual: true
+  # encryptionWithCmk is not collected (proposed projection in the report); services attached [SEC]
+  - id: WAF-AISEARCH-SE-06
+    title: "WAF-AISEARCH-SE-06. Customer-managed key encryption is used where required"
+    severity: medium
+    query: "$.domains.ai.searchServices[*]"
+    assert: { type: manual }
+    remediation: "WAF-AISEARCH-SE-06. Add CMK encryption only for indexes that need it (it can degrade query performance by 30 to 60 percent)."
+    manual: true
+  # computeType is not collected (proposed projection in the report); services attached [SEC]
+  - id: WAF-AISEARCH-SE-07
+    title: "WAF-AISEARCH-SE-07. Confidential compute is used only where regulation requires it"
+    severity: low
+    query: "$.domains.ai.searchServices[*]"
+    assert: { type: manual }
+    remediation: "WAF-AISEARCH-SE-07. Confidential compute restricts features (semantic ranker, agentic retrieval, skillsets) and costs 10 percent more; choose it deliberately at creation."
+    manual: true
+  # data-plane design, not ARM [SEC]
+  - id: WAF-AISEARCH-SE-08
+    title: "WAF-AISEARCH-SE-08. Document-level access control or security filters trim results per caller"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AISEARCH-SE-08. Confirm query results are trimmed to what the caller may read, using ACL or sensitivity-label ingestion or security filters."
+    manual: true
+  # role design, not collected per service [SEC]
+  - id: WAF-AISEARCH-SE-09
+    title: "WAF-AISEARCH-SE-09. Access to individual indexes follows least privilege"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AISEARCH-SE-09. Use the Search Service Contributor, Index Data Contributor and Index Data Reader roles, with custom roles for single-index access in multitenant designs."
+    manual: true
+  # type not yet in the diagnostic-settings sweep (proposed in the report) [SEC]
+  - id: WAF-AISEARCH-SE-10
+    title: "WAF-AISEARCH-SE-10. Diagnostic logging is on and alerts watch for anomalous activity"
+    severity: medium
+    query: "$.opsPosture.diagnosticCoverage[?(@.type == 'microsoft.search/searchservices')]"
+    assert: { type: manual }
+    remediation: "WAF-AISEARCH-SE-10. Send diagnostic logs to Azure Monitor and alert on query spikes and failed authentication. Search is not in the diagnostic-settings sweep yet; coverage rows are attached once it is."
+    manual: true
+  # the IP rule set is not collected (proposed projection in the report); services with public access attached [SEC]
+  - id: WAF-AISEARCH-SE-11
+    title: "WAF-AISEARCH-SE-11. An IP firewall or network security perimeter limits inbound access when public access stays on"
+    severity: low
+    query: "$.domains.ai.searchServices[?(@.publicAccess == 'Enabled' || @.publicAccess == 'enabled')]"
+    assert: { type: manual }
+    remediation: "WAF-AISEARCH-SE-11. If public access is kept, restrict it with IP rules or join a network security perimeter."
+    manual: true
+
+  # ---- Cost optimization -------------------------------------------------------------------
+  # workload shape is judgement; services attached [COST]
+  - id: WAF-AISEARCH-CO-01
+    title: "WAF-AISEARCH-CO-01. The pricing model and tier are the lightest that meet the need"
+    severity: medium
+    query: "$.domains.ai.searchServices[*]"
+    assert: { type: manual }
+    remediation: "WAF-AISEARCH-CO-01. Choose Dedicated for steady load and Serverless for bursty or variable load; use the lightest tier (Basic or S1 are lowest per unit) that fits. Services are attached."
+    manual: true
+  # utilisation is not collected; services attached [COST]
+  - id: WAF-AISEARCH-CO-02
+    title: "WAF-AISEARCH-CO-02. Replicas and partitions are added only when index size, throughput or availability needs them"
+    severity: medium
+    query: "$.domains.ai.searchServices[*]"
+    assert: { type: manual }
+    remediation: "WAF-AISEARCH-CO-02. Add partitions for size or ingestion, replicas for query rate or availability; scale up for heavy indexing and back down after."
+    manual: true
+  # services attached [PERF, COST]
+  - id: WAF-AISEARCH-CO-03
+    title: "WAF-AISEARCH-CO-03. Higher tiers are weighed against more partitions or replicas of a lower tier"
+    severity: low
+    query: "$.domains.ai.searchServices[*]"
+    assert: { type: manual }
+    remediation: "WAF-AISEARCH-CO-03. Capacity and price are not linear; moving S1 to S2 can give more capability at similar cost."
+    manual: true
+  # regions attached; related resources are not linked [COST]
+  - id: WAF-AISEARCH-CO-04
+    title: "WAF-AISEARCH-CO-04. Related resources are in the same region"
+    severity: low
+    query: "$.domains.ai.searchServices[*]"
+    assert: { type: manual }
+    remediation: "WAF-AISEARCH-CO-04. Create data sources, models and apps in the same region to avoid bandwidth charges and latency."
+    manual: true
+  # indexer configuration, not collected [COST]
+  - id: WAF-AISEARCH-CO-05
+    title: "WAF-AISEARCH-CO-05. Incremental indexing, an enrichment cache and a knowledge store limit repeated enrichment cost"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AISEARCH-CO-05. Index only new or changed data and reuse enriched content; keep vector payloads compact."
+    manual: true
+  # the semanticSearch plan is not collected (proposed projection in the report); services attached [COST]
+  - id: WAF-AISEARCH-CO-06
+    title: "WAF-AISEARCH-CO-06. Semantic ranker and agentic retrieval plans are set deliberately"
+    severity: low
+    query: "$.domains.ai.searchServices[*]"
+    assert: { type: manual }
+    remediation: "WAF-AISEARCH-CO-06. Both are billed separately; keep the plan at free or disabled where they are not needed."
+    manual: true
+  # budgets attached (estate-wide) [COST]
+  - id: WAF-AISEARCH-CO-07
+    title: "WAF-AISEARCH-CO-07. Budgets and cost alerts exist for the workload"
+    severity: low
+    query: "$.governance.budgets[*]"
+    assert: { type: manual }
+    remediation: "WAF-AISEARCH-CO-07. Create Cost Management budgets, alerts and exports scoped to the search resources. Budgets are attached."
+    manual: true
+
+  # ---- Operational excellence --------------------------------------------------------------
+  # metric alert rules attached (estate-wide) [SEC, COST]
+  - id: WAF-AISEARCH-OE-01
+    title: "WAF-AISEARCH-OE-01. Metrics for queries per second, latency, throttling and indexer runs are monitored"
+    severity: medium
+    query: "$.monitor.metricAlertRules[*]"
+    assert: { type: manual }
+    remediation: "WAF-AISEARCH-OE-01. Monitor query and indexer metrics and use them to size replicas and partitions. Metric alert rules are attached."
+    manual: true
+  # deployment method is not an ARM property [SEC]
+  - id: WAF-AISEARCH-OE-02
+    title: "WAF-AISEARCH-OE-02. Services and indexes are deployed as code"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AISEARCH-OE-02. Define services, indexes, indexers and skillsets in version control and deploy through a pipeline."
+    manual: true
+  # upgradeAvailable is not collected (proposed projection in the report); services attached [PERF]
+  - id: WAF-AISEARCH-OE-03
+    title: "WAF-AISEARCH-OE-03. Service upgrades are applied"
+    severity: low
+    query: "$.domains.ai.searchServices[*]"
+    assert: { type: manual }
+    remediation: "WAF-AISEARCH-OE-03. Upgrade older services to gain capacity and features (services created after April 2024 have more storage per partition)."
+    manual: true
+  # policy assignment scope, not collected per service [SEC]
+  - id: WAF-AISEARCH-OE-04
+    title: "WAF-AISEARCH-OE-04. Azure Policy audits logging and private endpoint use and resources are tagged"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AISEARCH-OE-04. Assign the resource-logging policy and add custom policies for your standards; tag services by environment and owner."
+    manual: true
+  # data-plane practice, not ARM [REL, PERF]
+  - id: WAF-AISEARCH-OE-05
+    title: "WAF-AISEARCH-OE-05. Indexes are updated side by side so queries never see half-built data"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AISEARCH-OE-05. Use index aliases or rebuild-then-swap so a refresh does not disrupt queries."
+    manual: true
+
+  # ---- Performance efficiency --------------------------------------------------------------
+  # index definitions are data plane, not collected [PERF]
+  - id: WAF-AISEARCH-PE-01
+    title: "WAF-AISEARCH-PE-01. Index schema attributes are selective"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AISEARCH-PE-01. Set searchable, filterable, sortable and facetable only on fields that need them; flatten complex types where you can."
+    manual: true
+  # query code, not ARM [PERF]
+  - id: WAF-AISEARCH-PE-02
+    title: "WAF-AISEARCH-PE-02. Queries are designed for performance"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-AISEARCH-PE-02. Limit searchFields and returned fields, avoid high skip values, cap facets, prefer search.in to long filter chains and avoid regex or partial-term queries."
+    manual: true
+  # utilisation is not collected; services attached [PERF]
+  - id: WAF-AISEARCH-PE-03
+    title: "WAF-AISEARCH-PE-03. Capacity matches load: replicas for query volume, partitions for slow single queries and index size"
+    severity: medium
+    query: "$.domains.ai.searchServices[*]"
+    assert: { type: manual }
+    remediation: "WAF-AISEARCH-PE-03. Add replicas when general query load rises, and partitions when individual queries are slow or the index is large."
+    manual: true
+  # regions attached; the application is not linked [PERF, COST]
+  - id: WAF-AISEARCH-PE-04
+    title: "WAF-AISEARCH-PE-04. The application, data sources and search service are in the same region"
+    severity: low
+    query: "$.domains.ai.searchServices[*]"
+    assert: { type: manual }
+    remediation: "WAF-AISEARCH-PE-04. Co-locate to cut latency. Regions are attached for comparison."
+    manual: true

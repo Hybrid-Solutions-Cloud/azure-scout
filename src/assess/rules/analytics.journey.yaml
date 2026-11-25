@@ -1,0 +1,407 @@
+# analytics.journey.yaml -- Analytics Journey Tracker (AB#9300)
+#
+# Scores the data and analytics capabilities the Analytics Journey Tracker evaluates
+# (learn.microsoft.com/assessments/c7c36e71-70a1-463d-a0c9-2155692f9fca). Microsoft names five maturity
+# levels (Initial, Evolving, Acceptable, Advanced, Optimized) but publishes neither the tracker's
+# pillars nor its questions, so the seven areas and every item are Scout's reading of the Cloud
+# Adoption Framework unified data platform guidance and the Microsoft Fabric adoption roadmap,
+# labelled Scout-derived. The ANLJT-* ids are Scout's, not Microsoft's.
+#
+# Written ONLY against docs/frameworks/analytics-journey-question-set.md. Most items are
+# organisational questions no Azure API can answer. They are manual rules: Scout lists them in
+# assessment-questions.csv and a person answers them (docs/assessment/questionnaire-answers.md).
+# The five automated rules read Azure Data Factory and Azure Synapse settings and are gated on those
+# resources existing, so an estate without them reports the rules Not assessed. Fabric capacities,
+# Purview accounts, Databricks workspaces and similar are attached as evidence only: Microsoft has
+# stopped creating new Purview data governance accounts and Databricks stays valid beside Fabric,
+# so their absence proves nothing.
+area: "Analytics maturity"
+framework: ANALYTICS-JOURNEY
+frameworkversion: "Microsoft Cloud Adoption Framework unified data platform guidance and Microsoft Fabric adoption roadmap on Microsoft Learn, assessment questions unpublished, docs/frameworks/analytics-journey-question-set.md, retrieved 2026-11-25 (52 items, Scout-derived)"
+weight: 1.0
+verifiedAgainst: "docs/frameworks/analytics-journey-question-set.md (Scout enumeration of learn.microsoft.com/azure/cloud-adoption-framework/data/* and learn.microsoft.com/power-bi/guidance/fabric-adoption-roadmap*), verified 2026-11-25"
+rules:
+  # ---- Strategy and business alignment (ANLJT-STR) ----
+  - id: ANLJT-STR-01
+    title: "ANLJT-STR-01. An executive sponsor with enough authority across the organization drives the data and analytics strategy"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "ANLJT-STR-01. Confirm a named executive sponsor exists, the role's expectations are clear, and the sponsor has authority across business units and works with the Center of Excellence, business units and IT toward shared data culture goals."
+    manual: true
+  - id: ANLJT-STR-02
+    title: "ANLJT-STR-02. Data and analytics goals are aligned to business goals, and each data product supports a defined business outcome"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "ANLJT-STR-02. Confirm every proposed data product names the business goal it supports and a sponsor who can say how the value will be recognised."
+    manual: true
+  - id: ANLJT-STR-03
+    title: "ANLJT-STR-03. A prioritized roadmap of data products exists, with an investment case and a fund, defer or reject decision for each proposal"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "ANLJT-STR-03. Confirm proposals are compared with consistent criteria for value and feasibility, dependencies set the order, and each review ends in a decision."
+    manual: true
+  - id: ANLJT-STR-04
+    title: "ANLJT-STR-04. Funded data products are reassessed as priorities change, and those whose value no longer justifies the cost are reduced or retired"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "ANLJT-STR-04. Confirm data domains give evidence that each funded data product still supports its outcome, and that investment is cut where it does not."
+    manual: true
+  - id: ANLJT-STR-05
+    title: "ANLJT-STR-05. A data culture is built deliberately: goals are set to advance informed decision-making and progress is tracked"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "ANLJT-STR-05. Confirm the organization has stated the data culture it wants, understands its current state, has a tactical plan with quick wins, and has goals and metrics to judge progress."
+    manual: true
+
+  # ---- Organization, operating model and skills (ANLJT-ORG) ----
+  - id: ANLJT-ORG-01
+    title: "ANLJT-ORG-01. A federated operating model combines organization-wide governance with accountable data domains"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "ANLJT-ORG-01. Confirm organization-wide policies are set once, each data domain has authority over its own data and data products within them, and the split is documented."
+    manual: true
+  - id: ANLJT-ORG-02
+    title: "ANLJT-ORG-02. Each data domain has one senior owner with the authority to set priorities and resolve competing needs"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "ANLJT-ORG-02. Confirm domains align to organizational boundaries where a leader controls priorities and budget, not to where data happens to be stored."
+    manual: true
+  - id: ANLJT-ORG-03
+    title: "ANLJT-ORG-03. Policies and platform guardrails that need consistency are centralized, with a documented exception process"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "ANLJT-ORG-03. Confirm central responsibility covers organization-wide policy, tenant-level platform guardrails and shared capabilities, and that exceptions name a responsible leader and conditions for renewal."
+    manual: true
+  - id: ANLJT-ORG-04
+    title: "ANLJT-ORG-04. A Center of Excellence has clear goals and scope and includes representation from every key business unit"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "ANLJT-ORG-04. Confirm a COE is established, its scope is written down, and it reviews adoption and success measures regularly."
+    manual: true
+  - id: ANLJT-ORG-05
+    title: "ANLJT-ORG-05. Staffing follows the data product roadmap, using dedicated, shared or external staff as sustained demand justifies"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "ANLJT-ORG-05. Confirm permanent teams are created only where demand is sustained, specialist skills are shared across domains, and external providers transfer knowledge before they leave."
+    manual: true
+  - id: ANLJT-ORG-06
+    title: "ANLJT-ORG-06. Skills gaps are identified from the roadmap and closed with applied training and validated credentials"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "ANLJT-ORG-06. Confirm training targets an identified capability gap, connects to live data product work, and credentials support rather than define the capability strategy."
+    manual: true
+  - id: ANLJT-ORG-07
+    title: "ANLJT-ORG-07. A community of practice and a champions network support users, so the community does not rely on a few individuals"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "ANLJT-ORG-07. Confirm an internal community exists with champions who work with their colleagues and the COE, and that it would continue without any one person."
+    manual: true
+  - id: ANLJT-ORG-08
+    title: "ANLJT-ORG-08. User support and change management are defined, so changes to solutions and processes do not disrupt or slow users"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "ANLJT-ORG-08. Confirm there are formal and informal ways to get help, and a named owner and practices for managing the people impact of changes."
+    manual: true
+
+  # ---- Architecture and platform (ANLJT-ARC) ----
+  - id: ANLJT-ARC-01
+    title: "ANLJT-ARC-01. The data platform uses the existing Azure landing zone, with data services in workload landing zones, not a separate architecture"
+    severity: medium
+    query: "$.domains.analytics.fabricCapacities[*]"
+    assert: { type: manual }
+    remediation: "ANLJT-ARC-01. Confirm Fabric, Purview, Databricks, data lake and database resources sit in workload landing zones under the existing management group hierarchy and policy baseline."
+    manual: true
+  - id: ANLJT-ARC-02
+    title: "ANLJT-ARC-02. A unified platform for data products (such as Microsoft Fabric with OneLake) is chosen, and existing platforms such as Azure Databricks are kept where they still meet requirements"
+    severity: medium
+    query: "$.domains.analytics.fabricCapacities[*]"
+    assert: { type: manual }
+    remediation: "ANLJT-ARC-02. Confirm the organization has chosen a preferred platform for data products and only moves workloads off an existing platform where there is a measurable benefit. Fabric capacities are attached as evidence."
+    manual: true
+  - id: ANLJT-ARC-03
+    title: "ANLJT-ARC-03. Fabric capacity is deployed per data domain through its own workload landing zone subscription, in an approved default region"
+    severity: medium
+    query: "$.domains.analytics.fabricCapacities[*]"
+    assert: { type: manual }
+    remediation: "ANLJT-ARC-03. Confirm capacity is added only for a performance, isolation, regional or lifecycle need, a default region is set, and exceptions have an approver. Fabric capacities are attached as evidence."
+    manual: true
+  - id: ANLJT-ARC-04
+    title: "ANLJT-ARC-04. Source data reaches OneLake with the least movement: shortcuts first, then mirroring, then copying"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "ANLJT-ARC-04. Confirm the intake standard prefers shortcuts, then mirroring, and uses data movement only when neither fits."
+    manual: true
+  - id: ANLJT-ARC-05
+    title: "ANLJT-ARC-05. Operational databases are protected from direct analytical and AI queries unless the database owner has approved the workload"
+    severity: medium
+    query: "$.domains.databases.sqlServers[*]"
+    assert: { type: manual }
+    remediation: "ANLJT-ARC-05. Confirm analytical and AI workloads read from governed copies or mirrors, and that direct reads of an operational database need the owner's approval and controls."
+    manual: true
+  - id: ANLJT-ARC-06
+    title: "ANLJT-ARC-06. A medallion (progressive refinement) pattern is the preferred way to transform data that benefits from it"
+    severity: low
+    query: "$.domains.analytics.databricksWorkspaces[*]"
+    assert: { type: manual }
+    remediation: "ANLJT-ARC-06. Confirm the transformation standard names a preferred platform and the medallion pattern, and uses only the quality stages a data product needs."
+    manual: true
+  - id: ANLJT-ARC-07
+    title: "ANLJT-ARC-07. Microsoft Purview, or the governance service you chose, is placed in a workload landing zone and owned centrally, with governance domains aligned to data domains"
+    severity: medium
+    query: "$.domains.analytics.purviewAccounts[*]"
+    assert: { type: manual }
+    remediation: "ANLJT-ARC-07. Confirm the governance account sits in an internal workload landing zone, one team owns the service, and data domains get delegated roles instead of separate environments. Note that Microsoft has stopped new Purview data governance accounts and is consolidating data governance into Fabric. Purview accounts are attached as evidence."
+    manual: true
+
+  # ---- Data governance and security (ANLJT-GOV) ----
+  - id: ANLJT-GOV-01
+    title: "ANLJT-GOV-01. A data inventory policy defines which data must be discoverable, starting with data behind critical processes, enterprise reporting and AI"
+    severity: high
+    query: "$.domains.analytics.purviewAccounts[*]"
+    assert: { type: manual }
+    remediation: "ANLJT-GOV-01. Confirm there is a written policy for which data enters the catalogue and in what order, and that Fabric and Azure sources are registered and scanned. Purview accounts are attached as evidence."
+    manual: true
+  - id: ANLJT-GOV-02
+    title: "ANLJT-GOV-02. Shared business concepts have an approved definition and an accountable owner, published in a glossary"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "ANLJT-GOV-02. Confirm concepts that several domains depend on have one approved definition, domain-specific concepts stay local, and definitions are published where users find them."
+    manual: true
+  - id: ANLJT-GOV-03
+    title: "ANLJT-GOV-03. Legal and contractual obligations are turned into data requirements in a central register, and compliance posture is monitored"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "ANLJT-GOV-03. Confirm a register names each requirement, its accountable authority, affected data, evidence and review frequency, and that a compliance score is used as an indicator, not as proof."
+    manual: true
+  - id: ANLJT-GOV-04
+    title: "ANLJT-GOV-04. Lineage is captured for important data products to the depth governance decisions need"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "ANLJT-GOV-04. Confirm lineage is collected automatically where possible and gaps are identified, for source systems, the consumption layer, or both as the risk requires."
+    manual: true
+  - id: ANLJT-GOV-05
+    title: "ANLJT-GOV-05. Retention and disposition rules are set per data classification and implemented in Azure data services"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "ANLJT-GOV-05. Confirm each classification or record type has a retention period and disposition, legal holds are handled, and platform teams provide approved patterns for storage, SQL and other services."
+    manual: true
+  - id: ANLJT-GOV-06
+    title: "ANLJT-GOV-06. One classification model and sensitivity-label taxonomy is applied across platforms, and protection is verified across transitions"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "ANLJT-GOV-06. Confirm a single taxonomy exists, a safe default applies, lowering a classification needs approval, and protection is tested where data leaves a controlled environment."
+    manual: true
+  - id: ANLJT-GOV-07
+    title: "ANLJT-GOV-07. Sensitive data is detected consistently, and data loss prevention covers defined risk scenarios"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "ANLJT-GOV-07. Confirm sensitive information types or classifiers are defined, and DLP policies start in audit mode, name the data, action and scope, and are reviewed when overrides recur."
+    manual: true
+  - id: ANLJT-GOV-08
+    title: "ANLJT-GOV-08. Workspace roles go to Entra security groups, and item and OneLake data access are limited to what each audience needs"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "ANLJT-GOV-08. Confirm Admin and Member workspace roles are restricted, roles are given to groups not individuals, and OneLake security is used where audiences share a data product but must not see the same data."
+    manual: true
+  - id: ANLJT-GOV-09
+    title: "ANLJT-GOV-09. Fabric inbound and outbound network access follows the organization's private connectivity standard"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "ANLJT-GOV-09. Confirm private links (workspace or tenant level) and managed private endpoints are used where the standard requires private connectivity."
+    manual: true
+  - id: ANLJT-GOV-10
+    title: "ANLJT-GOV-10. Azure Data Factory instances do not allow public network access"
+    severity: high
+    query: "$.domains.analytics.dataFactories[?(@.publicNetworkAccess != 'Disabled')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.analytics.dataFactories[*]" }
+    remediation: "ANLJT-GOV-10. Set public network access to Disabled on the factories listed and reach them through private endpoints. Needs Data Factory resources in the estate; without them this is Not assessed."
+    manual: false
+  - id: ANLJT-GOV-11
+    title: "ANLJT-GOV-11. Azure Data Factory instances have a private endpoint"
+    severity: medium
+    join:
+      left: "$.domains.analytics.dataFactories[*]"
+      leftKey: "id"
+      right: "$.networking.privateEndpoints[*]"
+      rightKey: "targetResourceId"
+      mode: leftOnly
+      leftLabel: "data factory"
+      rightLabel: "private endpoint"
+    assert: { type: countEquals, value: 0, gate: "$.domains.analytics.dataFactories[*]" }
+    remediation: "ANLJT-GOV-11. Add a private endpoint for each factory listed so pipelines and authoring stay on the private network."
+    manual: false
+  - id: ANLJT-GOV-12
+    title: "ANLJT-GOV-12. Azure Data Factory instances use a managed identity"
+    severity: medium
+    query: "$.domains.analytics.dataFactories[?(@.identityType == '' || @.identityType == 'None')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.analytics.dataFactories[*]" }
+    remediation: "ANLJT-GOV-12. Enable a system-assigned or user-assigned managed identity on the factories listed so connections to data stores do not rely on stored secrets."
+    manual: false
+  - id: ANLJT-GOV-13
+    title: "ANLJT-GOV-13. Azure Synapse workspaces do not allow public network access"
+    severity: high
+    query: "$.domains.analytics.synapseWorkspaces[?(@.publicAccess == 'Enabled')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.analytics.synapseWorkspaces[*]" }
+    remediation: "ANLJT-GOV-13. Set public network access to Disabled on the workspaces listed and use private endpoints."
+    manual: false
+  - id: ANLJT-GOV-14
+    title: "ANLJT-GOV-14. Azure Synapse workspaces use a managed virtual network"
+    severity: medium
+    query: "$.domains.analytics.synapseWorkspaces[?(@.managedVnetEnabled == false)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.analytics.synapseWorkspaces[*]" }
+    remediation: "ANLJT-GOV-14. Recreate or migrate the workspaces listed with a managed virtual network enabled. The setting is chosen when the workspace is created."
+    manual: false
+
+  # ---- Data product lifecycle and operations (ANLJT-OPS) ----
+  - id: ANLJT-OPS-01
+    title: "ANLJT-OPS-01. Every published data product has an accountable owner, supported purpose, intended use, access process and quality status"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "ANLJT-OPS-01. Confirm the publication standard is written and applied, with security controls in place and sensitive products classified before publication."
+    manual: true
+  - id: ANLJT-OPS-02
+    title: "ANLJT-OPS-02. Minimum metadata is defined, so consumers can find the owning domain, owner, supported use and quality commitment"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "ANLJT-OPS-02. Confirm required metadata (tags, custom metadata) is defined and populated on published data products."
+    manual: true
+  - id: ANLJT-OPS-03
+    title: "ANLJT-OPS-03. Data products are discoverable in a catalogue and endorsed (promotion, certification) with consistent meanings"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "ANLJT-OPS-03. Confirm OneLake catalog or a governed catalogue is used for discovery, and promotion and certification have defined requirements and reviewers."
+    manual: true
+  - id: ANLJT-OPS-04
+    title: "ANLJT-OPS-04. The uses each data product supports are defined, and uses that change risk need extra review"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "ANLJT-OPS-04. Confirm owners state approved uses, consumption without extra approval stays inside them, and external disclosure or consequential AI use always needs review."
+    manual: true
+  - id: ANLJT-OPS-05
+    title: "ANLJT-OPS-05. Reliability requirements are set per business-criticality tier, and business-critical data products have a tested recovery process"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "ANLJT-OPS-05. Confirm recovery covers the whole data product and the Fabric items it needs, not only OneLake replication, and has been tested for critical products."
+    manual: true
+  - id: ANLJT-OPS-06
+    title: "ANLJT-OPS-06. Breaking changes and retirement follow a defined process, with affected consumers identified and a transition period given"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "ANLJT-OPS-06. Confirm owners use lineage and impact analysis, and known business dependencies, to find consumers before a breaking change or retirement."
+    manual: true
+  - id: ANLJT-OPS-07
+    title: "ANLJT-OPS-07. Production data products are released through a repeatable process matched to release risk (Git integration, deployment pipelines)"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "ANLJT-OPS-07. Confirm a small set of approved release patterns exists, and higher-risk products use source control, production isolation and independent validation."
+    manual: true
+  - id: ANLJT-OPS-08
+    title: "ANLJT-OPS-08. Each production data product has a named operational owner, with monitoring and alerting proportionate to its criticality"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "ANLJT-OPS-08. Confirm critical products have automated failure alerts and an escalation path, and workspace monitoring is enabled where the items support it."
+    manual: true
+
+  # ---- Cost management and FinOps (ANLJT-FIN) ----
+  - id: ANLJT-FIN-01
+    title: "ANLJT-FIN-01. Cost allocation (showback or chargeback) assigns spend, including shared Fabric capacity, to data domains"
+    severity: medium
+    query: "$.domains.analytics.fabricCapacities[*]"
+    assert: { type: manual }
+    remediation: "ANLJT-FIN-01. Confirm cost is allocated to the domains that consume it, shared costs and reservation benefits are distributed by a stated method, and showback comes before chargeback if the process is new. Fabric capacities are attached as evidence."
+    manual: true
+  - id: ANLJT-FIN-02
+    title: "ANLJT-FIN-02. Data domains forecast spend from planned capacity and observed consumption, and update the forecast"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "ANLJT-FIN-02. Confirm forecasts use the Fabric SKU estimator for planning and the Capacity Metrics app to refine, starting small and growing with demand."
+    manual: true
+  - id: ANLJT-FIN-03
+    title: "ANLJT-FIN-03. Spending is reviewed against budget and data product value on a regular cadence"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "ANLJT-FIN-03. Confirm a monthly or quarterly review compares actual spend with budget and expected value and leads to optimize, change or stop decisions."
+    manual: true
+  - id: ANLJT-FIN-04
+    title: "ANLJT-FIN-04. Capacity reservations are bought only once usage is predictable"
+    severity: low
+    query: "$.finops.reservations[*]"
+    assert: { type: manual }
+    remediation: "ANLJT-FIN-04. Confirm one- or three-year Fabric capacity reservations are made after usage is stable, remembering they do not cover storage or networking. Reservations are attached as evidence."
+    manual: true
+  - id: ANLJT-FIN-05
+    title: "ANLJT-FIN-05. Capacity changes follow evidence of sustained demand, changes to shared capacity need approval, and surge protection is used where needed"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "ANLJT-FIN-05. Confirm throttling and utilization are monitored, permanent increases follow sustained pressure rather than a spike, and shared capacity administration is central."
+    manual: true
+
+  # ---- Adoption and value (ANLJT-VAL) ----
+  - id: ANLJT-VAL-01
+    title: "ANLJT-VAL-01. KPIs or OKRs track data culture goals and the business value of analytics solutions"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "ANLJT-VAL-01. Confirm measures exist for the value of data, analytics and BI efforts and the COE reviews them regularly."
+    manual: true
+  - id: ANLJT-VAL-02
+    title: "ANLJT-VAL-02. User adoption is tracked through awareness, understanding, momentum and proficiency, not only usage counts"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "ANLJT-VAL-02. Confirm adoption is judged by how effectively people use analytics and not only how often."
+    manual: true
+  - id: ANLJT-VAL-03
+    title: "ANLJT-VAL-03. Solutions move through defined adoption phases, with testing, endorsement and clear ownership by the time they are valuable"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "ANLJT-VAL-03. Confirm production solutions are separated from development, tested for data quality, accessibility and performance, endorsed where fit, and have named owners."
+    manual: true
+  - id: ANLJT-VAL-04
+    title: "ANLJT-VAL-04. Feedback loops are in place so data products and the data culture keep improving"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "ANLJT-VAL-04. Confirm users can give feedback, it reaches owners, and it changes releases and the adoption plan."
+    manual: true
+  - id: ANLJT-VAL-05
+    title: "ANLJT-VAL-05. AI and agent workloads are grounded on governed, trusted data products"
+    severity: medium
+    query: "$.domains.ai.cognitiveAccounts[*]"
+    assert: { type: manual }
+    remediation: "ANLJT-VAL-05. Confirm AI workloads read from published data products with the required security and authorization preserved, not from ungoverned copies. Azure AI accounts are attached as evidence."
+    manual: true

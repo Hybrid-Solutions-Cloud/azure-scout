@@ -1,0 +1,491 @@
+# ai.readiness.yaml -- AI Readiness Assessment (AB#9300)
+#
+# Scout's rule set for Microsoft's "AI Readiness Assessment"
+# (learn.microsoft.com/assessments/94f1c697-9ba7-4d47-ad83-7c6bd94b1505), which scores an organisation
+# across seven pillars: Business Strategy, AI Governance & Security, Data Foundations, AI Strategy &
+# Experience, Organization & Culture, Infrastructure for AI and Model Management.
+#
+# Written ONLY against docs/frameworks/ai-readiness-question-set.md. Microsoft does not publish the
+# assessment's question text, so every item is SCOUT-DERIVED: Scout's reading of the Cloud Adoption
+# Framework AI adoption guidance (strategy, plan, ready, govern, secure, manage) and the AI agent
+# adoption guidance. The AIRDY-* ids are Scout's own.
+#
+# This is an organisational-readiness review, so most rules are `manual: true` and are answered with
+# -AssessmentAnswers. Where collected Azure data bears on a question it is attached as evidence. The
+# automated rules score only properties that exist in collect.json, and each is gated on the resources
+# it judges: an estate without them reports Not assessed. An estate with no AI resources yet therefore
+# scores on its answers alone, which is the honest reading of "not yet ready".
+area: "AI readiness"
+framework: AI-READINESS
+frameworkversion: "Microsoft AI Readiness Assessment (questions unpublished) + Cloud Adoption Framework AI adoption and AI agent guidance, docs/frameworks/ai-readiness-question-set.md, verified 2026-11-25 (Scout-derived items across the seven readiness pillars)"
+weight: 1.0
+verifiedAgainst: "docs/frameworks/ai-readiness-question-set.md (Scout enumeration of learn.microsoft.com/azure/cloud-adoption-framework/ai/* and ai-agents/*), verified 2026-11-25"
+rules:
+  # ---- Business strategy (BS) -- 8 items --------------------
+  - id: AIRDY-BS-01
+    title: "AIRDY-BS-01. The business outcomes AI is expected to support are defined"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "AIRDY-BS-01. Organisational -- confirm an AI strategy or charter documents the business outcomes, organisational priorities and decision rights for AI."
+    manual: true
+  - id: AIRDY-BS-02
+    title: "AIRDY-BS-02. Use cases are prioritised jointly by business and IT on outcomes, not novelty"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "AIRDY-BS-02. Organisational -- confirm there is an intake and prioritisation process that ranks AI use cases by expected outcome."
+    manual: true
+  - id: AIRDY-BS-03
+    title: "AIRDY-BS-03. Success measures are defined before deployment and value is tracked"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "AIRDY-BS-03. Organisational -- confirm key results are set up front for each AI use case and measured after release, with evidence used to decide whether to scale, improve or retire it."
+    manual: true
+  - id: AIRDY-BS-04
+    title: "AIRDY-BS-04. Each use case is matched to the right technique (automation, RAG or agent)"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "AIRDY-BS-04. Organisational -- confirm teams decide between traditional automation or code, retrieval-augmented generation and AI agents on what the task needs, not by default."
+    manual: true
+  - id: AIRDY-BS-05
+    title: "AIRDY-BS-05. Buy, build or customise is decided against the Microsoft AI decision tree"
+    severity: medium
+    query: "$.domains.ai.cognitiveAccounts[*]"
+    assert: { type: manual }
+    remediation: "AIRDY-BS-05. Organisational -- confirm the team chooses the solution with the least operational responsibility that still meets the need (Azure AI accounts are attached as evidence)."
+    manual: true
+  - id: AIRDY-BS-06
+    title: "AIRDY-BS-06. Executives sponsor AI visibly and set a common direction"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "AIRDY-BS-06. Organisational -- confirm executive leaders sponsor AI priorities and communicate a shared direction."
+    manual: true
+  - id: AIRDY-BS-07
+    title: "AIRDY-BS-07. AI spend is budgeted and managed"
+    severity: medium
+    query: "$.governance.budgets[*]"
+    assert: { type: manual }
+    remediation: "AIRDY-BS-07. Organisational -- confirm AI costs have an owner, a budget and a review cadence (Azure budgets are attached as evidence)."
+    manual: true
+  - id: AIRDY-BS-08
+    title: "AIRDY-BS-08. Business processes are redesigned for human and AI collaboration"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "AIRDY-BS-08. Organisational -- confirm processes are redesigned end to end, with explicit decision boundaries between people and AI, not AI layered onto existing steps."
+    manual: true
+
+  # ---- AI governance and security (GS) -- 12 items --------------------
+  - id: AIRDY-GS-01
+    title: "AIRDY-GS-01. AI governance is owned centrally with Responsible AI policies"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "AIRDY-GS-01. Organisational -- confirm a central function such as an AI Center of Excellence owns organisation-wide AI policies and standards, within which business groups pursue opportunities."
+    manual: true
+  - id: AIRDY-GS-02
+    title: "AIRDY-GS-02. AI use cases pass a Responsible AI review before release"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "AIRDY-GS-02. Organisational -- confirm each use case is assessed for fairness, reliability, privacy, safety and transparency, using Microsoft Responsible AI tools or equivalent."
+    manual: true
+  - id: AIRDY-GS-03
+    title: "AIRDY-GS-03. A complete inventory of AI assets is kept"
+    severity: high
+    query: "$.domains.ai.cognitiveAccounts[*]"
+    assert: { type: manual }
+    remediation: "AIRDY-GS-03. Organisational -- confirm every AI resource across subscriptions is inventoried and checked against policy, for example with Azure Resource Graph and Defender for Cloud AI security posture (Azure AI accounts are attached as evidence)."
+    manual: true
+  - id: AIRDY-GS-04
+    title: "AIRDY-GS-04. Azure Policy assignments govern AI deployments"
+    severity: high
+    query: "$.governance.policyAssignments[*]"
+    assert: { type: exists, gate: "$.governance.policyAssignmentsAvailable" }
+    remediation: "AIRDY-GS-04. No Azure Policy assignment was found in scope. Use Azure Policy to control which AI services, models, regions and SKUs can be deployed."
+    manual: false
+  - id: AIRDY-GS-05
+    title: "AIRDY-GS-05. Azure AI accounts have a managed identity"
+    severity: high
+    query: "$.domains.ai.cognitiveAccounts[?(@.identityType == '' || @.identityType == 'None')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.ai.cognitiveAccounts[*]" }
+    remediation: "AIRDY-GS-05. The Azure AI accounts listed have no managed identity. Assign one and use it for access to data and other services, so no credentials are stored in code or configuration."
+    manual: false
+  - id: AIRDY-GS-06
+    title: "AIRDY-GS-06. Azure AI accounts do not accept API keys"
+    severity: high
+    query: "$.domains.ai.cognitiveAccounts[?(@.disableLocalAuth != true)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.ai.cognitiveAccounts[*]" }
+    remediation: "AIRDY-GS-06. The Azure AI accounts listed still accept API keys. Set disableLocalAuth to true and use Microsoft Entra ID with role-based access."
+    manual: false
+  - id: AIRDY-GS-07
+    title: "AIRDY-GS-07. Azure AI accounts have public network access disabled"
+    severity: high
+    query: "$.domains.ai.cognitiveAccounts[?(@.publicAccess == 'Enabled')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.ai.cognitiveAccounts[*]" }
+    remediation: "AIRDY-GS-07. The Azure AI accounts listed allow public network access. Disable it and reach the service through private endpoints."
+    manual: false
+  - id: AIRDY-GS-08
+    title: "AIRDY-GS-08. Defender for Cloud threat protection for AI services is enabled"
+    severity: high
+    query: "$.security.defenderPlans[?(@.name == 'AI' && @.properties.pricingTier == 'Standard')]"
+    assert: { type: exists, gate: "$.domains.ai.cognitiveAccounts[*]" }
+    remediation: "AIRDY-GS-08. No subscription has the Defender for AI services plan on the Standard tier. Enable it to detect prompt injection, data leakage and wallet abuse against AI workloads (checked across the estate, not per subscription)."
+    manual: false
+  - id: AIRDY-GS-09
+    title: "AIRDY-GS-09. Sensitive data is classified and labelled before AI uses it"
+    severity: high
+    query: "$.domains.analytics.purviewAccounts[*]"
+    assert: { type: manual }
+    remediation: "AIRDY-GS-09. Organisational -- confirm data AI can reach is classified and labelled, and data loss prevention covers AI applications and agents (Microsoft Purview accounts are attached as evidence)."
+    manual: true
+  - id: AIRDY-GS-10
+    title: "AIRDY-GS-10. Access to AI resources is least privilege, with just-in-time administration"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "AIRDY-GS-10. Organisational -- confirm role-based access is scoped to the resources needed, custom roles are used where built-in roles are too broad, and administrative access uses Privileged Identity Management."
+    manual: true
+  - id: AIRDY-GS-11
+    title: "AIRDY-GS-11. AI agents have their own governed identities and limited tool permissions"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "AIRDY-GS-11. Organisational -- confirm each agent has a distinct identity, access to only the tools and data its task needs, and reviewed permissions."
+    manual: true
+  - id: AIRDY-GS-12
+    title: "AIRDY-GS-12. Regulatory, residency and compliance requirements for AI are mapped"
+    severity: medium
+    query: "$.domains.ai.cognitiveAccounts[*]"
+    assert: { type: manual }
+    remediation: "AIRDY-GS-12. Organisational -- confirm compliance requirements and data residency for each AI workload are identified, and deployment regions chosen to match (Azure AI accounts are attached as evidence)."
+    manual: true
+
+  # ---- Data foundations (DF) -- 8 items --------------------
+  - id: AIRDY-DF-01
+    title: "AIRDY-DF-01. The data each AI capability needs is identified"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "AIRDY-DF-01. Organisational -- confirm the organisational data each AI use case requires is listed, with an owner and a secure access path."
+    manual: true
+  - id: AIRDY-DF-02
+    title: "AIRDY-DF-02. A data catalogue governs the data estate"
+    severity: high
+    query: "$.domains.analytics.purviewAccounts[*]"
+    assert: { type: countGreaterThan, value: 0, gate: "$.domains.storage.storageAccounts[*]" }
+    remediation: "AIRDY-DF-02. No Microsoft Purview account was found while storage accounts exist. Use Purview (or an equivalent catalogue) to discover, classify and govern the data AI will use."
+    manual: false
+  - id: AIRDY-DF-03
+    title: "AIRDY-DF-03. Data quality standards are defined and measured"
+    severity: medium
+    query: "$.domains.analytics.dataFactories[*]"
+    assert: { type: manual }
+    remediation: "AIRDY-DF-03. Organisational -- confirm completeness, accuracy, validity and consistency standards exist, with cleansing in the pipeline (data factories are attached as evidence)."
+    manual: true
+  - id: AIRDY-DF-04
+    title: "AIRDY-DF-04. A unified data platform serves AI and analytics"
+    severity: medium
+    query: "$.domains.analytics.fabricCapacities[*]"
+    assert: { type: manual }
+    remediation: "AIRDY-DF-04. Organisational -- confirm data is reachable through a unified platform such as Microsoft Fabric rather than copied into many silos (Fabric capacities are attached as evidence)."
+    manual: true
+  - id: AIRDY-DF-05
+    title: "AIRDY-DF-05. Data lineage and provenance can be shown"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "AIRDY-DF-05. Organisational -- confirm the origin and processing of data used by AI can be traced, to support audit and explain outcomes."
+    manual: true
+  - id: AIRDY-DF-06
+    title: "AIRDY-DF-06. Data boundaries are defined for each AI workload"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "AIRDY-DF-06. Organisational -- confirm each application or agent can reach only the data its purpose and permissions allow, with logical or physical isolation where required."
+    manual: true
+  - id: AIRDY-DF-07
+    title: "AIRDY-DF-07. Data factories do not accept public network access"
+    severity: high
+    query: "$.domains.analytics.dataFactories[?(@.publicNetworkAccess == 'Enabled')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.analytics.dataFactories[*]" }
+    remediation: "AIRDY-DF-07. The data factories listed allow public network access. Disable it and use private endpoints so AI data pipelines are not reachable from the internet."
+    manual: false
+  - id: AIRDY-DF-08
+    title: "AIRDY-DF-08. Grounding data and search indexes are kept fresh"
+    severity: medium
+    query: "$.domains.ai.searchServices[*]"
+    assert: { type: manual }
+    remediation: "AIRDY-DF-08. Organisational -- confirm indexes and other grounding stores are refreshed to meet freshness, compliance and right-to-be-forgotten requirements (AI Search services are attached as evidence)."
+    manual: true
+
+  # ---- AI strategy and experience (SX) -- 8 items --------------------
+  - id: AIRDY-SX-01
+    title: "AIRDY-SX-01. AI experiences are designed around user goals"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "AIRDY-SX-01. Organisational -- confirm AI features start from user needs, and users understand what the AI can and cannot do."
+    manual: true
+  - id: AIRDY-SX-02
+    title: "AIRDY-SX-02. Hand-offs between AI and people are clear"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "AIRDY-SX-02. Organisational -- confirm users can see when they are dealing with AI, and escalation from AI to a person is seamless."
+    manual: true
+  - id: AIRDY-SX-03
+    title: "AIRDY-SX-03. User feedback improves AI experiences"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "AIRDY-SX-03. Organisational -- confirm feedback on AI output is collected and used to improve prompts, grounding data and models."
+    manual: true
+  - id: AIRDY-SX-04
+    title: "AIRDY-SX-04. AI experiences are consistent across solutions"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "AIRDY-SX-04. Organisational -- confirm interaction patterns, terminology and safety behaviour are consistent across AI solutions."
+    manual: true
+  - id: AIRDY-SX-05
+    title: "AIRDY-SX-05. The set of approved AI solutions is defined and available"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "AIRDY-SX-05. Organisational -- confirm the prebuilt, low-code and pro-code AI options employees may use are approved and published (for example Microsoft Copilot, Copilot Studio, Foundry)."
+    manual: true
+  - id: AIRDY-SX-06
+    title: "AIRDY-SX-06. Employees have access to approved AI together with training"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "AIRDY-SX-06. Organisational -- confirm broad access to approved AI is paired with training on effective and responsible use."
+    manual: true
+  - id: AIRDY-SX-07
+    title: "AIRDY-SX-07. The AI strategy is revisited as telemetry and maturity grow"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "AIRDY-SX-07. Organisational -- confirm the strategy is reviewed on a set cadence using usage telemetry, feedback and maturity assessments."
+    manual: true
+  - id: AIRDY-SX-08
+    title: "AIRDY-SX-08. Responsible AI is part of the strategy and builds trust"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "AIRDY-SX-08. Organisational -- confirm trust, transparency and ethical considerations are explicit in AI strategy and investment decisions."
+    manual: true
+
+  # ---- Organization and culture (OC) -- 8 items --------------------
+  - id: AIRDY-OC-01
+    title: "AIRDY-OC-01. Roles and ownership for AI are defined"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "AIRDY-OC-01. Organisational -- confirm clear owners exist for AI strategy, platform, each use case and each agent."
+    manual: true
+  - id: AIRDY-OC-02
+    title: "AIRDY-OC-02. AI skills are assessed and a training plan exists"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "AIRDY-OC-02. Organisational -- confirm current skills (data, engineering, security, operations) are assessed against need, with a plan to close gaps."
+    manual: true
+  - id: AIRDY-OC-03
+    title: "AIRDY-OC-03. A cross-functional team or Center of Excellence supports AI adoption"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "AIRDY-OC-03. Organisational -- confirm a team spanning business, data, engineering, security and legal supports adoption and shares practice."
+    manual: true
+  - id: AIRDY-OC-04
+    title: "AIRDY-OC-04. Change management prepares people for new roles and processes"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "AIRDY-OC-04. Organisational -- confirm the effect of AI on roles, processes and decisions is planned and communicated."
+    manual: true
+  - id: AIRDY-OC-05
+    title: "AIRDY-OC-05. Culture and incentives encourage responsible experimentation"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "AIRDY-OC-05. Organisational -- confirm teams are encouraged to experiment within guardrails and rewarded for outcomes and responsible practice."
+    manual: true
+  - id: AIRDY-OC-06
+    title: "AIRDY-OC-06. A community of practice shares AI lessons"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "AIRDY-OC-06. Organisational -- confirm champions, forums or a community share patterns, lessons and reusable assets."
+    manual: true
+  - id: AIRDY-OC-07
+    title: "AIRDY-OC-07. Employees can raise concerns about AI use"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "AIRDY-OC-07. Organisational -- confirm there is a safe route to report harmful, biased or unsafe AI behaviour."
+    manual: true
+  - id: AIRDY-OC-08
+    title: "AIRDY-OC-08. Financial management for AI is in place"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "AIRDY-OC-08. Organisational -- confirm the cost of AI is allocated to owners, with usage reviewed and budgets enforced."
+    manual: true
+
+  # ---- Infrastructure for AI (IN) -- 10 items --------------------
+  - id: AIRDY-IN-01
+    title: "AIRDY-IN-01. AI workloads use the existing Azure landing zone architecture"
+    severity: high
+    query: "$.governance.managementGroups[*]"
+    assert: { type: manual }
+    remediation: "AIRDY-IN-01. Organisational -- confirm AI resources are deployed into workload landing zones under the existing governance baseline, extended where needed, rather than a separate environment. The related Azure resources are attached as evidence."
+    manual: true
+  - id: AIRDY-IN-02
+    title: "AIRDY-IN-02. The platform chosen carries the least operational responsibility that meets the need"
+    severity: medium
+    query: "$.domains.ai.mlWorkspaces[*]"
+    assert: { type: manual }
+    remediation: "AIRDY-IN-02. Organisational -- confirm SaaS, then Azure PaaS, then Azure infrastructure was the order of consideration, with infrastructure justified by a need managed platforms cannot meet (machine learning workspaces are attached as evidence)."
+    manual: true
+  - id: AIRDY-IN-03
+    title: "AIRDY-IN-03. Model quotas and capacity are planned"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "AIRDY-IN-03. Organisational -- confirm quota and capacity (including provisioned throughput) are sized to demand and monitored."
+    manual: true
+  - id: AIRDY-IN-04
+    title: "AIRDY-IN-04. Azure AI accounts have a private endpoint"
+    severity: high
+    join:
+      left: "$.domains.ai.cognitiveAccounts[*]"
+      leftKey: "id"
+      right: "$.networking.privateEndpoints[*]"
+      rightKey: "targetResourceId"
+      mode: leftOnly
+      leftLabel: "Azure AI account"
+      rightLabel: "private endpoint"
+    assert: { type: countEquals, value: 0, gate: "$.domains.ai.cognitiveAccounts[*]" }
+    remediation: "AIRDY-IN-04. The Azure AI accounts listed have no private endpoint. Add one so model and data traffic stays on the private network."
+    manual: false
+  - id: AIRDY-IN-05
+    title: "AIRDY-IN-05. Machine learning workspaces have public network access disabled"
+    severity: high
+    query: "$.domains.ai.mlWorkspaces[?(@.publicAccess == 'Enabled')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.ai.mlWorkspaces[*]" }
+    remediation: "AIRDY-IN-05. The machine learning workspaces listed allow public network access. Disable it and use private endpoints or a managed virtual network."
+    manual: false
+  - id: AIRDY-IN-06
+    title: "AIRDY-IN-06. Machine learning workspaces use managed network isolation"
+    severity: medium
+    query: "$.domains.ai.mlWorkspaces[?(@.isolationMode != 'AllowOnlyApprovedOutbound' && @.isolationMode != 'AllowInternetOutbound')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.ai.mlWorkspaces[*]" }
+    remediation: "AIRDY-IN-06. The machine learning workspaces listed have no managed network isolation. Set an outbound mode (approved-only is the strictest) so training and inference traffic is controlled."
+    manual: false
+  - id: AIRDY-IN-07
+    title: "AIRDY-IN-07. AI Search services have public network access disabled"
+    severity: high
+    query: "$.domains.ai.searchServices[?(@.publicAccess == 'enabled' || @.publicAccess == 'Enabled')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.ai.searchServices[*]" }
+    remediation: "AIRDY-IN-07. The AI Search services listed allow public network access. Disable it and use private endpoints."
+    manual: false
+  - id: AIRDY-IN-08
+    title: "AIRDY-IN-08. AI workloads are monitored and alerted on"
+    severity: medium
+    query: "$.opsPosture.diagnosticCoverage[*]"
+    assert: { type: manual }
+    remediation: "AIRDY-IN-08. Organisational -- confirm availability and quality metrics are monitored and alerts reach people who can act (estate diagnostic coverage is attached as evidence)."
+    manual: true
+  - id: AIRDY-IN-09
+    title: "AIRDY-IN-09. Business continuity covers AI model endpoints"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "AIRDY-IN-09. Organisational -- confirm backup and failover are configured for model endpoints and supporting resources, and recovery is tested."
+    manual: true
+  - id: AIRDY-IN-10
+    title: "AIRDY-IN-10. Infrastructure for custom models is justified and right-sized"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "AIRDY-IN-10. Organisational -- confirm GPU and virtual machine capacity for bring-your-own models is justified, isolated from other workloads and right-sized."
+    manual: true
+
+  # ---- Model management (MM) -- 10 items --------------------
+  - id: AIRDY-MM-01
+    title: "AIRDY-MM-01. A list of approved models is maintained"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "AIRDY-MM-01. Organisational -- confirm approved models and versions are catalogued, with Azure Policy limiting deployments to them where possible."
+    manual: true
+  - id: AIRDY-MM-02
+    title: "AIRDY-MM-02. Model selection weighs fit, cost and risk"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "AIRDY-MM-02. Organisational -- confirm models are chosen by evaluating capability, cost, latency and risk against requirements, using cheaper models where they suffice."
+    manual: true
+  - id: AIRDY-MM-03
+    title: "AIRDY-MM-03. Model versions are pinned and retirement dates are tracked"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "AIRDY-MM-03. Organisational -- confirm model versions are controlled, retirement schedules are tracked, and replacement is tested before a model retires."
+    manual: true
+  - id: AIRDY-MM-04
+    title: "AIRDY-MM-04. Models are evaluated before production"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "AIRDY-MM-04. Organisational -- confirm quality, safety and groundedness are evaluated against agreed thresholds before release."
+    manual: true
+  - id: AIRDY-MM-05
+    title: "AIRDY-MM-05. Prompt and model changes are managed with rollback"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "AIRDY-MM-05. Organisational -- confirm changes to prompts, models and orchestration go through change control with a rollback procedure."
+    manual: true
+  - id: AIRDY-MM-06
+    title: "AIRDY-MM-06. Model drift and decay are monitored"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "AIRDY-MM-06. Organisational -- confirm output quality, relevance and drift are monitored in production, with retraining or tuning triggered when they degrade."
+    manual: true
+  - id: AIRDY-MM-07
+    title: "AIRDY-MM-07. A workspace or registry tracks custom models and experiments"
+    severity: medium
+    query: "$.domains.ai.mlWorkspaces[*]"
+    assert: { type: manual }
+    remediation: "AIRDY-MM-07. Organisational -- confirm custom models, experiments and versions are tracked in one place (machine learning workspaces are attached as evidence)."
+    manual: true
+  - id: AIRDY-MM-08
+    title: "AIRDY-MM-08. Fine-tuning is governed"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "AIRDY-MM-08. Organisational -- confirm fine-tuning has an approval step, data quality checks and a plan to repeat it when the base model changes."
+    manual: true
+  - id: AIRDY-MM-09
+    title: "AIRDY-MM-09. Content safety guardrails are bound to every model deployment"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "AIRDY-MM-09. Organisational -- confirm each deployment has content filtering for prompts and completions, with thresholds reviewed against the use case."
+    manual: true
+  - id: AIRDY-MM-10
+    title: "AIRDY-MM-10. MLOps and GenAIOps practices operate the model lifecycle"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "AIRDY-MM-10. Organisational -- confirm repeatable pipelines, automation and monitoring cover data, evaluation, deployment and maintenance of models."
+    manual: true

@@ -4,7 +4,7 @@ description: How much of each enumerated framework Azure Scout actually has a ru
 
 # Framework Coverage
 
-Across every framework Azure Scout enumerates, **312 of 734 items (43%) have a rule behind them**.
+Across every framework Azure Scout enumerates, **1219 of 1649 items (74%) have a rule behind them**.
 
 ::: warning Read this number the right way
 Scout **enumerates** each framework in full — see [Frameworks](../frameworks/README.md) — and a test
@@ -30,19 +30,37 @@ and a fresh regeneration disagree.
 | Framework enumeration | Items | Covered | Item coverage | Areas covered |
 |---|--:|--:|--:|--:|
 | [`caf-landing-zone-design-areas`](../frameworks/caf-landing-zone-design-areas.md) | 393 | 0 | **0%** | 8 / 8 |
+| [`waf-saas-checklist`](../frameworks/waf-saas-checklist.md) | 108 | 108 | **100%** | 1 / 1 |
+| [`waf-data-services-checklist`](../frameworks/waf-data-services-checklist.md) | 100 | 100 | **100%** | 1 / 1 |
+| [`waf-mission-critical-checklist`](../frameworks/waf-mission-critical-checklist.md) | 81 | 81 | **100%** | 1 / 1 |
+| [`waf-sustainability-checklist`](../frameworks/waf-sustainability-checklist.md) | 67 | 67 | **100%** | 1 / 1 |
+| [`ai-readiness-question-set`](../frameworks/ai-readiness-question-set.md) | 64 | 64 | **100%** | 1 / 1 |
+| [`app-modernization-question-set`](../frameworks/app-modernization-question-set.md) | 62 | 62 | **100%** | 1 / 1 |
 | [`waf-ai-workload-checklist`](../frameworks/waf-ai-workload-checklist.md) | 60 | 60 | **100%** | 2 / 2 |
 | [`waf-pillar-checklists`](../frameworks/waf-pillar-checklists.md) | 59 | 31 | **53%** | 1 / 1 |
+| [`waf-go-live-checklist`](../frameworks/waf-go-live-checklist.md) | 57 | 57 | **100%** | 1 / 1 |
 | [`cloud-governance-question-set`](../frameworks/cloud-governance-question-set.md) | 54 | 54 | **100%** | 1 / 1 |
+| [`analytics-journey-question-set`](../frameworks/analytics-journey-question-set.md) | 52 | 52 | **100%** | 1 / 1 |
+| [`genai-technical-question-set`](../frameworks/genai-technical-question-set.md) | 50 | 50 | **100%** | 1 / 1 |
+| [`waf-machine-learning-checklist`](../frameworks/waf-machine-learning-checklist.md) | 44 | 44 | **100%** | 1 / 1 |
+| [`wara-aprl-checklist`](../frameworks/wara-aprl-checklist.md) | 39 | 31 | **79%** | 1 / 1 |
+| [`waf-sap-workload-checklist`](../frameworks/waf-sap-workload-checklist.md) | 38 | 38 | **100%** | 1 / 1 |
+| [`waf-ai-search-checklist`](../frameworks/waf-ai-search-checklist.md) | 38 | 38 | **100%** | 2 / 2 |
 | [`casa-question-set`](../frameworks/casa-question-set.md) | 37 | 37 | **100%** | 3 / 3 |
+| [`platform-engineering-question-set`](../frameworks/platform-engineering-question-set.md) | 36 | 36 | **100%** | 1 / 1 |
+| [`waf-oracle-iaas-workload-checklist`](../frameworks/waf-oracle-iaas-workload-checklist.md) | 34 | 34 | **100%** | 1 / 1 |
 | [`waf-azure-local-checklist`](../frameworks/waf-azure-local-checklist.md) | 33 | 33 | **100%** | 1 / 1 |
 | [`waf-avd-azure-workload-checklist`](../frameworks/waf-avd-azure-workload-checklist.md) | 30 | 30 | **100%** | 1 / 1 |
+| [`genaiops-maturity-question-set`](../frameworks/genaiops-maturity-question-set.md) | 30 | 30 | **100%** | 1 / 1 |
 | [`waf-avs-workload-checklist`](../frameworks/waf-avs-workload-checklist.md) | 27 | 26 | **96%** | 1 / 1 |
-| [`devops-capability-question-set`](../frameworks/devops-capability-question-set.md) | 20 | 20 | **100%** | 2 / 2 |
 | [`waf-avd-workload-checklist`](../frameworks/waf-avd-workload-checklist.md) | 20 | 20 | **100%** | 1 / 1 |
+| [`devops-capability-question-set`](../frameworks/devops-capability-question-set.md) | 20 | 20 | **100%** | 2 / 2 |
+| [`advisor-recommendations`](../frameworks/advisor-recommendations.md) | 15 | 15 | **100%** | 1 / 1 |
 | [`smart-question-set`](../frameworks/smart-question-set.md) | 1 | 1 | **100%** | 1 / 1 |
-| `avs-landing-zone-question-set` | — | — | *not enumerated with item ids* | — |
+| `waf-analytics-checklist` | — | — | *not enumerated with item ids* | — |
 | `finops-review-question-set` | — | — | *not enumerated with item ids* | — |
-| **Total** | **734** | **312** | **43%** | |
+| `avs-landing-zone-question-set` | — | — | *not enumerated with item ids* | — |
+| **Total** | **1649** | **1219** | **74%** | |
 
 ::: warning Where item coverage reads 0%, check the areas column
 `caf-landing-zone-design-areas` enumerates individual recommendations (`AUT-DEV-01`,
@@ -67,6 +85,10 @@ The specific items with no rule of their own. This is the backlog, stated rather
 ### `waf-pillar-checklists` — 28 of 59 uncovered
 
 `WAF-CO-10`, `WAF-CO-11`, `WAF-CO-12`, `WAF-CO-13`, `WAF-CO-14`, `WAF-OE-03`, `WAF-OE-04`, `WAF-OE-09`, `WAF-OE-10`, `WAF-OE-11`, `WAF-PE-03`, `WAF-PE-08`, `WAF-PE-09`, `WAF-PE-10`, `WAF-PE-11`, `WAF-PE-12`, `WAF-RE-01`, `WAF-RE-02`, `WAF-RE-04`, `WAF-RE-06`, `WAF-RE-07`, `WAF-RE-08`, `WAF-RE-10`, `WAF-SE-08`, `WAF-SE-09`, `WAF-SE-10`, `WAF-SE-11`, `WAF-SE-12`
+
+### `wara-aprl-checklist` — 8 of 39 uncovered
+
+`WARA-LB-02`, `WARA-PIP-01`, `WARA-PIP-02`, `WARA-VM-04`, `WARA-VM-05`, `WARA-VM-06`, `WARA-VMSS-01`, `WARA-VMSS-02`
 
 ### `waf-avs-workload-checklist` — 1 of 27 uncovered
 

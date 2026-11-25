@@ -1,0 +1,615 @@
+# waf.missioncritical.yaml — Mission-critical workload assessment (AB#9300)
+#
+# Scores an estate against Microsoft's mission-critical workload guidance, the scope of the
+# "Mission Critical | Well-Architected Review" assessment
+# (learn.microsoft.com/assessments/23513bdb-e8a2-4f0b-8b6b-191ee1f52d34).
+#
+# Written ONLY against docs/frameworks/waf-mission-critical-checklist.md. Microsoft does not publish
+# the assessment's question text, so every item is Scout's reading of the live design-area guidance
+# named per row. 81 items: 41 automated, 40 manual.
+#
+# Scout scans an estate, not one workload: an automated rule reports every resource of its type in
+# scope. Each automated rule is gated on its data being present, so an estate without the resource
+# reports Not assessed rather than a pass. Manual rules carry the evidence Scout holds.
+area: "Mission-critical workload"
+framework: WAF-MC
+frameworkversion: "Azure Well-Architected mission-critical workload guidance (assessment questions unpublished), docs/frameworks/waf-mission-critical-checklist.md, retrieved 2026-11-25 (81 items, 8 design areas)"
+weight: 1.0
+verifiedAgainst: "docs/frameworks/waf-mission-critical-checklist.md (Scout enumeration of learn.microsoft.com/azure/well-architected/mission-critical/*), verified 2026-11-25"
+rules:
+  # ---- Application design (AD) ----------------------------------------------------------------
+  - id: WAF-MC-AD-01
+    title: "WAF-MC-AD-01. Scale units are defined, with the limits that trigger scaling and a capacity model behind them"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-MC-AD-01. Confirm the scale unit (code component, platform, regional deployment stamp or subscription) is defined, every component scales independently or inside a unit, and scale-out and scale-in durations are tracked as an operational metric."
+    manual: true
+  - id: WAF-MC-AD-02
+    title: "WAF-MC-AD-02. Resources are deployed in at least two Azure regions (estate-wide signal)"
+    severity: high
+    query: "$.domains.storage.managedDisks[*]"
+    assert: { type: countGreaterThan, value: 1, gate: "$.domains.storage.managedDisks[*]", numeratorKey: location }
+    remediation: "WAF-MC-AD-02. Managed disks in this estate sit in one region only. A mission-critical workload runs active/active in at least two regions (three or more for a 99.99% target). This is an estate-wide, necessary-but-not-sufficient signal: it cannot tell which workload a second region serves."
+    manual: false
+  - id: WAF-MC-AD-03
+    title: "WAF-MC-AD-03. Components are loosely coupled and communicate through asynchronous, event-driven messaging"
+    severity: medium
+    query: "$.domains.integration.serviceBusNamespaces[*]"
+    assert: { type: manual }
+    remediation: "WAF-MC-AD-03. Confirm critical flows use asynchronous messaging through an intermediary (Service Bus, Event Hubs) with the Outbox and Idempotent Consumer patterns, so one component failing does not fail the client transaction. Service Bus namespaces are attached as evidence."
+    manual: true
+  - id: WAF-MC-AD-04
+    title: "WAF-MC-AD-04. Application code implements resiliency patterns and uses vendor SDK resiliency features"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-MC-AD-04. Confirm retry with back-off, circuit breaker, bulkhead, throttling and graceful degradation are implemented through the Azure SDKs or a proven library, that transient and permanent errors are told apart, and that the chosen language's SDK covers the services in use."
+    manual: true
+  - id: WAF-MC-AD-05
+    title: "WAF-MC-AD-05. Health endpoints reflect the service's own ability to function, and every request carries a correlation ID"
+    severity: medium
+    query: "$.monitor.appInsights[*]"
+    assert: { type: manual }
+    remediation: "WAF-MC-AD-05. Confirm each service exposes a health endpoint that does not fold in decoupled dependencies, that correlation IDs are returned to callers and logged, and that distributed tracing is implemented. Application Insights components are attached as evidence."
+    manual: true
+  - id: WAF-MC-AD-06
+    title: "WAF-MC-AD-06. The landing-zone subscription is dedicated to the application"
+    severity: low
+    query: "$.subscriptions[*]"
+    assert: { type: manual }
+    remediation: "WAF-MC-AD-06. Confirm the subscription holding the workload is dedicated to it, to give a clear management boundary and avoid the noisy-neighbor antipattern. Subscriptions are attached as evidence."
+    manual: true
+
+  # ---- Application platform (AP) --------------------------------------------------------------
+  - id: WAF-MC-AP-01
+    title: "WAF-MC-AP-01. The number of regions matches the availability target, and the composite SLO is calculated per user flow"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-MC-AP-01. Confirm at least two regions are used, and at least three for a target of 99.99% or higher, with a composite SLO calculated for every user flow and aligned to the business target."
+    manual: true
+  - id: WAF-MC-AP-02
+    title: "WAF-MC-AP-02. Recovery point and recovery time objectives are defined and validated"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-MC-AP-02. Confirm RPO and RTO are defined for each user flow and have been validated by a recovery test, not just calculated."
+    manual: true
+  - id: WAF-MC-AP-03
+    title: "WAF-MC-AP-03. Virtual machines are deployed in availability zones"
+    severity: high
+    query: "$.compute.virtualMachines[?(@.zoneEligible == true && @.zoneRedundant == false)]"
+    assert: { type: countEquals, value: 0, gate: "$.compute.virtualMachines[*]" }
+    remediation: "WAF-MC-AP-03. The virtual machines listed run in a region that has availability zones but are not placed in one. Deploy three or more across zones, or use flexible scale sets where zones are unavailable."
+    manual: false
+  - id: WAF-MC-AP-04
+    title: "WAF-MC-AP-04. AKS node pools are spread across availability zones"
+    severity: high
+    query: "$.domains.containers.aksClusters[?(@.allPoolsZoned == false)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.containers.aksClusters[*]" }
+    remediation: "WAF-MC-AP-04. The AKS clusters listed have node pools that are not zone-spread. Use availability zones to distribute the control plane and agent nodes across datacenters."
+    manual: false
+  - id: WAF-MC-AP-05
+    title: "WAF-MC-AP-05. Container registries use the Premium tier, which geo-replication and zone redundancy require"
+    severity: medium
+    query: "$.domains.containers.containerRegistries[?(@.sku != 'Premium')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.containers.containerRegistries[*]" }
+    remediation: "WAF-MC-AP-05. The registries listed are not Premium. Use Premium with geo-replication to every deployment region and zone redundancy where zones are supported."
+    manual: false
+  - id: WAF-MC-AP-06
+    title: "WAF-MC-AP-06. Standard, Premium and Isolated App Service plans are scaled by an enabled autoscale setting"
+    severity: medium
+    join:
+      left: "$.domains.web.appServicePlans[?(@.sku =~ /^(S|P|I)/)]"
+      leftKey: "id"
+      right: "$.monitor.autoscaleSettings[?(@.enabled == true)]"
+      rightKey: "targetResourceUri"
+      mode: leftOnly
+      leftLabel: "App Service plan"
+      rightLabel: "enabled autoscale setting"
+    assert: { type: countEquals, value: 0, gate: "$.domains.web.appServicePlans[*]" }
+    remediation: "WAF-MC-AP-06. The plans listed have no enabled autoscale setting. Use Azure-native autoscaling for services that support it, so capacity follows load without manual action."
+    manual: false
+  - id: WAF-MC-AP-07
+    title: "WAF-MC-AP-07. Application components are containerized, immutable and replaceable"
+    severity: medium
+    query: "$.domains.containers.containerApps[*]"
+    assert: { type: manual }
+    remediation: "WAF-MC-AP-07. Confirm application components are packaged as container images, run on AKS or Azure Container Apps, keep no state in the container file system, and have short lifecycles. Container apps are attached as evidence."
+    manual: true
+  - id: WAF-MC-AP-08
+    title: "WAF-MC-AP-08. Virtual machines are used only where required, in scale sets, and are not accessed individually"
+    severity: medium
+    query: "$.compute.virtualMachines[*]"
+    assert: { type: manual }
+    remediation: "WAF-MC-AP-08. Confirm PaaS or containers were ruled out first, VMs run in scale sets of three or more across zones behind a load balancer, images come from the Marketplace rather than a custom image that needs maintaining, and serverless is limited to non-critical flows. Virtual machines are attached as evidence."
+    manual: true
+
+  # ---- Data platform (DP) ---------------------------------------------------------------------
+  - id: WAF-MC-DP-01
+    title: "WAF-MC-DP-01. Data growth is forecast and housekeeping (TTL, tiering, offload) keeps volume within platform limits"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-MC-DP-01. Confirm forecast data volume stays under data platform limits, and that TTL, hot, warm and cold tiering and offload are configured so growth does not cause downtime or data loss."
+    manual: true
+  - id: WAF-MC-DP-02
+    title: "WAF-MC-DP-02. Read and write throughput and latency are monitored against a capacity model and scale automatically"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-MC-DP-02. Confirm P50 and P99 latency and throughput are tracked against the capacity model, that data stores autoscale inside timeframes the business accepts, and that excess throughput is handled gracefully and fed to the health model."
+    manual: true
+  - id: WAF-MC-DP-03
+    title: "WAF-MC-DP-03. The data platform supports the active/active model, with replicas across zones and regions"
+    severity: high
+    query: "$.domains.databases.cosmosDbAccounts[*]"
+    assert: { type: manual }
+    remediation: "WAF-MC-DP-03. Confirm the data platform spans every deployment region, uses zone redundancy in each, and uses multi-region writes where consistency allows (Azure Cosmos DB with continuous backup and a write replica per region). Cosmos DB accounts are attached; replicas, zones and write regions are not yet collected."
+    manual: true
+  - id: WAF-MC-DP-04
+    title: "WAF-MC-DP-04. SQL databases are zone-redundant"
+    severity: high
+    query: "$.domains.databases.sqlDatabases[?(@.zoneRedundant == false && @.tier != 'System')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.databases.sqlDatabases[*]" }
+    remediation: "WAF-MC-DP-04. The databases listed are not zone-redundant. Enable zone redundancy, and prefer Business Critical for mission-critical relational data. System databases are excluded."
+    manual: false
+  - id: WAF-MC-DP-05
+    title: "WAF-MC-DP-05. Relational databases fail over to a secondary region and use zone-redundant high availability"
+    severity: high
+    query: "$.domains.databases.postgreSqlFlexibleServers[*]"
+    assert: { type: manual }
+    remediation: "WAF-MC-DP-05. Confirm Azure SQL uses auto-failover groups (automated by health-model alerting), and PostgreSQL or MySQL flexible servers use zone-redundant high availability. Flexible servers are attached; their high-availability mode is not yet collected."
+    manual: true
+  - id: WAF-MC-DP-06
+    title: "WAF-MC-DP-06. Event Hubs namespaces are zone-redundant"
+    severity: medium
+    query: "$.domains.integration.eventHubNamespaces[?(@.zoneRedundant == false)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.integration.eventHubNamespaces[*]" }
+    remediation: "WAF-MC-DP-06. The namespaces listed are not zone-redundant. Enable zone redundancy for the messaging that load-levels the data platform."
+    manual: false
+  - id: WAF-MC-DP-07
+    title: "WAF-MC-DP-07. Caches use Azure Managed Redis rather than the retiring Azure Cache for Redis"
+    severity: medium
+    query: "$.domains.databases.redisCaches[?(@.type == 'microsoft.cache/redis')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.databases.redisCaches[*]" }
+    remediation: "WAF-MC-DP-07. The caches listed are Azure Cache for Redis, which is retiring. Use Azure Managed Redis for new designs and follow the retirement guidance for existing instances, with replicas zone-spread in every region."
+    manual: false
+  - id: WAF-MC-DP-08
+    title: "WAF-MC-DP-08. Storage accounts use zone-redundant or geo-redundant replication"
+    severity: medium
+    query: "$.domains.storage.storageAccounts[?(@.sku == 'Standard_LRS' || @.sku == 'Premium_LRS')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.storage.storageAccounts[*]" }
+    remediation: "WAF-MC-DP-08. The accounts listed use locally redundant storage. Use ZRS, GRS or GZRS for data that must survive a zone or region failure."
+    manual: false
+  - id: WAF-MC-DP-09
+    title: "WAF-MC-DP-09. Backup, restore and failover are validated through chaos testing in the delivery process"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-MC-DP-09. Confirm backup restore and data platform failover are exercised by chaos tests inside continuous delivery, and that support-assisted recovery cases are understood."
+    manual: true
+
+  # ---- Networking and connectivity (NC) -------------------------------------------------------
+  - id: WAF-MC-NC-01
+    title: "WAF-MC-NC-01. A global routing service fronts the regional deployment stamps"
+    severity: high
+    query: "$.networking['frontDoors','cdnProfiles','trafficManagerProfiles'][*]"
+    assert: { type: exists, gate: "$.subscriptions[*]" }
+    remediation: "WAF-MC-NC-01. No Azure Front Door, CDN or Traffic Manager profile was found. Use Front Door as the global entry point for HTTP/S (Traffic Manager for other protocols) so traffic is distributed to every active stamp."
+    manual: false
+  - id: WAF-MC-NC-02
+    title: "WAF-MC-NC-02. Web application firewall policies run in Prevention mode"
+    severity: high
+    query: "$.security.wafPolicies[?(@.mode == 'Detection')]"
+    assert: { type: countEquals, value: 0, gate: "$.security.wafPolicies[*]" }
+    remediation: "WAF-MC-NC-02. The WAF policies listed are in Detection mode, which logs but does not block. Use Prevention mode unless the performance cost is demonstrably too high."
+    manual: false
+  - id: WAF-MC-NC-03
+    title: "WAF-MC-NC-03. Application Gateways have the web application firewall enabled"
+    severity: high
+    query: "$.networking.applicationGateways[?(@.wafEnabled == false)]"
+    assert: { type: countEquals, value: 0, gate: "$.networking.applicationGateways[*]" }
+    remediation: "WAF-MC-NC-03. The gateways listed have no WAF. Apply WAF in one place on the ingress path, globally with Front Door or regionally with Application Gateway."
+    manual: false
+  - id: WAF-MC-NC-04
+    title: "WAF-MC-NC-04. Load balancers use the Standard SKU"
+    severity: medium
+    query: "$.networking.loadBalancers[?(@.sku == 'Basic')]"
+    assert: { type: countEquals, value: 0, gate: "$.networking.loadBalancers[*]" }
+    remediation: "WAF-MC-NC-04. The load balancers listed are Basic SKU. Use Standard, which gives a 99.99% SLA across zones plus diagnostics and outbound rules."
+    manual: false
+  - id: WAF-MC-NC-05
+    title: "WAF-MC-NC-05. Virtual networks are protected by Azure DDoS Network Protection"
+    severity: medium
+    query: "$.networking.virtualNetworks[?(@.ddosEnabled != true)]"
+    assert: { type: countEquals, value: 0, gate: "$.networking.virtualNetworks[*]" }
+    remediation: "WAF-MC-NC-05. The virtual networks listed are not covered by a DDoS Network Protection plan. Protect public endpoints in each application network. (DDoS IP Protection applied per public IP address is not visible to this check.)"
+    manual: false
+  - id: WAF-MC-NC-06
+    title: "WAF-MC-NC-06. Storage accounts deny public network access by default"
+    severity: high
+    query: "$.domains.storage.storageAccounts[?(@.networkDefaultDeny == false)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.storage.storageAccounts[*]" }
+    remediation: "WAF-MC-NC-06. The storage accounts listed accept traffic from all networks. Deploy inside virtual networks, use private endpoints, and set the firewall default action to Deny."
+    manual: false
+  - id: WAF-MC-NC-07
+    title: "WAF-MC-NC-07. SQL servers do not allow public network access"
+    severity: high
+    query: "$.domains.databases.sqlServers[?(@.publicNetworkAccess == 'Enabled')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.databases.sqlServers[*]" }
+    remediation: "WAF-MC-NC-07. The servers listed allow public network access. Use private endpoints and disable the public endpoint."
+    manual: false
+  - id: WAF-MC-NC-08
+    title: "WAF-MC-NC-08. Cosmos DB accounts do not allow public network access"
+    severity: high
+    query: "$.domains.databases.cosmosDbAccounts[?(@.publicNetworkAccess == 'Enabled')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.databases.cosmosDbAccounts[*]" }
+    remediation: "WAF-MC-NC-08. The accounts listed allow public network access. Use private endpoints, or service endpoints only where the exfiltration risk is accepted."
+    manual: false
+  - id: WAF-MC-NC-09
+    title: "WAF-MC-NC-09. No network security group rule opens RDP or SSH to the internet"
+    severity: high
+    query: "$.networking.nsgPublicInbound[?(@.port =~ /^(22|3389|[*])$/)]"
+    assert: { type: countEquals, value: 0, gate: "$.subscriptions[*]" }
+    remediation: "WAF-MC-NC-09. The NSG rules listed allow inbound SSH, RDP or all ports from any source. Disable internet access to management ports and use Azure Bastion. Port ranges and multi-port rules are not evaluated."
+    manual: false
+  - id: WAF-MC-NC-10
+    title: "WAF-MC-NC-10. AKS clusters enforce Kubernetes network policy"
+    severity: medium
+    query: "$.domains.containers.aksClusters[?(@.networkPolicyEnabled == false)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.containers.aksClusters[*]" }
+    remediation: "WAF-MC-NC-10. The clusters listed have no network policy. Enable it at deployment time (Cilium is the recommended engine) and define ingress and egress rules between pods."
+    manual: false
+  - id: WAF-MC-NC-11
+    title: "WAF-MC-NC-11. Administrative access uses Azure Bastion or another proxied private connection"
+    severity: medium
+    query: "$.networking.bastionHosts[*]"
+    assert: { type: manual }
+    remediation: "WAF-MC-NC-11. Confirm data-plane and management access goes through Bastion or a private connection, never a public RDP or SSH port. Bastion hosts are attached as evidence."
+    manual: true
+  - id: WAF-MC-NC-12
+    title: "WAF-MC-NC-12. Outbound internet traffic uses NAT Gateway and, where inspection is required, Azure Firewall"
+    severity: medium
+    query: "$.networking.natGateways[*]"
+    assert: { type: manual }
+    remediation: "WAF-MC-NC-12. Confirm SNAT port exhaustion is mitigated with NAT Gateway at scale, that Firewall is used only where egress inspection is required, and that it is not used to inspect traffic between Azure services. NAT gateways are attached as evidence."
+    manual: true
+  - id: WAF-MC-NC-13
+    title: "WAF-MC-NC-13. Front Door and Traffic Manager are configured for fast failover and locked to the intended path"
+    severity: medium
+    query: "$.networking.frontDoors[*]"
+    assert: { type: manual }
+    remediation: "WAF-MC-NC-13. Confirm health probes validate downstream dependencies, Traffic Manager TTL is low, session affinity is off unless required, managed certificates are used, and backends accept traffic only from the configured Front Door instance. Front Door profiles are attached; probe and TTL settings are not yet collected."
+    manual: true
+  - id: WAF-MC-NC-14
+    title: "WAF-MC-NC-14. Network address space is sized and non-overlapping, traffic is logged, and stamps are independent"
+    severity: low
+    query: "$.networking.virtualNetworks[*]"
+    assert: { type: manual }
+    remediation: "WAF-MC-NC-14. Confirm IPv4 space is RFC 1918, large enough to scale without downtime and non-overlapping, virtual network flow logs feed Traffic Analytics, and stamps are independent without dog-legging traffic between regions. Virtual networks are attached as evidence."
+    manual: true
+
+  # ---- Health modeling and observability (HM) -------------------------------------------------
+  - id: WAF-MC-HM-01
+    title: "WAF-MC-HM-01. A health model maps signals from every user flow and component to healthy, degraded and unhealthy states"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-MC-HM-01. Confirm a health model exists covering flows, components and Azure resources, with signals and thresholds drawn from the nonfunctional requirements. Azure Monitor health models (Microsoft.CloudHealth/healthmodels) are not yet collected."
+    manual: true
+  - id: WAF-MC-HM-02
+    title: "WAF-MC-HM-02. SLIs and SLOs are defined for the workload and each business flow"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-MC-HM-02. Confirm service level indicators and objectives exist for the workload and each flow and feed the health model as signals."
+    manual: true
+  - id: WAF-MC-HM-03
+    title: "WAF-MC-HM-03. A Log Analytics workspace exists as the unified data sink"
+    severity: medium
+    query: "$.management.logAnalyticsWorkspaces[*]"
+    assert: { type: exists, gate: "$.subscriptions[*]" }
+    remediation: "WAF-MC-HM-03. No Log Analytics workspace was found. Send logs, metrics and traces from every component to one workspace so operators see one view across regions and stamps."
+    manual: false
+  - id: WAF-MC-HM-04
+    title: "WAF-MC-HM-04. Diagnostic settings cover at least 80% of each resource type"
+    severity: high
+    query: "$.opsPosture.diagnosticCoverage[?(@.coveragePct < 80)]"
+    assert: { type: countEquals, value: 0, gate: "$.opsPosture.diagnosticCoverageMeasured" }
+    remediation: "WAF-MC-HM-04. The resource types listed have diagnostic settings on fewer than 80% of their resources. Send diagnostic logs and metrics to the workspace and enforce the settings with Azure Policy."
+    manual: false
+  - id: WAF-MC-HM-05
+    title: "WAF-MC-HM-05. Application Insights components are workspace-based"
+    severity: medium
+    query: "$.monitor.appInsights[?(@.ingestionMode != 'LogAnalytics')]"
+    assert: { type: countEquals, value: 0, gate: "$.monitor.appInsights[*]" }
+    remediation: "WAF-MC-HM-05. The components listed are not workspace-based, so their telemetry does not land in the unified Log Analytics sink. Migrate them to workspace-based Application Insights."
+    manual: false
+  - id: WAF-MC-HM-06
+    title: "WAF-MC-HM-06. Availability tests probe the application from outside"
+    severity: medium
+    query: "$.monitor.appInsightsAvailabilityTests[?(@.enabled == true)]"
+    assert: { type: exists, gate: "$.monitor.appInsights[*]" }
+    remediation: "WAF-MC-HM-06. No enabled availability test was found. Run health probes outside the application and use their results as health signals."
+    manual: false
+  - id: WAF-MC-HM-07
+    title: "WAF-MC-HM-07. Enabled metric alert rules are wired to an action group"
+    severity: high
+    query: "$.monitor.metricAlertRules[?(@.enabled == true && @.actionGroupCount == 0)]"
+    assert: { type: countEquals, value: 0, gate: "$.monitor.metricAlertRules[*]" }
+    remediation: "WAF-MC-HM-07. The alert rules listed fire without notifying anyone. Attach an action group that reaches the right audience."
+    manual: false
+  - id: WAF-MC-HM-08
+    title: "WAF-MC-HM-08. Alert rules exist for the workload"
+    severity: high
+    query: "$.monitor['metricAlertRules','scheduledQueryRules'][?(@.enabled == true)]"
+    assert: { type: exists, gate: "$.subscriptions[*]" }
+    remediation: "WAF-MC-HM-08. No enabled metric or log alert rule was found. Create alerts from health-state changes rather than raw metrics."
+    manual: false
+  - id: WAF-MC-HM-09
+    title: "WAF-MC-HM-09. An enabled action group exists to route alerts"
+    severity: medium
+    query: "$.monitor.actionGroups[?(@.enabled == true)]"
+    assert: { type: exists, gate: "$.subscriptions[*]" }
+    remediation: "WAF-MC-HM-09. No enabled action group was found. Define the channels and target audiences alerts reach."
+    manual: false
+  - id: WAF-MC-HM-10
+    title: "WAF-MC-HM-10. Service Health alerts cover the services and regions in use"
+    severity: medium
+    query: "$.monitor.activityLogAlertRules[*]"
+    assert: { type: manual }
+    remediation: "WAF-MC-HM-10. Confirm Azure Service Health alerts cover every service and region the workload depends on. Activity-log alert rules are attached; their category is not yet collected."
+    manual: true
+  - id: WAF-MC-HM-11
+    title: "WAF-MC-HM-11. Data collection rules deliver host and container telemetry to Log Analytics"
+    severity: medium
+    query: "$.monitor.dataCollectionRules[?(@.hasLogAnalyticsDestination == true)]"
+    assert: { type: exists, gate: "$.compute.virtualMachines[*]" }
+    remediation: "WAF-MC-HM-11. No data collection rule with a Log Analytics destination was found. Collect logs and metrics from the host, container host and cluster into the unified sink."
+    manual: false
+  - id: WAF-MC-HM-12
+    title: "WAF-MC-HM-12. Alerts are tuned so only actionable ones reach operators"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-MC-HM-12. Confirm there is a continuous improvement process that removes alert noise and sends only actionable alerts."
+    manual: true
+
+  # ---- Deployment and testing (DT) ------------------------------------------------------------
+  - id: WAF-MC-DT-01
+    title: "WAF-MC-DT-01. Production changes use ephemeral blue/green deployments with automated traffic transition"
+    severity: high
+    query: "$.domains.web.webAppDeploymentSlots[*]"
+    assert: { type: manual }
+    remediation: "WAF-MC-DT-01. Confirm each release deploys a full stamp next to the live one, shifts traffic gradually (for example 10% first) and then retires the old stamp. App Service deployment slots are attached as evidence."
+    manual: true
+  - id: WAF-MC-DT-02
+    title: "WAF-MC-DT-02. Production, test and development use separate subscriptions, and each regional stamp has its own"
+    severity: medium
+    query: "$.subscriptions[*]"
+    assert: { type: manual }
+    remediation: "WAF-MC-DT-02. Confirm environments are in separate subscriptions with clear governance boundaries, regional stamps are in dedicated subscriptions, and global shared resources are in their own. Subscriptions are attached as evidence."
+    manual: true
+  - id: WAF-MC-DT-03
+    title: "WAF-MC-DT-03. At least one staging environment fully reflects production and is exercised with synthetic load"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-MC-DT-03. Confirm a production-like staging environment exists, components are not shared across environments, and a synthetic user load generates realistic metrics."
+    manual: true
+  - id: WAF-MC-DT-04
+    title: "WAF-MC-DT-04. All infrastructure is deployed as code and manual operations against environments are prohibited"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-MC-DT-04. Confirm every resource is defined in declarative templates in source control and deployed by pipelines, with imperative scripts and manual changes prohibited outside developer sandboxes."
+    manual: true
+  - id: WAF-MC-DT-05
+    title: "WAF-MC-DT-05. An Azure Load Testing resource exists"
+    severity: medium
+    query: "$.devops.loadTesting[*]"
+    assert: { type: exists, gate: "$.subscriptions[*]" }
+    remediation: "WAF-MC-DT-05. No Azure Load Testing resource was found. Run load tests that reflect real peak patterns, ideally together with chaos experiments. A third-party load tool also satisfies the intent; this is an existence signal only."
+    manual: false
+  - id: WAF-MC-DT-06
+    title: "WAF-MC-DT-06. Azure Chaos Studio experiments exist"
+    severity: medium
+    query: "$.devops.chaosExperiments[*]"
+    assert: { type: exists, gate: "$.subscriptions[*]" }
+    remediation: "WAF-MC-DT-06. No Chaos Studio experiment was found. Inject faults while the workload is under load and observe whether mitigations work. Another fault-injection tool also satisfies the intent; this is an existence signal only."
+    manual: false
+  - id: WAF-MC-DT-07
+    title: "WAF-MC-DT-07. Smoke, UI, stress, performance and penetration tests run automatically in the pipeline"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-MC-DT-07. Confirm smoke tests run on every deployment, load, stress and chaos tests run on a schedule, test artifacts are version-controlled code, and test data is separable from real data."
+    manual: true
+  - id: WAF-MC-DT-08
+    title: "WAF-MC-DT-08. Deployment tooling is highly available, replicated across regions and reaches private data planes"
+    severity: medium
+    query: "$.devops.managedPools[*]"
+    assert: { type: manual }
+    remediation: "WAF-MC-DT-08. Confirm the deployment toolchain has a defined availability SLA, can still deploy and scale if its home region is down, and uses private build agents for resources behind Private Link. Managed DevOps pools are attached as evidence."
+    manual: true
+  - id: WAF-MC-DT-09
+    title: "WAF-MC-DT-09. Source control enforces a branching strategy, and the software supply chain is scanned"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-MC-DT-09. Confirm main is protected by pull requests with automated validation, release branches deploy to production, hotfixes follow a documented path, and dependencies and secrets are scanned for known CVEs."
+    manual: true
+
+  # ---- Security (SE) --------------------------------------------------------------------------
+  - id: WAF-MC-SE-01
+    title: "WAF-MC-SE-01. Microsoft Defender for Servers is enabled"
+    severity: high
+    query: "$.security.defenderPlans[?(@.name == 'VirtualMachines' && @.properties.pricingTier != 'Standard')]"
+    assert: { type: countEquals, value: 0, gate: "$.compute.virtualMachines[*]" }
+    remediation: "WAF-MC-SE-01. Defender for Servers is not on the Standard tier in the subscriptions listed. Enable Defender for Cloud plans for every service that supports it. (Checked per subscription, not per workload.)"
+    manual: false
+  - id: WAF-MC-SE-02
+    title: "WAF-MC-SE-02. Microsoft Defender for SQL is enabled"
+    severity: high
+    query: "$.domains.databases.sqlDefenderPricing[?(@.pricingTier != 'Standard')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.databases.sqlServers[*]" }
+    remediation: "WAF-MC-SE-02. Defender for SQL is not on the Standard tier in the subscriptions listed. Enable it wherever SQL servers run."
+    manual: false
+  - id: WAF-MC-SE-03
+    title: "WAF-MC-SE-03. Azure Policy assignments enforce the security and reliability baseline"
+    severity: high
+    query: "$.governance.policyAssignments[*]"
+    assert: { type: exists, gate: "$.governance.policyAssignmentsAvailable" }
+    remediation: "WAF-MC-SE-03. No policy assignment was found. Map the engineering criteria to Azure Policy (zones, private endpoints, tagging, diagnostics) and assign it at management-group scope."
+    manual: false
+  - id: WAF-MC-SE-04
+    title: "WAF-MC-SE-04. Key vaults have soft delete and purge protection"
+    severity: high
+    query: "$.domains.security.keyVaults[?(@.softDelete == false || @.purgeProtection != true)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.security.keyVaults[*]" }
+    remediation: "WAF-MC-SE-04. The vaults listed lack soft delete or purge protection. Limit permanent deletion of secrets, keys and certificates and keep an offline backup."
+    manual: false
+  - id: WAF-MC-SE-05
+    title: "WAF-MC-SE-05. Cosmos DB accounts disable key-based authentication"
+    severity: high
+    query: "$.domains.databases.cosmosDbAccounts[?(@.disableLocalAuth != true)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.databases.cosmosDbAccounts[*]" }
+    remediation: "WAF-MC-SE-05. The accounts listed still accept account keys. Use Microsoft Entra authentication and Azure RBAC for the data plane."
+    manual: false
+  - id: WAF-MC-SE-06
+    title: "WAF-MC-SE-06. Container registry admin accounts are disabled"
+    severity: medium
+    query: "$.domains.containers.containerRegistries[?(@.adminEnabled == true)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.containers.containerRegistries[*]" }
+    remediation: "WAF-MC-SE-06. The registries listed have the admin account enabled. Use Microsoft Entra authentication and disable it."
+    manual: false
+  - id: WAF-MC-SE-07
+    title: "WAF-MC-SE-07. Container registries restrict public network access"
+    severity: medium
+    query: "$.domains.containers.containerRegistries[?(@.publicAccess == 'Enabled')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.containers.containerRegistries[*]" }
+    remediation: "WAF-MC-SE-07. The registries listed allow public network access. Restrict access through private endpoints."
+    manual: false
+  - id: WAF-MC-SE-08
+    title: "WAF-MC-SE-08. Managed identities and Azure RBAC secure service-to-service and data-plane access"
+    severity: high
+    query: "$.domains.identity.managedIdentities[*]"
+    assert: { type: manual }
+    remediation: "WAF-MC-SE-08. Confirm every service that supports it uses managed identities, data-plane access uses Azure RBAC, and CI/CD uses workload identity federation instead of stored secrets. User-assigned identities are attached as evidence."
+    manual: true
+  - id: WAF-MC-SE-09
+    title: "WAF-MC-SE-09. No one holds standing write access to production; emergency access is just-in-time with break-glass accounts"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-MC-SE-09. Confirm Entra Privileged Identity Management removes sustained control-plane access, production pipelines have granular RBAC and approval gates, and break-glass accounts exist for authentication failure."
+    manual: true
+  - id: WAF-MC-SE-10
+    title: "WAF-MC-SE-10. Threat modeling is current and engineering budget is set aside for mitigations"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-MC-SE-10. Confirm a STRIDE threat model exists per service and consolidated at application level, and that each sprint carries time to evaluate new threats."
+    manual: true
+  - id: WAF-MC-SE-11
+    title: "WAF-MC-SE-11. Security testing runs in the delivery pipeline and lower environments have a defined posture"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-MC-SE-11. Confirm security tests and secret scanning run in CI/CD and gate releases, and lower environments have a deliberate (not production-identical) security posture."
+    manual: true
+  - id: WAF-MC-SE-12
+    title: "WAF-MC-SE-12. Keys and certificates are rotated automatically, with one key vault per regional stamp"
+    severity: medium
+    query: "$.domains.security.keyVaults[*]"
+    assert: { type: manual }
+    remediation: "WAF-MC-SE-12. Confirm Key Vault instances are deployed per regional stamp plus one for global resources, key and certificate rotation is automated, and near-expiry alerts exist. Key vaults are attached as evidence."
+    manual: true
+  - id: WAF-MC-SE-13
+    title: "WAF-MC-SE-13. Authentication keeps working during identity outages, and identity and activity logs are retained centrally"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-MC-SE-13. Confirm tokens are cached so a degraded identity platform does not stop the application, Entra audit and sign-in logs go to the workload workspace, activity logs are archived, and Defender for Cloud feeds a SIEM."
+    manual: true
+
+  # ---- Operational procedures (OP) ------------------------------------------------------------
+  - id: WAF-MC-OP-01
+    title: "WAF-MC-OP-01. Every change to application and infrastructure flows through automation"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-MC-OP-01. Confirm configuration is code, routine tasks such as key rotation and permission changes are made through auditable code, and manual changes are limited to emergencies and reconciled back to source."
+    manual: true
+  - id: WAF-MC-OP-02
+    title: "WAF-MC-OP-02. 20-40% of engineering capacity goes to platform and reliability improvement, against common engineering criteria"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-MC-OP-02. Confirm sprint capacity is set aside for reliability work and a common engineering criteria, reference architecture and policy baseline is shared across teams."
+    manual: true
+  - id: WAF-MC-OP-03
+    title: "WAF-MC-OP-03. Virtual machines are protected by Azure Backup"
+    severity: high
+    join:
+      left: "$.compute.virtualMachines[*]"
+      leftKey: "id"
+      right: "$.management.backupProtectedItems[*]"
+      rightKey: "sourceResourceId"
+      mode: leftOnly
+      leftLabel: "virtual machine"
+      rightLabel: "backup protected item"
+    assert: { type: countEquals, value: 0, gate: "$.compute.virtualMachines[*]" }
+    remediation: "WAF-MC-OP-03. The virtual machines listed have no protected item. Use platform-native backup aligned to RTO and RPO, or record that the machine is stateless and replaceable."
+    manual: false
+  - id: WAF-MC-OP-04
+    title: "WAF-MC-OP-04. No protected item reports a failed last backup"
+    severity: high
+    query: "$.management.backupProtectedItems[?(@.lastBackupStatus =~ /fail/i)]"
+    assert: { type: countEquals, value: 0, gate: "$.management.backupProtectedItems[*]" }
+    remediation: "WAF-MC-OP-04. The protected items listed report a failed last backup. Fix the cause and confirm a restore works."
+    manual: false
+  - id: WAF-MC-OP-05
+    title: "WAF-MC-OP-05. No autoscale setting is switched off"
+    severity: medium
+    query: "$.monitor.autoscaleSettings[?(@.enabled == false)]"
+    assert: { type: countEquals, value: 0, gate: "$.monitor.autoscaleSettings[*]" }
+    remediation: "WAF-MC-OP-05. The autoscale settings listed are disabled. Prefer Azure-native autoscaling so scale operations need no manual intervention."
+    manual: false
+  - id: WAF-MC-OP-06
+    title: "WAF-MC-OP-06. Resource locks protect long-lived resources"
+    severity: low
+    query: "$.governance.resourceLocks[*]"
+    assert: { type: exists, gate: "$.governance.resourceLocksAvailable" }
+    remediation: "WAF-MC-OP-06. No resource lock was found. Lock long-lived global resources against deletion, and avoid locks on ephemeral regional resources, which pipelines should control. This is an estate-wide existence signal."
+    manual: false
+  - id: WAF-MC-OP-07
+    title: "WAF-MC-OP-07. Virtual machines use platform-orchestrated patching"
+    severity: medium
+    query: "$.compute.virtualMachines[?(@.patchMode != 'AutomaticByPlatform')]"
+    assert: { type: countEquals, value: 0, gate: "$.compute.virtualMachines[*]" }
+    remediation: "WAF-MC-OP-07. The virtual machines listed do not use automatic patching by platform. Automate updates and rollout for any VM that must remain."
+    manual: false
+  - id: WAF-MC-OP-08
+    title: "WAF-MC-OP-08. Failover is automated or codified, and recovery operations are practised"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-MC-OP-08. Confirm failover procedures are automated or run from pipelines, recovery is rehearsed on non-production resources, and a process exists for recovery that needs Microsoft support."
+    manual: true
+  - id: WAF-MC-OP-09
+    title: "WAF-MC-OP-09. Kubernetes versions and cluster components are kept current and old images are purged"
+    severity: medium
+    query: "$.domains.containers.aksClusters[*]"
+    assert: { type: manual }
+    remediation: "WAF-MC-OP-09. Confirm AKS and its add-ons are upgraded regularly because older versions lose support, and old container images are removed automatically. AKS clusters are attached as evidence, with their Kubernetes version."
+    manual: true
+  - id: WAF-MC-OP-10
+    title: "WAF-MC-OP-10. A tagging schema is enforced by policy, and certificates renew through built-in platform capabilities"
+    severity: low
+    query: "$.governance.policyAssignments[?(@.properties.displayName =~ /tag/i)]"
+    assert: { type: manual }
+    remediation: "WAF-MC-OP-10. Confirm Azure Policy enforces required tags (with the modify effect) and TLS certificates renew through managed features such as Front Door. Policy assignments with tag in the name are attached as evidence."
+    manual: true
