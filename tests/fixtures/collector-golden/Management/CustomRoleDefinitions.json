@@ -3,7 +3,7 @@
   "Category": "Management",
   "Name": "CustomRoleDefinitions",
   "FixturePath": "tests/fixtures/collector-equivalence/Management.json",
-  "FixtureSha256": "c66866d070eeda26948afd1c625369ba997a136a92d6d6e7ce51553976caecd4",
+  "FixtureSha256": "c77e9e15a3fc4669aca46a6c6717a0b7c5e3efef9743a8f439287ccc09f85aa4",
   "Rows": [
     "Actions=s:res-item-0; res-item-1|Assignable Scopes=s:res-item-0; res-item-1|Created By=s:CreatedBy value|Created On=s:2026-01-15 10:30|Data Actions=s:res-item-0; res-item-1|Description=s:Description value|ID=s:Id value|Is Custom=s:IsCustom value|Not Actions=s:res-item-0; res-item-1|Not Data Actions=s:res-item-0; res-item-1|Resource U=j:1|Role Name=s:Name value|Role Type=s:RoleType value|Updated By=s:UpdatedBy value|Updated On=s:2026-01-15 10:30",
     "Actions=s:res-item-0; res-item-1|Assignable Scopes=s:res-item-0; res-item-1|Created By=s:CreatedBy value|Created On=s:2026-01-15 10:30|Data Actions=s:res-item-0; res-item-1|Description=s:Description value|ID=s:Id value|Is Custom=s:IsCustom value|Not Actions=s:res-item-0; res-item-1|Not Data Actions=s:res-item-0; res-item-1|Resource U=j:1|Role Name=s:Name value|Role Type=s:RoleType value|Updated By=s:UpdatedBy value|Updated On=s:2026-01-15 10:30",

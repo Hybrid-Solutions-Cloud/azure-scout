@@ -1,0 +1,24 @@
+{
+  "SchemaVersion": 1,
+  "Category": "Integration",
+  "Name": "ApiCenterServices",
+  "FixturePath": "tests/fixtures/collector-equivalence/Integration.json",
+  "FixtureSha256": "e0f64616ee9f21d6e95a46705a4f40e03e0b9b9670a6a3018df54baed560b31f",
+  "Rows": [
+    "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.apicenter/services/apicenterservices-t1a-1|Location=s:res-value|Name=s:apicenterservices-t1a|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",
+    "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.apicenter/services/apicenterservices-t1b-1|Location=s:res-value|Name=s:apicenterservices-t1b|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",
+    "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.apicenter/services/apicenterservices-t1b-1|Location=s:res-value|Name=s:apicenterservices-t1b|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:0|Subscription=s:sub-fixture-01|Tag Name=s:owner|Tag Value=s:platform",
+    "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.apicenter/services/apicenterservices-t1c-1|Location=s:res-value|Name=s:apicenterservices-t1c|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Subscription=s:sub-fixture-01|Tag Name=s:|Tag Value=s:",
+    "ID=s:/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.apicenter/services/apicenterservices-t1d-1|Location=s:res-value|Name=s:apicenterservices-t1d|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Subscription=<null>|Tag Name=s:env|Tag Value=s:dev",
+    "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.apicenter/services/apicenterservices-t1e-1|Location=s:res-value|Name=s:apicenterservices-t1e|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",
+    "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.apicenter/services/apicenterservices-t1f-1|Location=s:res-value|Name=s:apicenterservices-t1f|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod"
+  ],
+  "Workbook": {
+    "WithoutTags": [
+      "Subscription\tResource Group\tName\tLocation\tProvisioning State\tResource U\nsub-fixture-01\tres-value\tapicenterservices-t1a\tres-value\tres-value\t1\nsub-fixture-01\tres-value\tapicenterservices-t1b\tres-value\tres-value\t1\nsub-fixture-01\tres-value\tapicenterservices-t1b\tres-value\tres-value\t0\nsub-fixture-01\tres-value\tapicenterservices-t1c\tres-value\tres-value\t1\n\tres-value\tapicenterservices-t1d\tres-value\tres-value\t1\nsub-fixture-01\tres-value\tapicenterservices-t1e\tres-value\tres-value\t1\nsub-fixture-01\tres-value\tapicenterservices-t1f\tres-value\tres-value\t1"
+    ],
+    "WithTags": [
+      "Subscription\tResource Group\tName\tLocation\tProvisioning State\tTag Name\tTag Value\tResource U\nsub-fixture-01\tres-value\tapicenterservices-t1a\tres-value\tres-value\tenv\tprod\t1\nsub-fixture-01\tres-value\tapicenterservices-t1b\tres-value\tres-value\tenv\tprod\t1\nsub-fixture-01\tres-value\tapicenterservices-t1b\tres-value\tres-value\towner\tplatform\t0\nsub-fixture-01\tres-value\tapicenterservices-t1c\tres-value\tres-value\t\t\t1\n\tres-value\tapicenterservices-t1d\tres-value\tres-value\tenv\tdev\t1\nsub-fixture-01\tres-value\tapicenterservices-t1e\tres-value\tres-value\tenv\tprod\t1\nsub-fixture-01\tres-value\tapicenterservices-t1f\tres-value\tres-value\tenv\tprod\t1"
+    ]
+  }
+}

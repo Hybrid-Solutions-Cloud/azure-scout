@@ -3,7 +3,7 @@
   "Category": "Containers",
   "Name": "ContainerAppManagedCertificates",
   "FixturePath": "tests/fixtures/collector-equivalence/Containers.json",
-  "FixtureSha256": "cc1f023f45b0747a8b7e33ea43b7b584dabf5afa299fa14a27621353186ed66b",
+  "FixtureSha256": "51b366836ed902f0622e425c9ff1e14f4812d99adf9dceab618c002752d19db1",
   "Rows": [
     "Domain Control Validation=s:res-value|Environment=s:containerappmanagedcertificates-t1a-1|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.app/managedenvironments/containerappmanagedcertificates-t1a-1/managedcertificates/containerappmanagedcertificates-t1a-2|Location=s:res-value|Name=s:containerappmanagedcertificates-t1a|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|Subject Name=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod|Validation Method=s:res-value",
     "Domain Control Validation=s:res-value|Environment=s:containerappmanagedcertificates-t1b-1|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.app/managedenvironments/containerappmanagedcertificates-t1b-1/managedcertificates/containerappmanagedcertificates-t1b-2|Location=s:res-value|Name=s:containerappmanagedcertificates-t1b|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|Subject Name=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod|Validation Method=s:res-value",

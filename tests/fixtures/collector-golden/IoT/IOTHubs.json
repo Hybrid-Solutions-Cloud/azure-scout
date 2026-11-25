@@ -3,7 +3,7 @@
   "Category": "IoT",
   "Name": "IOTHubs",
   "FixturePath": "tests/fixtures/collector-equivalence/IoT.json",
-  "FixtureSha256": "0bff95e290911f38a661d975b6cb58ceedb53a21520d74be286ee772d4f7affd",
+  "FixtureSha256": "79cdcfbddc375090d13511288025cabe8bbc5168654e2162c38e96ddb1e09ff4",
   "Rows": [
     "Event Partition Count=s:res-value|Event Retention Time In Days=s:res-value|Events Path=s:res-value|Host Name=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.devices/iothubs/iothubs-t1a-1|IP Filter Rules=s:2|Location=s:res-value|Max Delivery Count=s:res-value|Name=s:iothubs-t1a|Resource Group=s:res-value|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|Role=s:res-value|SKU=s:res-value|SKU Tier=s:res-value|State=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",
     "Event Partition Count=s:res-value|Event Retention Time In Days=s:res-value|Events Path=s:res-value|Host Name=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.devices/iothubs/iothubs-t1a-1|IP Filter Rules=s:2|Location=s:res-value|Max Delivery Count=s:res-value|Name=s:iothubs-t1a|Resource Group=s:res-value|Resource U=j:0|Retiring Date=<null>|Retiring Feature=<null>|Role=s:res-value|SKU=s:res-value|SKU Tier=s:res-value|State=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",

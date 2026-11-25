@@ -40,6 +40,7 @@ need a consolidated view of their Azure environment.
 
 ## Key Features
 - ARM and Entra ID inventory
+- Discovery of everything deployed: every Azure Resource Graph table that holds deployed resources, cross-checked against Azure Resource Manager, with every discovered resource filed under one of the 18 categories
 - Azure DevOps inventory — projects, pipelines, service connections, repos, agent pools
 - One output contract for inventory, assessment, and combined runs: `React`, `Json`, and `JsonEvidence`
 - Scoped execution (ARM-only, Entra-only, or both)
@@ -117,26 +118,26 @@ names; Microsoft's portal long names are accepted as aliases.
 
 | `-Category` | Report section heading | Aliases also accepted | Modules |
 |---|---|---|---|
-| `AI` | AI + machine learning | `AI + machine learning`, `Machine Learning` | 27 |
-| `Analytics` | Analytics | — | 6 |
-| `Compute` | Compute | — | 13 |
-| `Containers` | Containers | — | 6 |
-| `Databases` | Databases | — | 12 |
-| `DevOps` | DevOps | — | 12 |
-| `General` | General | — | 4 |
-| `Hybrid` | Hybrid + multicloud | `Hybrid + multicloud` | 15 |
-| `Identity` | Identity | — | 16 |
-| `Integration` | Integration | — | 9 |
-| `IoT` | Internet of Things | `Internet of Things` | 7 |
-| `Management` | Management and governance | `Management and governance` | 18 |
+| `AI` | AI + machine learning | `AI + machine learning`, `Machine Learning` | 31 |
+| `Analytics` | Analytics | — | 13 |
+| `Compute` | Compute | — | 27 |
+| `Containers` | Containers | — | 13 |
+| `Databases` | Databases | — | 17 |
+| `DevOps` | DevOps | — | 20 |
+| `General` | General | — | 5 |
+| `Hybrid` | Hybrid + multicloud | `Hybrid + multicloud` | 33 |
+| `Identity` | Identity | — | 38 |
+| `Integration` | Integration | — | 11 |
+| `IoT` | Internet of Things | `Internet of Things` | 9 |
+| `Management` | Management and governance | `Management and governance` | 30 |
 | `Migration` | Migration | — | 6 |
-| `Monitor` | Monitor | `Monitoring` | 22 |
-| `Networking` | Networking | `Networking + CDN` | 21 |
-| `Security` | Security | — | 17 |
-| `Storage` | Storage | — | 11 |
+| `Monitor` | Monitor | `Monitoring` | 30 |
+| `Networking` | Networking | `Networking + CDN` | 41 |
+| `Security` | Security | — | 26 |
+| `Storage` | Storage | — | 17 |
 | `Web` | Web and mobile | `Web & Mobile`, `Mobile` | 14 |
 
-18 categories, 240 collector definitions in total. Note that `Monitor` is canonical, not
+18 categories, 381 collector definitions in total. Note that `Monitor` is canonical, not
 `Monitoring`, and that `DevOps` and `Migration` are canonical categories in their own right as
 of v3.1.0 — they no longer alias to `Management`. Matching is case-insensitive. The complete
 mapping — every alias, manifest definition, and the resource types behind each heading — is in

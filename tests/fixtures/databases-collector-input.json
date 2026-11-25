@@ -943,6 +943,560 @@
       "PROPERTIES": {
         "metadata": {}
       }
+    },
+    {
+      "PROPERTIES": {
+        "partnerProperties": {
+          "organizationName": "res-value",
+          "organizationId": "res-value"
+        },
+        "marketplace": {
+          "offerDetails": {
+            "offerId": "res-value",
+            "planId": "res-value"
+          }
+        },
+        "provisioningState": "res-value"
+      },
+      "subscriptionId": "00000000-0000-0000-0000-000000000001",
+      "tags": {
+        "env": "prod"
+      },
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/mongodb.atlas/organizations/mongodbatlas-t1a-1",
+      "RESOURCEGROUP": "res-value",
+      "NAME": "mongodbatlas-t1a",
+      "LOCATION": "res-value",
+      "TYPE": "mongodb.atlas/organizations"
+    },
+    {
+      "PROPERTIES": {
+        "partnerProperties": {
+          "organizationName": "res-value",
+          "organizationId": "res-value"
+        },
+        "marketplace": {
+          "offerDetails": {
+            "offerId": "res-value",
+            "planId": "res-value"
+          }
+        },
+        "provisioningState": "res-value"
+      },
+      "subscriptionId": "00000000-0000-0000-0000-000000000001",
+      "tags": {
+        "env": "prod",
+        "owner": "platform"
+      },
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/mongodb.atlas/organizations/mongodbatlas-t1b-1",
+      "RESOURCEGROUP": "res-value",
+      "NAME": "mongodbatlas-t1b",
+      "LOCATION": "res-value",
+      "TYPE": "mongodb.atlas/organizations"
+    },
+    {
+      "PROPERTIES": {
+        "partnerProperties": {
+          "organizationName": "res-value",
+          "organizationId": "res-value"
+        },
+        "marketplace": {
+          "offerDetails": {
+            "offerId": "res-value",
+            "planId": "res-value"
+          }
+        },
+        "provisioningState": "res-value"
+      },
+      "subscriptionId": "00000000-0000-0000-0000-000000000001",
+      "tags": {},
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/mongodb.atlas/organizations/mongodbatlas-t1c-1",
+      "RESOURCEGROUP": "res-value",
+      "NAME": "mongodbatlas-t1c",
+      "LOCATION": "res-value",
+      "TYPE": "mongodb.atlas/organizations"
+    },
+    {
+      "PROPERTIES": {
+        "partnerProperties": {
+          "organizationName": "res-value",
+          "organizationId": "res-value"
+        },
+        "marketplace": {
+          "offerDetails": {
+            "offerId": "res-value",
+            "planId": "res-value"
+          }
+        },
+        "provisioningState": "res-value"
+      },
+      "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+      "tags": {
+        "env": "dev"
+      },
+      "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/mongodb.atlas/organizations/mongodbatlas-t1d-1",
+      "RESOURCEGROUP": "res-value",
+      "NAME": "mongodbatlas-t1d",
+      "LOCATION": "res-value",
+      "TYPE": "mongodb.atlas/organizations"
+    },
+    {
+      "PROPERTIES": {
+        "partnerProperties": {
+          "organizationName": "res-value",
+          "organizationId": "res-value"
+        },
+        "marketplace": {
+          "offerDetails": {
+            "offerId": "res-value",
+            "planId": "res-value"
+          }
+        },
+        "provisioningState": "res-value"
+      },
+      "subscriptionId": "00000000-0000-0000-0000-000000000001",
+      "tags": {
+        "env": "prod"
+      },
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/mongodb.atlas/organizations/mongodbatlas-t1e-1",
+      "RESOURCEGROUP": "res-value",
+      "NAME": "mongodbatlas-t1e",
+      "LOCATION": "res-value",
+      "TYPE": "mongodb.atlas/organizations"
+    },
+    {
+      "PROPERTIES": {
+        "partnerProperties": {
+          "organizationName": "res-value",
+          "organizationId": "res-value"
+        },
+        "marketplace": {
+          "offerDetails": {
+            "offerId": "res-value",
+            "planId": "res-value"
+          }
+        },
+        "provisioningState": "res-value"
+      },
+      "subscriptionId": "00000000-0000-0000-0000-000000000001",
+      "tags": {
+        "env": "prod"
+      },
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/mongodb.atlas/organizations/mongodbatlas-t1f-1",
+      "RESOURCEGROUP": "res-value",
+      "NAME": "mongodbatlas-t1f",
+      "LOCATION": "res-value",
+      "TYPE": "mongodb.atlas/organizations"
+    },
+    {
+      "PROPERTIES": {
+        "dbVersion": "res-value",
+        "giVersion": "res-value",
+        "computeCount": "res-value",
+        "cpuCoreCount": "res-value",
+        "dbWorkload": "res-value",
+        "shape": "res-value",
+        "dataStorageSizeInTbs": "res-value",
+        "licenseModel": "res-value",
+        "lifecycleState": "res-value",
+        "provisioningState": "res-value"
+      },
+      "subscriptionId": "00000000-0000-0000-0000-000000000001",
+      "tags": {
+        "env": "prod"
+      },
+      "TYPE": "oracle.database/autonomousdatabases",
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/oracle.database/autonomousdatabases/oracledatabaseatazure-t1a-1",
+      "RESOURCEGROUP": "res-value",
+      "NAME": "oracledatabaseatazure-t1a",
+      "LOCATION": "res-value"
+    },
+    {
+      "PROPERTIES": {
+        "dbVersion": "res-value",
+        "giVersion": "res-value",
+        "computeCount": "res-value",
+        "cpuCoreCount": "res-value",
+        "dbWorkload": "res-value",
+        "shape": "res-value",
+        "dataStorageSizeInTbs": "res-value",
+        "licenseModel": "res-value",
+        "lifecycleState": "res-value",
+        "provisioningState": "res-value"
+      },
+      "subscriptionId": "00000000-0000-0000-0000-000000000001",
+      "tags": {
+        "env": "prod"
+      },
+      "TYPE": "oracle.database/cloudexadatainfrastructures",
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/oracle.database/cloudexadatainfrastructures/oracledatabaseatazure-t2a-1",
+      "RESOURCEGROUP": "res-value",
+      "NAME": "oracledatabaseatazure-t2a",
+      "LOCATION": "res-value"
+    },
+    {
+      "PROPERTIES": {
+        "dbVersion": "res-value",
+        "giVersion": "res-value",
+        "computeCount": "res-value",
+        "cpuCoreCount": "res-value",
+        "dbWorkload": "res-value",
+        "shape": "res-value",
+        "dataStorageSizeInTbs": "res-value",
+        "licenseModel": "res-value",
+        "lifecycleState": "res-value",
+        "provisioningState": "res-value"
+      },
+      "subscriptionId": "00000000-0000-0000-0000-000000000001",
+      "tags": {
+        "env": "prod"
+      },
+      "TYPE": "oracle.database/cloudvmclusters",
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/oracle.database/cloudvmclusters/oracledatabaseatazure-t3a-1",
+      "RESOURCEGROUP": "res-value",
+      "NAME": "oracledatabaseatazure-t3a",
+      "LOCATION": "res-value"
+    },
+    {
+      "PROPERTIES": {
+        "dbVersion": "res-value",
+        "giVersion": "res-value",
+        "computeCount": "res-value",
+        "cpuCoreCount": "res-value",
+        "dbWorkload": "res-value",
+        "shape": "res-value",
+        "dataStorageSizeInTbs": "res-value",
+        "licenseModel": "res-value",
+        "lifecycleState": "res-value",
+        "provisioningState": "res-value"
+      },
+      "subscriptionId": "00000000-0000-0000-0000-000000000001",
+      "tags": {
+        "env": "prod",
+        "owner": "platform"
+      },
+      "TYPE": "oracle.database/autonomousdatabases",
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/oracle.database/autonomousdatabases/oracledatabaseatazure-t1b-1",
+      "RESOURCEGROUP": "res-value",
+      "NAME": "oracledatabaseatazure-t1b",
+      "LOCATION": "res-value"
+    },
+    {
+      "PROPERTIES": {
+        "dbVersion": "res-value",
+        "giVersion": "res-value",
+        "computeCount": "res-value",
+        "cpuCoreCount": "res-value",
+        "dbWorkload": "res-value",
+        "shape": "res-value",
+        "dataStorageSizeInTbs": "res-value",
+        "licenseModel": "res-value",
+        "lifecycleState": "res-value",
+        "provisioningState": "res-value"
+      },
+      "subscriptionId": "00000000-0000-0000-0000-000000000001",
+      "tags": {
+        "env": "prod",
+        "owner": "platform"
+      },
+      "TYPE": "oracle.database/cloudexadatainfrastructures",
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/oracle.database/cloudexadatainfrastructures/oracledatabaseatazure-t2b-1",
+      "RESOURCEGROUP": "res-value",
+      "NAME": "oracledatabaseatazure-t2b",
+      "LOCATION": "res-value"
+    },
+    {
+      "PROPERTIES": {
+        "dbVersion": "res-value",
+        "giVersion": "res-value",
+        "computeCount": "res-value",
+        "cpuCoreCount": "res-value",
+        "dbWorkload": "res-value",
+        "shape": "res-value",
+        "dataStorageSizeInTbs": "res-value",
+        "licenseModel": "res-value",
+        "lifecycleState": "res-value",
+        "provisioningState": "res-value"
+      },
+      "subscriptionId": "00000000-0000-0000-0000-000000000001",
+      "tags": {
+        "env": "prod",
+        "owner": "platform"
+      },
+      "TYPE": "oracle.database/cloudvmclusters",
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/oracle.database/cloudvmclusters/oracledatabaseatazure-t3b-1",
+      "RESOURCEGROUP": "res-value",
+      "NAME": "oracledatabaseatazure-t3b",
+      "LOCATION": "res-value"
+    },
+    {
+      "PROPERTIES": {
+        "dbVersion": "res-value",
+        "giVersion": "res-value",
+        "computeCount": "res-value",
+        "cpuCoreCount": "res-value",
+        "dbWorkload": "res-value",
+        "shape": "res-value",
+        "dataStorageSizeInTbs": "res-value",
+        "licenseModel": "res-value",
+        "lifecycleState": "res-value",
+        "provisioningState": "res-value"
+      },
+      "subscriptionId": "00000000-0000-0000-0000-000000000001",
+      "tags": {},
+      "TYPE": "oracle.database/autonomousdatabases",
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/oracle.database/autonomousdatabases/oracledatabaseatazure-t1c-1",
+      "RESOURCEGROUP": "res-value",
+      "NAME": "oracledatabaseatazure-t1c",
+      "LOCATION": "res-value"
+    },
+    {
+      "PROPERTIES": {
+        "dbVersion": "res-value",
+        "giVersion": "res-value",
+        "computeCount": "res-value",
+        "cpuCoreCount": "res-value",
+        "dbWorkload": "res-value",
+        "shape": "res-value",
+        "dataStorageSizeInTbs": "res-value",
+        "licenseModel": "res-value",
+        "lifecycleState": "res-value",
+        "provisioningState": "res-value"
+      },
+      "subscriptionId": "00000000-0000-0000-0000-000000000001",
+      "tags": {},
+      "TYPE": "oracle.database/cloudexadatainfrastructures",
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/oracle.database/cloudexadatainfrastructures/oracledatabaseatazure-t2c-1",
+      "RESOURCEGROUP": "res-value",
+      "NAME": "oracledatabaseatazure-t2c",
+      "LOCATION": "res-value"
+    },
+    {
+      "PROPERTIES": {
+        "dbVersion": "res-value",
+        "giVersion": "res-value",
+        "computeCount": "res-value",
+        "cpuCoreCount": "res-value",
+        "dbWorkload": "res-value",
+        "shape": "res-value",
+        "dataStorageSizeInTbs": "res-value",
+        "licenseModel": "res-value",
+        "lifecycleState": "res-value",
+        "provisioningState": "res-value"
+      },
+      "subscriptionId": "00000000-0000-0000-0000-000000000001",
+      "tags": {},
+      "TYPE": "oracle.database/cloudvmclusters",
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/oracle.database/cloudvmclusters/oracledatabaseatazure-t3c-1",
+      "RESOURCEGROUP": "res-value",
+      "NAME": "oracledatabaseatazure-t3c",
+      "LOCATION": "res-value"
+    },
+    {
+      "PROPERTIES": {
+        "dbVersion": "res-value",
+        "giVersion": "res-value",
+        "computeCount": "res-value",
+        "cpuCoreCount": "res-value",
+        "dbWorkload": "res-value",
+        "shape": "res-value",
+        "dataStorageSizeInTbs": "res-value",
+        "licenseModel": "res-value",
+        "lifecycleState": "res-value",
+        "provisioningState": "res-value"
+      },
+      "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+      "tags": {
+        "env": "dev"
+      },
+      "TYPE": "oracle.database/autonomousdatabases",
+      "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/oracle.database/autonomousdatabases/oracledatabaseatazure-t1d-1",
+      "RESOURCEGROUP": "res-value",
+      "NAME": "oracledatabaseatazure-t1d",
+      "LOCATION": "res-value"
+    },
+    {
+      "PROPERTIES": {
+        "dbVersion": "res-value",
+        "giVersion": "res-value",
+        "computeCount": "res-value",
+        "cpuCoreCount": "res-value",
+        "dbWorkload": "res-value",
+        "shape": "res-value",
+        "dataStorageSizeInTbs": "res-value",
+        "licenseModel": "res-value",
+        "lifecycleState": "res-value",
+        "provisioningState": "res-value"
+      },
+      "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+      "tags": {
+        "env": "dev"
+      },
+      "TYPE": "oracle.database/cloudexadatainfrastructures",
+      "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/oracle.database/cloudexadatainfrastructures/oracledatabaseatazure-t2d-1",
+      "RESOURCEGROUP": "res-value",
+      "NAME": "oracledatabaseatazure-t2d",
+      "LOCATION": "res-value"
+    },
+    {
+      "PROPERTIES": {
+        "dbVersion": "res-value",
+        "giVersion": "res-value",
+        "computeCount": "res-value",
+        "cpuCoreCount": "res-value",
+        "dbWorkload": "res-value",
+        "shape": "res-value",
+        "dataStorageSizeInTbs": "res-value",
+        "licenseModel": "res-value",
+        "lifecycleState": "res-value",
+        "provisioningState": "res-value"
+      },
+      "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+      "tags": {
+        "env": "dev"
+      },
+      "TYPE": "oracle.database/cloudvmclusters",
+      "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/oracle.database/cloudvmclusters/oracledatabaseatazure-t3d-1",
+      "RESOURCEGROUP": "res-value",
+      "NAME": "oracledatabaseatazure-t3d",
+      "LOCATION": "res-value"
+    },
+    {
+      "PROPERTIES": {
+        "dbVersion": "res-value",
+        "giVersion": "res-value",
+        "computeCount": "res-value",
+        "cpuCoreCount": "res-value",
+        "dbWorkload": "res-value",
+        "shape": "res-value",
+        "dataStorageSizeInTbs": "res-value",
+        "licenseModel": "res-value",
+        "lifecycleState": "res-value",
+        "provisioningState": "res-value"
+      },
+      "subscriptionId": "00000000-0000-0000-0000-000000000001",
+      "tags": {
+        "env": "prod"
+      },
+      "TYPE": "oracle.database/autonomousdatabases",
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/oracle.database/autonomousdatabases/oracledatabaseatazure-t1e-1",
+      "RESOURCEGROUP": "res-value",
+      "NAME": "oracledatabaseatazure-t1e",
+      "LOCATION": "res-value"
+    },
+    {
+      "PROPERTIES": {
+        "dbVersion": "res-value",
+        "giVersion": "res-value",
+        "computeCount": "res-value",
+        "cpuCoreCount": "res-value",
+        "dbWorkload": "res-value",
+        "shape": "res-value",
+        "dataStorageSizeInTbs": "res-value",
+        "licenseModel": "res-value",
+        "lifecycleState": "res-value",
+        "provisioningState": "res-value"
+      },
+      "subscriptionId": "00000000-0000-0000-0000-000000000001",
+      "tags": {
+        "env": "prod"
+      },
+      "TYPE": "oracle.database/cloudexadatainfrastructures",
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/oracle.database/cloudexadatainfrastructures/oracledatabaseatazure-t2e-1",
+      "RESOURCEGROUP": "res-value",
+      "NAME": "oracledatabaseatazure-t2e",
+      "LOCATION": "res-value"
+    },
+    {
+      "PROPERTIES": {
+        "dbVersion": "res-value",
+        "giVersion": "res-value",
+        "computeCount": "res-value",
+        "cpuCoreCount": "res-value",
+        "dbWorkload": "res-value",
+        "shape": "res-value",
+        "dataStorageSizeInTbs": "res-value",
+        "licenseModel": "res-value",
+        "lifecycleState": "res-value",
+        "provisioningState": "res-value"
+      },
+      "subscriptionId": "00000000-0000-0000-0000-000000000001",
+      "tags": {
+        "env": "prod"
+      },
+      "TYPE": "oracle.database/cloudvmclusters",
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/oracle.database/cloudvmclusters/oracledatabaseatazure-t3e-1",
+      "RESOURCEGROUP": "res-value",
+      "NAME": "oracledatabaseatazure-t3e",
+      "LOCATION": "res-value"
+    },
+    {
+      "PROPERTIES": {
+        "dbVersion": "res-value",
+        "giVersion": "res-value",
+        "computeCount": "res-value",
+        "cpuCoreCount": "res-value",
+        "dbWorkload": "res-value",
+        "shape": "res-value",
+        "dataStorageSizeInTbs": "res-value",
+        "licenseModel": "res-value",
+        "lifecycleState": "res-value",
+        "provisioningState": "res-value"
+      },
+      "subscriptionId": "00000000-0000-0000-0000-000000000001",
+      "tags": {
+        "env": "prod"
+      },
+      "TYPE": "oracle.database/autonomousdatabases",
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/oracle.database/autonomousdatabases/oracledatabaseatazure-t1f-1",
+      "RESOURCEGROUP": "res-value",
+      "NAME": "oracledatabaseatazure-t1f",
+      "LOCATION": "res-value"
+    },
+    {
+      "PROPERTIES": {
+        "dbVersion": "res-value",
+        "giVersion": "res-value",
+        "computeCount": "res-value",
+        "cpuCoreCount": "res-value",
+        "dbWorkload": "res-value",
+        "shape": "res-value",
+        "dataStorageSizeInTbs": "res-value",
+        "licenseModel": "res-value",
+        "lifecycleState": "res-value",
+        "provisioningState": "res-value"
+      },
+      "subscriptionId": "00000000-0000-0000-0000-000000000001",
+      "tags": {
+        "env": "prod"
+      },
+      "TYPE": "oracle.database/cloudexadatainfrastructures",
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/oracle.database/cloudexadatainfrastructures/oracledatabaseatazure-t2f-1",
+      "RESOURCEGROUP": "res-value",
+      "NAME": "oracledatabaseatazure-t2f",
+      "LOCATION": "res-value"
+    },
+    {
+      "PROPERTIES": {
+        "dbVersion": "res-value",
+        "giVersion": "res-value",
+        "computeCount": "res-value",
+        "cpuCoreCount": "res-value",
+        "dbWorkload": "res-value",
+        "shape": "res-value",
+        "dataStorageSizeInTbs": "res-value",
+        "licenseModel": "res-value",
+        "lifecycleState": "res-value",
+        "provisioningState": "res-value"
+      },
+      "subscriptionId": "00000000-0000-0000-0000-000000000001",
+      "tags": {
+        "env": "prod"
+      },
+      "TYPE": "oracle.database/cloudvmclusters",
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/oracle.database/cloudvmclusters/oracledatabaseatazure-t3f-1",
+      "RESOURCEGROUP": "res-value",
+      "NAME": "oracledatabaseatazure-t3f",
+      "LOCATION": "res-value"
     }
   ]
 }

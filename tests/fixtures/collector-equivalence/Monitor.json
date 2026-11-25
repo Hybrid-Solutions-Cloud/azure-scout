@@ -402,6 +402,42 @@
     {
       "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/newrelic.observability/monitors/partnermonitors-t4f-1",
       "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.operationalinsights/clusters/loganalyticsclusters-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.operationalinsights/clusters/loganalyticsclusters-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.operationalinsights/clusters/loganalyticsclusters-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.operationalinsights/querypacks/loganalyticsquerypacks-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.operationalinsights/querypacks/loganalyticsquerypacks-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.operationalinsights/querypacks/loganalyticsquerypacks-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.alertsmanagement/prometheusrulegroups/prometheusrulegroups-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.alertsmanagement/prometheusrulegroups/prometheusrulegroups-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.alertsmanagement/prometheusrulegroups/prometheusrulegroups-t1f-1",
+      "ServiceID": "svc-2"
     }
   ],
   "unsupported": [
@@ -3978,6 +4014,288 @@
         }
       ]
     },
+    "LogAnalyticsClusters": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "billingType": "res-value",
+            "isDoubleEncryptionEnabled": "res-value",
+            "isAvailabilityZonesEnabled": "res-value",
+            "keyVaultProperties": {
+              "keyName": "res-value"
+            },
+            "associatedWorkspaces": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "replication": {
+              "enabled": "res-value"
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.operationalinsights/clusters/loganalyticsclusters-t1a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "loganalyticsclusters-t1a",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value",
+            "capacity": "res-value"
+          },
+          "TYPE": "microsoft.operationalinsights/clusters"
+        },
+        {
+          "PROPERTIES": {
+            "billingType": "res-value",
+            "isDoubleEncryptionEnabled": "res-value",
+            "isAvailabilityZonesEnabled": "res-value",
+            "keyVaultProperties": {
+              "keyName": "res-value"
+            },
+            "associatedWorkspaces": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "replication": {
+              "enabled": "res-value"
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.operationalinsights/clusters/loganalyticsclusters-t1b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "loganalyticsclusters-t1b",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value",
+            "capacity": "res-value"
+          },
+          "TYPE": "microsoft.operationalinsights/clusters"
+        },
+        {
+          "PROPERTIES": {
+            "billingType": "res-value",
+            "isDoubleEncryptionEnabled": "res-value",
+            "isAvailabilityZonesEnabled": "res-value",
+            "keyVaultProperties": {
+              "keyName": "res-value"
+            },
+            "associatedWorkspaces": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "replication": {
+              "enabled": "res-value"
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.operationalinsights/clusters/loganalyticsclusters-t1c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "loganalyticsclusters-t1c",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value",
+            "capacity": "res-value"
+          },
+          "TYPE": "microsoft.operationalinsights/clusters"
+        },
+        {
+          "PROPERTIES": {
+            "billingType": "res-value",
+            "isDoubleEncryptionEnabled": "res-value",
+            "isAvailabilityZonesEnabled": "res-value",
+            "keyVaultProperties": {
+              "keyName": "res-value"
+            },
+            "associatedWorkspaces": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "replication": {
+              "enabled": "res-value"
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.operationalinsights/clusters/loganalyticsclusters-t1d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "loganalyticsclusters-t1d",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value",
+            "capacity": "res-value"
+          },
+          "TYPE": "microsoft.operationalinsights/clusters"
+        },
+        {
+          "PROPERTIES": {
+            "billingType": "res-value",
+            "isDoubleEncryptionEnabled": "res-value",
+            "isAvailabilityZonesEnabled": "res-value",
+            "keyVaultProperties": {
+              "keyName": "res-value"
+            },
+            "associatedWorkspaces": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "replication": {
+              "enabled": "res-value"
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.operationalinsights/clusters/loganalyticsclusters-t1e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "loganalyticsclusters-t1e",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value",
+            "capacity": "res-value"
+          },
+          "TYPE": "microsoft.operationalinsights/clusters"
+        },
+        {
+          "PROPERTIES": {
+            "billingType": "res-value",
+            "isDoubleEncryptionEnabled": "res-value",
+            "isAvailabilityZonesEnabled": "res-value",
+            "keyVaultProperties": {
+              "keyName": "res-value"
+            },
+            "associatedWorkspaces": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "replication": {
+              "enabled": "res-value"
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.operationalinsights/clusters/loganalyticsclusters-t1f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "loganalyticsclusters-t1f",
+          "LOCATION": "res-value",
+          "sku": {
+            "name": "res-value",
+            "capacity": "res-value"
+          },
+          "TYPE": "microsoft.operationalinsights/clusters"
+        }
+      ]
+    },
+    "LogAnalyticsQueryPacks": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "queryPackId": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.operationalinsights/querypacks/loganalyticsquerypacks-t1a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "loganalyticsquerypacks-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.operationalinsights/querypacks"
+        },
+        {
+          "PROPERTIES": {
+            "queryPackId": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.operationalinsights/querypacks/loganalyticsquerypacks-t1b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "loganalyticsquerypacks-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.operationalinsights/querypacks"
+        },
+        {
+          "PROPERTIES": {
+            "queryPackId": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.operationalinsights/querypacks/loganalyticsquerypacks-t1c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "loganalyticsquerypacks-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.operationalinsights/querypacks"
+        },
+        {
+          "PROPERTIES": {
+            "queryPackId": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.operationalinsights/querypacks/loganalyticsquerypacks-t1d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "loganalyticsquerypacks-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.operationalinsights/querypacks"
+        },
+        {
+          "PROPERTIES": {
+            "queryPackId": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.operationalinsights/querypacks/loganalyticsquerypacks-t1e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "loganalyticsquerypacks-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.operationalinsights/querypacks"
+        },
+        {
+          "PROPERTIES": {
+            "queryPackId": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.operationalinsights/querypacks/loganalyticsquerypacks-t1f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "loganalyticsquerypacks-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.operationalinsights/querypacks"
+        }
+      ]
+    },
     "MetricAlertRules": {
       "resources": [
         {
@@ -5418,6 +5736,159 @@
           "RESOURCEGROUP": "res-value",
           "NAME": "partnermonitors-t4f",
           "LOCATION": "res-value"
+        }
+      ]
+    },
+    "PrometheusRuleGroups": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "enabled": "res-value",
+            "clusterName": "res-value",
+            "interval": "res-value",
+            "rules": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "scopes": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "description": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.alertsmanagement/prometheusrulegroups/prometheusrulegroups-t1a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "prometheusrulegroups-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.alertsmanagement/prometheusrulegroups"
+        },
+        {
+          "PROPERTIES": {
+            "enabled": "res-value",
+            "clusterName": "res-value",
+            "interval": "res-value",
+            "rules": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "scopes": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "description": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.alertsmanagement/prometheusrulegroups/prometheusrulegroups-t1b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "prometheusrulegroups-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.alertsmanagement/prometheusrulegroups"
+        },
+        {
+          "PROPERTIES": {
+            "enabled": "res-value",
+            "clusterName": "res-value",
+            "interval": "res-value",
+            "rules": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "scopes": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "description": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.alertsmanagement/prometheusrulegroups/prometheusrulegroups-t1c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "prometheusrulegroups-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.alertsmanagement/prometheusrulegroups"
+        },
+        {
+          "PROPERTIES": {
+            "enabled": "res-value",
+            "clusterName": "res-value",
+            "interval": "res-value",
+            "rules": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "scopes": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "description": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.alertsmanagement/prometheusrulegroups/prometheusrulegroups-t1d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "prometheusrulegroups-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.alertsmanagement/prometheusrulegroups"
+        },
+        {
+          "PROPERTIES": {
+            "enabled": "res-value",
+            "clusterName": "res-value",
+            "interval": "res-value",
+            "rules": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "scopes": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "description": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.alertsmanagement/prometheusrulegroups/prometheusrulegroups-t1e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "prometheusrulegroups-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.alertsmanagement/prometheusrulegroups"
+        },
+        {
+          "PROPERTIES": {
+            "enabled": "res-value",
+            "clusterName": "res-value",
+            "interval": "res-value",
+            "rules": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "scopes": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "description": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.alertsmanagement/prometheusrulegroups/prometheusrulegroups-t1f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "prometheusrulegroups-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.alertsmanagement/prometheusrulegroups"
         }
       ]
     },

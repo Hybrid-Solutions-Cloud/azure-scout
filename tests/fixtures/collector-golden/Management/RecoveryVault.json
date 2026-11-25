@@ -3,7 +3,7 @@
   "Category": "Management",
   "Name": "RecoveryVault",
   "FixturePath": "tests/fixtures/collector-equivalence/Management.json",
-  "FixtureSha256": "c66866d070eeda26948afd1c625369ba997a136a92d6d6e7ce51553976caecd4",
+  "FixtureSha256": "c77e9e15a3fc4669aca46a6c6717a0b7c5e3efef9743a8f439287ccc09f85aa4",
   "Rows": [
     "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.recoveryservices/vaults/recoveryvault-t1a-1|Location=s:res-value|Name=s:recoveryvault-t1a|Private Endpoint State for Backup=s:res-value|Private Endpoint State for Site Recovery=s:res-value|Resource Group=s:res-value|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|SKU Name=s:res-value|SKU Tier=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",
     "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.recoveryservices/vaults/recoveryvault-t1b-1|Location=s:res-value|Name=s:recoveryvault-t1b|Private Endpoint State for Backup=s:res-value|Private Endpoint State for Site Recovery=s:res-value|Resource Group=s:res-value|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|SKU Name=s:res-value|SKU Tier=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",

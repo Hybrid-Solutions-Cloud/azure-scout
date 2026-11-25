@@ -3,7 +3,7 @@
   "Category": "Integration",
   "Name": "APIM",
   "FixturePath": "tests/fixtures/collector-equivalence/Integration.json",
-  "FixtureSha256": "9c84da1c8e64d369e3043194f67586b1e7921f7cb5ee86c30fec388793dbd5ff",
+  "FixtureSha256": "e0f64616ee9f21d6e95a46705a4f40e03e0b9b9670a6a3018df54baed560b31f",
   "Rows": [
     "Backend SSL 3.0=s:res-value|Backend TLS 1.0=s:res-value|Backend TLS 1.1=s:res-value|Client SSL 3.0=s:res-value|Client TLS 1.0=s:res-value|Client TLS 1.1=s:res-value|Gateway URL=s:res-value|Http2=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.apimanagement/service/apim-t1a-1|Location=s:res-value|Name=s:apim-t1a|Public IP=s:res-value|Resource Group=s:res-value|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|SKU=s:res-value|Sku Capacity=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod|Triple DES=s:res-value|Virtual Network=s:seg8|Virtual Network Type=s:res-value",
     "Backend SSL 3.0=s:res-value|Backend TLS 1.0=s:res-value|Backend TLS 1.1=s:res-value|Client SSL 3.0=s:res-value|Client TLS 1.0=s:res-value|Client TLS 1.1=s:res-value|Gateway URL=s:res-value|Http2=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.apimanagement/service/apim-t1b-1|Location=s:res-value|Name=s:apim-t1b|Public IP=s:res-value|Resource Group=s:res-value|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|SKU=s:res-value|Sku Capacity=s:res-value|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod|Triple DES=s:res-value|Virtual Network=s:seg8|Virtual Network Type=s:res-value",

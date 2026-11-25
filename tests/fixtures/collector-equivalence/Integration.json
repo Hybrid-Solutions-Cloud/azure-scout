@@ -246,6 +246,30 @@
     {
       "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.relay/namespaces/relays-t3f-1/wcfrelays/relays-t3f-2",
       "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.apicenter/services/apicenterservices-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.apicenter/services/apicenterservices-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.apicenter/services/apicenterservices-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.durabletask/schedulers/durabletaskschedulers-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.durabletask/schedulers/durabletaskschedulers-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.durabletask/schedulers/durabletaskschedulers-t1f-1",
+      "ServiceID": "svc-2"
     }
   ],
   "unsupported": [
@@ -261,6 +285,93 @@
     }
   ],
   "collectors": {
+    "ApiCenterServices": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.apicenter/services/apicenterservices-t1a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "apicenterservices-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.apicenter/services"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.apicenter/services/apicenterservices-t1b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "apicenterservices-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.apicenter/services"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.apicenter/services/apicenterservices-t1c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "apicenterservices-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.apicenter/services"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.apicenter/services/apicenterservices-t1d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "apicenterservices-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.apicenter/services"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.apicenter/services/apicenterservices-t1e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "apicenterservices-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.apicenter/services"
+        },
+        {
+          "PROPERTIES": {
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.apicenter/services/apicenterservices-t1f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "apicenterservices-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.apicenter/services"
+        }
+      ]
+    },
     "APIM": {
       "resources": [
         {
@@ -459,6 +570,153 @@
             "capacity": "res-value"
           },
           "TYPE": "microsoft.apimanagement/service"
+        }
+      ]
+    },
+    "DurableTaskSchedulers": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "endpoint": "res-value",
+            "sku": {
+              "name": "res-value",
+              "capacity": "res-value"
+            },
+            "ipAllowlist": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "publicNetworkAccess": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.durabletask/schedulers/durabletaskschedulers-t1a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "durabletaskschedulers-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.durabletask/schedulers"
+        },
+        {
+          "PROPERTIES": {
+            "endpoint": "res-value",
+            "sku": {
+              "name": "res-value",
+              "capacity": "res-value"
+            },
+            "ipAllowlist": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "publicNetworkAccess": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.durabletask/schedulers/durabletaskschedulers-t1b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "durabletaskschedulers-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.durabletask/schedulers"
+        },
+        {
+          "PROPERTIES": {
+            "endpoint": "res-value",
+            "sku": {
+              "name": "res-value",
+              "capacity": "res-value"
+            },
+            "ipAllowlist": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "publicNetworkAccess": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.durabletask/schedulers/durabletaskschedulers-t1c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "durabletaskschedulers-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.durabletask/schedulers"
+        },
+        {
+          "PROPERTIES": {
+            "endpoint": "res-value",
+            "sku": {
+              "name": "res-value",
+              "capacity": "res-value"
+            },
+            "ipAllowlist": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "publicNetworkAccess": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.durabletask/schedulers/durabletaskschedulers-t1d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "durabletaskschedulers-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.durabletask/schedulers"
+        },
+        {
+          "PROPERTIES": {
+            "endpoint": "res-value",
+            "sku": {
+              "name": "res-value",
+              "capacity": "res-value"
+            },
+            "ipAllowlist": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "publicNetworkAccess": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.durabletask/schedulers/durabletaskschedulers-t1e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "durabletaskschedulers-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.durabletask/schedulers"
+        },
+        {
+          "PROPERTIES": {
+            "endpoint": "res-value",
+            "sku": {
+              "name": "res-value",
+              "capacity": "res-value"
+            },
+            "ipAllowlist": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "publicNetworkAccess": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.durabletask/schedulers/durabletaskschedulers-t1f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "durabletaskschedulers-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.durabletask/schedulers"
         }
       ]
     },
@@ -2178,8 +2436,8 @@
               "triggers": "res-value",
               "actions": "res-value"
             },
-            "createdTime": "2026-01-15T10:30:00.0000000Z",
-            "changedTime": "2026-01-15T10:30:00.0000000Z"
+            "createdTime": "2026-01-15T10:30:00Z",
+            "changedTime": "2026-01-15T10:30:00Z"
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.logic/workflows/logicapps-t1a-1",
@@ -2204,8 +2462,8 @@
               "triggers": "res-value",
               "actions": "res-value"
             },
-            "createdTime": "2026-01-15T10:30:00.0000000Z",
-            "changedTime": "2026-01-15T10:30:00.0000000Z"
+            "createdTime": "2026-01-15T10:30:00Z",
+            "changedTime": "2026-01-15T10:30:00Z"
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.logic/workflows/logicapps-t1b-1",
@@ -2231,8 +2489,8 @@
               "triggers": "res-value",
               "actions": "res-value"
             },
-            "createdTime": "2026-01-15T10:30:00.0000000Z",
-            "changedTime": "2026-01-15T10:30:00.0000000Z"
+            "createdTime": "2026-01-15T10:30:00Z",
+            "changedTime": "2026-01-15T10:30:00Z"
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.logic/workflows/logicapps-t1c-1",
@@ -2255,8 +2513,8 @@
               "triggers": "res-value",
               "actions": "res-value"
             },
-            "createdTime": "2026-01-15T10:30:00.0000000Z",
-            "changedTime": "2026-01-15T10:30:00.0000000Z"
+            "createdTime": "2026-01-15T10:30:00Z",
+            "changedTime": "2026-01-15T10:30:00Z"
           },
           "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
           "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.logic/workflows/logicapps-t1d-1",
@@ -2281,8 +2539,8 @@
               "triggers": "res-value",
               "actions": "res-value"
             },
-            "createdTime": "2026-01-15T10:30:00.0000000Z",
-            "changedTime": "2026-01-15T10:30:00.0000000Z"
+            "createdTime": "2026-01-15T10:30:00Z",
+            "changedTime": "2026-01-15T10:30:00Z"
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.logic/workflows/logicapps-t1e-1",
@@ -2307,8 +2565,8 @@
               "triggers": "res-value",
               "actions": "res-value"
             },
-            "createdTime": "2026-01-15T10:30:00.0000000Z",
-            "changedTime": "2026-01-15T10:30:00.0000000Z"
+            "createdTime": "2026-01-15T10:30:00Z",
+            "changedTime": "2026-01-15T10:30:00Z"
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.logic/workflows/logicapps-t1f-1",

@@ -25,8 +25,8 @@ features:
     details: Run bare for a wide inventory of everything in the tenant. Add -Assessment for a scored CAF/WAF review. Run with no parameters at all and a guided wizard walks you through it.
     link: /guide/overview
     linkText: How the modes differ
-  - title: 245 collectors, 18 categories
-    details: Every one of Microsoft's eighteen published service categories, from AI and Analytics through to Storage and Web — plus Entra ID identity objects via Microsoft Graph.
+  - title: 381 collectors, 18 categories
+    details: Every one of Microsoft's eighteen published service categories, from AI and Analytics through to Storage and Web — plus Entra ID identity objects via Microsoft Graph. Everything deployed is discovered and filed under its category, even where no collector reads it.
     link: /reference/arm-modules
     linkText: Browse the collectors
   - title: 46 assessments
@@ -34,7 +34,7 @@ features:
     link: /reference/assessment-catalogue
     linkText: Browse the assessments
   - title: Read-only, always
-    details: Scout never creates, modifies or deletes anything in your tenant. Reader at the root management group is enough, and a pre-flight audit tells you exactly what you can and cannot collect before you run.
+    details: Scout never creates, modifies or deletes anything in your tenant. Reader at the root management group is enough (billing and reservation data need optional roles of their own), and a pre-flight audit tells you exactly what you can and cannot collect before you run.
     link: /guide/permissions
     linkText: Permissions required
   - title: One report, and it is the deliverable

@@ -390,6 +390,30 @@
     {
       "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.security/standardassignments/defenderstandardassignments-t1f-1",
       "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/paloaltonetworks.cloudngfw/firewalls/paloaltocloudngfw-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/paloaltonetworks.cloudngfw/localrulestacks/paloaltocloudngfw-t2e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/paloaltonetworks.cloudngfw/firewalls/paloaltocloudngfw-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/paloaltonetworks.cloudngfw/firewalls/paloaltocloudngfw-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/paloaltonetworks.cloudngfw/localrulestacks/paloaltocloudngfw-t2f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/paloaltonetworks.cloudngfw/localrulestacks/paloaltocloudngfw-t2f-1",
+      "ServiceID": "svc-2"
     }
   ],
   "unsupported": [
@@ -4035,6 +4059,320 @@
             "family": "res-value"
           },
           "TYPE": "microsoft.keyvault/managedhsms"
+        }
+      ]
+    },
+    "PaloAltoCloudNgfw": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "associatedRulestack": {
+              "resourceId": "res-value"
+            },
+            "isPanoramaManaged": "res-value",
+            "isStrataCloudManaged": "res-value",
+            "marketplaceDetails": {
+              "marketplaceSubscriptionStatus": "res-value"
+            },
+            "planData": {
+              "planId": "res-value"
+            },
+            "scope": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "TYPE": "paloaltonetworks.cloudngfw/firewalls",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/paloaltonetworks.cloudngfw/firewalls/paloaltocloudngfw-t1a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "paloaltocloudngfw-t1a",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "associatedRulestack": {
+              "resourceId": "res-value"
+            },
+            "isPanoramaManaged": "res-value",
+            "isStrataCloudManaged": "res-value",
+            "marketplaceDetails": {
+              "marketplaceSubscriptionStatus": "res-value"
+            },
+            "planData": {
+              "planId": "res-value"
+            },
+            "scope": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "TYPE": "paloaltonetworks.cloudngfw/localrulestacks",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/paloaltonetworks.cloudngfw/localrulestacks/paloaltocloudngfw-t2a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "paloaltocloudngfw-t2a",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "associatedRulestack": {
+              "resourceId": "res-value"
+            },
+            "isPanoramaManaged": "res-value",
+            "isStrataCloudManaged": "res-value",
+            "marketplaceDetails": {
+              "marketplaceSubscriptionStatus": "res-value"
+            },
+            "planData": {
+              "planId": "res-value"
+            },
+            "scope": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "TYPE": "paloaltonetworks.cloudngfw/firewalls",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/paloaltonetworks.cloudngfw/firewalls/paloaltocloudngfw-t1b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "paloaltocloudngfw-t1b",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "associatedRulestack": {
+              "resourceId": "res-value"
+            },
+            "isPanoramaManaged": "res-value",
+            "isStrataCloudManaged": "res-value",
+            "marketplaceDetails": {
+              "marketplaceSubscriptionStatus": "res-value"
+            },
+            "planData": {
+              "planId": "res-value"
+            },
+            "scope": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "TYPE": "paloaltonetworks.cloudngfw/localrulestacks",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/paloaltonetworks.cloudngfw/localrulestacks/paloaltocloudngfw-t2b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "paloaltocloudngfw-t2b",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "associatedRulestack": {
+              "resourceId": "res-value"
+            },
+            "isPanoramaManaged": "res-value",
+            "isStrataCloudManaged": "res-value",
+            "marketplaceDetails": {
+              "marketplaceSubscriptionStatus": "res-value"
+            },
+            "planData": {
+              "planId": "res-value"
+            },
+            "scope": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "TYPE": "paloaltonetworks.cloudngfw/firewalls",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/paloaltonetworks.cloudngfw/firewalls/paloaltocloudngfw-t1c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "paloaltocloudngfw-t1c",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "associatedRulestack": {
+              "resourceId": "res-value"
+            },
+            "isPanoramaManaged": "res-value",
+            "isStrataCloudManaged": "res-value",
+            "marketplaceDetails": {
+              "marketplaceSubscriptionStatus": "res-value"
+            },
+            "planData": {
+              "planId": "res-value"
+            },
+            "scope": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "TYPE": "paloaltonetworks.cloudngfw/localrulestacks",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/paloaltonetworks.cloudngfw/localrulestacks/paloaltocloudngfw-t2c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "paloaltocloudngfw-t2c",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "associatedRulestack": {
+              "resourceId": "res-value"
+            },
+            "isPanoramaManaged": "res-value",
+            "isStrataCloudManaged": "res-value",
+            "marketplaceDetails": {
+              "marketplaceSubscriptionStatus": "res-value"
+            },
+            "planData": {
+              "planId": "res-value"
+            },
+            "scope": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "TYPE": "paloaltonetworks.cloudngfw/firewalls",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/paloaltonetworks.cloudngfw/firewalls/paloaltocloudngfw-t1d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "paloaltocloudngfw-t1d",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "associatedRulestack": {
+              "resourceId": "res-value"
+            },
+            "isPanoramaManaged": "res-value",
+            "isStrataCloudManaged": "res-value",
+            "marketplaceDetails": {
+              "marketplaceSubscriptionStatus": "res-value"
+            },
+            "planData": {
+              "planId": "res-value"
+            },
+            "scope": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "TYPE": "paloaltonetworks.cloudngfw/localrulestacks",
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/paloaltonetworks.cloudngfw/localrulestacks/paloaltocloudngfw-t2d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "paloaltocloudngfw-t2d",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "associatedRulestack": {
+              "resourceId": "res-value"
+            },
+            "isPanoramaManaged": "res-value",
+            "isStrataCloudManaged": "res-value",
+            "marketplaceDetails": {
+              "marketplaceSubscriptionStatus": "res-value"
+            },
+            "planData": {
+              "planId": "res-value"
+            },
+            "scope": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "TYPE": "paloaltonetworks.cloudngfw/firewalls",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/paloaltonetworks.cloudngfw/firewalls/paloaltocloudngfw-t1e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "paloaltocloudngfw-t1e",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "associatedRulestack": {
+              "resourceId": "res-value"
+            },
+            "isPanoramaManaged": "res-value",
+            "isStrataCloudManaged": "res-value",
+            "marketplaceDetails": {
+              "marketplaceSubscriptionStatus": "res-value"
+            },
+            "planData": {
+              "planId": "res-value"
+            },
+            "scope": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "TYPE": "paloaltonetworks.cloudngfw/localrulestacks",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/paloaltonetworks.cloudngfw/localrulestacks/paloaltocloudngfw-t2e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "paloaltocloudngfw-t2e",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "associatedRulestack": {
+              "resourceId": "res-value"
+            },
+            "isPanoramaManaged": "res-value",
+            "isStrataCloudManaged": "res-value",
+            "marketplaceDetails": {
+              "marketplaceSubscriptionStatus": "res-value"
+            },
+            "planData": {
+              "planId": "res-value"
+            },
+            "scope": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "TYPE": "paloaltonetworks.cloudngfw/firewalls",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/paloaltonetworks.cloudngfw/firewalls/paloaltocloudngfw-t1f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "paloaltocloudngfw-t1f",
+          "LOCATION": "res-value"
+        },
+        {
+          "PROPERTIES": {
+            "associatedRulestack": {
+              "resourceId": "res-value"
+            },
+            "isPanoramaManaged": "res-value",
+            "isStrataCloudManaged": "res-value",
+            "marketplaceDetails": {
+              "marketplaceSubscriptionStatus": "res-value"
+            },
+            "planData": {
+              "planId": "res-value"
+            },
+            "scope": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "TYPE": "paloaltonetworks.cloudngfw/localrulestacks",
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/paloaltonetworks.cloudngfw/localrulestacks/paloaltocloudngfw-t2f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "paloaltocloudngfw-t2f",
+          "LOCATION": "res-value"
         }
       ]
     },

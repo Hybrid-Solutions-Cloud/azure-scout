@@ -3,7 +3,7 @@
   "Category": "Compute",
   "Name": "QuantumWorkspaces",
   "FixturePath": "tests/fixtures/collector-equivalence/Compute.json",
-  "FixtureSha256": "68a458adf6ff2e096084d3fd3e7825e4fd4ec68bbea2f4033e160e856987e6fc",
+  "FixtureSha256": "0b27503863dfc57d6073cc3e830d50c4be66ab822618dc82934f7d377eca811a",
   "Rows": [
     "API Key Enabled=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.quantum/workspaces/quantumworkspaces-t1a-1|Identity Type=s:res-value|Location=s:res-value|Name=s:quantumworkspaces-t1a|Providers Count=s:2|Resource Group=s:res-value|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|Storage Account=s:seg8|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",
     "API Key Enabled=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.quantum/workspaces/quantumworkspaces-t1b-1|Identity Type=s:res-value|Location=s:res-value|Name=s:quantumworkspaces-t1b|Providers Count=s:2|Resource Group=s:res-value|Resource U=j:1|Retiring Date=<null>|Retiring Feature=<null>|Storage Account=s:seg8|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",

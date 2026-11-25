@@ -1,0 +1,24 @@
+{
+  "SchemaVersion": 1,
+  "Category": "Databases",
+  "Name": "MongoDBAtlas",
+  "FixturePath": "tests/fixtures/databases-collector-input.json",
+  "FixtureSha256": "4bdcda5f990ced215604055b52e462bc698d02b12235098b2e45448fa35a33bc",
+  "Rows": [
+    "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/mongodb.atlas/organizations/mongodbatlas-t1a-1|Location=s:res-value|Name=s:mongodbatlas-t1a|Offer=s:res-value|Organization=s:res-value|Organization ID=s:res-value|Plan=s:res-value|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Subscription=<null>|Tag Name=s:env|Tag Value=s:prod",
+    "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/mongodb.atlas/organizations/mongodbatlas-t1b-1|Location=s:res-value|Name=s:mongodbatlas-t1b|Offer=s:res-value|Organization=s:res-value|Organization ID=s:res-value|Plan=s:res-value|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Subscription=<null>|Tag Name=s:env|Tag Value=s:prod",
+    "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/mongodb.atlas/organizations/mongodbatlas-t1b-1|Location=s:res-value|Name=s:mongodbatlas-t1b|Offer=s:res-value|Organization=s:res-value|Organization ID=s:res-value|Plan=s:res-value|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:0|Subscription=<null>|Tag Name=s:owner|Tag Value=s:platform",
+    "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/mongodb.atlas/organizations/mongodbatlas-t1c-1|Location=s:res-value|Name=s:mongodbatlas-t1c|Offer=s:res-value|Organization=s:res-value|Organization ID=s:res-value|Plan=s:res-value|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Subscription=<null>|Tag Name=s:|Tag Value=s:",
+    "ID=s:/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/mongodb.atlas/organizations/mongodbatlas-t1d-1|Location=s:res-value|Name=s:mongodbatlas-t1d|Offer=s:res-value|Organization=s:res-value|Organization ID=s:res-value|Plan=s:res-value|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Subscription=<null>|Tag Name=s:env|Tag Value=s:dev",
+    "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/mongodb.atlas/organizations/mongodbatlas-t1e-1|Location=s:res-value|Name=s:mongodbatlas-t1e|Offer=s:res-value|Organization=s:res-value|Organization ID=s:res-value|Plan=s:res-value|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Subscription=<null>|Tag Name=s:env|Tag Value=s:prod",
+    "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/mongodb.atlas/organizations/mongodbatlas-t1f-1|Location=s:res-value|Name=s:mongodbatlas-t1f|Offer=s:res-value|Organization=s:res-value|Organization ID=s:res-value|Plan=s:res-value|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Subscription=<null>|Tag Name=s:env|Tag Value=s:prod"
+  ],
+  "Workbook": {
+    "WithoutTags": [
+      "Subscription\tResource Group\tName\tLocation\tOrganization\tOrganization ID\tOffer\tPlan\tProvisioning State\tResource U\n\tres-value\tmongodbatlas-t1a\tres-value\tres-value\tres-value\tres-value\tres-value\tres-value\t1\n\tres-value\tmongodbatlas-t1b\tres-value\tres-value\tres-value\tres-value\tres-value\tres-value\t1\n\tres-value\tmongodbatlas-t1b\tres-value\tres-value\tres-value\tres-value\tres-value\tres-value\t0\n\tres-value\tmongodbatlas-t1c\tres-value\tres-value\tres-value\tres-value\tres-value\tres-value\t1\n\tres-value\tmongodbatlas-t1d\tres-value\tres-value\tres-value\tres-value\tres-value\tres-value\t1\n\tres-value\tmongodbatlas-t1e\tres-value\tres-value\tres-value\tres-value\tres-value\tres-value\t1\n\tres-value\tmongodbatlas-t1f\tres-value\tres-value\tres-value\tres-value\tres-value\tres-value\t1"
+    ],
+    "WithTags": [
+      "Subscription\tResource Group\tName\tLocation\tOrganization\tOrganization ID\tOffer\tPlan\tProvisioning State\tTag Name\tTag Value\tResource U\n\tres-value\tmongodbatlas-t1a\tres-value\tres-value\tres-value\tres-value\tres-value\tres-value\tenv\tprod\t1\n\tres-value\tmongodbatlas-t1b\tres-value\tres-value\tres-value\tres-value\tres-value\tres-value\tenv\tprod\t1\n\tres-value\tmongodbatlas-t1b\tres-value\tres-value\tres-value\tres-value\tres-value\tres-value\towner\tplatform\t0\n\tres-value\tmongodbatlas-t1c\tres-value\tres-value\tres-value\tres-value\tres-value\tres-value\t\t\t1\n\tres-value\tmongodbatlas-t1d\tres-value\tres-value\tres-value\tres-value\tres-value\tres-value\tenv\tdev\t1\n\tres-value\tmongodbatlas-t1e\tres-value\tres-value\tres-value\tres-value\tres-value\tres-value\tenv\tprod\t1\n\tres-value\tmongodbatlas-t1f\tres-value\tres-value\tres-value\tres-value\tres-value\tres-value\tenv\tprod\t1"
+    ]
+  }
+}

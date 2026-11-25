@@ -21,27 +21,31 @@ case-insensitive, so `iot`, `IoT`, and `INTERNET OF THINGS` all resolve identica
 
 | Report section heading | `-Category` value | manifest directory | Modules |
 |---|---|---|---|
-| AI + machine learning | `AI` | `manifests/collectors/AI/` | 27 |
-| Analytics | `Analytics` | `manifests/collectors/Analytics/` | 6 |
-| Compute | `Compute` | `manifests/collectors/Compute/` | 13 |
-| Containers | `Containers` | `manifests/collectors/Containers/` | 6 |
-| Databases | `Databases` | `manifests/collectors/Databases/` | 12 |
-| DevOps | `DevOps` | `manifests/collectors/DevOps/` | 12 |
-| General | `General` | `manifests/collectors/General/` | 4 |
-| Hybrid + multicloud | `Hybrid` | `manifests/collectors/Hybrid/` | 15 |
-| Identity | `Identity` | `manifests/collectors/Identity/` | 17 |
-| Integration | `Integration` | `manifests/collectors/Integration/` | 9 |
-| Internet of Things | `IoT` | `manifests/collectors/IoT/` | 7 |
-| Management and governance | `Management` | `manifests/collectors/Management/` | 21 |
+| AI + machine learning | `AI` | `manifests/collectors/AI/` | 31 |
+| Analytics | `Analytics` | `manifests/collectors/Analytics/` | 13 |
+| Compute | `Compute` | `manifests/collectors/Compute/` | 27 |
+| Containers | `Containers` | `manifests/collectors/Containers/` | 13 |
+| Databases | `Databases` | `manifests/collectors/Databases/` | 17 |
+| DevOps | `DevOps` | `manifests/collectors/DevOps/` | 20 |
+| General | `General` | `manifests/collectors/General/` | 5 |
+| Hybrid + multicloud | `Hybrid` | `manifests/collectors/Hybrid/` | 33 |
+| Identity | `Identity` | `manifests/collectors/Identity/` | 38 |
+| Integration | `Integration` | `manifests/collectors/Integration/` | 11 |
+| Internet of Things | `IoT` | `manifests/collectors/IoT/` | 9 |
+| Management and governance | `Management` | `manifests/collectors/Management/` | 30 |
 | Migration | `Migration` | `manifests/collectors/Migration/` | 6 |
-| Monitor | `Monitor` | `manifests/collectors/Monitor/` | 22 |
-| Networking | `Networking` | `manifests/collectors/Networking/` | 21 |
-| Security | `Security` | `manifests/collectors/Security/` | 17 |
-| Storage | `Storage` | `manifests/collectors/Storage/` | 11 |
+| Monitor | `Monitor` | `manifests/collectors/Monitor/` | 30 |
+| Networking | `Networking` | `manifests/collectors/Networking/` | 41 |
+| Security | `Security` | `manifests/collectors/Security/` | 26 |
+| Storage | `Storage` | `manifests/collectors/Storage/` | 17 |
 | Web and mobile | `Web` | `manifests/collectors/Web/` | 14 |
 
-**240 declarative collector definitions across all 18 of Microsoft's published service
-categories.** Counts are the `.psd1` file count in each category directory. Each definition's
+**381 declarative collector definitions across all 18 of Microsoft's published service
+categories.** Counts are the `.psd1` file count in each category directory (a test keeps this
+table, the README table and the totals in sync with `manifests/collectors/`). 3.18.10 and 3.18.12
+added 69 collectors for resources that discovery found but nothing read; see
+[Service Coverage Gap](service-coverage-gap.md). Every discovered resource, collected or not, is
+filed under one of these categories; see [Resource Categories](resource-categories.md). Each definition's
 legacy worksheet metadata is retained internally, but Excel is held; live runs surface collector
 data through React, Json, and JsonEvidence.
 

@@ -220,6 +220,57 @@ Describe 'Collectors for discovered types (AB#9300)' {
         $c[0].'Offerings' | Should -Be 'CspmMonitorAws, DefenderForServersAws'
     }
 
+    It 'reads all three Virtual WAN gateway kinds with their own connection lists' {
+        $s2s = New-Row -Type 'microsoft.network/vpngateways' -Id '/subscriptions/sub-1/resourceGroups/rg-1/providers/Microsoft.Network/vpnGateways/s2s' -Properties ([pscustomobject]@{
+                virtualHub = [pscustomobject]@{ id = '/x/virtualHubs/hub-east' }; vpnGatewayScaleUnit = 2; connections = @([pscustomobject]@{}, [pscustomobject]@{}); bgpSettings = [pscustomobject]@{ asn = 65515 } })
+        $er = New-Row -Type 'microsoft.network/expressroutegateways' -Id '/subscriptions/sub-1/resourceGroups/rg-1/providers/Microsoft.Network/expressRouteGateways/er' -Properties ([pscustomobject]@{
+                virtualHub = [pscustomobject]@{ id = '/x/virtualHubs/hub-east' }; autoScaleConfiguration = [pscustomobject]@{ bounds = [pscustomobject]@{ min = 1; max = 4 } }; expressRouteConnections = @([pscustomobject]@{}) })
+        $p2s = New-Row -Type 'microsoft.network/p2svpngateways' -Id '/subscriptions/sub-1/resourceGroups/rg-1/providers/Microsoft.Network/p2sVpnGateways/p2s' -Properties ([pscustomobject]@{
+                vpnServerConfiguration = [pscustomobject]@{ id = '/x/vpnServerConfigurations/aad-cfg' }; p2SConnectionConfigurations = @([pscustomobject]@{}) })
+        $r = @(Invoke-NewCollector -Category Networking -Name VirtualWanGateways -Resources @($s2s, $er, $p2s))
+        $a = @($r | Where-Object { $_.Name -eq 's2s' })[0]; $b = @($r | Where-Object { $_.Name -eq 'er' })[0]; $c = @($r | Where-Object { $_.Name -eq 'p2s' })[0]
+        $a['Kind'] | Should -Be 'vpngateways'; $a['Connections'] | Should -Be 2; $a['BGP ASN'] | Should -Be 65515; $a['Virtual Hub'] | Should -Be 'hub-east'
+        $b['Scale Units'] | Should -Be '1-4'; $b['Connections'] | Should -Be 1
+        $c['VPN Server Configuration'] | Should -Be 'aad-cfg'; $c['Connections'] | Should -Be 1
+    }
+
+    It 'never projects secrets from appliances, databases, session pools, scripts or SSH keys' {
+        $rows = @(
+            @{ Category = 'Networking'; Name = 'NetworkVirtualAppliances'; Row = (New-Row -Type 'microsoft.network/networkvirtualappliances' -Id '/subscriptions/sub-1/resourceGroups/rg-1/providers/Microsoft.Network/networkVirtualAppliances/nva' -Properties ([pscustomobject]@{ nvaSku = [pscustomobject]@{ vendor = 'contoso'; marketPlaceVersion = '1.2' }; sshPublicKey = 'ssh-rsa SECRET-KEY'; cloudInitConfiguration = 'SECRET-CLOUDINIT' })) }
+            @{ Category = 'Networking'; Name = 'VpnServerConfigurations'; Row = (New-Row -Type 'microsoft.network/vpnserverconfigurations' -Id '/subscriptions/sub-1/resourceGroups/rg-1/providers/Microsoft.Network/vpnServerConfigurations/cfg' -Properties ([pscustomobject]@{ vpnProtocols = @('OpenVPN'); radiusServerSecret = 'SECRET-RADIUS' })) }
+            @{ Category = 'Databases'; Name = 'OracleDatabaseAtAzure'; Row = (New-Row -Type 'oracle.database/autonomousdatabases' -Id '/subscriptions/sub-1/resourceGroups/rg-1/providers/Oracle.Database/autonomousDatabases/adb' -Properties ([pscustomobject]@{ dbVersion = '23ai'; computeCount = 4; adminPassword = 'SECRET-PASSWORD' })) }
+            @{ Category = 'Containers'; Name = 'ContainerAppSessionPools'; Row = (New-Row -Type 'microsoft.app/sessionpools' -Id '/subscriptions/sub-1/resourceGroups/rg-1/providers/Microsoft.App/sessionPools/pool' -Properties ([pscustomobject]@{ containerType = 'PythonLTS'; secrets = @([pscustomobject]@{ name = 'k'; value = 'SECRET-VALUE' }) })) }
+            @{ Category = 'Management'; Name = 'DeploymentScripts'; Row = (New-Row -Type 'microsoft.resources/deploymentscripts' -Id '/subscriptions/sub-1/resourceGroups/rg-1/providers/Microsoft.Resources/deploymentScripts/ds' -Properties ([pscustomobject]@{ azPowerShellVersion = '12.0'; scriptContent = 'Write-Output SECRET-SCRIPT'; environmentVariables = @([pscustomobject]@{ name = 'pw'; secureValue = 'SECRET-ENV' }) })) }
+            @{ Category = 'Compute'; Name = 'SshPublicKeys'; Row = (New-Row -Type 'microsoft.compute/sshpublickeys' -Id '/subscriptions/sub-1/resourceGroups/rg-1/providers/Microsoft.Compute/sshPublicKeys/key' -Properties ([pscustomobject]@{ publicKey = 'ssh-ed25519 SECRET-PUBKEY' })) }
+        )
+        foreach ($case in $rows) {
+            $r = @(Invoke-NewCollector -Category $case.Category -Name $case.Name -Resources $case.Row)
+            $r.Count | Should -Be 1 -Because $case.Name
+            ($r[0] | ConvertTo-Json -Depth 5 -Compress) | Should -Not -Match 'SECRET' -Because $case.Name
+        }
+        @(Invoke-NewCollector -Category Compute -Name SshPublicKeys -Resources $rows[5].Row)[0]['Key Present'] | Should -BeTrue
+    }
+
+    It 'reads AKS Arc clusters, Oracle Exadata, deployment stacks and Log Analytics clusters' {
+        $aks = New-Row -Type 'microsoft.hybridcontainerservice/provisionedclusterinstances' -Id '/subscriptions/sub-1/resourceGroups/rg-1/providers/Microsoft.Kubernetes/connectedClusters/aks-local-01/providers/Microsoft.HybridContainerService/provisionedClusterInstances/default' -Properties ([pscustomobject]@{
+                kubernetesVersion = '1.31.2'; controlPlane = [pscustomobject]@{ count = 3 }; agentPoolProfiles = @([pscustomobject]@{ count = 2 }, [pscustomobject]@{ count = 3 }); licenseProfile = [pscustomobject]@{ azureHybridBenefit = 'True' } })
+        $a = @(Invoke-NewCollector -Category Hybrid -Name AksArcClusters -Resources $aks)[0]
+        $a['Connected Cluster'] | Should -Be 'aks-local-01'; $a['Agent Nodes'] | Should -Be 5; $a['Control Plane Nodes'] | Should -Be 3
+
+        $exa = New-Row -Type 'oracle.database/cloudexadatainfrastructures' -Id '/subscriptions/sub-1/resourceGroups/rg-1/providers/Oracle.Database/cloudExadataInfrastructures/exa' -Properties ([pscustomobject]@{ shape = 'Exadata.X11M'; computeCount = 2; storageCount = 3; lifecycleState = 'Available' })
+        $e = @(Invoke-NewCollector -Category Databases -Name OracleDatabaseAtAzure -Resources $exa)[0]
+        $e['Kind'] | Should -Be 'cloudexadatainfrastructures'; $e['Shape'] | Should -Be 'Exadata.X11M'; $e['Lifecycle State'] | Should -Be 'Available'
+
+        $stack = New-Row -Type 'microsoft.resources/deploymentstacks' -Id '/subscriptions/sub-1/resourceGroups/rg-1/providers/Microsoft.Resources/deploymentStacks/lz' -Properties ([pscustomobject]@{ denySettings = [pscustomobject]@{ mode = 'denyWriteAndDelete'; applyToChildScopes = $true; excludedPrincipals = @('p1') }; actionOnUnmanage = [pscustomobject]@{ resources = 'detach' }; resources = @([pscustomobject]@{}, [pscustomobject]@{}) })
+        $s = @(Invoke-NewCollector -Category Management -Name DeploymentStacks -Resources $stack)[0]
+        $s['Deny Mode'] | Should -Be 'denyWriteAndDelete'; $s['Managed Resources'] | Should -Be 2; $s['Excluded Principals'] | Should -Be 1
+
+        $cluster = New-Row -Type 'microsoft.operationalinsights/clusters' -Id '/subscriptions/sub-1/resourceGroups/rg-1/providers/Microsoft.OperationalInsights/clusters/la-ded' -Properties ([pscustomobject]@{ billingType = 'Cluster'; isDoubleEncryptionEnabled = $true; keyVaultProperties = [pscustomobject]@{ keyName = 'la-cmk' }; associatedWorkspaces = @([pscustomobject]@{}) })
+        $cluster | Add-Member -NotePropertyName sku -NotePropertyValue ([pscustomobject]@{ name = 'CapacityReservation'; capacity = 500 })
+        $l = @(Invoke-NewCollector -Category Monitor -Name LogAnalyticsClusters -Resources $cluster)[0]
+        $l['Capacity (GB/day)'] | Should -Be 500; $l['Customer Key'] | Should -Be 'la-cmk'; $l['Workspaces'] | Should -Be 1
+    }
+
     It 'produces a row with blanks, not an error, for a sparse row of every new type' {
         foreach ($manifest in Get-ChildItem "$script:RepoRoot/manifests/collectors" -Recurse -Filter '*.psd1' | Where-Object { (Get-Content $_.FullName -Raw) -match 'Hand-authored collector \(AB#9300\)' }) {
             $definition = Get-ScoutCollectorDefinition -Path $manifest.FullName

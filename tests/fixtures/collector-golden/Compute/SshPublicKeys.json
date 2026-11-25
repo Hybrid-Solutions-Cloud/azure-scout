@@ -1,0 +1,24 @@
+{
+  "SchemaVersion": 1,
+  "Category": "Compute",
+  "Name": "SshPublicKeys",
+  "FixturePath": "tests/fixtures/collector-equivalence/Compute.json",
+  "FixtureSha256": "0b27503863dfc57d6073cc3e830d50c4be66ab822618dc82934f7d377eca811a",
+  "Rows": [
+    "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/sshpublickeys/sshpublickeys-t1a-1|Key Present=j:true|Location=s:res-value|Name=s:sshpublickeys-t1a|Resource Group=s:res-value|Resource U=j:1|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",
+    "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/sshpublickeys/sshpublickeys-t1b-1|Key Present=j:true|Location=s:res-value|Name=s:sshpublickeys-t1b|Resource Group=s:res-value|Resource U=j:1|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",
+    "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/sshpublickeys/sshpublickeys-t1b-1|Key Present=j:true|Location=s:res-value|Name=s:sshpublickeys-t1b|Resource Group=s:res-value|Resource U=j:0|Subscription=s:sub-fixture-01|Tag Name=s:owner|Tag Value=s:platform",
+    "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/sshpublickeys/sshpublickeys-t1c-1|Key Present=j:true|Location=s:res-value|Name=s:sshpublickeys-t1c|Resource Group=s:res-value|Resource U=j:1|Subscription=s:sub-fixture-01|Tag Name=s:|Tag Value=s:",
+    "ID=s:/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.compute/sshpublickeys/sshpublickeys-t1d-1|Key Present=j:true|Location=s:res-value|Name=s:sshpublickeys-t1d|Resource Group=s:res-value|Resource U=j:1|Subscription=<null>|Tag Name=s:env|Tag Value=s:dev",
+    "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/sshpublickeys/sshpublickeys-t1e-1|Key Present=j:true|Location=s:res-value|Name=s:sshpublickeys-t1e|Resource Group=s:res-value|Resource U=j:1|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",
+    "ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.compute/sshpublickeys/sshpublickeys-t1f-1|Key Present=j:true|Location=s:res-value|Name=s:sshpublickeys-t1f|Resource Group=s:res-value|Resource U=j:1|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod"
+  ],
+  "Workbook": {
+    "WithoutTags": [
+      "Subscription\tResource Group\tName\tLocation\tKey Present\tResource U\nsub-fixture-01\tres-value\tsshpublickeys-t1a\tres-value\tTrue\t1\nsub-fixture-01\tres-value\tsshpublickeys-t1b\tres-value\tTrue\t1\nsub-fixture-01\tres-value\tsshpublickeys-t1b\tres-value\tTrue\t0\nsub-fixture-01\tres-value\tsshpublickeys-t1c\tres-value\tTrue\t1\n\tres-value\tsshpublickeys-t1d\tres-value\tTrue\t1\nsub-fixture-01\tres-value\tsshpublickeys-t1e\tres-value\tTrue\t1\nsub-fixture-01\tres-value\tsshpublickeys-t1f\tres-value\tTrue\t1"
+    ],
+    "WithTags": [
+      "Subscription\tResource Group\tName\tLocation\tKey Present\tTag Name\tTag Value\tResource U\nsub-fixture-01\tres-value\tsshpublickeys-t1a\tres-value\tTrue\tenv\tprod\t1\nsub-fixture-01\tres-value\tsshpublickeys-t1b\tres-value\tTrue\tenv\tprod\t1\nsub-fixture-01\tres-value\tsshpublickeys-t1b\tres-value\tTrue\towner\tplatform\t0\nsub-fixture-01\tres-value\tsshpublickeys-t1c\tres-value\tTrue\t\t\t1\n\tres-value\tsshpublickeys-t1d\tres-value\tTrue\tenv\tdev\t1\nsub-fixture-01\tres-value\tsshpublickeys-t1e\tres-value\tTrue\tenv\tprod\t1\nsub-fixture-01\tres-value\tsshpublickeys-t1f\tres-value\tTrue\tenv\tprod\t1"
+    ]
+  }
+}

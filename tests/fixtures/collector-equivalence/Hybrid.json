@@ -450,6 +450,66 @@
     {
       "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.kubernetesconfiguration/extensions/kubernetesextensions-t1f-1",
       "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcontainerservice/provisionedclusterinstances/aksarcclusters-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcontainerservice/provisionedclusters/aksarcclusters-t2e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcontainerservice/provisionedclusterinstances/aksarcclusters-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcontainerservice/provisionedclusterinstances/aksarcclusters-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcontainerservice/provisionedclusters/aksarcclusters-t2f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcontainerservice/provisionedclusters/aksarcclusters-t2f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/privatelinkscopes/arcprivatelinkscopes-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/privatelinkscopes/arcprivatelinkscopes-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/privatelinkscopes/arcprivatelinkscopes-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/licenses/arcserverlicenses-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/licenses/arcserverlicenses-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/licenses/arcserverlicenses-t1f-1",
+      "ServiceID": "svc-2"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridconnectivity/publiccloudconnectors/multicloudconnectors-t1e-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridconnectivity/publiccloudconnectors/multicloudconnectors-t1f-1",
+      "ServiceID": "svc-1"
+    },
+    {
+      "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridconnectivity/publiccloudconnectors/multicloudconnectors-t1f-1",
+      "ServiceID": "svc-2"
     }
   ],
   "unsupported": [
@@ -465,6 +525,320 @@
     }
   ],
   "collectors": {
+    "AksArcClusters": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "kubernetesVersion": "res-value",
+            "controlPlane": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "agentPoolProfiles": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "licenseProfile": {
+              "azureHybridBenefit": "res-value"
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcontainerservice/provisionedclusterinstances/aksarcclusters-t1a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "aksarcclusters-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.hybridcontainerservice/provisionedclusterinstances"
+        },
+        {
+          "PROPERTIES": {
+            "kubernetesVersion": "res-value",
+            "controlPlane": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "agentPoolProfiles": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "licenseProfile": {
+              "azureHybridBenefit": "res-value"
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcontainerservice/provisionedclusters/aksarcclusters-t2a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "aksarcclusters-t2a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.hybridcontainerservice/provisionedclusters"
+        },
+        {
+          "PROPERTIES": {
+            "kubernetesVersion": "res-value",
+            "controlPlane": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "agentPoolProfiles": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "licenseProfile": {
+              "azureHybridBenefit": "res-value"
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcontainerservice/provisionedclusterinstances/aksarcclusters-t1b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "aksarcclusters-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.hybridcontainerservice/provisionedclusterinstances"
+        },
+        {
+          "PROPERTIES": {
+            "kubernetesVersion": "res-value",
+            "controlPlane": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "agentPoolProfiles": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "licenseProfile": {
+              "azureHybridBenefit": "res-value"
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcontainerservice/provisionedclusters/aksarcclusters-t2b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "aksarcclusters-t2b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.hybridcontainerservice/provisionedclusters"
+        },
+        {
+          "PROPERTIES": {
+            "kubernetesVersion": "res-value",
+            "controlPlane": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "agentPoolProfiles": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "licenseProfile": {
+              "azureHybridBenefit": "res-value"
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcontainerservice/provisionedclusterinstances/aksarcclusters-t1c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "aksarcclusters-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.hybridcontainerservice/provisionedclusterinstances"
+        },
+        {
+          "PROPERTIES": {
+            "kubernetesVersion": "res-value",
+            "controlPlane": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "agentPoolProfiles": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "licenseProfile": {
+              "azureHybridBenefit": "res-value"
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcontainerservice/provisionedclusters/aksarcclusters-t2c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "aksarcclusters-t2c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.hybridcontainerservice/provisionedclusters"
+        },
+        {
+          "PROPERTIES": {
+            "kubernetesVersion": "res-value",
+            "controlPlane": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "agentPoolProfiles": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "licenseProfile": {
+              "azureHybridBenefit": "res-value"
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.hybridcontainerservice/provisionedclusterinstances/aksarcclusters-t1d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "aksarcclusters-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.hybridcontainerservice/provisionedclusterinstances"
+        },
+        {
+          "PROPERTIES": {
+            "kubernetesVersion": "res-value",
+            "controlPlane": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "agentPoolProfiles": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "licenseProfile": {
+              "azureHybridBenefit": "res-value"
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.hybridcontainerservice/provisionedclusters/aksarcclusters-t2d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "aksarcclusters-t2d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.hybridcontainerservice/provisionedclusters"
+        },
+        {
+          "PROPERTIES": {
+            "kubernetesVersion": "res-value",
+            "controlPlane": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "agentPoolProfiles": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "licenseProfile": {
+              "azureHybridBenefit": "res-value"
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcontainerservice/provisionedclusterinstances/aksarcclusters-t1e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "aksarcclusters-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.hybridcontainerservice/provisionedclusterinstances"
+        },
+        {
+          "PROPERTIES": {
+            "kubernetesVersion": "res-value",
+            "controlPlane": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "agentPoolProfiles": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "licenseProfile": {
+              "azureHybridBenefit": "res-value"
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcontainerservice/provisionedclusters/aksarcclusters-t2e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "aksarcclusters-t2e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.hybridcontainerservice/provisionedclusters"
+        },
+        {
+          "PROPERTIES": {
+            "kubernetesVersion": "res-value",
+            "controlPlane": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "agentPoolProfiles": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "licenseProfile": {
+              "azureHybridBenefit": "res-value"
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcontainerservice/provisionedclusterinstances/aksarcclusters-t1f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "aksarcclusters-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.hybridcontainerservice/provisionedclusterinstances"
+        },
+        {
+          "PROPERTIES": {
+            "kubernetesVersion": "res-value",
+            "controlPlane": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "agentPoolProfiles": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "licenseProfile": {
+              "azureHybridBenefit": "res-value"
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcontainerservice/provisionedclusters/aksarcclusters-t2f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "aksarcclusters-t2f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.hybridcontainerservice/provisionedclusters"
+        }
+      ]
+    },
     "ArcDataControllers": {
       "resources": [
         {
@@ -1156,8 +1530,8 @@
             "instanceView": {
               "executionState": "res-value",
               "exitCode": "res-value",
-              "startTime": "2026-01-15T10:30:00.0000000Z",
-              "endTime": "2026-01-15T10:30:00.0000000Z"
+              "startTime": "2026-01-15T10:30:00Z",
+              "endTime": "2026-01-15T10:30:00Z"
             },
             "timeoutInSeconds": "res-value",
             "asyncExecution": "res-value",
@@ -1178,8 +1552,8 @@
             "instanceView": {
               "executionState": "res-value",
               "exitCode": "res-value",
-              "startTime": "2026-01-15T10:30:00.0000000Z",
-              "endTime": "2026-01-15T10:30:00.0000000Z"
+              "startTime": "2026-01-15T10:30:00Z",
+              "endTime": "2026-01-15T10:30:00Z"
             },
             "timeoutInSeconds": "res-value",
             "asyncExecution": "res-value",
@@ -1201,8 +1575,8 @@
             "instanceView": {
               "executionState": "res-value",
               "exitCode": "res-value",
-              "startTime": "2026-01-15T10:30:00.0000000Z",
-              "endTime": "2026-01-15T10:30:00.0000000Z"
+              "startTime": "2026-01-15T10:30:00Z",
+              "endTime": "2026-01-15T10:30:00Z"
             },
             "timeoutInSeconds": "res-value",
             "asyncExecution": "res-value",
@@ -1221,8 +1595,8 @@
             "instanceView": {
               "executionState": "res-value",
               "exitCode": "res-value",
-              "startTime": "2026-01-15T10:30:00.0000000Z",
-              "endTime": "2026-01-15T10:30:00.0000000Z"
+              "startTime": "2026-01-15T10:30:00Z",
+              "endTime": "2026-01-15T10:30:00Z"
             },
             "timeoutInSeconds": "res-value",
             "asyncExecution": "res-value",
@@ -1243,8 +1617,8 @@
             "instanceView": {
               "executionState": "res-value",
               "exitCode": "res-value",
-              "startTime": "2026-01-15T10:30:00.0000000Z",
-              "endTime": "2026-01-15T10:30:00.0000000Z"
+              "startTime": "2026-01-15T10:30:00Z",
+              "endTime": "2026-01-15T10:30:00Z"
             },
             "timeoutInSeconds": "res-value",
             "asyncExecution": "res-value",
@@ -1265,8 +1639,8 @@
             "instanceView": {
               "executionState": "res-value",
               "exitCode": "res-value",
-              "startTime": "2026-01-15T10:30:00.0000000Z",
-              "endTime": "2026-01-15T10:30:00.0000000Z"
+              "startTime": "2026-01-15T10:30:00Z",
+              "endTime": "2026-01-15T10:30:00Z"
             },
             "timeoutInSeconds": "res-value",
             "asyncExecution": "res-value",
@@ -1281,6 +1655,129 @@
           "NAME": "arcmachineruncommands-t1f",
           "LOCATION": "res-value",
           "TYPE": "microsoft.hybridcompute/machines/runcommands"
+        }
+      ]
+    },
+    "ArcPrivateLinkScopes": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "publicNetworkAccess": "res-value",
+            "privateEndpointConnections": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "privateLinkScopeId": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/privatelinkscopes/arcprivatelinkscopes-t1a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcprivatelinkscopes-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.hybridcompute/privatelinkscopes"
+        },
+        {
+          "PROPERTIES": {
+            "publicNetworkAccess": "res-value",
+            "privateEndpointConnections": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "privateLinkScopeId": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/privatelinkscopes/arcprivatelinkscopes-t1b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcprivatelinkscopes-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.hybridcompute/privatelinkscopes"
+        },
+        {
+          "PROPERTIES": {
+            "publicNetworkAccess": "res-value",
+            "privateEndpointConnections": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "privateLinkScopeId": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/privatelinkscopes/arcprivatelinkscopes-t1c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcprivatelinkscopes-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.hybridcompute/privatelinkscopes"
+        },
+        {
+          "PROPERTIES": {
+            "publicNetworkAccess": "res-value",
+            "privateEndpointConnections": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "privateLinkScopeId": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/privatelinkscopes/arcprivatelinkscopes-t1d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcprivatelinkscopes-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.hybridcompute/privatelinkscopes"
+        },
+        {
+          "PROPERTIES": {
+            "publicNetworkAccess": "res-value",
+            "privateEndpointConnections": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "privateLinkScopeId": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/privatelinkscopes/arcprivatelinkscopes-t1e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcprivatelinkscopes-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.hybridcompute/privatelinkscopes"
+        },
+        {
+          "PROPERTIES": {
+            "publicNetworkAccess": "res-value",
+            "privateEndpointConnections": [
+              "res-item-0",
+              "res-item-1"
+            ],
+            "privateLinkScopeId": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/privatelinkscopes/arcprivatelinkscopes-t1f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcprivatelinkscopes-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.hybridcompute/privatelinkscopes"
         }
       ]
     },
@@ -1983,6 +2480,141 @@
           "NAME": "arcscvmmservers-t1f",
           "LOCATION": "res-value",
           "TYPE": "microsoft.scvmm/vmmservers"
+        }
+      ]
+    },
+    "ArcServerLicenses": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "licenseType": "res-value",
+            "licenseDetails": {
+              "state": "res-value",
+              "target": "res-value",
+              "edition": "res-value",
+              "type": "res-value",
+              "processors": "res-value"
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/licenses/arcserverlicenses-t1a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcserverlicenses-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.hybridcompute/licenses"
+        },
+        {
+          "PROPERTIES": {
+            "licenseType": "res-value",
+            "licenseDetails": {
+              "state": "res-value",
+              "target": "res-value",
+              "edition": "res-value",
+              "type": "res-value",
+              "processors": "res-value"
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/licenses/arcserverlicenses-t1b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcserverlicenses-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.hybridcompute/licenses"
+        },
+        {
+          "PROPERTIES": {
+            "licenseType": "res-value",
+            "licenseDetails": {
+              "state": "res-value",
+              "target": "res-value",
+              "edition": "res-value",
+              "type": "res-value",
+              "processors": "res-value"
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/licenses/arcserverlicenses-t1c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcserverlicenses-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.hybridcompute/licenses"
+        },
+        {
+          "PROPERTIES": {
+            "licenseType": "res-value",
+            "licenseDetails": {
+              "state": "res-value",
+              "target": "res-value",
+              "edition": "res-value",
+              "type": "res-value",
+              "processors": "res-value"
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/licenses/arcserverlicenses-t1d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcserverlicenses-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.hybridcompute/licenses"
+        },
+        {
+          "PROPERTIES": {
+            "licenseType": "res-value",
+            "licenseDetails": {
+              "state": "res-value",
+              "target": "res-value",
+              "edition": "res-value",
+              "type": "res-value",
+              "processors": "res-value"
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/licenses/arcserverlicenses-t1e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcserverlicenses-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.hybridcompute/licenses"
+        },
+        {
+          "PROPERTIES": {
+            "licenseType": "res-value",
+            "licenseDetails": {
+              "state": "res-value",
+              "target": "res-value",
+              "edition": "res-value",
+              "type": "res-value",
+              "processors": "res-value"
+            },
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridcompute/licenses/arcserverlicenses-t1f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "arcserverlicenses-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.hybridcompute/licenses"
         }
       ]
     },
@@ -3247,8 +3879,8 @@
             },
             "isReadOnly": "res-value",
             "collationName": "res-value",
-            "databaseCreationDate": "2026-01-15T10:30:00.0000000Z",
-            "lastDatabaseUploadTime": "2026-01-15T10:30:00.0000000Z"
+            "databaseCreationDate": "2026-01-15T10:30:00Z",
+            "lastDatabaseUploadTime": "2026-01-15T10:30:00Z"
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "tags": {
@@ -3276,8 +3908,8 @@
             },
             "isReadOnly": "res-value",
             "collationName": "res-value",
-            "databaseCreationDate": "2026-01-15T10:30:00.0000000Z",
-            "lastDatabaseUploadTime": "2026-01-15T10:30:00.0000000Z"
+            "databaseCreationDate": "2026-01-15T10:30:00Z",
+            "lastDatabaseUploadTime": "2026-01-15T10:30:00Z"
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "tags": {
@@ -3306,8 +3938,8 @@
             },
             "isReadOnly": "res-value",
             "collationName": "res-value",
-            "databaseCreationDate": "2026-01-15T10:30:00.0000000Z",
-            "lastDatabaseUploadTime": "2026-01-15T10:30:00.0000000Z"
+            "databaseCreationDate": "2026-01-15T10:30:00Z",
+            "lastDatabaseUploadTime": "2026-01-15T10:30:00Z"
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "tags": {},
@@ -3333,8 +3965,8 @@
             },
             "isReadOnly": "res-value",
             "collationName": "res-value",
-            "databaseCreationDate": "2026-01-15T10:30:00.0000000Z",
-            "lastDatabaseUploadTime": "2026-01-15T10:30:00.0000000Z"
+            "databaseCreationDate": "2026-01-15T10:30:00Z",
+            "lastDatabaseUploadTime": "2026-01-15T10:30:00Z"
           },
           "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
           "tags": {
@@ -3362,8 +3994,8 @@
             },
             "isReadOnly": "res-value",
             "collationName": "res-value",
-            "databaseCreationDate": "2026-01-15T10:30:00.0000000Z",
-            "lastDatabaseUploadTime": "2026-01-15T10:30:00.0000000Z"
+            "databaseCreationDate": "2026-01-15T10:30:00Z",
+            "lastDatabaseUploadTime": "2026-01-15T10:30:00Z"
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "tags": {
@@ -3391,8 +4023,8 @@
             },
             "isReadOnly": "res-value",
             "collationName": "res-value",
-            "databaseCreationDate": "2026-01-15T10:30:00.0000000Z",
-            "lastDatabaseUploadTime": "2026-01-15T10:30:00.0000000Z"
+            "databaseCreationDate": "2026-01-15T10:30:00Z",
+            "lastDatabaseUploadTime": "2026-01-15T10:30:00Z"
           },
           "subscriptionId": "00000000-0000-0000-0000-000000000001",
           "tags": {
@@ -6860,6 +7492,153 @@
           "NAME": "marketplacegalleryimages-t1f",
           "LOCATION": "res-value",
           "TYPE": "microsoft.azurestackhci/marketplacegalleryimages"
+        }
+      ]
+    },
+    "MulticloudConnectors": {
+      "resources": [
+        {
+          "PROPERTIES": {
+            "hostType": "res-value",
+            "awsCloudProfile": {
+              "accountId": "res-value",
+              "isOrganizationalAccount": "res-value",
+              "excludedAccounts": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "connectorPrimaryIdentifier": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridconnectivity/publiccloudconnectors/multicloudconnectors-t1a-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "multicloudconnectors-t1a",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.hybridconnectivity/publiccloudconnectors"
+        },
+        {
+          "PROPERTIES": {
+            "hostType": "res-value",
+            "awsCloudProfile": {
+              "accountId": "res-value",
+              "isOrganizationalAccount": "res-value",
+              "excludedAccounts": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "connectorPrimaryIdentifier": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod",
+            "owner": "platform"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridconnectivity/publiccloudconnectors/multicloudconnectors-t1b-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "multicloudconnectors-t1b",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.hybridconnectivity/publiccloudconnectors"
+        },
+        {
+          "PROPERTIES": {
+            "hostType": "res-value",
+            "awsCloudProfile": {
+              "accountId": "res-value",
+              "isOrganizationalAccount": "res-value",
+              "excludedAccounts": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "connectorPrimaryIdentifier": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {},
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridconnectivity/publiccloudconnectors/multicloudconnectors-t1c-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "multicloudconnectors-t1c",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.hybridconnectivity/publiccloudconnectors"
+        },
+        {
+          "PROPERTIES": {
+            "hostType": "res-value",
+            "awsCloudProfile": {
+              "accountId": "res-value",
+              "isOrganizationalAccount": "res-value",
+              "excludedAccounts": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "connectorPrimaryIdentifier": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-0000000000ff",
+          "tags": {
+            "env": "dev"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.hybridconnectivity/publiccloudconnectors/multicloudconnectors-t1d-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "multicloudconnectors-t1d",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.hybridconnectivity/publiccloudconnectors"
+        },
+        {
+          "PROPERTIES": {
+            "hostType": "res-value",
+            "awsCloudProfile": {
+              "accountId": "res-value",
+              "isOrganizationalAccount": "res-value",
+              "excludedAccounts": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "connectorPrimaryIdentifier": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridconnectivity/publiccloudconnectors/multicloudconnectors-t1e-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "multicloudconnectors-t1e",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.hybridconnectivity/publiccloudconnectors"
+        },
+        {
+          "PROPERTIES": {
+            "hostType": "res-value",
+            "awsCloudProfile": {
+              "accountId": "res-value",
+              "isOrganizationalAccount": "res-value",
+              "excludedAccounts": [
+                "res-item-0",
+                "res-item-1"
+              ]
+            },
+            "connectorPrimaryIdentifier": "res-value",
+            "provisioningState": "res-value"
+          },
+          "subscriptionId": "00000000-0000-0000-0000-000000000001",
+          "tags": {
+            "env": "prod"
+          },
+          "id": "/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.hybridconnectivity/publiccloudconnectors/multicloudconnectors-t1f-1",
+          "RESOURCEGROUP": "res-value",
+          "NAME": "multicloudconnectors-t1f",
+          "LOCATION": "res-value",
+          "TYPE": "microsoft.hybridconnectivity/publiccloudconnectors"
         }
       ]
     },

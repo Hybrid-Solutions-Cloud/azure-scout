@@ -3,7 +3,7 @@
   "Category": "Management",
   "Name": "AllSubscriptions",
   "FixturePath": "tests/fixtures/collector-equivalence/Management.json",
-  "FixtureSha256": "c66866d070eeda26948afd1c625369ba997a136a92d6d6e7ce51553976caecd4",
+  "FixtureSha256": "c77e9e15a3fc4669aca46a6c6717a0b7c5e3efef9743a8f439287ccc09f85aa4",
   "Rows": [
     "Authorization Source=s:res-value|ID=s:res-value|Management Group Path=s:res-value|Quota ID=s:res-value|Resource Groups Count=s:res-value|Resource U=j:1|Resources Count=s:res-value|Spending Limit=s:res-value|State=s:res-value|Subscription ID=s:res-value|Subscription Name=s:res-value|Tags=s:=; =|Tenant ID=s:res-value",
     "Authorization Source=s:res-value|ID=s:res-value|Management Group Path=s:res-value|Quota ID=s:res-value|Resource Groups Count=s:res-value|Resource U=j:1|Resources Count=s:res-value|Spending Limit=s:res-value|State=s:res-value|Subscription ID=s:res-value|Subscription Name=s:res-value|Tags=s:=; =|Tenant ID=s:res-value",

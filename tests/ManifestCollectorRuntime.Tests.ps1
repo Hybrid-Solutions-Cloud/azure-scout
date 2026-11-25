@@ -16,7 +16,7 @@ Describe 'Manifest collector runtime catalog' {
         $Actual = @(Get-ScoutCollector -DefinitionRoot $DefinitionRoot)
 
         $Actual.Count | Should -Be $Expected.Count
-        $Actual.Count | Should -Be 342   # 285 through AB#7358; +29 evidence-completeness manifests under AB#7441; -2 Key Vault content collectors (AB#9300); +30 discovered-but-unread types and Playwright Workspaces (AB#9300, 3.18.10).
+        $Actual.Count | Should -Be 381   # 285 through AB#7358; +29 evidence-completeness manifests under AB#7441; -2 Key Vault content collectors (AB#9300); +30 discovered-but-unread types and Playwright Workspaces (AB#9300, 3.18.10); +39 (3.18.12).
         @($Actual | Where-Object {
             -not $_.HasDeclarativeDefinition -or
             [string]::IsNullOrWhiteSpace($_.DefinitionPath) -or

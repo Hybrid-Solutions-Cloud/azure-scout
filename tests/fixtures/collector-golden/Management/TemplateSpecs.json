@@ -1,0 +1,24 @@
+{
+  "SchemaVersion": 1,
+  "Category": "Management",
+  "Name": "TemplateSpecs",
+  "FixturePath": "tests/fixtures/collector-equivalence/Management.json",
+  "FixtureSha256": "c77e9e15a3fc4669aca46a6c6717a0b7c5e3efef9743a8f439287ccc09f85aa4",
+  "Rows": [
+    "Description=s:res-value|Display Name=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.resources/templatespecs/templatespecs-t1a-1|Location=s:res-value|Name=s:templatespecs-t1a|Resource Group=s:res-value|Resource U=j:1|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",
+    "Description=s:res-value|Display Name=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.resources/templatespecs/templatespecs-t1b-1|Location=s:res-value|Name=s:templatespecs-t1b|Resource Group=s:res-value|Resource U=j:1|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",
+    "Description=s:res-value|Display Name=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.resources/templatespecs/templatespecs-t1b-1|Location=s:res-value|Name=s:templatespecs-t1b|Resource Group=s:res-value|Resource U=j:0|Subscription=s:sub-fixture-01|Tag Name=s:owner|Tag Value=s:platform",
+    "Description=s:res-value|Display Name=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.resources/templatespecs/templatespecs-t1c-1|Location=s:res-value|Name=s:templatespecs-t1c|Resource Group=s:res-value|Resource U=j:1|Subscription=s:sub-fixture-01|Tag Name=s:|Tag Value=s:",
+    "Description=s:res-value|Display Name=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-0000000000ff/resourceGroups/rg-fixture-01/providers/microsoft.resources/templatespecs/templatespecs-t1d-1|Location=s:res-value|Name=s:templatespecs-t1d|Resource Group=s:res-value|Resource U=j:1|Subscription=<null>|Tag Name=s:env|Tag Value=s:dev",
+    "Description=s:res-value|Display Name=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.resources/templatespecs/templatespecs-t1e-1|Location=s:res-value|Name=s:templatespecs-t1e|Resource Group=s:res-value|Resource U=j:1|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod",
+    "Description=s:res-value|Display Name=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.resources/templatespecs/templatespecs-t1f-1|Location=s:res-value|Name=s:templatespecs-t1f|Resource Group=s:res-value|Resource U=j:1|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod"
+  ],
+  "Workbook": {
+    "WithoutTags": [
+      "Subscription\tResource Group\tName\tLocation\tDisplay Name\tDescription\tResource U\nsub-fixture-01\tres-value\ttemplatespecs-t1a\tres-value\tres-value\tres-value\t1\nsub-fixture-01\tres-value\ttemplatespecs-t1b\tres-value\tres-value\tres-value\t1\nsub-fixture-01\tres-value\ttemplatespecs-t1b\tres-value\tres-value\tres-value\t0\nsub-fixture-01\tres-value\ttemplatespecs-t1c\tres-value\tres-value\tres-value\t1\n\tres-value\ttemplatespecs-t1d\tres-value\tres-value\tres-value\t1\nsub-fixture-01\tres-value\ttemplatespecs-t1e\tres-value\tres-value\tres-value\t1\nsub-fixture-01\tres-value\ttemplatespecs-t1f\tres-value\tres-value\tres-value\t1"
+    ],
+    "WithTags": [
+      "Subscription\tResource Group\tName\tLocation\tDisplay Name\tDescription\tTag Name\tTag Value\tResource U\nsub-fixture-01\tres-value\ttemplatespecs-t1a\tres-value\tres-value\tres-value\tenv\tprod\t1\nsub-fixture-01\tres-value\ttemplatespecs-t1b\tres-value\tres-value\tres-value\tenv\tprod\t1\nsub-fixture-01\tres-value\ttemplatespecs-t1b\tres-value\tres-value\tres-value\towner\tplatform\t0\nsub-fixture-01\tres-value\ttemplatespecs-t1c\tres-value\tres-value\tres-value\t\t\t1\n\tres-value\ttemplatespecs-t1d\tres-value\tres-value\tres-value\tenv\tdev\t1\nsub-fixture-01\tres-value\ttemplatespecs-t1e\tres-value\tres-value\tres-value\tenv\tprod\t1\nsub-fixture-01\tres-value\ttemplatespecs-t1f\tres-value\tres-value\tres-value\tenv\tprod\t1"
+    ]
+  }
+}

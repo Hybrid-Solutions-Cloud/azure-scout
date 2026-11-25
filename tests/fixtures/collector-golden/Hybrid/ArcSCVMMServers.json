@@ -3,7 +3,7 @@
   "Category": "Hybrid",
   "Name": "ArcSCVMMServers",
   "FixturePath": "tests/fixtures/collector-equivalence/Hybrid.json",
-  "FixtureSha256": "9967d0c3e74de8d506e4a9443407b2504563b561ccbbf0728a8e06cc734d9057",
+  "FixtureSha256": "16078ebb15d2b7ed3798673de0950f7d289b9d454d8aaac528ad55d896478cb2",
   "Rows": [
     "Connection Status=s:res-value|Error=s:res-value|FQDN=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.scvmm/vmmservers/arcscvmmservers-t1a-1|Location=s:res-value|Name=s:arcscvmmservers-t1a|Port=s:res-value|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod|Version=s:res-value",
     "Connection Status=s:res-value|Error=s:res-value|FQDN=s:res-value|ID=s:/subscriptions/00000000-0000-0000-0000-000000000001/resourceGroups/rg-fixture-01/providers/microsoft.scvmm/vmmservers/arcscvmmservers-t1b-1|Location=s:res-value|Name=s:arcscvmmservers-t1b|Port=s:res-value|Provisioning State=s:res-value|Resource Group=s:res-value|Resource U=j:1|Subscription=s:sub-fixture-01|Tag Name=s:env|Tag Value=s:prod|Version=s:res-value",
