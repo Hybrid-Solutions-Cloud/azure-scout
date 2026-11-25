@@ -104,6 +104,9 @@ BeforeAll {
                 resourceLocksAvailable     = $true
                 budgets                    = @(if ($Good) { [ordered]@{ name = 'budget1' } })
                 budgetsAvailable           = $true
+                # Evidence for WAF-MC-SE-09: a permanent, standing privileged assignment held by a user.
+                roleAssignmentSchedules    = @([ordered]@{ id = 'sched1'; principalId = 'p1'; principalType = 'User'; roleDefinitionName = 'Owner'; privilegedRole = $true; accessType = 'Standing'; permanent = $true })
+                roleAssignmentSchedulesMeasured = $true
             }
             costCleanup   = [ordered]@{
                 orphanedDisks = @(if (-not $Good) { [ordered]@{ name = 'old-disk'; location = 'eastus' } })
@@ -159,7 +162,11 @@ BeforeAll {
                 security   = [ordered]@{
                     keyVaults = @([ordered]@{ id = 'kv1'; name = 'kv'; softDelete = $Good; purgeProtection = $Good })
                 }
-                identity   = [ordered]@{ managedIdentities = @([ordered]@{ id = 'mi1'; name = 'mi' }) }
+                # Evidence for WAF-GOLIVE-SE-05: an enabled Conditional Access policy that requires MFA.
+                identity   = [ordered]@{
+                    managedIdentities = @([ordered]@{ id = 'mi1'; name = 'mi' })
+                    conditionalAccess = [ordered]@{ Collected = $true; policies = @([ordered]@{ id = 'ca1'; displayName = 'MFA'; enabled = $true; requiresMfa = $true; targetsAllUsers = $true }) }
+                }
                 integration = [ordered]@{
                     eventHubNamespaces   = @([ordered]@{ name = 'eh'; zoneRedundant = $Good })
                     serviceBusNamespaces = @([ordered]@{ name = 'sb'; publicAccess = 'Disabled' })

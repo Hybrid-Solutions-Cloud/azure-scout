@@ -16,9 +16,12 @@ rules:
   - id: CAF-IDN-02
     title: "Privileged Identity Management (PIM) eligibility in use"
     severity: high
+    # Azure RBAC eligibility schedules, read per subscription (Get-AzRoleEligibilitySchedule). The
+    # gate is true only when EVERY subscription answered, so a subscription Scout could not read
+    # reads Not assessed here rather than "PIM is not used" (governance.pimEligibilityReason says why).
     query: "$.governance.pimEligibility[*]"
     assert: { type: exists, gate: "$.governance.pimEligibilityAvailable" }
-    remediation: "Adopt PIM eligible assignments for privileged roles instead of permanent grants."
+    remediation: "Adopt PIM eligible assignments for privileged roles instead of permanent grants. This check reads the Azure RBAC role eligibility schedules of every subscription; if it reads Not assessed, governance.pimEligibilityReason in collect.json names the subscription read that failed."
     manual: false
 
   - id: CAF-IDN-03
@@ -30,19 +33,32 @@ rules:
     manual: false
 
   - id: CAF-IDN-04
-    title: "Conditional Access baseline reviewed"
+    title: "A Conditional Access baseline is enforced (an enabled policy requires MFA for all users)"
     severity: medium
-    query: null
-    assert: { type: manual }
-    remediation: "Confirm a Conditional Access baseline (MFA, device compliance) is defined and enforced."
-    manual: true
+    # domains.identity.conditionalAccess (Entra, read from the inventory pass's own rows or one
+    # direct Graph read). `enabled` is false for a report-only policy, and `requiresMfa` is false
+    # when the grant operator is OR and another control could satisfy the policy, so neither counts.
+    # A tenant protected only by Security defaults has no Conditional Access policy and reads Fail:
+    # the item is about Conditional Access. Gated: Collected is false (Not assessed) when Graph was
+    # not read -- ArmOnly, no Policy.Read.All, no Entra ID P1.
+    query: "$.domains.identity.conditionalAccess.policies[?(@.enabled == true && @.requiresMfa == true && @.targetsAllUsers == true)]"
+    assert: { type: exists, gate: "$.domains.identity.conditionalAccess.Collected" }
+    remediation: "No enabled Conditional Access policy requires MFA for all users. Define a baseline (require MFA for all users on all cloud apps, with only emergency-access accounts excluded; add device compliance for administrators) and set it to On -- a report-only policy is not enforced. If the tenant relies on Security defaults, replace them with Conditional Access policies. Whether the baseline is reviewed on a schedule is not something Scout can see."
+    manual: false
 
   - id: CAF-IDN-05
     title: "Majority of privileged role assignments are PIM-eligible rather than standing"
     severity: medium
-    query: "$.governance.pimEligibility[*]"
-    assert: { type: percentageAtLeast, value: 50, denominatorQuery: "$.governance.roleAssignments[?(@.properties.principalType == 'User')]", gate: "$.governance.pimEligibilityAvailable" }
-    remediation: "Convert standing (permanent) privileged user role assignments to PIM-eligible, time-bound assignments; target at least half of privileged user access as eligible rather than always-on."
+    # Share of PRIVILEGED (Owner, Contributor, User Access Administrator, Role Based Access Control
+    # Administrator) USER access that is eligible rather than standing: eligible / (eligible +
+    # standing). The denominator unions governance.pimEligibility with the active role assignment
+    # schedules and leaves out 'Activated' rows, which are an eligible assignment someone elevated
+    # into and would count it twice. It used to divide every eligibility row by every user role
+    # assignment of any role (Reader included), which could not be read as "privileged". Gated on
+    # privilegedAccessMeasured: both schedule reads must have answered for every subscription.
+    query: "$.governance.pimEligibility[?(@.privilegedRole == true && @.principalType == 'User')]"
+    assert: { type: percentageAtLeast, value: 50, denominatorQuery: "$.governance['pimEligibility','roleAssignmentSchedules'][?(@.privilegedRole == true && @.principalType == 'User' && @.accessType != 'Activated')]", gate: "$.governance.privilegedAccessMeasured" }
+    remediation: "Convert standing (permanent) privileged user role assignments to PIM-eligible, time-bound assignments; target at least half of privileged user access as eligible rather than always-on. Only Azure RBAC assignments of Owner, Contributor, User Access Administrator and Role Based Access Control Administrator held by users are counted; with none at all the check reads Unknown."
     manual: false
 
   - id: CAF-IDN-06

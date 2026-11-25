@@ -128,11 +128,37 @@ $ErrorActionPreference = 'Stop'
                      source for defenderPlans rather than exposed as a second canonical key.)
         governance { managementGroups[], policyAssignments[], policyDefinitions[],
                      policySetDefinitions[], roleAssignments[], budgets[],
-                     resourceLocks[], pimEligibility[], classicAdministrators[] }  (filled by the
+                     resourceLocks[], classicAdministrators[],
+                     pimEligibility[{id,principalId,principalType,roleDefinitionId,
+                                      roleDefinitionName,scope,scopeType,memberType,status,
+                                      startDateTime,endDateTime,permanent,privilegedRole,
+                                      accessType}],
+                     pimEligibilityAvailable, pimEligibilityReason,
+                     roleAssignmentSchedules[{id,principalId,principalType,roleDefinitionId,
+                                               roleDefinitionName,scope,scopeType,memberType,
+                                               status,startDateTime,endDateTime,permanent,
+                                               privilegedRole,assignmentType,accessType}],
+                     roleAssignmentSchedulesMeasured, roleAssignmentSchedulesReason,
+                     privilegedAccessMeasured, rbacSchedulesRead }  (filled by the
                      native Governance ingestor, Import-Governance; policyDefinitions/
                      policySetDefinitions are the raw ARM REST list rows behind the
                      AZSC/Management/PolicyDefinition|PolicySetDefinition envelopes the
-                     TenantWideDefinitionsOnly sweep already collects -- AB#7066)
+                     TenantWideDefinitionsOnly sweep already collects -- AB#7066.
+                     The Azure RBAC schedules come from Get-ScoutRbacScheduleDataset, read once
+                     per subscription by the raw pass (Get-ScoutGovernanceDataset) or, with no
+                     raw pass, by Import-Governance: pimEligibility are the ELIGIBLE schedules
+                     (accessType 'Eligible'); roleAssignmentSchedules are the ACTIVE ones
+                     (accessType 'Standing' -- an active assignment that needed no activation,
+                     `permanent` when it has no end date -- or 'Activated', an eligible
+                     assignment someone elevated into). `privilegedRole` is true for Owner,
+                     Contributor, User Access Administrator and Role Based Access Control
+                     Administrator. Rows are an allow-list: ids, role name, scope and dates --
+                     never a display name or e-mail address. pimEligibilityAvailable /
+                     roleAssignmentSchedulesMeasured are true ONLY when the read answered for
+                     every subscription (an empty answer counts), privilegedAccessMeasured only
+                     when both did, and the *Reason fields say why not; rules gate on the flags
+                     and read NotAssessed, never Fail. rbacSchedulesRead marks that the collect
+                     pass already asked Azure, so Import-Governance does not ask again.)
         costCleanup { orphanedDisks[], orphanedPips[] }
         opsPosture  { diagnosticCoverage[{type,total,withDiag,coveragePct}], diagnosticCoverageMeasured }
         monitor     { dataCollectionRules[{dataCollectionEndpointId,hasLogAnalyticsDestination,dataFlowCount,immutableId}],
@@ -289,6 +315,53 @@ $ErrorActionPreference = 'Stop'
                                Get-ScoutExternalIdentitiesPolicy.ps1 rather than through the
                                `entra/*` manifest/inventory path -- see the note above the `entra/*`
                                exclusion list further up this header)
+                      identity{conditionalAccess{Collected,Reason,securityDefaultsEnabled,
+                               baselineAssessable,namedLocationsCollected,
+                               policies[{id,displayName,state,source,conditions,grantControls,
+                                         sessionControls,enabled,reportOnly,targetsAllUsers,
+                                         targetsDirectoryRoles,targetsGuests,targetsAllApps,
+                                         hasAppExclusions,targetsAzureManagement,
+                                         targetsAdminPortals,targetsAvd,
+                                         requiresMfa,blocks,blocksLegacyAuth,usesSignInRisk,
+                                         usesUserRisk,usesLocations,
+                                         requiresCompliantOrHybridDevice,hasExclusions}],
+                               namedLocations[{id,displayName,locationType,isTrusted,
+                                               ipRangeCount,countryCount,
+                                               includeUnknownCountriesAndRegions}],
+                               securityDefaultsCoverage[]},
+                               directoryRoles{Collected,Reason,
+                               assignments[{principalId,principalType,roleDefinitionId,roleName,
+                                            directoryScopeId}],
+                               eligibilityCollected,eligibilityReason,
+                               eligibility[{principalId,principalType,roleDefinitionId,roleName,
+                                            directoryScopeId,status,memberType,endDateTime}]}}
+                               (Entra Conditional Access and directory roles -- the identity
+                               controls that govern ACCESS TO Azure. Collected by
+                               Get-ScoutConditionalAccessPosture.ps1 and
+                               Get-ScoutDirectoryRolePosture.ps1. Source order: the rows the
+                               inventory pass already read into `entraResources` (no second Graph
+                               call; a failed/denied query is reported, not retried), else direct
+                               Graph GETs (policies, named locations, Security Defaults), and none
+                               for -Scope ArmOnly or an offline render. Never throws:
+                               `Collected = $false` plus `Reason`, so a gated rule reads
+                               NotAssessed. Each policy row keeps the raw conditions/grantControls/
+                               sessionControls AND computed booleans a JSONPath filter can test
+                               (no parentheses or `!`; a missing property never matches);
+                               requiresMfa/requiresCompliantOrHybridDevice are false when the
+                               grant operator is OR and any other control could satisfy the policy,
+                               and `enabled` is false for report-only policies. When Security
+                               Defaults are on, `securityDefaultsCoverage` holds one policy-shaped
+                               row stating what they enforce, so a rule accepting either mechanism
+                               unions `conditionalAccess['policies','securityDefaultsCoverage']`
+                               and gates on `baselineAssessable` (Conditional Access read AND the
+                               Security Defaults state known or an enabled policy present -- with
+                               neither, "protected by policy or by Security Defaults" has no answer).
+                               Named locations keep counts, never IP ranges. directoryRoles come
+                               only from inventory rows -- `assignments` from `entra/pimassignments`
+                               (the directory role ASSIGNMENT list), `eligibility` from
+                               `entra/roleeligibilityschedules`, which the cached sign-in's token
+                               usually lacks the scope for, so eligibilityCollected is normally
+                               false -- "not read", never "nobody is eligible". No display names.)
                       ai{cognitiveAccounts[{identityType,cmkEnabled}]},
                       hybrid{arcServers[{patchMode,assessmentMode}],                        (AB#7109)
                              arcExtensions[{machineId,extensionType}],
@@ -453,9 +526,14 @@ $ErrorActionPreference = 'Stop'
         (AB#7098) is the one exception that still reaches this file's OUTPUT: it is collected by a
         direct `Get-ScoutExternalIdentitiesPolicy.ps1` call, the same live-REST-call pattern
         `Get-ScoutDefenderPlanSweep.ps1` already established for Defender, and folded into
-        `domains.identity.externalIdentitiesPolicy` below -- see that block for why. Every OTHER `entra/*`
-        manifest still reaches only the Excel/PPTX inventory export (Start-ScoutEntraExtraction),
-        not this file; wiring the rest of them is future work, not this Story's scope.
+        `domains.identity.externalIdentitiesPolicy` below -- see that block for why. Conditional Access,
+        named locations, Security Defaults and the directory role assignments/eligibility
+        (`entra/conditionalaccesspolicies`, `entra/namedlocations`, `entra/securitydefaults`,
+        `entra/pimassignments`, `entra/roleeligibilityschedules`) reach this file's OUTPUT too, as
+        `domains.identity.conditionalAccess` and `domains.identity.directoryRoles` -- the identity
+        controls that govern access to Azure -- from the inventory pass's own rows or one direct
+        Graph read. Every OTHER `entra/*` manifest still reaches only the Excel/PPTX inventory
+        export (Start-ScoutEntraExtraction), not this file.
       - `devops/*` org-level DevOps manifests (DevOpsAgentPools, DevOpsPipelines,
         DevOpsProjects, DevOpsRepositories, DevOpsServiceConnections) -- Azure DevOps REST
         API, not ARM/ARG; the `devops` canonical section's `agentPools`/`projects`/etc
@@ -3397,19 +3475,42 @@ resources
     #
     # Empty when no raw pass ran at all (-Source TypedQueries), in which case Import-Governance
     # collects them exactly as it always did.
+    #
+    # The Azure RBAC schedules (PIM eligibility and role assignment schedules) ride on the same
+    # raw-pass object. They used to be read there and then discarded: this function wrote
+    # `pimEligibility = @()` and Import-Governance wrote `pimEligibilityAvailable = $false`, so
+    # every PIM rule read NotAssessed on every run. `rbacSchedulesRead` records that the collect
+    # pass already asked Azure, so Import-Governance does not ask a second time (and the typed
+    # path, which has no raw pass, is the one place it still has to).
+    $rbacNotRead = 'The Azure RBAC schedule reads run in the inventory pass or the Governance ingest; neither supplied them to this collect.'
     $rawGovernance = [pscustomobject]@{
         roleAssignments = @(); policyAssignments = @(); budgets = @(); resourceLocks = @()
+        pimEligibility = @(); pimEligibilityAvailable = $false; pimEligibilityReason = $rbacNotRead
+        roleAssignmentSchedules = @(); roleAssignmentSchedulesMeasured = $false; roleAssignmentSchedulesReason = $rbacNotRead
+        privilegedAccessMeasured = $false; rbacSchedulesRead = $false
     }
     if ($rawInventory -and $rawInventory.PSObject.Properties['Governance'] -and $rawInventory.Governance) {
         $governanceSource = $rawInventory.Governance
-        foreach ($key in @('roleAssignments', 'policyAssignments', 'budgets', 'resourceLocks')) {
+        foreach ($key in @('roleAssignments', 'policyAssignments', 'budgets', 'resourceLocks', 'pimEligibility', 'roleAssignmentSchedules')) {
             if ($governanceSource.PSObject.Properties[$key]) {
                 $rawGovernance.$key = @($governanceSource.$key | Where-Object { $_ })
             }
         }
-        Write-Verbose ('Invoke-Collect: governance came from the raw pass (AB#6779) -- roleAssignments={0} policyAssignments={1} budgets={2} resourceLocks={3}; Import-Governance will not re-query them.' -f `
+        # The flags are only trusted when the dataset says it ASKED: an older or stubbed dataset
+        # object has no `pimEligibilityAvailable` at all, and that is "not read", not "not available".
+        if ($governanceSource.PSObject.Properties['pimEligibilityAvailable']) {
+            $rawGovernance.rbacSchedulesRead = $true
+            foreach ($flag in @('pimEligibilityAvailable', 'roleAssignmentSchedulesMeasured', 'privilegedAccessMeasured')) {
+                if ($governanceSource.PSObject.Properties[$flag]) { $rawGovernance.$flag = [bool]$governanceSource.$flag }
+            }
+            foreach ($reason in @('pimEligibilityReason', 'roleAssignmentSchedulesReason')) {
+                if ($governanceSource.PSObject.Properties[$reason]) { $rawGovernance.$reason = $governanceSource.$reason }
+            }
+        }
+        Write-Verbose ('Invoke-Collect: governance came from the raw pass (AB#6779) -- roleAssignments={0} policyAssignments={1} budgets={2} resourceLocks={3} pimEligibility={4} (available={5}); Import-Governance will not re-query them.' -f `
                 $rawGovernance.roleAssignments.Count, $rawGovernance.policyAssignments.Count,
-                $rawGovernance.budgets.Count, $rawGovernance.resourceLocks.Count)
+                $rawGovernance.budgets.Count, $rawGovernance.resourceLocks.Count,
+                $rawGovernance.pimEligibility.Count, $rawGovernance.pimEligibilityAvailable)
     }
 
     $inventoryShaped = @{}
@@ -3983,6 +4084,58 @@ resources
         }
     }
 
+    # ---- Entra Conditional Access and directory roles: identity that governs access to Azure ----
+    # domains.identity.conditionalAccess and domains.identity.directoryRoles. Conditional Access
+    # decides who may sign in to Azure and under what proof (MFA, a compliant device, a trusted
+    # location); Scout read it into `entraResources` during the inventory pass and no assessment
+    # rule could see it, so every identity item that depends on it stayed Manual.
+    #
+    # Same source order as the External Identities block above: the inventory pass's own rows when
+    # it ran Entra (no second Graph call), otherwise direct Graph GETs, and none at all for
+    # -Scope ArmOnly or an offline render. Neither function throws; a failure is `Collected = $false`
+    # with a `Reason`, and a rule that gates on `Collected` reads NotAssessed.
+    $inventoryEntraRows = @(if ($rawInventory -and $rawInventory.PSObject.Properties['EntraResources']) { $rawInventory.EntraResources })
+    $inventoryEntraOutcomes = @(if ($rawInventory -and $rawInventory.PSObject.Properties['EntraQueryOutcomes']) { $rawInventory.EntraQueryOutcomes })
+    $caSkipGraph = ($Scope -eq 'ArmOnly') -or [bool]$OfflineFromInventory
+    $caSkipReason = if ($Scope -eq 'ArmOnly') { 'The collect ran with -Scope ArmOnly, which makes no Microsoft Graph call.' }
+        else { 'An offline render makes no Microsoft Graph call, and the inventory pass did not read Conditional Access.' }
+    $conditionalAccess = $null
+    try {
+        if (-not (Get-Command Get-ScoutConditionalAccessPosture -ErrorAction SilentlyContinue)) {
+            . (Join-Path $PSScriptRoot 'Get-ScoutConditionalAccessPosture.ps1')
+        }
+        $caArgs = @{ TenantID = $TenantID; EntraResources = $inventoryEntraRows; EntraQueryOutcomes = $inventoryEntraOutcomes; SkipReason = $caSkipReason }
+        if ($caSkipGraph) { $caArgs.SkipGraph = $true }
+        $conditionalAccess = Get-ScoutConditionalAccessPosture @caArgs
+    }
+    catch {
+        Write-Warning "Invoke-Collect: the Conditional Access collection failed; domains.identity.conditionalAccess will report Collected = `$false for this run: $($_.Exception.Message)"
+    }
+    if ($null -eq $conditionalAccess) {
+        $conditionalAccess = [pscustomobject][ordered]@{
+            Collected = $false; Reason = 'The Conditional Access collection did not return a result.'
+            securityDefaultsEnabled = $null; baselineAssessable = $false; namedLocationsCollected = $false
+            policies = @(); namedLocations = @(); securityDefaultsCoverage = @()
+        }
+    }
+    $directoryRoles = $null
+    try {
+        if (-not (Get-Command Get-ScoutDirectoryRolePosture -ErrorAction SilentlyContinue)) {
+            . (Join-Path $PSScriptRoot 'Get-ScoutDirectoryRolePosture.ps1')
+        }
+        $directoryRoles = Get-ScoutDirectoryRolePosture -EntraResources $inventoryEntraRows -EntraQueryOutcomes $inventoryEntraOutcomes
+    }
+    catch {
+        Write-Warning "Invoke-Collect: the directory role collection failed; domains.identity.directoryRoles will report Collected = `$false for this run: $($_.Exception.Message)"
+    }
+    if ($null -eq $directoryRoles) {
+        $directoryRoles = [pscustomobject][ordered]@{
+            Collected = $false; Reason = 'The directory role collection did not return a result.'
+            assignments = @(); eligibilityCollected = $false
+            eligibilityReason = 'The directory role collection did not return a result.'; eligibility = @()
+        }
+    }
+
     # ---- every declared dataset exists, even when nothing populated it ----
     #
     # `$r` is a hashtable, and under Set-StrictMode -Version Latest reading a key that was never
@@ -4178,7 +4331,19 @@ resources
             roleAssignments = $rawGovernance.roleAssignments
             budgets = $rawGovernance.budgets
             resourceLocks = $rawGovernance.resourceLocks
-            pimEligibility = @(); classicAdministrators = @()
+            # Azure RBAC PIM -- read by Get-ScoutRbacScheduleDataset, no longer hard-coded empty.
+            # The three flags are $true only when the read answered for EVERY subscription, and
+            # the *Reason fields say why not; rules gate on the flags and read NotAssessed.
+            pimEligibility = $rawGovernance.pimEligibility
+            pimEligibilityAvailable = $rawGovernance.pimEligibilityAvailable
+            pimEligibilityReason = $rawGovernance.pimEligibilityReason
+            roleAssignmentSchedules = $rawGovernance.roleAssignmentSchedules
+            roleAssignmentSchedulesMeasured = $rawGovernance.roleAssignmentSchedulesMeasured
+            roleAssignmentSchedulesReason = $rawGovernance.roleAssignmentSchedulesReason
+            privilegedAccessMeasured = $rawGovernance.privilegedAccessMeasured
+            # True when the read ran in this collect pass; Import-Governance then reuses it.
+            rbacSchedulesRead = $rawGovernance.rbacSchedulesRead
+            classicAdministrators = @()
         }
         costCleanup   = [pscustomobject]@{ orphanedDisks = $r.orphanedDisks; orphanedPips = $r.orphanedPips }
         # diagnosticCoverageMeasured is false when no diagnostic-settings sweep ran (the typed-query
@@ -4317,6 +4482,10 @@ resources
                 # the first Graph-backed field this section carries. See the collection block
                 # above for the -Scope 'ArmOnly' gate and the Collected-flag failure contract.
                 externalIdentitiesPolicy = $externalIdentitiesPolicy
+                # Entra Conditional Access and directory roles -- the identity controls that
+                # govern access to Azure. See the collection block above.
+                conditionalAccess = $conditionalAccess
+                directoryRoles = $directoryRoles
             }
             # mlWorkspaces/searchServices (AB#6818) are the custom-build and grounding-pipeline
             # halves of the AI workload assessment that cognitiveAccounts alone doesn't cover.

@@ -53,6 +53,14 @@ param([string] $Method, [string] $Path) }
         }
     }
 
+    if (-not (Get-Command Get-AzRoleAssignmentSchedule -ErrorAction SilentlyContinue)) {
+        function Get-AzRoleAssignmentSchedule {
+            param([string] $Scope, [string] $ErrorAction)
+            $null = $Scope, $ErrorAction
+            @()
+        }
+    }
+
     $script:SubA = '00000000-0000-0000-0000-00000000000a'
     $script:SubB = '00000000-0000-0000-0000-00000000000b'
     $script:OwnerGuid = '8e3af657-a8ff-443c-a75c-2fe8c4bcb635'
@@ -185,6 +193,7 @@ param([string] $Method, [string] $Path) }
 
     function Set-ScoutGovernanceMock {
         Mock Get-AzRoleEligibilitySchedule { return @() }
+        Mock Get-AzRoleAssignmentSchedule { return @() }
         Mock Search-AzGraph {
             # Order matters: the tenant-scoped definition query ALSO hits authorizationresources,
             # and it must be answered with definitions only. Serving it the scoped payload would
@@ -237,6 +246,7 @@ param([string] $Method, [string] $Path) }
     function Set-ScoutGovernanceWrapperMock {
         <# Set-ScoutGovernanceMock's payloads, delivered in the wrapper the real cmdlet returns. #>
         Mock Get-AzRoleEligibilitySchedule { return @() }
+        Mock Get-AzRoleAssignmentSchedule { return @() }
         Mock Search-AzGraph {
             if ($UseTenantScope)                        { return (New-ScoutArgResponse -Rows $script:MockTenantRoleDefinitions) }
             if ($Query -match 'authorizationresources') { return (New-ScoutArgResponse -Rows $script:MockAuthorization) }
@@ -370,9 +380,10 @@ Describe 'AB#6779 -- the call budget' {
         Should -Invoke Invoke-AzRestMethod -ParameterFilter { $Path -match 'locks' }   -Times 2 -Exactly
     }
 
-    It 'reads Azure RBAC eligible schedules exactly once per subscription' {
+    It 'reads Azure RBAC eligible and assignment schedules exactly once per subscription' {
         Get-ScoutGovernanceDataset -Subscriptions $script:Subscriptions | Out-Null
         Should -Invoke Get-AzRoleEligibilitySchedule -Times 2 -Exactly
+        Should -Invoke Get-AzRoleAssignmentSchedule -Times 2 -Exactly
     }
 
     It 'scopes both Resource Graph queries to the management group when one is supplied' {

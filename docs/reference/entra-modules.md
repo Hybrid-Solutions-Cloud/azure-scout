@@ -74,10 +74,36 @@ manifests, so the two can no longer drift the way a hand-maintained second copy 
 
 ::: warning ⚠️ Collected, normalized, and read by nothing
 `Identity Providers` and `Security Defaults` remain in the catalog as disabled coverage records,
-but Scout does not issue those two requests. The raw query-outcome ledger states that no released
-collector consumes them. `AuditLog.Read.All`, by contrast, now has multiple released consumers and
-is required for the last-30-day correlation datasets.
+so the inventory pass does not issue those two requests. `Identity Providers` has no released
+consumer. Security Defaults is read by the **assessment** collect instead: one direct request
+alongside the Conditional Access read described below, so a tenant protected only by Security
+Defaults is not mistaken for one with no MFA. `AuditLog.Read.All`, by contrast, now has multiple
+released consumers and is required for the last-30-day correlation datasets.
 :::
+
+## How the assessments read Conditional Access and directory roles
+
+Conditional Access policies, named locations, Security Defaults and the directory role assignments
+are not only worksheets: they are collected into `collect.json` as
+`domains.identity.conditionalAccess` and `domains.identity.directoryRoles`, because Conditional
+Access decides who can sign in to Azure and under what proof, and identity items in the Azure
+assessments (MFA for Azure management, MFA for Azure Virtual Desktop, a Conditional Access
+baseline) are scored from it.
+
+| Field | Meaning |
+|---|---|
+| `conditionalAccess.Collected` / `Reason` | False, with the reason, when Graph was not read: `-Scope ArmOnly`, an offline render, no `Policy.Read.All`, no Entra ID P1, or the inventory pass reported the query failed (not retried). Rules gate on it and read *Not assessed*. |
+| `conditionalAccess.policies[]` | Each policy's `id`, `displayName`, `state`, the raw `conditions` / `grantControls` / `sessionControls`, and booleans: `enabled`, `reportOnly`, `targetsAllUsers`, `targetsDirectoryRoles`, `targetsGuests`, `targetsAllApps`, `hasAppExclusions`, `targetsAzureManagement`, `targetsAdminPortals`, `targetsAvd`, `requiresMfa`, `blocks`, `blocksLegacyAuth`, `usesSignInRisk`, `usesUserRisk`, `usesLocations`, `requiresCompliantOrHybridDevice`, `hasExclusions`. |
+| `conditionalAccess.namedLocations[]` | Type, trusted flag, and the **number** of IP ranges or countries. Address ranges are never kept. |
+| `conditionalAccess.securityDefaultsEnabled` / `securityDefaultsCoverage[]` | True / false / null when unreadable; one policy-shaped row, present only when Security Defaults are on, saying what they enforce (MFA for all registered users, administrators and Azure management; legacy authentication blocked). |
+| `conditionalAccess.baselineAssessable` | True only when Conditional Access was read **and** (Security Defaults state is known **or** at least one policy is enabled). Reading Security Defaults needs a role some readers lack; with no policy and Security Defaults unreadable, "MFA is required by policy or by Security Defaults" has no answer, so the rule that accepts either gates on this and reads *Not assessed* instead of *Fail*. |
+| `directoryRoles.assignments[]` / `eligibility[]` | Principal id, principal type (looked up from the users, groups and service principals of the same pass), role name and scope. `eligibilityCollected` is false when `RoleEligibilitySchedule.Read.Directory` was not in the token: that means *not read*, never *nobody is eligible*. |
+
+`targetsAzureManagement` is strict: the *Windows Azure Service Management API* app (Azure Resource
+Manager, the portal, CLI and PowerShell) or all cloud apps. The *Microsoft Admin Portals* grouping
+covers the Azure portal but not CLI or PowerShell, so it sets `targetsAdminPortals` instead.
+`requiresMfa` and `requiresCompliantOrHybridDevice` are false when the grant operator is `OR` and
+another control could satisfy the policy, and `enabled` is false for a report-only policy.
 
 ## Required Microsoft Graph Permissions
 

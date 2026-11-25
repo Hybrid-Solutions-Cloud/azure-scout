@@ -183,8 +183,13 @@ param([string] $Query) return @() }
 
         try {
             $null = Invoke-Collect -Source TypedQueries -TenantID 'target-tenant' -WarningAction SilentlyContinue
+            # One External Identities read, and EVERY Graph read the collect makes (the Conditional
+            # Access reads added later included) is pinned to the requested tenant.
             Should -Invoke Invoke-AZSCGraphRequest -Exactly 1 -ParameterFilter {
-                $TenantID -eq 'target-tenant'
+                $TenantID -eq 'target-tenant' -and $Uri -like '*crossTenantAccessPolicy/default'
+            }
+            Should -Invoke Invoke-AZSCGraphRequest -Exactly 0 -ParameterFilter {
+                $TenantID -ne 'target-tenant'
             }
         }
         finally {

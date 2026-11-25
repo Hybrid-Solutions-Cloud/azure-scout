@@ -28,16 +28,17 @@
 #
 # COVERAGE. 12 of 20 enumerated items (60%) were rated cleanly automatable by the enumeration --
 # the highest of the four workload checklists in this release, because AVD-on-Azure-Local is
-# infrastructure-heavy. Of those, 6 are scored here with a real, non-vacuous assert (not
+# infrastructure-heavy. Of those, 6 were scored here with a real, non-vacuous assert (not
 # `manual: true`): WAF-AVD-RE-01 (cluster node count), WAF-AVD-RE-03 (session-host health),
 # WAF-AVD-SE-04 (logical-network existence), WAF-AVD-CO-06 (scaling-plan existence),
 # WAF-AVD-OE-03 (Arc extension existence) and WAF-AVD-OE-04 (Log Analytics workspace existence).
-# The remaining 14 stay `manual: true` -- most with a real `query` attached as evidence -- either
-# because the underlying signal genuinely is not modeled anywhere in `domains`/`compute` yet
-# (Conditional Access, Defender for Cloud pricing/alerts, Monitor alert rules -- all real,
-# pre-existing gaps in this repo's collection, not something invented or fixed by this story) or
-# because the item is a deliberate-choice/process question ("was this type chosen
-# deliberately", "was capacity planned") no boolean ARM property can answer.
+# WAF-AVD-SE-01 (MFA for AVD) is now the seventh: it reads the Entra Conditional Access policies
+# Scout collects into domains.identity.conditionalAccess. The remaining 13 stay `manual: true` --
+# most with a real `query` attached as evidence -- either because the underlying signal genuinely
+# is not modeled anywhere in `domains`/`compute` yet (Defender for Cloud pricing/alerts, Monitor
+# alert rules -- real, pre-existing gaps in this repo's collection) or because the item is a
+# deliberate-choice/process question ("was this type chosen deliberately", "was capacity
+# planned") no boolean ARM property can answer.
 area: "AVD workload (Azure Local)"
 framework: WAF-AVD
 frameworkversion: "WAF Azure Virtual Desktop for Azure Local guidance, docs/frameworks/waf-avd-workload-checklist.md, extracted 2026-08-01 (20 items, AVD-on-Azure-Local scope only)"
@@ -84,10 +85,17 @@ rules:
   - id: WAF-AVD-SE-01
     title: "WAF-AVD-SE-01. Turn on Microsoft Entra multifactor authentication for AVD access"
     severity: high
-    query: null
-    assert: { type: manual }
-    remediation: "WAF-AVD-SE-01. Confirm Conditional Access requires MFA for AVD sign-in. Conditional Access policy data is not modeled in domains.* for this rule set; confirm manually via Entra ID."
-    manual: true
+    # Entra Conditional Access, read from the inventory pass's rows or one Graph read
+    # (domains.identity.conditionalAccess). The policy must be ENABLED (report-only does not
+    # enforce), require MFA (an OR with another control, such as a compliant device, does not), and
+    # cover the Azure Virtual Desktop app or all cloud apps without excluding the AVD app.
+    # Gated twice: AVD host pools exist, and Conditional Access was read -- so an estate with no AVD
+    # or a run that could not read Entra reads Not assessed, never Fail. Security defaults are not
+    # accepted: they require MFA "when necessary", which is not a guarantee for this app.
+    query: "$.domains.identity.conditionalAccess.policies[?(@.enabled == true && @.requiresMfa == true && @.targetsAvd == true)]"
+    assert: { type: exists, gate: ["$.compute.avdHostPools[*]", "$.domains.identity.conditionalAccess.Collected"] }
+    remediation: "WAF-AVD-SE-01. No enabled Conditional Access policy requires MFA for the Azure Virtual Desktop app (or all cloud apps). Create one scoped to the AVD users and turn it On -- report-only policies do not count, and a policy that lets MFA be replaced by another control (grant operator OR) does not require it. If session-host single sign-on is on, add the same requirement for the Windows Cloud Login app, which this check does not read."
+    manual: false
   - id: WAF-AVD-SE-02
     title: "WAF-AVD-SE-02. Update and patch AVD session hosts regularly (Azure Update Manager)"
     severity: high

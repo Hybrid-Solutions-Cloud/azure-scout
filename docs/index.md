@@ -29,8 +29,8 @@ features:
     details: Every one of Microsoft's eighteen published service categories, from AI and Analytics through to Storage and Web — plus Entra ID identity objects via Microsoft Graph. Everything deployed is discovered and filed under its category, even where no collector reads it.
     link: /reference/arm-modules
     linkText: Browse the collectors
-  - title: 73 assessments
-    details: CAF design areas, CAF Govern and Migrate, WAF pillars, workload and technology reviews (AI, AVD, AVS, Azure Local, SAP, Oracle, SaaS, Mission Critical, Sustainability, Machine Learning, AI Search, Analytics, Data Services, 20 service guides), WARA, Advisor, AI readiness, FinOps, DevOps, Platform Engineering, Power Platform, Microsoft 365 Copilot, Windows 11 and compliance — 2,020 rules with published automated-versus-manual counts, and questionnaire answers for the questions only a person can answer.
+  - title: 66 assessments
+    details: CAF design areas, CAF Govern and Migrate, WAF pillars, workload and technology reviews (AI, AVD, AVS, Azure Local, SAP, Oracle, SaaS, Mission Critical, Sustainability, Machine Learning, AI Search, Analytics, Data Services, 20 service guides), WARA, Advisor, AI readiness, FinOps, DevOps, Platform Engineering and compliance — 1,732 rules with published automated-versus-manual counts, and questionnaire answers for the questions only a person can answer.
     link: /reference/assessment-catalogue
     linkText: Browse the assessments
   - title: Read-only, always

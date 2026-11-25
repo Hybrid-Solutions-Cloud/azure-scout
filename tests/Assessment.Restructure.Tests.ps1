@@ -63,9 +63,6 @@ BeforeAll {
         'WARA', 'ADVISOR', 'WAF-SVC'
         'WAF-SAAS', 'AI-READINESS', 'GENAI-TECH', 'GENAIOPS'
         'PLATFORM-ENG', 'ANALYTICS-JOURNEY', 'APPMOD'
-        # Phase 5: Microsoft assessments for products other than Azure (questionnaire-led).
-        'PP-WAF', 'PP-SOLUTION', 'PP-ADOPTION'
-        'M365-COPILOT-DATASEC', 'MSM-WAF', 'MCFS-WAF', 'WIN11-READINESS'
         'XR'
         'WAF-AI'
         'WAF-AVD'
@@ -296,9 +293,9 @@ Describe 'AB#6798 — the two false-pass rules no longer report Pass without eva
 }
 
 Describe 'AB#6798 — caf.billing.yaml no longer duplicates waf.cost.yaml' {
-    It 'has no automated (non-manual) rules -- Scout collects no EA/MCA/tenant-billing data' {
+    It 'has no automated rules except the Entra MFA check CAF-BIL-02 -- Scout collects no EA/MCA/tenant-billing data' {
         $doc = ConvertFrom-Yaml (Get-Content (Join-Path -Path $script:RuleDir -ChildPath 'caf.billing.yaml') -Raw)
-        $auto = @($doc.rules | Where-Object { -not $_.manual })
+        $auto = @($doc.rules | Where-Object { -not $_.manual -and $_.id -ne 'CAF-BIL-02' })
         $auto | Should -BeNullOrEmpty
     }
     It 'the cost-optimization rules formerly in caf.billing.yaml now live in waf.cost.yaml' {

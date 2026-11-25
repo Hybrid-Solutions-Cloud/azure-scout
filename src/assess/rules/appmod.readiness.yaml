@@ -13,6 +13,7 @@
 # them Not assessed rather than passed or failed:
 #   - repository and pipeline items gate on $.devops.available (needs -IncludeDevOps)
 #   - the policy item gates on $.governance.policyAssignmentsAvailable
+#   - the multifactor / Conditional Access item gates on $.domains.identity.conditionalAccess.Collected
 #   - the diagnostics item gates on $.opsPosture.diagnosticCoverageMeasured
 #   - the infrastructure-as-code item gates on deployment records existing
 #   - SQL items gate on SQL servers existing, web app items on App Service web apps existing
@@ -450,10 +451,15 @@ rules:
   - id: APPMOD-SEC-02
     title: "APPMOD-SEC-02. Multifactor authentication and Conditional Access protect all single sign-on integrations"
     severity: high
-    query: null
-    assert: { type: manual }
-    remediation: "APPMOD-SEC-02. Confirm MFA and Conditional Access policies (location, device state, risk) apply, and Identity Protection detects identity-based threats. Scout does not read Entra Conditional Access."
-    manual: true
+    # The strongest thing Conditional Access can say about "all" integrations: an ENABLED policy that
+    # requires MFA for all users on all cloud apps with no app excluded. A set of narrower policies
+    # that together cover every app is not recognised (Scout does not know which apps are SSO
+    # integrations), nor is Security defaults (not Conditional Access). Gated: Collected is false when
+    # Entra was not read (-Scope ArmOnly, no Policy.Read.All, no Entra ID P1), which reads Not assessed.
+    query: "$.domains.identity.conditionalAccess.policies[?(@.enabled == true && @.requiresMfa == true && @.targetsAllUsers == true && @.targetsAllApps == true && @.hasAppExclusions == false)]"
+    assert: { type: exists, gate: "$.domains.identity.conditionalAccess.Collected" }
+    remediation: "APPMOD-SEC-02. No enabled Conditional Access policy requires MFA for all users on all cloud apps. Add one (excluding only emergency-access accounts) and turn it On; a report-only policy does not count. Policies by location, device state and sign-in risk, and Entra ID Protection detecting identity-based threats, are not checked by Scout: confirm them in the Entra admin center. Narrower policies that together cover every integration are not recognised by this check, so review them by hand."
+    manual: false
   - id: APPMOD-SEC-03
     title: "APPMOD-SEC-03. Hybrid identity gives users one set of credentials across on-premises and cloud resources"
     severity: medium

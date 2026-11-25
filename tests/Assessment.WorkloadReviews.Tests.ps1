@@ -52,7 +52,16 @@ BeforeAll {
             nsgPublicInbound = @()
         }
         security   = [ordered]@{ defenderPlans = @([ordered]@{ name = 'VirtualMachines'; properties = [ordered]@{ pricingTier = 'Standard' } }) }
-        domains    = [ordered]@{ storage = [ordered]@{ storageAccounts = @() } }
+        # WAF-AVDAZ-SE-06: the only enabled MFA policy covers all apps but excludes the AVD app, so it fails.
+        domains    = [ordered]@{
+            storage  = [ordered]@{ storageAccounts = @() }
+            identity = [ordered]@{
+                conditionalAccess = [ordered]@{
+                    Collected = $true
+                    policies  = @([ordered]@{ id = 'ca1'; displayName = 'MFA, AVD excluded'; enabled = $true; requiresMfa = $true; targetsAllApps = $true; targetsAvd = $false })
+                }
+            }
+        }
         management = [ordered]@{ backupProtectedItems = @() }
         monitor    = [ordered]@{ dataCollectionRules = @(); activityLogAlertRules = @() }
         # phase 4 batch 2: host pools and workspaces are in the diagnostic-settings sweep; one pool is uncovered
@@ -107,7 +116,7 @@ Describe 'Workload: AVD (AVD in Azure)' {
         @{ Id = 'WAF-AVDAZ-OE-02'; Status = 'Fail' }   # pooled-bad not scheduled
         @{ Id = 'WAF-AVDAZ-OE-03'; Status = 'Fail' }   # one host pool has no diagnostic setting; the workspace is covered
         @{ Id = 'WAF-AVDAZ-OE-04'; Status = 'Fail' }   # sh-bad update failed
-        @{ Id = 'WAF-AVDAZ-SE-06'; Status = 'Manual' }
+        @{ Id = 'WAF-AVDAZ-SE-06'; Status = 'Fail' }   # the only MFA policy excludes the AVD app
     ) {
         $script:AvdById[$Id].Status | Should -Be $Status
     }
@@ -124,7 +133,7 @@ Describe 'Workload: AVD (AVD in Azure)' {
         }
         $findings = @(Invoke-ScoutTestRuleSet -Pattern 'waf.avd.azure' -Collect $empty -Assessment 'Workload: AVD')
         @($findings | Where-Object { $_.Status -in 'Pass', 'Fail', 'Partial', 'Error' }).Count | Should -Be 0
-        @($findings | Where-Object Status -eq 'NotAssessed').Count | Should -Be 16
+        @($findings | Where-Object Status -eq 'NotAssessed').Count | Should -Be 17
     }
 
     It 'scores WAF-AVDAZ-OE-03 from the host-pool and workspace coverage rows only' {

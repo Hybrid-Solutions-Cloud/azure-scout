@@ -1,5 +1,14 @@
 # Handoff
 
+## Session 2026-11-25 (continued) — Azure only; Conditional Access and PIM (3.18.18)
+
+User: Scout is Azure only -- removed the seven non-Azure assessments from 3.18.17. 3.18.16 and 3.18.17 were both
+released and five-tenant tested (all Completed, 0 Error findings). New in 3.18.18: Get-ScoutRbacScheduleDataset
+(PIM eligibility + assignment schedules, 8-wide), Get-ScoutConditionalAccessPosture, Get-ScoutDirectoryRolePosture;
+Invoke-Rule gate lists. Lab live check: 2 eligible schedules, 219 active (all standing), CA read OK with 0 policies,
+Security Defaults GET 403 -> baselineAssessable false. Git push: use `-c credential.helper='!gh auth git-credential'`
+(the extraheader method stopped working). Open: directory-role eligibility and MFA registration need delegated scopes.
+
 ## Session 2026-11-25 (continued) — phase 5: non-Azure assessments (3.18.17)
 
 Two agents built seven questionnaire assessments for Power Platform, Microsoft 365 Copilot data security, Dynamics 365

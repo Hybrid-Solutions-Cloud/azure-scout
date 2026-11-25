@@ -81,11 +81,42 @@ default anymore. Live-verified against the HCS tenant: real policy/role
 assignments are collected, CAF governance/identity rules score real
 Pass/Fail, and the ALZ benchmark degrades to an explicit `Unknown` — not a
 false 0% — when management-group data isn't visible to the identity running
-the scan. Two datasets are intentionally always empty: `classicAdministrators`
+the scan. One dataset is intentionally always empty: `classicAdministrators`
 (a retired API — the CAF-IDN-03 rule asserts `notExists`, so empty is
-compliant) and `pimEligibility` (needs an Entra ID P2 license plus
-`PrivilegedAccess.Read.AzureResources`, which only the opt-in AzGovViz path
-ever requests).
+compliant).
+
+PIM is collected, through Azure RBAC rather than Graph. Earlier releases said
+`pimEligibility` needed an Entra ID P2 license plus a Graph permission and left it
+empty; that was wrong about the route. `Get-AzRoleEligibilitySchedule` and
+`Get-AzRoleAssignmentSchedule` are Azure Resource Manager reads the **Reader**
+role covers, and the collection pass was already making the first one per
+subscription and discarding the answer. They now arrive in `collect.json` as
+`governance.pimEligibility` (who *can* elevate) and `governance.roleAssignmentSchedules`
+(who has access now, and whether it needed an activation: `accessType` is `Eligible`,
+`Standing` or `Activated`; `privilegedRole` is true for Owner, Contributor, User Access
+Administrator and Role Based Access Control Administrator). Rows hold ids, role name,
+scope and dates only — never a display name or e-mail address.
+`governance.pimEligibilityAvailable` is true **only when every subscription
+answered** (an empty answer counts), `roleAssignmentSchedulesMeasured` is the same
+for the assignment schedules and `privilegedAccessMeasured` needs both;
+`pimEligibilityReason` says why not. The PIM rules gate on those flags, so a
+subscription Scout could not read makes them **Not assessed**, never a Fail.
+
+Entra Conditional Access arrives the same way as `domains.identity.conditionalAccess`:
+every policy with its raw `conditions`, `grantControls` and `sessionControls` plus
+computed booleans the rules test (`enabled`, `requiresMfa`, `targetsAllUsers`,
+`targetsAllApps`, `targetsAzureManagement`, `targetsAvd`, `blocksLegacyAuth`,
+`hasExclusions` and more), the named locations (counts, never address ranges) and the
+Security Defaults state. It comes from the rows the inventory pass already read, or from one
+direct Graph read when that pass did not run Entra, and not at all under `-Scope ArmOnly`.
+`Collected` is false, with a `Reason`, when Graph refused (it needs `Policy.Read.All` and a
+reader role, and Entra ID P1); the rules that read it gate on `Collected`. A policy
+counts as requiring MFA only when it is **enabled** (report-only is not enforced) and no
+other grant control can stand in for MFA (an operator of OR with a compliant-device
+control makes it "MFA or a compliant device"). `domains.identity.directoryRoles` holds the
+Entra directory role assignments from the inventory pass, and the eligible ones only
+when the sign-in's token carried `RoleEligibilitySchedule.Read.Directory`
+(`eligibilityCollected` says which).
 :::
 
 ::: info `ArgQueryPack` is retired

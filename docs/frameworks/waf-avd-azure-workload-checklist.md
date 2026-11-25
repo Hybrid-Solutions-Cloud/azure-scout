@@ -66,7 +66,7 @@ rather than being mis-scored.
 | WAF-AVDAZ-SE-03 | Host pools have a private endpoint | ✅ host pool → private endpoint | PL |
 | WAF-AVDAZ-SE-04 | Workspaces have a private endpoint | ✅ workspace → private endpoint | PL |
 | WAF-AVDAZ-SE-05 | Microsoft Defender for Servers is enabled | ✅ Defender plan tier (per subscription) | SEC |
-| WAF-AVDAZ-SE-06 | MFA and Conditional Access are required for AVD | ❌ Manual — needs Microsoft Graph | SEC |
+| WAF-AVDAZ-SE-06 | MFA and Conditional Access are required for AVD | ✅ `domains.identity.conditionalAccess` — an enabled policy requires MFA for the Azure Virtual Desktop app or all cloud apps (gated on AVD host pools existing and Entra having been read) | SEC |
 | WAF-AVDAZ-SE-07 | Session hosts use Trusted Launch or Confidential VMs, with encryption at host | ❌ Manual | SEC, DEP |
 | WAF-AVDAZ-SE-08 | No direct RDP or public inbound to session hosts | ❌ Manual — internet-open NSG rules attached | SEC |
 | WAF-AVDAZ-SE-09 | Session hosts are assessed for updates automatically | ✅ session host → VM `assessmentMode` | SEC |
@@ -106,11 +106,11 @@ rather than being mis-scored.
 | Pillar | Items | Automated (✅) | Manual (❌) |
 |---|---|---|---|
 | Reliability | 6 | 2 | 4 |
-| Security | 11 | 6 | 5 |
+| Security | 11 | 7 | 4 |
 | Cost optimization | 5 | 4 | 1 |
 | Operational excellence | 5 | 4 | 1 |
 | Performance efficiency | 3 | 0 | 3 |
-| **Total** | **30** | **16** | **14** |
+| **Total** | **30** | **17** | **13** |
 
 Fields added to the assessment collection for these items (2026-11-24): host pool `id`, `location`,
 `startVMOnConnect`, `validationEnvironment`, `publicNetworkAccess`, `agentUpdateType`,

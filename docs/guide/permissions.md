@@ -213,7 +213,8 @@ findings — those are Azure control-plane reads governed by `Reader`, not by En
 | Users, groups, apps, service principals, directory roles, domains, administrative units | Entra ID **Free** | Full coverage |
 | Conditional Access policies, named locations, cross-tenant access | Entra ID **P1** | Reported *Not assessed* — Conditional Access does not exist to read on a Free tenant |
 | Risky users / Identity Protection (`IdentityRiskyUser.Read.All`) | Entra ID **P2** | Reported *Not assessed*. **Granting the permission does not help** |
-| PIM eligibility and activation (`PrivilegedAccess.Read.AzureResources`) | Entra ID **P2** | Reported *Not assessed*; standing role assignments are still read |
+| Azure RBAC PIM eligibility and role assignment schedules (Azure Resource Manager, `Reader`) | Nothing beyond Azure `Reader` | A subscription that cannot be read makes the PIM rules *Not assessed*; the others still answer |
+| Entra directory-role eligibility (`RoleEligibilitySchedule.Read.Directory`, delegated) | Entra ID **P2** | `eligibilityCollected` is false; directory role *assignments* are still read |
 
 ::: tip A licence boundary is not a permission failure
 Scout reads `subscribedSkus` and checks the tenant's licence before deciding a verdict. A
@@ -244,7 +245,8 @@ findings — those are Azure control-plane reads governed by `Reader`, not by En
 | Users, groups, apps, service principals, directory roles, domains, administrative units | Entra ID **Free** | Full coverage |
 | Conditional Access policies, named locations, cross-tenant access | Entra ID **P1** | Reported *Not assessed* — Conditional Access does not exist to read on a Free tenant |
 | Risky users / Identity Protection (`IdentityRiskyUser.Read.All`) | Entra ID **P2** | Reported *Not assessed*. **Granting the permission does not help** |
-| PIM eligibility and activation (`PrivilegedAccess.Read.AzureResources`) | Entra ID **P2** | Reported *Not assessed*; standing role assignments are still read |
+| Azure RBAC PIM eligibility and role assignment schedules (Azure Resource Manager, `Reader`) | Nothing beyond Azure `Reader` | A subscription that cannot be read makes the PIM rules *Not assessed*; the others still answer |
+| Entra directory-role eligibility (`RoleEligibilitySchedule.Read.Directory`, delegated) | Entra ID **P2** | `eligibilityCollected` is false; directory role *assignments* are still read |
 
 ::: tip A licence boundary is not a permission failure
 Scout reads `subscribedSkus` and checks the tenant's licence before deciding a verdict. A

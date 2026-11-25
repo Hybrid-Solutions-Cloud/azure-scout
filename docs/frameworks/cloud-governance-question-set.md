@@ -103,9 +103,9 @@ Citations: `monitor-cloud-governance#configure-monitoring-for-security-governanc
 |---|---|---|
 | CGOV-SC-01 | Security recommendations are reviewed and secure score is monitored over time | ⚠️ Partial — `security.defenderSecureScores` and `defenderAssessments` are point-in-time, not a trend |
 | CGOV-SC-02 | A regulatory-compliance dashboard is checked against common security frameworks (MCSB, CIS, etc.) | ⚠️ Partial — `domains.management.policyComplianceStates` carries the data; nothing distinguishes which framework initiative each state belongs to |
-| CGOV-SC-03 | Identity governance monitoring is configured — audit/sign-in/provisioning logs, identity secure score, an identity-governance dashboard; MFA and access reviews | ❌ Sign-in/audit logs are not collected |
+| CGOV-SC-03 | Identity governance monitoring is configured — audit/sign-in/provisioning logs, identity secure score, an identity-governance dashboard; MFA and access reviews | ❌ Manual — sign-in/audit logs and access reviews are not collected; the enabled Conditional Access policies that require MFA for all users (`domains.identity.conditionalAccess`) are attached as evidence |
 | CGOV-SC-04 | Defender for Cloud paid plans are enabled so security alerts are generated | ✅ `security.defenderPlans` (`pricingTier == Standard`); not assessed when no plan rows were collected |
-| CGOV-SC-05 | Just-in-time privileged access is used (PIM eligible assignments) | ⚠️ `governance.pimEligibility`; the ingestor never collects it today (needs Entra ID P2 and a Graph permission), so this reads *Not assessed* |
+| CGOV-SC-05 | Just-in-time privileged access is used (PIM eligible assignments) | ✅ `governance.pimEligibility` — the Azure RBAC eligibility schedules, read per subscription; gated on `governance.pimEligibilityAvailable` (every subscription answered), so an unreadable subscription reads *Not assessed* |
 | CGOV-SC-06 | Defender security alerts are reviewed, routed to an owner and resolved | ❌ `security.defenderAlerts` listed as evidence only (rows exist only with `-IncludePolicyCompliance`) |
 | CGOV-SC-07 | A security-standard initiative (MCSB, CIS, NIST SP 800-53, ISO 27001) is assigned | ✅ Policy assignment whose initiative display name names the standard |
 
@@ -219,7 +219,7 @@ one describes.
 |---|---|---|
 | RC01 | Purview must monitor sensitive data | CGOV-DG-01, CGOV-RC-05 |
 | RC02 | Daily sensitive-data compliance reports from Purview | CGOV-RC-05 |
-| SC01 | MFA enabled for all users | CGOV-SC-03 (manual) |
+| SC01 | MFA enabled for all users | CGOV-SC-03 (manual; the Conditional Access policies that require it are evidence) |
 | SC02 | Monthly access reviews in ID Governance | CGOV-SC-03 (manual) |
 | SC03 | One specified GitHub organisation hosts all code | Not read — GitHub is outside Scout's collection |
 | SC04 | Public libraries go through the quarantine pattern | Not read — a development practice |

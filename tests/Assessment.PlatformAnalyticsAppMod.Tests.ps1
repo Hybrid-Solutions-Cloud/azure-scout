@@ -44,6 +44,7 @@ function Get-AutomatedExpectation {
         @{ Id = 'APPMOD-APP-07'; Rules = 'appmod.readiness'; GoodStatus = 'Pass'; BadStatus = 'Fail' }
         @{ Id = 'APPMOD-APP-08'; Rules = 'appmod.readiness'; GoodStatus = 'Pass'; BadStatus = 'Fail' }
         @{ Id = 'APPMOD-AIR-06'; Rules = 'appmod.readiness'; GoodStatus = 'Pass'; BadStatus = 'Fail' }
+        @{ Id = 'APPMOD-SEC-02'; Rules = 'appmod.readiness'; GoodStatus = 'Pass'; BadStatus = 'Fail' }   # Entra Conditional Access: an enabled MFA policy for all users on all apps
         @{ Id = 'APPMOD-SEC-04'; Rules = 'appmod.readiness'; GoodStatus = 'Pass'; BadStatus = 'Pass' }
     )
 }
@@ -54,7 +55,7 @@ BeforeDiscovery {
     $script:Cases = @(
         @{ Name = 'Microsoft: Platform Engineering'; Rules = 'platform.engineering'; AutoIds = @($expect | Where-Object { $_.Rules -eq 'platform.engineering' } | ForEach-Object { $_.Id }); Prefix = 'PLATENG'; Doc = 'platform-engineering-question-set.md'; Framework = 'PLATFORM-ENG'; Items = 36; Auto = 6; Manual = 30 }
         @{ Name = 'Microsoft: Analytics Journey Tracker'; Rules = 'analytics.journey'; AutoIds = @($expect | Where-Object { $_.Rules -eq 'analytics.journey' } | ForEach-Object { $_.Id }); Prefix = 'ANLJT'; Doc = 'analytics-journey-question-set.md'; Framework = 'ANALYTICS-JOURNEY'; Items = 52; Auto = 5; Manual = 47 }
-        @{ Name = 'Microsoft: App and Data Modernization'; Rules = 'appmod.readiness'; AutoIds = @($expect | Where-Object { $_.Rules -eq 'appmod.readiness' } | ForEach-Object { $_.Id }); Prefix = 'APPMOD'; Doc = 'app-modernization-question-set.md'; Framework = 'APPMOD'; Items = 62; Auto = 10; Manual = 52 }
+        @{ Name = 'Microsoft: App and Data Modernization'; Rules = 'appmod.readiness'; AutoIds = @($expect | Where-Object { $_.Rules -eq 'appmod.readiness' } | ForEach-Object { $_.Id }); Prefix = 'APPMOD'; Doc = 'app-modernization-question-set.md'; Framework = 'APPMOD'; Items = 62; Auto = 11; Manual = 51 }
     )
 }
 
@@ -129,6 +130,9 @@ BeforeAll {
                 }
                 web         = [ordered]@{ webApps = @([ordered]@{ name = 'app1'; httpsOnly = $true; minTls = '1.2' }) }
                 integration = [ordered]@{ apiManagement = @([ordered]@{ name = 'apim1' }) }
+                # APPMOD-SEC-02: Entra Conditional Access was read and an enabled policy requires MFA for all users on all apps.
+                identity    = [ordered]@{ conditionalAccess = [ordered]@{ Collected = $true; policies = @(
+                            [ordered]@{ id = 'ca1'; displayName = 'MFA all users'; enabled = $true; requiresMfa = $true; targetsAllUsers = $true; targetsAllApps = $true; hasAppExclusions = $false }) } }
             }
             compute = [ordered]@{ virtualMachines = @([ordered]@{ name = 'vm1'; osType = 'Linux' }) }
         }
@@ -167,6 +171,9 @@ BeforeAll {
                 }
                 web         = [ordered]@{ webApps = @([ordered]@{ name = 'app1'; httpsOnly = $false; minTls = '1.0' }) }
                 integration = [ordered]@{ apiManagement = @() }
+                # APPMOD-SEC-02: read, but the only MFA policy is report-only (not enabled).
+                identity    = [ordered]@{ conditionalAccess = [ordered]@{ Collected = $true; policies = @(
+                            [ordered]@{ id = 'ca1'; displayName = 'MFA report-only'; enabled = $false; reportOnly = $true; requiresMfa = $true; targetsAllUsers = $true; targetsAllApps = $true; hasAppExclusions = $false }) } }
             }
         }
     }

@@ -18,7 +18,8 @@ $ErrorActionPreference = 'Stop'
         governance.roleAssignments[]       <- ARG authorizationresources
         governance.budgets[]               <- ARM REST (Microsoft.Consumption)
         governance.resourceLocks[]         <- ARM REST (Microsoft.Authorization/locks)
-        governance.pimEligibility[]        <- not collected here (see NOTES)
+        governance.pimEligibility[]        <- Azure RBAC role eligibility schedules (see NOTES)
+        governance.roleAssignmentSchedules[] <- Azure RBAC role assignment schedules (see NOTES)
         governance.classicAdministrators[] <- not collected here (see NOTES)
 
     Why native instead of AzGovViz: the visualizer is heavy third-party code that
@@ -41,16 +42,22 @@ $ErrorActionPreference = 'Stop'
 .NOTES
     Tracks ADO Story AB#5041 (supersedes the AzGovViz hard dependency; Story AB#5038).
 
-    Two datasets are deliberately NOT collected here:
+    One dataset is deliberately NOT collected here:
       * classicAdministrators - the classic administrators ARM API is retired
         (returns 404 InvalidResourceType) and classic co-admins are being removed
         platform-wide, so an empty set reflects reality. CAF-IDN-03 asserts
         `notExists`, i.e. an empty set is the compliant (Pass) outcome.
-      * pimEligibility - PIM eligible-assignment enumeration needs an Entra ID P2
-        license plus the Graph `PrivilegedAccess.Read.AzureResources` application
-        permission. Collecting it is out of the Reader-at-MG-root baseline this
-        collector targets; left empty (unchanged from the prior AzGovViz run,
-        which was invoked with -NoPIMEligibility for the same reason).
+
+    PIM is collected, through Azure RBAC rather than Graph. This note used to say it needed
+    an Entra ID P2 license and a Graph application permission and so was left empty; that was
+    wrong about the route. `Get-AzRoleEligibilitySchedule` and `Get-AzRoleAssignmentSchedule`
+    are Azure Resource Manager reads that the Reader role covers, and the collect pass
+    (Get-ScoutGovernanceDataset, through Get-ScoutRbacScheduleDataset) was already making the
+    first one per subscription and discarding the answer. When the collect pass supplied
+    them (`governance.rbacSchedulesRead`) this function reuses them; with no raw pass
+    (-Source TypedQueries) it makes the same per-subscription reads itself, so both
+    collect.json paths carry the same keys. `pimEligibilityAvailable` is true only when the
+    read answered for EVERY subscription -- see Get-ScoutRbacScheduleDataset.
 #>
 function Import-Governance {
     [CmdletBinding()]
@@ -60,6 +67,9 @@ function Import-Governance {
     Import-Module Az.ResourceGraph -ErrorAction Stop
     if (-not (Get-Command Invoke-AzRestMethod -ErrorAction SilentlyContinue)) {
         Import-Module Az.Accounts -ErrorAction Stop
+    }
+    if (-not (Get-Command Get-ScoutRbacScheduleDataset -ErrorAction SilentlyContinue)) {
+        . (Join-Path $PSScriptRoot '../collect/Get-ScoutRbacScheduleDataset.ps1')
     }
 
     # ---- ARG helper: paged, scoped to the management group when one is supplied ----
@@ -200,6 +210,7 @@ authorizationresources
     # The two reads share a loop but are skipped INDEPENDENTLY. Skipping only when both are in
     # hand would be wrong the other way round: appending a second copy of the budgets to a set the
     # collect pass already supplied would double every budget row.
+    $allSubIds = @($subIds)
     $budgetsReused = $budgets.Count -gt 0
     $locksReused = $locks.Count -gt 0
     $budgetsAvailable = $budgetsReused -or $subIds.Count -gt 0
@@ -240,6 +251,45 @@ authorizationresources
         }
     }
 
+    # 6) Azure RBAC PIM schedules: eligibility (who CAN elevate) and role assignment schedules
+    #    (who has access now, and whether it needed an activation). The collect pass reads them
+    #    once per subscription; reuse that answer when it asked, otherwise ask here so the typed
+    #    path carries the same keys. Never throws -- an unreadable schedule is "not available".
+    $rbacRead = $false
+    if ($Collect.PSObject.Properties['governance'] -and $null -ne $Collect.governance -and
+        $Collect.governance.PSObject.Properties['rbacSchedulesRead']) {
+        $rbacRead = [bool]$Collect.governance.rbacSchedulesRead
+    }
+    $rbac = $null
+    if ($rbacRead) {
+        function Get-GovCollectedValue([string] $Name) {
+            if ($Collect.governance.PSObject.Properties[$Name]) { return $Collect.governance.$Name }
+            return $null
+        }
+        $rbac = [pscustomobject]@{
+            pimEligibility                  = Get-GovAlreadyCollected 'pimEligibility'
+            pimEligibilityAvailable         = [bool](Get-GovCollectedValue 'pimEligibilityAvailable')
+            pimEligibilityReason            = Get-GovCollectedValue 'pimEligibilityReason'
+            roleAssignmentSchedules         = Get-GovAlreadyCollected 'roleAssignmentSchedules'
+            roleAssignmentSchedulesMeasured = [bool](Get-GovCollectedValue 'roleAssignmentSchedulesMeasured')
+            roleAssignmentSchedulesReason   = Get-GovCollectedValue 'roleAssignmentSchedulesReason'
+            privilegedAccessMeasured        = [bool](Get-GovCollectedValue 'privilegedAccessMeasured')
+        }
+        Write-Verbose "Import-Governance: reusing $(@($rbac.pimEligibility).Count) PIM eligibility and $(@($rbac.roleAssignmentSchedules).Count) role assignment schedule rows from the collect pass."
+    }
+    else {
+        try { $rbac = Get-ScoutRbacScheduleDataset -SubscriptionId $allSubIds }
+        catch {
+            $rbacFailure = "The Azure RBAC schedule read failed: $($_.Exception.Message)"
+            Write-Warning "Import-Governance: $rbacFailure"
+            $rbac = [pscustomobject]@{
+                pimEligibility = @(); pimEligibilityAvailable = $false; pimEligibilityReason = $rbacFailure
+                roleAssignmentSchedules = @(); roleAssignmentSchedulesMeasured = $false; roleAssignmentSchedulesReason = $rbacFailure
+                privilegedAccessMeasured = $false
+            }
+        }
+    }
+
     # Normalize every dataset to a clean array of real objects. The paged ARG
     # helper's `return , $rows` idiom preserves populated arrays intact, but for a
     # query that yields ZERO rows it leaks a single-element wrapper whose element is
@@ -258,8 +308,15 @@ authorizationresources
         budgets               = @($budgets | Where-Object { $_ })
         resourceLocksAvailable = $resourceLocksAvailable
         resourceLocks         = @($locks   | Where-Object { $_ })
-        pimEligibilityAvailable = $false # Entra P2 + Graph app perms required - see NOTES
-        pimEligibility        = @()
+        # Azure RBAC PIM schedules -- see NOTES. Same keys as Invoke-Collect's governance block.
+        pimEligibilityAvailable = [bool]$rbac.pimEligibilityAvailable
+        pimEligibilityReason  = $rbac.pimEligibilityReason
+        pimEligibility        = @($rbac.pimEligibility | Where-Object { $_ })
+        roleAssignmentSchedulesMeasured = [bool]$rbac.roleAssignmentSchedulesMeasured
+        roleAssignmentSchedulesReason   = $rbac.roleAssignmentSchedulesReason
+        roleAssignmentSchedules         = @($rbac.roleAssignmentSchedules | Where-Object { $_ })
+        privilegedAccessMeasured        = [bool]$rbac.privilegedAccessMeasured
+        rbacSchedulesRead     = $true
         classicAdministrators = @()   # retired ARM API - see NOTES
     }
     $Collect | Add-Member -NotePropertyName governance -NotePropertyValue $gov -Force

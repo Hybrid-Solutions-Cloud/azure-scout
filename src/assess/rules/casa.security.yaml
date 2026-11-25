@@ -15,12 +15,16 @@ verifiedAgainst: "docs/frameworks/casa-question-set.md, 32 items across 7 domain
 # CAUTION FOR FUTURE MAINTAINERS reading this file next to docs/frameworks/casa-question-set.md:
 # several items the enumeration marks Partial or fully Answerable turned out, on verification
 # against the actual collect.json contract this rule file has to query, to rest on fields that are
-# either not collected at all (Conditional Access, PIM eligibility, automation-account runbooks, blob
-# immutability policy) or are collected but hard-coded EMPTY by Invoke-Collect today
+# either not collected at all (automation-account runbooks, blob immutability policy) or are
+# collected but hard-coded EMPTY by Invoke-Collect today
 # (management.deployments' templateHash, management.recoveryVaults) -- a pre-existing gap
 # four other rule files already carry, not introduced here. Citing any of those fields would be
 # exactly the empty-collection false-pass class this epic exists to kill, so those items are
 # `manual: true` below even where the enumeration's own collector column reads (Partial) or (✅).
+# Conditional Access and PIM eligibility were on that list and no longer are: the collection now
+# reads Entra Conditional Access (domains.identity.conditionalAccess) and the Azure RBAC PIM schedules
+# (governance.pimEligibility). CASA-PM-01 stays manual because it bundles four controls, but it now
+# carries the Conditional Access evidence.
 # 2026-11-25 (AB#9300): the assessment collection since gained autoscale settings, Chaos Studio
 # experiments, load balancers, Defender secure scores/assessments, Sentinel onboarding and artifact
 # signing accounts, so CASA-AV-03, CASA-AV-05, CASA-PM-04, CASA-SS-01 and CASA-IR-02 are now
@@ -79,13 +83,13 @@ rules:
   - id: CASA-PM-01
     title: "Identity strengthening is integrated (MFA, Conditional Access, least-privilege, JIT)"
     severity: high
-    # Conditional Access and PIM eligibility are both organisationally real but not reliably
-    # collected -- governance.pimEligibility needs an Entra ID P2 license and a Graph app
-    # permission Scout's Reader-at-root baseline does not grant, and no Conditional Access field
-    # exists in collect.json at all.
-    query: null
+    # Four controls in one item, so it stays manual. Scout now reads two of them: Entra Conditional
+    # Access (domains.identity.conditionalAccess) and Azure RBAC PIM eligibility
+    # (governance.pimEligibility). The enabled policies that require MFA are attached as evidence;
+    # whether least privilege and just-in-time access are actually practised is judgement.
+    query: "$.domains.identity.conditionalAccess.policies[?(@.enabled == true && @.requiresMfa == true)]"
     assert: { type: manual }
-    remediation: "CASA-PM-01. Neither Conditional Access policy nor PIM eligibility is reliably collected in the current contract -- confirm MFA, Conditional Access, least-privilege, and just-in-time access are integrated directly in Entra ID."
+    remediation: "CASA-PM-01. The enabled Conditional Access policies that require MFA are listed as evidence (none listed means none exist or Entra was not read -- domains.identity.conditionalAccess.Reason says which). Confirm MFA covers every user and administrator, and that least-privilege and just-in-time access are in force: CAF-IDN-02 and CAF-IDN-05 score PIM eligibility from Azure RBAC."
     manual: true
   - id: CASA-PM-02
     title: "Network/workload segmentation is implemented"

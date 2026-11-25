@@ -146,9 +146,11 @@ rules:
   - id: AIRDY-GS-10
     title: "AIRDY-GS-10. Access to AI resources is least privilege, with just-in-time administration"
     severity: high
-    query: null
+    # Evidence only: permanent, standing privileged Azure role assignments held by users and groups.
+    # Whether they are scoped to AI resources, and whether least privilege is practised, is judgement.
+    query: "$.governance.roleAssignmentSchedules[?(@.accessType == 'Standing' && @.permanent == true && @.privilegedRole == true && @.principalType != 'ServicePrincipal')]"
     assert: { type: manual }
-    remediation: "AIRDY-GS-10. Organisational -- confirm role-based access is scoped to the resources needed, custom roles are used where built-in roles are too broad, and administrative access uses Privileged Identity Management."
+    remediation: "AIRDY-GS-10. Organisational -- confirm role-based access is scoped to the resources needed, custom roles are used where built-in roles are too broad, and administrative access uses Privileged Identity Management. The permanent, standing privileged assignments Scout found are listed as evidence (estate-wide; check those that reach AI resources)."
     manual: true
   - id: AIRDY-GS-11
     title: "AIRDY-GS-11. AI agents have their own governed identities and limited tool permissions"

@@ -86,7 +86,7 @@ databases.
 | WAF-GOLIVE-SE-02 | Microsoft Defender for Servers is enabled | ✅ Defender plan tier (per subscription) | SE:01, SE:10 |
 | WAF-GOLIVE-SE-03 | Microsoft Defender for SQL is enabled | ✅ Defender for SQL tier (per subscription) | SE:10 |
 | WAF-GOLIVE-SE-04 | Azure Policy assignments enforce the security baseline | ✅ policy assignment exists (estate-wide) | SE:01 |
-| WAF-GOLIVE-SE-05 | Access is least-privilege, conditional and auditable for users, operators and workload identities | ❌ Manual | SE:05 |
+| WAF-GOLIVE-SE-05 | Access is least-privilege, conditional and auditable for users, operators and workload identities | ❌ Manual — enabled Conditional Access policies that require MFA attached | SE:05 |
 | WAF-GOLIVE-SE-06 | No network security group rule opens RDP or SSH to the internet | ✅ internet-open inbound rule on port 22, 3389 or `*` | SE:06 |
 | WAF-GOLIVE-SE-07 | Storage accounts deny public network access by default | ✅ `networkDefaultDeny` | SE:04, SE:06 |
 | WAF-GOLIVE-SE-08 | SQL servers do not allow public network access | ✅ `publicNetworkAccess` | SE:04, SE:06 |

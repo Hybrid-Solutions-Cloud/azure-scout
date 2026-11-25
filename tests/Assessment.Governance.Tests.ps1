@@ -35,6 +35,17 @@ BeforeAll {
     function Invoke-AzRestMethod {             [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the full real-cmdlet signature so PowerShell parameter binding accepts every argument the code under test passes; not every parameter is exercised by this test.')]
 param([string] $Method, [string] $Path) }
 
+    # Import-Governance reads the Azure RBAC PIM schedules per subscription. Shadowed so no test here
+    # can reach Azure through the real Az.Resources commands, and so Pester can mock them.
+    function Get-AzRoleEligibilitySchedule {
+        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the real signature.')]
+        [CmdletBinding()] param([string] $Scope)
+    }
+    function Get-AzRoleAssignmentSchedule {
+        [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the real signature.')]
+        [CmdletBinding()] param([string] $Scope)
+    }
+
     # Deterministic synthetic governance dataset used across the collector +
     # rule-scoring tests. Six policy assignments (all Default enforcement, all
     # carrying parameters), two management groups, three User role assignments,
@@ -69,6 +80,9 @@ param([string] $Method, [string] $Path) }
 
 Describe 'Import-Governance — native collector shape' {
     BeforeEach {
+        # PIM schedules are refused in this fixture: an unreadable schedule is "not available", never "none".
+        Mock Get-AzRoleEligibilitySchedule { throw 'PIM schedules are not readable in this fixture' }
+        Mock Get-AzRoleAssignmentSchedule { throw 'PIM schedules are not readable in this fixture' }
         Mock Search-AzGraph {
             if ($Query -match 'managementgroups')   { return $script:MockMgs }
             if ($Query -match 'policyassignments')  { return $script:MockPolicy }
@@ -166,6 +180,9 @@ Describe 'Import-Governance — native collector shape' {
 
 Describe 'Governance rules score against native collect (unblocks AB#5041)' {
     BeforeEach {
+        # PIM schedules are refused unless a test says otherwise: not available, so the PIM rules are NotAssessed.
+        Mock Get-AzRoleEligibilitySchedule { throw 'PIM schedules are not readable in this fixture' }
+        Mock Get-AzRoleAssignmentSchedule { throw 'PIM schedules are not readable in this fixture' }
         Mock Search-AzGraph {
             if ($Query -match 'managementgroups')   { return $script:MockMgs }
             if ($Query -match 'policyassignments')  { return $script:MockPolicy }
@@ -195,15 +212,64 @@ Describe 'Governance rules score against native collect (unblocks AB#5041)' {
         $byId['CAF-GOV-05'] | Should -Be 'Manual'
         $byId['CAF-RES-02'] | Should -Be 'Pass'   # >1 management group
         $byId['CAF-IDN-01'] | Should -Be 'Pass'   # <50 user role assignments
-        $byId['CAF-IDN-02'] | Should -Be 'NotAssessed' # PIM is not collected by the native governance ingest
+        $byId['CAF-IDN-02'] | Should -Be 'NotAssessed' # the schedule read was refused: not evidence that PIM is unused
         $byId['CAF-IDN-03'] | Should -Be 'Pass'   # no classic admins
+        $byId['CAF-IDN-04'] | Should -Be 'NotAssessed' # Entra Conditional Access was not collected into this fixture
         $byId['CAF-IDN-05'] | Should -Be 'NotAssessed' # unavailable is not evidence of no PIM adoption
         # AB#6798: caf.billing.yaml was rewritten against the real CAF "Azure billing and
         # Microsoft Entra tenant" design area (EA/MCA/tenant setup); it previously held cost
         # rules that duplicated waf.cost.yaml (moved there as WAF-CO-08/09). Every rule in the
         # rewritten file is Manual because Scout collects no billing/tenant-administration data.
         $byId['CAF-BIL-01'] | Should -Be 'Manual'
+        $byId['CAF-BIL-02'] | Should -Be 'NotAssessed' # Conditional Access was not collected, so MFA on Azure management is not judged
         $byId['CAF-BIL-05'] | Should -Be 'Manual'
+    }
+
+    It 'scores the PIM rules from the Azure RBAC schedules once every subscription answers' {
+        $script:PimOwnerRole = '/providers/Microsoft.Authorization/roleDefinitions/8e3af657-a8ff-443c-a75c-2fe8c4bcb635'
+        Mock Get-AzRoleEligibilitySchedule {
+            [pscustomobject]@{ Id = "$Scope/e1"; PrincipalId = 'p1'; PrincipalType = 'User'; RoleDefinitionId = $script:PimOwnerRole; RoleDefinitionDisplayName = 'Owner'; Scope = $Scope; MemberType = 'Direct'; Status = 'Provisioned' }
+            [pscustomobject]@{ Id = "$Scope/e2"; PrincipalId = 'p2'; PrincipalType = 'User'; RoleDefinitionId = $script:PimOwnerRole; RoleDefinitionDisplayName = 'Owner'; Scope = $Scope; MemberType = 'Direct'; Status = 'Provisioned' }
+        }
+        Mock Get-AzRoleAssignmentSchedule {
+            [pscustomobject]@{ Id = "$Scope/a1"; PrincipalId = 'p3'; PrincipalType = 'User'; RoleDefinitionId = $script:PimOwnerRole; RoleDefinitionDisplayName = 'Owner'; Scope = $Scope; AssignmentType = 'Assigned'; Status = 'Provisioned'; EndDateTime = $null }
+        }
+        $collect  = Import-Governance -Collect (Get-MockCollect)
+        $ruleSet  = Get-RuleSet -Patterns @('caf.identity')
+        $findings = Invoke-Assessment -Collect $collect -RuleSet $ruleSet -Assessment 'GovTest'
+        $byId     = @{}; $findings | ForEach-Object { $byId[$_.Id] = $_ }
+
+        $collect.governance.pimEligibilityAvailable | Should -BeTrue
+        $collect.governance.privilegedAccessMeasured | Should -BeTrue
+        $byId['CAF-IDN-02'].Status | Should -Be 'Pass'   # eligible assignments exist
+        # 2 subscriptions x 2 eligible = 4 eligible privileged users; 2 x 1 standing: 4 / (4 + 2) = 67%
+        $byId['CAF-IDN-05'].Status | Should -Be 'Pass'
+        $byId['CAF-IDN-05'].Denominator | Should -Be 6
+        $byId['CAF-IDN-05'].EvidenceCount | Should -Be 4
+    }
+
+    It 'fails CAF-IDN-02 when every subscription answered and none holds an eligible assignment' {
+        Mock Get-AzRoleEligibilitySchedule { @() }
+        Mock Get-AzRoleAssignmentSchedule { @() }
+        $collect  = Import-Governance -Collect (Get-MockCollect)
+        $findings = Invoke-Assessment -Collect $collect -RuleSet (Get-RuleSet -Patterns @('caf.identity')) -Assessment 'GovTest'
+
+        ($findings | Where-Object Id -eq 'CAF-IDN-02').Status | Should -Be 'Fail'
+        ($findings | Where-Object Id -eq 'CAF-IDN-05').Status | Should -Be 'Unknown' -Because 'there is no privileged user access at all to take a share of'
+    }
+
+    It 'reads NotAssessed, not Fail, when one subscription refuses the eligibility read' {
+        Mock Get-AzRoleEligibilitySchedule {
+            if ($Scope -match '000000000002$') { throw 'AuthorizationFailed' }
+            @()
+        }
+        Mock Get-AzRoleAssignmentSchedule { @() }
+        $collect  = Import-Governance -Collect (Get-MockCollect) -WarningAction SilentlyContinue
+        $findings = Invoke-Assessment -Collect $collect -RuleSet (Get-RuleSet -Patterns @('caf.identity')) -Assessment 'GovTest'
+
+        $collect.governance.pimEligibilityAvailable | Should -BeFalse
+        ($findings | Where-Object Id -eq 'CAF-IDN-02').Status | Should -Be 'NotAssessed'
+        ($findings | Where-Object Id -eq 'CAF-IDN-05').Status | Should -Be 'NotAssessed'
     }
 
     It 'flags a DoNotEnforce policy assignment as Fail on CAF-GOV-02' {

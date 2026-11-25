@@ -16,25 +16,41 @@ frameworkversion: "CAF landing zone design area: Azure billing and Microsoft Ent
 # actual recommendations. See docs/audits/AZURE-SCOUT-AUDIT.md §8 Table 2 "caf.billing.yaml is
 # misnamed" for the full source citation.
 #
-# Every rule here is manual: Scout's collectors read Resource Manager / Resource Graph, not the
-# Billing (EA/MCA) or tenant-administration APIs, so none of these can be scored from
-# collect.json today without a new collector. Manual-with-a-clear-check beats a false pass.
+# Every rule here is manual except CAF-BIL-02: Scout's collectors read Resource Manager / Resource
+# Graph, not the Billing (EA/MCA) or tenant-administration APIs, so the others cannot be scored
+# from collect.json without a new collector. Manual-with-a-clear-check beats a false pass.
+# CAF-BIL-02 is scored from Entra Conditional Access (domains.identity.conditionalAccess), which
+# governs sign-in to Azure management and so to subscription creation. CAF-BIL-01 stays manual and
+# carries the Conditional Access policies that have exclusions as evidence.
 rules:
   - id: CAF-BIL-01
     title: "Break-glass emergency-access accounts excluded from Conditional Access"
     severity: high
-    query: null
+    # Evidence only. Scout reads which enabled all-users policies EXCLUDE users or groups, but not
+    # who those accounts are, so it cannot tell a break-glass account from any other exclusion,
+    # nor whether the accounts exist, hold strong offline credentials or are monitored.
+    query: "$.domains.identity.conditionalAccess.policies[?(@.enabled == true && @.targetsAllUsers == true && @.hasExclusions == true)]"
     assert: { type: manual }
-    remediation: "Confirm at least two break-glass (emergency-access) accounts exist, are excluded from every Conditional Access policy, use strong non-expiring credentials stored offline, and are monitored for sign-in. No Conditional Access or emergency-access-account collector exists yet."
+    remediation: "Confirm at least two break-glass (emergency-access) accounts exist, are excluded from every Conditional Access policy, use strong non-expiring credentials stored offline, and are monitored for sign-in. The enabled all-users Conditional Access policies that exclude users or groups are listed as evidence (none listed means no such policy or Conditional Access was not read -- domains.identity.conditionalAccess.Reason says which); check each exclusion is the break-glass group and nothing broader."
     manual: true
 
   - id: CAF-BIL-02
     title: "MFA required for every identity that can create subscriptions"
     severity: high
-    query: null
-    assert: { type: manual }
-    remediation: "Confirm every identity holding subscription-creation rights on a billing account, billing profile, or invoice section is enrolled in MFA. No Billing RBAC or EA/MCA administration collector exists yet."
-    manual: true
+    # Subscriptions are created through Azure Resource Manager and the Azure portal, so requiring
+    # MFA for ALL users on the Windows Azure Service Management API (or all cloud apps) covers every
+    # identity that can create one. Either an enabled Conditional Access policy, or Security defaults
+    # (which require MFA for Azure management), satisfies it -- hence the union of the two arrays.
+    # The Microsoft Admin Portals grouping is deliberately NOT accepted: it protects the portal but
+    # not Azure CLI or PowerShell, which create subscriptions too. Exclusions (normally the
+    # break-glass accounts) are not subtracted; they are on the evidence row as `hasExclusions`.
+    # Gated on `baselineAssessable`, not just `Collected`: reading Security defaults needs a role some
+    # readers lack, and with no policy and Security defaults unreadable the tenant may be protected by
+    # them -- that reads Not assessed, never Fail.
+    query: "$.domains.identity.conditionalAccess['policies','securityDefaultsCoverage'][?(@.enabled == true && @.requiresMfa == true && @.targetsAzureManagement == true && @.targetsAllUsers == true)]"
+    assert: { type: exists, gate: "$.domains.identity.conditionalAccess.baselineAssessable" }
+    remediation: "No enabled Conditional Access policy (and no Security defaults) requires MFA for all users on Azure management. Create a policy that requires MFA for all users on the Microsoft Azure Management cloud app (or all cloud apps) and turn it On -- a report-only policy does not count, and a policy scoped only to administrator roles or only to the Microsoft Admin Portals leaves other users and Azure CLI/PowerShell unprotected. Billing roles themselves are not collected, so who holds subscription-creation rights is not checked."
+    manual: false
 
   - id: CAF-BIL-03
     title: "Billing role assignments reviewed on a regular cadence"

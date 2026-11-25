@@ -63,6 +63,12 @@ $ErrorActionPreference = 'Stop'
     `resourceLocks` -- every one an array, never $null. A dataset whose read failed is empty and
     a warning names it; a governance read must never take an inventory run down.
 
+    Also the Azure RBAC schedules from Get-ScoutRbacScheduleDataset: `pimEligibility[]`,
+    `pimEligibilityAvailable`, `pimEligibilityReason`, `roleAssignmentSchedules[]`,
+    `roleAssignmentSchedulesMeasured`, `roleAssignmentSchedulesReason`,
+    `privilegedAccessMeasured` and `sourceOperations[]`. The two flags are $true only when the
+    read answered for EVERY subscription -- see that function for why.
+
 .NOTES
     Tracks ADO Task AB#6780/AB#6781/AB#6782/AB#6783 (Story AB#6779).
 
@@ -211,45 +217,34 @@ policyresources
     # ---- budgets + resource locks: neither is Resource Graph-indexed --------------------------
     # Read-only ARM GETs on the ambient Az context (works headless under an SPN login). One
     # failing subscription costs that subscription's rows, never the dataset.
-    $budgets = @(); $locks = @(); $pimEligibility = @()
-    $sourceOperations = [System.Collections.Generic.List[object]]::new()
+    $budgets = @(); $locks = @()
     $subIds = @($Subscriptions | ForEach-Object {
             if ($_ -and $_.PSObject.Properties['id']) { $_.id }
         } | Where-Object { $_ })
 
+    # PIM eligibility and role assignment schedules (Azure RBAC). These used to be read here and
+    # then thrown away, so `governance.pimEligibility` was always empty and every rule that gates
+    # on it read NotAssessed. Get-ScoutRbacScheduleDataset normalises them (allow-listed fields, no
+    # display names or e-mail addresses) and says whether EVERY subscription answered, which is
+    # what `pimEligibilityAvailable` must mean. It never throws: a refusal is recorded, not raised.
+    if (-not (Get-Command Get-ScoutRbacScheduleDataset -ErrorAction SilentlyContinue)) {
+        . (Join-Path $PSScriptRoot 'Get-ScoutRbacScheduleDataset.ps1')
+    }
+    $rbacSchedules = $null
+    try { $rbacSchedules = Get-ScoutRbacScheduleDataset -SubscriptionId @($subIds) }
+    catch {
+        Write-Warning "Get-ScoutGovernanceDataset: the Azure RBAC schedule read failed as a whole; PIM rules will not be assessed: $($_.Exception.Message)"
+        $failureReason = "The Azure RBAC schedule read failed: $($_.Exception.Message)"
+        $rbacSchedules = [pscustomobject]@{
+            pimEligibility = @(); pimEligibilityAvailable = $false; pimEligibilityReason = $failureReason
+            roleAssignmentSchedules = @(); roleAssignmentSchedulesMeasured = $false; roleAssignmentSchedulesReason = $failureReason
+            privilegedAccessMeasured = $false; sourceOperations = @()
+        }
+    }
+    $sourceOperations = [System.Collections.Generic.List[object]]::new()
+    foreach ($operation in @($rbacSchedules.sourceOperations)) { if ($null -ne $operation) { $sourceOperations.Add($operation) } }
+
     foreach ($sub in $subIds) {
-        $pimStartedAt = Get-Date
-        try {
-            $pimRows = @(Get-AzRoleEligibilitySchedule -Scope "/subscriptions/$sub" -ErrorAction Stop)
-            $pimEligibility += $pimRows
-            $sourceOperations.Add([pscustomobject]@{
-                    Source = 'Azure RBAC control plane'
-                    Dataset = 'PIM role eligibility schedules'
-                    SubscriptionId = $sub
-                    Operation = 'Get-AzRoleEligibilitySchedule'
-                    Scope = "/subscriptions/$sub"
-                    Status = if ($pimRows.Count -gt 0) { 'Success' } else { 'Empty' }
-                    Count = $pimRows.Count
-                    Reason = $null
-                    StartedAt = $pimStartedAt.ToString('o')
-                    CompletedAt = (Get-Date).ToString('o')
-                })
-        }
-        catch {
-            Write-Warning ('Get-ScoutGovernanceDataset: PIM eligibility read failed for {0}: {1}' -f $sub, $_.Exception.Message)
-            $sourceOperations.Add([pscustomobject]@{
-                    Source = 'Azure RBAC control plane'
-                    Dataset = 'PIM role eligibility schedules'
-                    SubscriptionId = $sub
-                    Operation = 'Get-AzRoleEligibilitySchedule'
-                    Scope = "/subscriptions/$sub"
-                    Status = 'Unavailable'
-                    Count = 0
-                    Reason = $_.Exception.Message
-                    StartedAt = $pimStartedAt.ToString('o')
-                    CompletedAt = (Get-Date).ToString('o')
-                })
-        }
         try {
             $resp = Invoke-AzRestMethod -Method GET -Path "/subscriptions/$sub/providers/Microsoft.Consumption/budgets?api-version=2023-11-01"
             if ($resp -and $resp.StatusCode -eq 200) {
@@ -280,7 +275,13 @@ policyresources
         policyAssignments = @($policyAssignments | Where-Object { $_ })
         budgets           = @($budgets           | Where-Object { $_ })
         resourceLocks     = @($locks             | Where-Object { $_ })
-        pimEligibility    = @($pimEligibility    | Where-Object { $_ })
+        pimEligibility                  = @($rbacSchedules.pimEligibility | Where-Object { $_ })
+        pimEligibilityAvailable         = [bool]$rbacSchedules.pimEligibilityAvailable
+        pimEligibilityReason            = $rbacSchedules.pimEligibilityReason
+        roleAssignmentSchedules         = @($rbacSchedules.roleAssignmentSchedules | Where-Object { $_ })
+        roleAssignmentSchedulesMeasured = [bool]$rbacSchedules.roleAssignmentSchedulesMeasured
+        roleAssignmentSchedulesReason   = $rbacSchedules.roleAssignmentSchedulesReason
+        privilegedAccessMeasured        = [bool]$rbacSchedules.privilegedAccessMeasured
         sourceOperations  = @($sourceOperations)
     }
 }

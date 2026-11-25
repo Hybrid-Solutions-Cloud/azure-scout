@@ -157,9 +157,11 @@ rules:
   - id: WAF-GOLIVE-SE-05
     title: "WAF-GOLIVE-SE-05. Access is least-privilege, conditional and auditable for users, operators and workload identities"
     severity: high
-    query: null
+    # Four controls in one item, so it stays manual. The enabled Conditional Access policies that
+    # require MFA (domains.identity.conditionalAccess, empty when Entra was not read) are attached.
+    query: "$.domains.identity.conditionalAccess.policies[?(@.enabled == true && @.requiresMfa == true)]"
     assert: { type: manual }
-    remediation: "WAF-GOLIVE-SE-05. Confirm Conditional Access and MFA, just-in-time elevation, managed identities for workloads, and audited non-identity access. Conditional Access is read from Microsoft Graph, not this assessment."
+    remediation: "WAF-GOLIVE-SE-05. The enabled Conditional Access policies that require MFA are listed as evidence (none listed means none exist or Entra was not read). Confirm MFA covers every user and administrator, just-in-time elevation (PIM), managed identities for workloads, and audited non-identity access."
     manual: true
   - id: WAF-GOLIVE-SE-06
     title: "WAF-GOLIVE-SE-06. No network security group rule opens RDP or SSH to the internet"

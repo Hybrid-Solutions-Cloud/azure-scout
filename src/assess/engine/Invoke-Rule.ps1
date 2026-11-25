@@ -94,14 +94,19 @@ function Invoke-Rule {
     }
 
     # ---- AB#6826: optional gate, checked before manual/query evaluation ----
-    $gatePath = $null
+    # `gate` is one JSONPath, or a LIST of them that must ALL be open: a rule that needs two
+    # independent datasets (an Entra identity read AND the Azure resource it protects) cannot
+    # express that with one path, and a single path would read Fail on an estate where one of
+    # the two was never collected.
+    $gateValue = $null
     if ($Rule.assert -is [hashtable]) {
-        if ($Rule.assert.ContainsKey('gate')) { $gatePath = $Rule.assert.gate }
+        if ($Rule.assert.ContainsKey('gate')) { $gateValue = $Rule.assert.gate }
     }
     elseif ($Rule.assert -and $Rule.assert.PSObject.Properties['gate']) {
-        $gatePath = $Rule.assert.gate
+        $gateValue = $Rule.assert.gate
     }
-    if (-not [string]::IsNullOrWhiteSpace($gatePath)) {
+    $gatePaths = @($gateValue | Where-Object { -not [string]::IsNullOrWhiteSpace([string]$_) } | ForEach-Object { [string]$_ })
+    foreach ($gatePath in $gatePaths) {
         $gateMatches = $null
         # NOT wrapped in @(): Resolve-JsonPath already returns its (possibly empty) array via
         # `Write-Output -NoEnumerate`, exactly like every other Resolve-JsonPath call in this

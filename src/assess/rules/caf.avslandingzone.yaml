@@ -165,10 +165,11 @@ rules:
     title: "Identity security for who can perform AVS functions is planned"
     severity: high
     # roleAssignments existence only -- PIM eligibility (the other half the source enumeration
-    # cites) is not reliably collected; see avs.workload.yaml's WAF-AVS-SEC-01 note.
+    # cites) is collected now (governance.pimEligibility, CAF-IDN-02), but whether access to AVS is
+    # PIM-eligible is a question of scope; see avs.workload.yaml's WAF-AVS-SEC-01.
     query: "$.governance.roleAssignments[*]"
     assert: { type: exists, gate: "$.governance.roleAssignmentsAvailable" }
-    remediation: "AVS-G1. No role assignment was found in scope. Plan identity security for who can perform AVS functions -- role-assignment existence alone does not confirm least-privilege scoping or PIM eligibility, which need direct review."
+    remediation: "AVS-G1. No role assignment was found in scope. Plan identity security for who can perform AVS functions -- role-assignment existence alone does not confirm least-privilege scoping or PIM eligibility, which need direct review (governance.pimEligibility and governance.roleAssignmentSchedules in collect.json list the PIM schedules)."
     manual: false
   - id: AVS-G2
     title: "Environment and network security are reviewed"

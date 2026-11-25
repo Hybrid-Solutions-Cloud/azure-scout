@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.18.18] - 2026-11-25 - Azure only, with Conditional Access and PIM scored from data
+
+### Removed
+
+- The seven assessments for products outside Azure added in 3.18.17 (Power Platform Well-Architected, Solution and
+  Adoption; Microsoft 365 Copilot data security; Dynamics 365 Sustainability; Microsoft for Financial Services;
+  Windows 11 readiness). Scout assesses Azure; the coverage page lists them as out of scope. 66 assessments remain.
+
+### Added
+
+- `governance.pimEligibility` and `governance.roleAssignmentSchedules`: Azure PIM eligibility (already read per
+  subscription, previously discarded) and active role-assignment schedules, with `accessType` (Eligible, Standing,
+  Activated), `permanent` and `privilegedRole`; `pimEligibilityAvailable` / `privilegedAccessMeasured` are true only
+  when every subscription answered. ARM reads covered by Reader; no extra permission. No display names are kept.
+- `domains.identity.conditionalAccess`: Entra Conditional Access policies, named locations (counts only) and Security
+  Defaults, with computed flags (enabled, reportOnly, targetsAllUsers, targetsAzureManagement, targetsAdminPortals,
+  targetsAvd, requiresMfa, blocksLegacyAuth, usesSignInRisk, usesUserRisk, requiresCompliantOrHybridDevice, ...).
+  From the inventory pass when it ran, otherwise direct Graph reads; never fails the collect.
+- `domains.identity.directoryRoles`: active directory-role assignments from the inventory pass.
+- `assert.gate` accepts a list; every gate must be open.
+
+### Changed
+
+- Scored from data instead of manual: CAF-IDN-04 (MFA baseline for all users), CAF-BIL-02 (MFA for Azure
+  management, Conditional Access or Security Defaults), WAF-AVD-SE-01 and WAF-AVDAZ-SE-06 (MFA for AVD),
+  APPMOD-SEC-02. Now scoring: CAF-IDN-02, CGOV-SC-05 (PIM in use) and CAF-IDN-05, redefined as privileged users
+  eligible versus standing. Seven checks attach policies or standing privileged assignments as evidence.
+- Corrected the claim that PIM data needs Entra ID P2 and a Graph application permission.
+
 ## [3.18.17] - 2026-11-25 - every Microsoft catalog assessment has a Scout equivalent
 
 ### Added
