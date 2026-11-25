@@ -1,0 +1,514 @@
+# waf.sustainability.yaml — Sustainability workload assessment (AB#9300)
+#
+# Scores an estate against Microsoft's sustainability workload guidance, the scope of the
+# "Sustainability | Well-Architected Review" assessment
+# (learn.microsoft.com/assessments/f236012a-0070-45db-b94c-fe8de0799f38).
+#
+# Written ONLY against docs/frameworks/waf-sustainability-checklist.md. Microsoft does not publish
+# the assessment's question text, so every item is Scout's reading of the per-pillar sustainability
+# recommendation pages and the sustainable AI design page. 67 items: 20 automated,
+# 47 manual.
+#
+# Scout collects no carbon data, so emissions items are manual. Idle and orphaned resources,
+# autoscale coverage, Advisor findings and edge protections are automated and gated on their data
+# being present. Rules marked "name heuristic" match a policy assignment's display name.
+area: "Sustainability workload"
+framework: WAF-SUS
+frameworkversion: "Azure Well-Architected sustainability workload guidance (assessment questions unpublished), docs/frameworks/waf-sustainability-checklist.md, retrieved 2026-11-25 (67 items, five pillar lenses plus sustainable AI design)"
+weight: 1.0
+verifiedAgainst: "docs/frameworks/waf-sustainability-checklist.md (Scout enumeration of learn.microsoft.com/azure/well-architected/sustainability/*), verified 2026-11-25"
+rules:
+  # ---- Reliability (RE) -----------------------------------------------------------------------
+  - id: WAF-SUS-RE-01
+    title: "WAF-SUS-RE-01. Failure amplification is prevented (circuit breakers, throttling, graceful degradation, dependency isolation)"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-SUS-RE-01. Confirm repeated failing calls stop quickly, overload is throttled, the workload degrades gracefully, and a dependency failure does not spread. Retry storms and queue build-up after an outage burn energy for no business value."
+    manual: true
+  - id: WAF-SUS-RE-02
+    title: "WAF-SUS-RE-02. Resiliency is matched to business requirements, and multi-region and failover capacity are justified"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-SUS-RE-02. Confirm active-active or multi-region designs are justified by the recovery requirement, that standby environments are right-sized rather than mirroring peak production, and that monolith versus microservice choices avoid needless service-to-service traffic."
+    manual: true
+  - id: WAF-SUS-RE-03
+    title: "WAF-SUS-RE-03. Backup, replication and retention strategies are reviewed against recovery needs"
+    severity: medium
+    query: "$.management.recoveryVaultBackupPolicies[*]"
+    assert: { type: manual }
+    remediation: "WAF-SUS-RE-03. Confirm backup frequency, replication and retention are no longer than the recovery requirement needs. Backup policies are attached as evidence."
+    manual: true
+  - id: WAF-SUS-RE-04
+    title: "WAF-SUS-RE-04. Burst demand is smoothed with asynchronous processing, queues and batching"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-SUS-RE-04. Confirm burst-prone operations use queue-based buffering or batching so capacity does not spike and then sit idle."
+    manual: true
+  - id: WAF-SUS-RE-05
+    title: "WAF-SUS-RE-05. No autoscale setting is switched off"
+    severity: medium
+    query: "$.monitor.autoscaleSettings[?(@.enabled == false)]"
+    assert: { type: countEquals, value: 0, gate: "$.monitor.autoscaleSettings[*]" }
+    remediation: "WAF-SUS-RE-05. The autoscale settings listed are disabled, so capacity stays fixed. Tune autoscaling to follow demand without aggressive short-term reactions."
+    manual: false
+  - id: WAF-SUS-RE-06
+    title: "WAF-SUS-RE-06. Standard, Premium and Isolated App Service plans are scaled by an enabled autoscale setting"
+    severity: medium
+    join:
+      left: "$.domains.web.appServicePlans[?(@.sku =~ /^(S|P|I)/)]"
+      leftKey: "id"
+      right: "$.monitor.autoscaleSettings[?(@.enabled == true)]"
+      rightKey: "targetResourceUri"
+      mode: leftOnly
+      leftLabel: "App Service plan"
+      rightLabel: "enabled autoscale setting"
+    assert: { type: countEquals, value: 0, gate: "$.domains.web.appServicePlans[*]" }
+    remediation: "WAF-SUS-RE-06. The plans listed have no enabled autoscale setting. Autoscale against observed demand rather than assumed peak."
+    manual: false
+  - id: WAF-SUS-RE-07
+    title: "WAF-SUS-RE-07. Managed PaaS, serverless and containers are used where they fit, and platform versions are kept current"
+    severity: medium
+    query: "$.compute.virtualMachines[*]"
+    assert: { type: manual }
+    remediation: "WAF-SUS-RE-07. Confirm managed platforms were evaluated before IaaS and runtimes and dependencies are kept updated to pick up efficiency improvements. Virtual machines are attached as evidence."
+    manual: true
+  - id: WAF-SUS-RE-08
+    title: "WAF-SUS-RE-08. No unattached managed disks remain"
+    severity: medium
+    query: "$.costCleanup.orphanedDisks[*]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.storage.managedDisks[*]" }
+    remediation: "WAF-SUS-RE-08. The disks listed are not attached to any machine. Delete them, or snapshot and delete if the data may be needed."
+    manual: false
+  - id: WAF-SUS-RE-09
+    title: "WAF-SUS-RE-09. No public IP addresses are left unassociated"
+    severity: low
+    query: "$.costCleanup.orphanedPips[*]"
+    assert: { type: countEquals, value: 0, gate: "$.subscriptions[*]" }
+    remediation: "WAF-SUS-RE-09. The public IP addresses listed have no IP configuration. Release them."
+    manual: false
+  - id: WAF-SUS-RE-10
+    title: "WAF-SUS-RE-10. No snapshot outlives the disk it was taken from"
+    severity: low
+    join:
+      left: "$.domains.storage.snapshots[*]"
+      leftKey: "sourceDiskId"
+      right: "$.domains.storage.managedDisks[*]"
+      rightKey: "id"
+      mode: leftOnly
+      leftLabel: "snapshot"
+      rightLabel: "source managed disk"
+    assert: { type: countEquals, value: 0, gate: "$.domains.storage.snapshots[*]" }
+    remediation: "WAF-SUS-RE-10. The snapshots listed have a source disk that is not in the collected estate. Confirm each is not a deliberate long-term restore point, then delete it."
+    manual: false
+  - id: WAF-SUS-RE-11
+    title: "WAF-SUS-RE-11. No load balancer has an empty set of backend pools"
+    severity: low
+    query: "$.networking.loadBalancers[?(@.backendPoolCount == 0)]"
+    assert: { type: countEquals, value: 0, gate: "$.networking.loadBalancers[*]" }
+    remediation: "WAF-SUS-RE-11. The load balancers listed have no backend pool and cannot be serving traffic. Remove them if unused."
+    manual: false
+  - id: WAF-SUS-RE-12
+    title: "WAF-SUS-RE-12. No NAT gateway is attached to zero subnets"
+    severity: low
+    query: "$.networking.natGateways[?(@.subnetCount == 0)]"
+    assert: { type: countEquals, value: 0, gate: "$.networking.natGateways[*]" }
+    remediation: "WAF-SUS-RE-12. The NAT gateways listed are attached to no subnet but still bill hourly. Remove them or attach them."
+    manual: false
+  - id: WAF-SUS-RE-13
+    title: "WAF-SUS-RE-13. Non-production environments are shut down or scaled down when not in use"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-SUS-RE-13. Confirm development, test and staging environments are scheduled off outside working hours or created on demand. Power state and environment tags are not yet collected."
+    manual: true
+  - id: WAF-SUS-RE-14
+    title: "WAF-SUS-RE-14. Spot VMs are used only for interrupt-tolerant workloads"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-SUS-RE-14. Confirm Spot capacity runs only workloads that tolerate eviction, and that interruptible batch work uses it where possible. VM priority is not yet collected."
+    manual: true
+  - id: WAF-SUS-RE-15
+    title: "WAF-SUS-RE-15. Deployment regions weigh carbon intensity, latency and resiliency together"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-SUS-RE-15. Confirm regions were chosen with carbon intensity, user latency and recovery needs all considered, and are reassessed over time. A lower-carbon region can raise latency."
+    manual: true
+  - id: WAF-SUS-RE-16
+    title: "WAF-SUS-RE-16. Load testing and chaos engineering are proportionate, scheduled and scoped"
+    severity: low
+    query: "$.devops.chaosExperiments[*]"
+    assert: { type: manual }
+    remediation: "WAF-SUS-RE-16. Confirm resiliency tests are purposeful rather than continuous, expected behaviour under stress is defined, and the compute they consume is weighed against the benefit. Chaos experiments are attached as evidence."
+    manual: true
+
+  # ---- Security (SE) --------------------------------------------------------------------------
+  - id: WAF-SUS-SE-01
+    title: "WAF-SUS-SE-01. Web application firewall policies run in Prevention mode"
+    severity: medium
+    query: "$.security.wafPolicies[?(@.mode == 'Detection')]"
+    assert: { type: countEquals, value: 0, gate: "$.security.wafPolicies[*]" }
+    remediation: "WAF-SUS-SE-01. The WAF policies listed only log. Block malicious traffic at the edge, before it reaches application compute and drives scaling and logging."
+    manual: false
+  - id: WAF-SUS-SE-02
+    title: "WAF-SUS-SE-02. Application Gateways have the web application firewall enabled"
+    severity: medium
+    query: "$.networking.applicationGateways[?(@.wafEnabled == false)]"
+    assert: { type: countEquals, value: 0, gate: "$.networking.applicationGateways[*]" }
+    remediation: "WAF-SUS-SE-02. The gateways listed have no WAF. Filter unwanted traffic early."
+    manual: false
+  - id: WAF-SUS-SE-03
+    title: "WAF-SUS-SE-03. Virtual networks are protected by Azure DDoS Network Protection"
+    severity: medium
+    query: "$.networking.virtualNetworks[?(@.ddosEnabled != true)]"
+    assert: { type: countEquals, value: 0, gate: "$.networking.virtualNetworks[*]" }
+    remediation: "WAF-SUS-SE-03. The virtual networks listed are not covered by a DDoS Network Protection plan. An attack forces autoscaling, throughput and logging far above normal. (DDoS IP Protection applied per public IP address is not visible to this check.)"
+    manual: false
+  - id: WAF-SUS-SE-04
+    title: "WAF-SUS-SE-04. Rate limiting, throttling and identity-based access limit abusive usage"
+    severity: low
+    query: "$.domains.integration.apiManagement[*]"
+    assert: { type: manual }
+    remediation: "WAF-SUS-SE-04. Confirm throttling and rate limits exist at the application boundary and access is identity-restricted, avoiding overlapping security layers that add processing. API Management services are attached as evidence."
+    manual: true
+  - id: WAF-SUS-SE-05
+    title: "WAF-SUS-SE-05. Storage accounts deny public network access by default"
+    severity: medium
+    query: "$.domains.storage.storageAccounts[?(@.networkDefaultDeny == false)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.storage.storageAccounts[*]" }
+    remediation: "WAF-SUS-SE-05. The accounts listed accept traffic from all networks. Hardening network exposure cuts scanning, abuse and the work they cause."
+    manual: false
+  - id: WAF-SUS-SE-06
+    title: "WAF-SUS-SE-06. SQL servers do not allow public network access"
+    severity: medium
+    query: "$.domains.databases.sqlServers[?(@.publicNetworkAccess == 'Enabled')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.databases.sqlServers[*]" }
+    remediation: "WAF-SUS-SE-06. The servers listed allow public network access. Use private endpoints and disable the public endpoint."
+    manual: false
+  - id: WAF-SUS-SE-07
+    title: "WAF-SUS-SE-07. Security telemetry is filtered at the source and collected for a purpose"
+    severity: medium
+    query: "$.monitor.dataCollectionRules[*]"
+    assert: { type: manual }
+    remediation: "WAF-SUS-SE-07. Confirm data collection rules filter logs before they reach the SIEM, only signals needed for detection are collected, and full-fidelity collection is not the default. Data collection rules are attached; their transformations are not yet collected."
+    manual: true
+  - id: WAF-SUS-SE-08
+    title: "WAF-SUS-SE-08. Security controls sit close to traffic sources, and routing through central inspection is limited to traffic that needs it"
+    severity: low
+    query: "$.networking.azureFirewalls[*]"
+    assert: { type: manual }
+    remediation: "WAF-SUS-SE-08. Confirm hub-and-spoke routing is not used for traffic that needs no central inspection and extra inspection hops are avoided. Azure Firewalls are attached as evidence."
+    manual: true
+
+  # ---- Cost optimization (CO) -----------------------------------------------------------------
+  - id: WAF-SUS-CO-01
+    title: "WAF-SUS-CO-01. Cost Management budgets exist to give workload owners accountability"
+    severity: medium
+    query: "$.governance.budgets[*]"
+    assert: { type: exists, gate: "$.governance.budgetsAvailable" }
+    remediation: "WAF-SUS-CO-01. No budget was found. Assign cost accountability at the workload level so inefficiency is visible and owned."
+    manual: false
+  - id: WAF-SUS-CO-02
+    title: "WAF-SUS-CO-02. High-impact Advisor cost recommendations are addressed"
+    severity: medium
+    query: "$.advisor[?(@.Category == 'Cost' && @.Impact == 'High')]"
+    assert: { type: countEquals, value: 0, gate: "$.advisorAvailable" }
+    remediation: "WAF-SUS-CO-02. High-impact Advisor cost recommendations are open. Cost is the practical proxy for sustainability, so right-size, shut down or remove what Advisor flags."
+    manual: false
+  - id: WAF-SUS-CO-03
+    title: "WAF-SUS-CO-03. Advisor has no open finding of idle, unused or underutilized resources"
+    severity: medium
+    query: "$.advisor[?(@.Category == 'Cost' && @.ShortDescriptionProblem =~ /underutiliz|idle|unused|shut ?down|right-?siz/i)]"
+    assert: { type: countEquals, value: 0, gate: "$.advisorAvailable" }
+    remediation: "WAF-SUS-CO-03. Advisor reports idle, unused or underutilized resources. Provisioned capacity that sits idle still consumes energy; right-size or remove it."
+    manual: false
+  - id: WAF-SUS-CO-04
+    title: "WAF-SUS-CO-04. Observability spend and telemetry retention are part of the optimization scope"
+    severity: low
+    query: "$.management.logAnalyticsWorkspaces[?(@.retentionInDays > 90)]"
+    assert: { type: manual }
+    remediation: "WAF-SUS-CO-04. Confirm logging, metrics and tracing volumes and retention are reviewed before they become passive sprawl. Workspaces retaining more than 90 days are attached for review."
+    manual: true
+  - id: WAF-SUS-CO-05
+    title: "WAF-SUS-CO-05. Service tiers and reservations match actual usage"
+    severity: medium
+    query: "$.finops.reservations[*]"
+    assert: { type: manual }
+    remediation: "WAF-SUS-CO-05. Confirm tiers, sizes and reservation or savings-plan commitments follow measured usage rather than defaults or assumed peak. Reservations are attached as evidence."
+    manual: true
+  - id: WAF-SUS-CO-06
+    title: "WAF-SUS-CO-06. CI/CD and engineering workflows are proportionate to the change"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-SUS-CO-06. Confirm pipelines scale on demand, cache and build incrementally, test only changed components where risk allows, and avoid redundant stages."
+    manual: true
+  - id: WAF-SUS-CO-07
+    title: "WAF-SUS-CO-07. Region and timing of execution are chosen deliberately, including lower-carbon regions and flexible batch windows"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-SUS-CO-07. Confirm batch work is scheduled for lower-carbon or lower-cost periods, placement is revisited as the energy mix and user distribution change, and workloads sit near users where it pays."
+    manual: true
+  - id: WAF-SUS-CO-08
+    title: "WAF-SUS-CO-08. Cross-region replication and routing serve a clear workload need"
+    severity: low
+    query: "$.domains.storage.storageAccounts[?(@.sku =~ /GRS|GZRS/i)]"
+    assert: { type: manual }
+    remediation: "WAF-SUS-CO-08. Confirm geo-replicated storage and cross-region traffic are required. Storage accounts replicated to another region are attached for review."
+    manual: true
+  - id: WAF-SUS-CO-09
+    title: "WAF-SUS-CO-09. Storage tiers follow access patterns, and stale or duplicated data is removed on purpose"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-SUS-CO-09. Confirm hot, cool and archive tiers follow access, lifecycle rules expire old data, datasets are not duplicated across services, and backup retention is reviewed. Lifecycle management policies are not yet collected."
+    manual: true
+  - id: WAF-SUS-CO-10
+    title: "WAF-SUS-CO-10. Cost is tracked per workload or feature, with explicit efficiency baselines for critical systems"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-SUS-CO-10. Confirm cost is reported at feature or workload level, efficiency baselines exist so drift is visible, and local optimizations that merely shift cost elsewhere are challenged."
+    manual: true
+
+  # ---- Operational excellence (OE) ------------------------------------------------------------
+  - id: WAF-SUS-OE-01
+    title: "WAF-SUS-OE-01. A baseline of current carbon emissions exists for every workload and service"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-SUS-OE-01. Confirm emissions are baselined with Azure Carbon Optimization or an equivalent. Carbon data is not collected by Scout."
+    manual: true
+  - id: WAF-SUS-OE-02
+    title: "WAF-SUS-OE-02. Carbon reduction targets are defined for the workload and its components"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-SUS-OE-02. Confirm targets exist at workload and component level with named owners."
+    manual: true
+  - id: WAF-SUS-OE-03
+    title: "WAF-SUS-OE-03. A measurable metric such as the Software Carbon Intensity score is tracked alongside SLOs"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-SUS-OE-03. Confirm sustainability is tracked with a metric (SCI, or cost and utilization proxies) together with performance and reliability indicators."
+    manual: true
+  - id: WAF-SUS-OE-04
+    title: "WAF-SUS-OE-04. The impact of sustainability changes is recorded and assessed"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-SUS-OE-04. Confirm each optimization has a before-and-after record so effective strategies are repeated."
+    manual: true
+  - id: WAF-SUS-OE-05
+    title: "WAF-SUS-OE-05. Azure Policy assignments exist to drive consistent behaviour"
+    severity: medium
+    query: "$.governance.policyAssignments[*]"
+    assert: { type: exists, gate: "$.governance.policyAssignmentsAvailable" }
+    remediation: "WAF-SUS-OE-05. No policy assignment was found. Use built-in policies to restrict oversized resources, enforce lifecycle management and require tags."
+    manual: false
+  - id: WAF-SUS-OE-06
+    title: "WAF-SUS-OE-06. A sustainability-focused policy initiative is assigned"
+    severity: low
+    query: "$.governance.policyAssignments[?(@.properties.displayName =~ /sustainab|carbon/i)]"
+    assert: { type: exists, gate: "$.governance.policyAssignmentsAvailable" }
+    remediation: "WAF-SUS-OE-06. No assignment with sustainability or carbon in its display name was found. Create a dedicated initiative for sustainability. This is a name heuristic, so a differently named initiative is missed."
+    manual: false
+  - id: WAF-SUS-OE-07
+    title: "WAF-SUS-OE-07. A policy requires or inherits tags for sustainability reporting"
+    severity: low
+    query: "$.governance.policyAssignments[?(@.properties.displayName =~ /require a tag|inherit a tag|required tag/i)]"
+    assert: { type: exists, gate: "$.governance.policyAssignmentsAvailable" }
+    remediation: "WAF-SUS-OE-07. No tag-requiring policy assignment was found. Require tags so resources can be attributed to a workload and owner for reporting. This is a name heuristic."
+    manual: false
+  - id: WAF-SUS-OE-08
+    title: "WAF-SUS-OE-08. Data lifecycle and telemetry-intake policies keep only necessary data"
+    severity: low
+    query: "$.monitor.dataCollectionRules[*]"
+    assert: { type: manual }
+    remediation: "WAF-SUS-OE-08. Confirm retention rules (for example with Microsoft Purview) delete data after defined periods and data collection rules control what telemetry is collected, transformed and routed. Data collection rules are attached as evidence."
+    manual: true
+  - id: WAF-SUS-OE-09
+    title: "WAF-SUS-OE-09. Policy compliance is reviewed regularly for further optimization"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-SUS-OE-09. Confirm compliance is reviewed on a cadence and findings feed back into the baseline."
+    manual: true
+  - id: WAF-SUS-OE-10
+    title: "WAF-SUS-OE-10. A sustainability community, training and shared guidance exist"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-SUS-OE-10. Confirm there is a community or centre of excellence, ongoing green-software training for architects, developers and operators, and a central repository of lessons."
+    manual: true
+  - id: WAF-SUS-OE-11
+    title: "WAF-SUS-OE-11. Sustainability objectives sit in governance, reviews and KPIs, and good results are recognized"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-SUS-OE-11. Confirm sustainability metrics are in workload governance and performance reviews and teams that meet goals are recognized."
+    manual: true
+
+  # ---- Performance efficiency (PE) ------------------------------------------------------------
+  - id: WAF-SUS-PE-01
+    title: "WAF-SUS-PE-01. API communication is efficient, throttled, cached and monitored"
+    severity: low
+    query: "$.domains.integration.apiManagement[*]"
+    assert: { type: manual }
+    remediation: "WAF-SUS-PE-01. Confirm chatty calls and large payloads are reduced, responses are cached and throttled (for example in API Management), and high-volume endpoints are watched. API Management services are attached as evidence."
+    manual: true
+  - id: WAF-SUS-PE-02
+    title: "WAF-SUS-PE-02. Rendering strategy and user interface are chosen for efficiency"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-SUS-PE-02. Confirm server-side versus client-side rendering was weighed on total compute and transfer, and interfaces and media are lightweight."
+    manual: true
+  - id: WAF-SUS-PE-03
+    title: "WAF-SUS-PE-03. Workloads are profiled, with CPU and memory baselines and quality gates in deployment pipelines"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-SUS-PE-03. Confirm concurrency and utilization are profiled and sustainability-focused tests, alerts and quality gates exist, with thresholds reviewed as functionality changes."
+    manual: true
+  - id: WAF-SUS-PE-04
+    title: "WAF-SUS-PE-04. Specialized compute such as GPUs is evaluated where it improves efficiency"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-SUS-PE-04. Confirm GPU or other specialized compute was evaluated against its higher cost where it shortens work."
+    manual: true
+  - id: WAF-SUS-PE-05
+    title: "WAF-SUS-PE-05. CDN, caching and compression reduce network traffic"
+    severity: medium
+    query: "$.networking.cdnProfiles[*]"
+    assert: { type: manual }
+    remediation: "WAF-SUS-PE-05. Confirm repeated content is served from a CDN or cache, payloads are compressed, and cache retention is tuned. CDN and Front Door profiles are attached as evidence."
+    manual: true
+  - id: WAF-SUS-PE-06
+    title: "WAF-SUS-PE-06. Workloads and dependencies are placed close to users and to each other"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-SUS-PE-06. Confirm dependent resources share a region and cloud, and workloads sit near users where it reduces public-internet routing."
+    manual: true
+  - id: WAF-SUS-PE-07
+    title: "WAF-SUS-PE-07. Storage is compressed, queries are optimized and data is aligned to access tiers"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-SUS-PE-07. Confirm compression, query tuning and tiering are applied, and backup, recovery-point and log retention are reviewed."
+    manual: true
+  - id: WAF-SUS-PE-08
+    title: "WAF-SUS-PE-08. Service tiers match demand and dynamic scaling is preferred over fixed capacity"
+    severity: medium
+    query: "$.domains.web.appServicePlans[*]"
+    assert: { type: manual }
+    remediation: "WAF-SUS-PE-08. Confirm tiers are reviewed against measured demand, higher tiers are used only for features needed, and dynamic scaling is preferred. App Service plans are attached as evidence."
+    manual: true
+  - id: WAF-SUS-PE-09
+    title: "WAF-SUS-PE-09. CI/CD pipelines cache build outputs"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-SUS-PE-09. Confirm build outputs are cached between runs and self-hosted agents keep local caches, with cache invalidation designed."
+    manual: true
+  - id: WAF-SUS-PE-10
+    title: "WAF-SUS-PE-10. Virtual machines use platform-orchestrated patching"
+    severity: medium
+    query: "$.compute.virtualMachines[?(@.patchMode != 'AutomaticByPlatform')]"
+    assert: { type: countEquals, value: 0, gate: "$.compute.virtualMachines[*]" }
+    remediation: "WAF-SUS-PE-10. The virtual machines listed do not use automatic patching by platform. Keep platforms and operating systems current with automated update mechanisms to gain efficiency improvements."
+    manual: false
+  - id: WAF-SUS-PE-11
+    title: "WAF-SUS-PE-11. Legacy applications are identified and modernized to cloud-native or optimized PaaS"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-SUS-PE-11. Confirm legacy workloads that run inefficiently on current infrastructure are on a modernization path, weighed against risk."
+    manual: true
+  - id: WAF-SUS-PE-12
+    title: "WAF-SUS-PE-12. Caches use Azure Managed Redis rather than the retiring Azure Cache for Redis"
+    severity: low
+    query: "$.domains.databases.redisCaches[?(@.type == 'microsoft.cache/redis')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.databases.redisCaches[*]" }
+    remediation: "WAF-SUS-PE-12. The caches listed are Azure Cache for Redis, which is retiring. Moving to Azure Managed Redis keeps the workload on the maintained platform. This is Scout's reading of the modernization recommendation."
+    manual: false
+
+  # ---- Sustainable AI design (AI) -------------------------------------------------------------
+  - id: WAF-SUS-AI-01
+    title: "WAF-SUS-AI-01. Model size is matched to the problem, favoring small language models where they suffice"
+    severity: medium
+    query: "$.domains.ai.cognitiveAccounts[*]"
+    assert: { type: manual }
+    remediation: "WAF-SUS-AI-01. Confirm a smaller model was evaluated before a larger one and the accuracy tradeoff is accepted. AI services accounts are attached as evidence; model deployments are not yet collected."
+    manual: true
+  - id: WAF-SUS-AI-02
+    title: "WAF-SUS-AI-02. Pretrained models and fine-tuning are preferred to training from scratch"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-SUS-AI-02. Confirm pretrained models are reused (after security and origin checks) and fine-tuned on general-then-specific data to cut compute cycles."
+    manual: true
+  - id: WAF-SUS-AI-03
+    title: "WAF-SUS-AI-03. Training runs in a low-carbon region with carbon-aware scheduling"
+    severity: medium
+    query: "$.domains.ai.mlWorkspaces[*]"
+    assert: { type: manual }
+    remediation: "WAF-SUS-AI-03. Confirm training region and time are chosen on carbon intensity (for example through Azure Carbon Optimization data) within data-residency limits. Machine Learning workspaces are attached as evidence, with their region."
+    manual: true
+  - id: WAF-SUS-AI-04
+    title: "WAF-SUS-AI-04. Model and result caching avoid redundant computation"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-SUS-AI-04. Confirm loaded models are kept in memory and repeated or similar inputs return cached results."
+    manual: true
+  - id: WAF-SUS-AI-05
+    title: "WAF-SUS-AI-05. Data is reused, filtered, sampled and cleaned before training, with efficient ingestion"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-SUS-AI-05. Confirm public datasets are reused (licences checked), only relevant data is ingested, sampling is used in early development, and ingestion is batched and streamlined."
+    manual: true
+  - id: WAF-SUS-AI-06
+    title: "WAF-SUS-AI-06. Storage, regional data placement and disaster recovery are optimized for energy"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-SUS-AI-06. Confirm tiered storage with lifecycle rules, compression and deduplication, training data co-located with training, and backup and replication that meet recovery needs without excess."
+    manual: true
+  - id: WAF-SUS-AI-07
+    title: "WAF-SUS-AI-07. Edge processing is considered where it cuts data movement"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-SUS-AI-07. Confirm processing at the edge was evaluated for latency and energy, with security and monitoring for distributed data processing."
+    manual: true
+  - id: WAF-SUS-AI-08
+    title: "WAF-SUS-AI-08. Inference is deployed and scaled with carbon intensity in mind"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-SUS-AI-08. Confirm deployment region selection, autoscaling and load balancing consider real-time carbon intensity as well as performance, with redundancy kept to what availability needs."
+    manual: true
+  - id: WAF-SUS-AI-09
+    title: "WAF-SUS-AI-09. Retraining is threshold-based, driven by model decay detection rather than a fixed frequency"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-SUS-AI-09. Confirm retraining is triggered by measured drift and accuracy thresholds, and that decayed models are not left running."
+    manual: true
+  - id: WAF-SUS-AI-10
+    title: "WAF-SUS-AI-10. Sustainability metrics sit in AI monitoring and MLOps, with controlled rollout and rollback"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-SUS-AI-10. Confirm sustainability metrics are tracked next to performance and drift, A/B tests or blue-green deployments validate the sustainability impact of new versions, and rollback triggers on threshold breach."
+    manual: true

@@ -44,6 +44,14 @@ Describe 'Collector counts in the docs match the catalogue' {
         (Get-Content "$script:RepoRoot/docs/assessment/index.md" -Raw) | Should -Match ("covering all {0} assessments" -f $assessments)
     }
 
+    It 'Microsoft Assessment Coverage names only assessments that exist (AB#9300)' {
+        $registry = Import-PowerShellDataFile "$script:RepoRoot/manifests/assessments.psd1"
+        $page = Get-Content "$script:RepoRoot/docs/reference/microsoft-assessment-coverage.md" -Raw
+        $named = @([regex]::Matches($page, '`((?:CAF|WAF|Assess|Workload|Microsoft|Scout): [^`]+)`') | ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique)
+        $named.Count | Should -BeGreaterThan 30
+        foreach ($name in $named) { $registry.ContainsKey($name) | Should -BeTrue -Because "'$name' is named on the coverage page" }
+    }
+
     It 'testing guide' {
         $text = Get-Content "$script:RepoRoot/docs/project/testing.md" -Raw
         $text | Should -Match ("all {0} collectors" -f $script:Total)

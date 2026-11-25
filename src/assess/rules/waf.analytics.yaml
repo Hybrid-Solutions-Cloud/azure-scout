@@ -1,0 +1,631 @@
+# waf.analytics.yaml -- Analytics technology review (AB#9300)
+#
+# Scores Scout's reading of the Well-Architected guidance for the Analytics services, the scope of Microsoft's
+# "Analytics" Well-Architected review (learn.microsoft.com/assessments/5eaa8702-ebdb-44cf-8b40-17c3f3b63330). The
+# service-guide catalog lists three Analytics guides (Azure Databricks, Azure Event Hubs, Log Analytics); Microsoft Fabric
+# has workload guidance. Microsoft does not publish the review question text, so every item is Scout's reading,
+# enumerated in docs/frameworks/waf-analytics-checklist.md. Every rule cites an id from that file.
+#
+# Databricks, Event Hubs and Log Analytics items come from configuration-recommendation rows read in full. Fabric items
+# come from the overview and the reliability and security pages; its cost, operations and performance items are
+# summary-level (see the enumeration doc).
+#
+# WHY framework: WAF-ANALYTICS and not WAF: the review spans several services and all five pillars, so no single pillar
+# area fits; it is a Scout-internal axis like WAF-AI. Event Hubs namespaces are collected without an id, so private
+# endpoint pairing is manual until the id is projected.
+# Every automated rule is gated on the resources (or their diagnostic-coverage rows) existing.
+area: "Analytics"
+framework: WAF-ANALYTICS
+frameworkversion: "Azure Well-Architected Framework service guides for Azure Databricks, Azure Event Hubs and Log Analytics, plus Microsoft Fabric workload guidance (Microsoft's technology-review question text unpublished), docs/frameworks/waf-analytics-checklist.md, retrieved 2026-11-25 (74 items)"
+weight: 1.0
+verifiedAgainst: "docs/frameworks/waf-analytics-checklist.md (Scout enumeration of learn.microsoft.com/azure/well-architected/service-guides/{azure-databricks,event-hubs,azure-log-analytics} and microsoft-fabric/*), verified 2026-11-25"
+rules:
+
+  # ---- Reliability -------------------------------------------------------------------------
+  # cluster settings are workspace data plane; workspaces attached [DBX-RE-R]
+  - id: WAF-ANALYTICS-RE-01
+    title: "WAF-ANALYTICS-RE-01. Databricks clusters autoscale with a minimum of two nodes and a maximum within quota"
+    severity: medium
+    query: "$.domains.analytics.databricksWorkspaces[*]"
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-RE-01. Set autoscaling with minimum two nodes and a ceiling inside workspace quota; target 70 to 80 percent utilisation."
+    manual: true
+  # workspaces attached with region [DBX-RE-R]
+  - id: WAF-ANALYTICS-RE-02
+    title: "WAF-ANALYTICS-RE-02. Mission-critical Databricks workloads run across regions with automated backup of code, jobs and cluster configuration"
+    severity: medium
+    query: "$.domains.analytics.databricksWorkspaces[*]"
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-RE-02. Deploy workspaces in more than one region and back up notebooks, jobs and cluster settings with Asset Bundles or the REST API."
+    manual: true
+  # pool configuration is data plane [DBX-RE-R]
+  - id: WAF-ANALYTICS-RE-03
+    title: "WAF-ANALYTICS-RE-03. Cluster pools keep prewarmed instances across several VM sizes in a family"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-RE-03. Keep pools 20 to 30 percent above typical need and use multiple sizes for capacity flexibility."
+    manual: true
+  # data-plane configuration [DBX-RE-R]
+  - id: WAF-ANALYTICS-RE-04
+    title: "WAF-ANALYTICS-RE-04. Delta time travel retention and the Unity Catalog metastore are protected"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-RE-04. Set 7 to 30 day retention on production tables and back up the metastore with cross-region metadata sync."
+    manual: true
+  # job and checkpoint configuration, not ARM [DBX-RE-R]
+  - id: WAF-ANALYTICS-RE-05
+    title: "WAF-ANALYTICS-RE-05. Jobs retry with backoff and streaming checkpoints sit on zone-redundant storage"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-RE-05. Use exponential backoff from 30 seconds with at most 3 retries, and keep structured-streaming checkpoints on ZRS storage."
+    manual: true
+  # namespace zoneRedundant [EH-RE-R]
+  - id: WAF-ANALYTICS-RE-06
+    title: "WAF-ANALYTICS-RE-06. Event Hubs namespaces are zone redundant"
+    severity: high
+    query: "$.domains.integration.eventHubNamespaces[?(@.zoneRedundant != true)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.integration.eventHubNamespaces[*]" }
+    remediation: "WAF-ANALYTICS-RE-06. The namespaces listed are not zone redundant. Create namespaces in a region with availability zones and enable zone redundancy for automatic datacentre-level failover."
+    manual: false
+  # pairing and replication are not collected; namespaces attached [EH-RE-C, EH-RE-R]
+  - id: WAF-ANALYTICS-RE-07
+    title: "WAF-ANALYTICS-RE-07. Geo-replication or geo-disaster recovery is configured for regional failure"
+    severity: high
+    query: "$.domains.integration.eventHubNamespaces[*]"
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-RE-07. Use geo-replication on Dedicated namespaces or geo-DR pairing with an alias on Standard and Premium, and test the failover."
+    manual: true
+  # tier and throughput units are not collected (proposed projection in the report); namespaces attached [EH-RE-C, EH-RE-R]
+  - id: WAF-ANALYTICS-RE-08
+    title: "WAF-ANALYTICS-RE-08. Capacity is planned: throughput units, partition count and auto-inflate suit the load"
+    severity: medium
+    query: "$.domains.integration.eventHubNamespaces[*]"
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-RE-08. Size throughput or processing units, set auto-inflate with a maximum on Standard, and choose the partition count carefully (it cannot be reduced)."
+    manual: true
+  # metric alert rules attached (estate-wide) [EH-RE-R]
+  - id: WAF-ANALYTICS-RE-09
+    title: "WAF-ANALYTICS-RE-09. Alerts cover consumer lag, throughput utilisation and throttling, tied to SLOs"
+    severity: medium
+    query: "$.monitor.metricAlertRules[*]"
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-RE-09. Create Azure Monitor alerts on lag, utilisation, throttling and connection and authentication failures, with action groups. Metric alert rules are attached."
+    manual: true
+  # workspace location is not collected (proposed projection in the report); workspaces attached [LA-RE-R]
+  - id: WAF-ANALYTICS-RE-10
+    title: "WAF-ANALYTICS-RE-10. The Log Analytics workspace is in a region with data resilience and co-located with the workload and its collection endpoints"
+    severity: medium
+    query: "$.management.logAnalyticsWorkspaces[*]"
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-RE-10. Deploy workspaces and data collection endpoints in the workload region, in a region that supports availability-zone data resilience."
+    manual: true
+  # data-collection routing, not collected per workspace [LA-RE-R]
+  - id: WAF-ANALYTICS-RE-11
+    title: "WAF-ANALYTICS-RE-11. Critical logs are multicast or exported so they survive a regional outage"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-RE-11. Duplicate critical streams to a second-region workspace with data collection rules, or export to GRS or GZRS storage."
+    manual: true
+  # data collection rules attached; the daily cap is not collected (proposed projection in the report) [LA-RE-R]
+  - id: WAF-ANALYTICS-RE-12
+    title: "WAF-ANALYTICS-RE-12. Data collection rules are single-purpose, and a daily cap with alerts and a retention policy protect ingestion"
+    severity: medium
+    query: "$.monitor.dataCollectionRules[*]"
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-RE-12. Keep each rule narrow, set a daily cap above normal volume with alerts approaching it, and align retention to root-cause needs. Data collection rules are attached."
+    manual: true
+  # retentionInDays (Scout threshold of 30) [LA-RE-R]
+  - id: WAF-ANALYTICS-RE-13
+    title: "WAF-ANALYTICS-RE-13. Workspace retention is at least 30 days"
+    severity: low
+    query: "$.management.logAnalyticsWorkspaces[?(@.retentionInDays < 30)]"
+    assert: { type: countEquals, value: 0, gate: "$.management.logAnalyticsWorkspaces[*]" }
+    remediation: "WAF-ANALYTICS-RE-13. The workspaces listed keep data for under 30 days. Raise retention to cover troubleshooting and incident response; 30 days is the usual floor and Scout's threshold, not a number Microsoft prescribes."
+    manual: false
+  # scheduled query rules attached (estate-wide) [LA-RE-R]
+  - id: WAF-ANALYTICS-RE-14
+    title: "WAF-ANALYTICS-RE-14. Workspace health alerts and Workspace Insights are in use"
+    severity: medium
+    query: "$.monitor.scheduledQueryRules[*]"
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-RE-14. Create health-status alerts for workspace availability and review Workspace Insights for ingestion and failed queries. Scheduled query rules are attached."
+    manual: true
+  # capacity settings are not ARM properties; capacities attached [FAB-RE]
+  - id: WAF-ANALYTICS-RE-15
+    title: "WAF-ANALYTICS-RE-15. Fabric capacity resilience is configured: disaster-recovery setting, dedicated capacities for critical work and surge protection"
+    severity: high
+    query: "$.domains.analytics.fabricCapacities[*]"
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-RE-15. Turn on the capacity disaster-recovery setting (asynchronous OneLake replication to the paired region), isolate critical workloads on dedicated capacities and apply surge protection. Capacities are attached."
+    manual: true
+  # capacity state [FAB-RE]
+  - id: WAF-ANALYTICS-RE-16
+    title: "WAF-ANALYTICS-RE-16. Fabric capacities are healthy"
+    severity: medium
+    query: "$.domains.analytics.fabricCapacities[?(@.state == 'Failed' || @.state == 'Suspended')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.analytics.fabricCapacities[*]" }
+    remediation: "WAF-ANALYTICS-RE-16. The capacities listed are Failed or Suspended. Investigate and restore them; a Paused capacity is a deliberate cost control and is not flagged."
+    manual: false
+
+  # ---- Security ----------------------------------------------------------------------------
+  # the injected VNet is not collected (proposed projection in the report); workspaces attached [DBX-SE-R]
+  - id: WAF-ANALYTICS-SE-01
+    title: "WAF-ANALYTICS-SE-01. Databricks workspaces use virtual network injection"
+    severity: high
+    query: "$.domains.analytics.databricksWorkspaces[*]"
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-SE-01. Deploy with VNet injection for network isolation and custom egress control with NSGs and Azure Firewall. The workspaces are listed; the injection setting is not collected."
+    manual: true
+  # workspace to private endpoint join [DBX-SE-R]
+  - id: WAF-ANALYTICS-SE-02
+    title: "WAF-ANALYTICS-SE-02. Databricks workspaces have a private endpoint"
+    severity: high
+    join:
+      left: "$.domains.analytics.databricksWorkspaces[*]"
+      leftKey: "id"
+      right: "$.networking.privateEndpoints[*]"
+      rightKey: "targetResourceId"
+      mode: "leftOnly"
+      leftLabel: "Databricks workspace"
+      rightLabel: "private endpoint"
+    assert: { type: countEquals, value: 0, gate: "$.domains.analytics.databricksWorkspaces[*]" }
+    remediation: "WAF-ANALYTICS-SE-02. The workspaces listed have no private endpoint. Add Private Link for control-plane and front-end access so workspace traffic avoids the public internet."
+    manual: false
+  # the no-public-IP setting is not collected (proposed projection in the report); workspaces attached [DBX-SE-R]
+  - id: WAF-ANALYTICS-SE-03
+    title: "WAF-ANALYTICS-SE-03. Databricks clusters use secure cluster connectivity (no public IPs) with SSH off"
+    severity: high
+    query: "$.domains.analytics.databricksWorkspaces[*]"
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-SE-03. Enable secure cluster connectivity so clusters have no public IP addresses, and restrict SSH."
+    manual: true
+  # identity policy is read from Microsoft Graph and the workspace, not this collection [DBX-SE-R]
+  - id: WAF-ANALYTICS-SE-04
+    title: "WAF-ANALYTICS-SE-04. Identity uses Microsoft Entra SSO with MFA and Conditional Access, and OAuth or service principals instead of personal access tokens"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-SE-04. Require MFA and Conditional Access for workspace access and use OAuth machine-to-machine or service principals for automation."
+    manual: true
+  # data-plane governance [DBX-SE-R]
+  - id: WAF-ANALYTICS-SE-05
+    title: "WAF-ANALYTICS-SE-05. Unity Catalog governs data access across workspaces"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-SE-05. Use one metastore with catalog, schema and table permissions, audited through system tables."
+    manual: true
+  # the encryption setting is not collected (proposed projection in the report); workspaces attached [DBX-SE-R]
+  - id: WAF-ANALYTICS-SE-06
+    title: "WAF-ANALYTICS-SE-06. Workspace storage uses customer-managed keys where required"
+    severity: medium
+    query: "$.domains.analytics.databricksWorkspaces[*]"
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-SE-06. Enable customer-managed keys with Key Vault rotation, with separate keys per environment."
+    manual: true
+  # data-plane configuration [DBX-SE-R]
+  - id: WAF-ANALYTICS-SE-07
+    title: "WAF-ANALYTICS-SE-07. Secrets live in Key Vault-backed scopes"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-SE-07. Use Key Vault-backed secret scopes and rotation; keep credentials out of code and cluster configuration."
+    manual: true
+  # workspace configuration, not collected [DBX-SE-R]
+  - id: WAF-ANALYTICS-SE-08
+    title: "WAF-ANALYTICS-SE-08. IP access lists and egress controls limit network reach"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-SE-08. Use allow-only IP access lists and route egress through custom route tables, NSGs or Azure Firewall."
+    manual: true
+  # data-plane configuration [DBX-SE-R]
+  - id: WAF-ANALYTICS-SE-09
+    title: "WAF-ANALYTICS-SE-09. Audit logging, enhanced security and compliance settings and the Security Analysis Tool are in use"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-SE-09. Turn on audit logs and Unity Catalog system tables, enable enhanced security and compliance for regulated data, and run the Security Analysis Tool."
+    manual: true
+  # namespace publicNetworkAccess [EH-SE-R]
+  - id: WAF-ANALYTICS-SE-10
+    title: "WAF-ANALYTICS-SE-10. Event Hubs namespaces have public network access disabled"
+    severity: high
+    query: "$.domains.integration.eventHubNamespaces[?(@.publicAccess != 'Disabled' && @.publicAccess != 'SecuredByPerimeter')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.integration.eventHubNamespaces[*]" }
+    remediation: "WAF-ANALYTICS-SE-10. The namespaces listed accept public network traffic. Use private endpoints, a network security perimeter or IP firewall rules, and disable public access where you can."
+    manual: false
+  # disableLocalAuth is not collected (proposed projection in the report); namespaces attached [EH-SE-R]
+  - id: WAF-ANALYTICS-SE-11
+    title: "WAF-ANALYTICS-SE-11. Event Hubs authorizes with Microsoft Entra ID and SAS is disabled where managed identities are available"
+    severity: high
+    query: "$.domains.integration.eventHubNamespaces[*]"
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-SE-11. Assign Data Owner, Data Sender and Data Receiver at the narrowest scope and disable SAS authentication. Namespaces are attached."
+    manual: true
+  # minimumTlsVersion is not collected (proposed projection in the report); namespaces attached [EH-SE-R]
+  - id: WAF-ANALYTICS-SE-12
+    title: "WAF-ANALYTICS-SE-12. Event Hubs enforces TLS 1.2 or higher"
+    severity: medium
+    query: "$.domains.integration.eventHubNamespaces[*]"
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-SE-12. Set the minimum TLS version to 1.2 at the namespace scope."
+    manual: true
+  # the encryption setting is not collected (proposed projection in the report); namespaces attached [EH-SE-R]
+  - id: WAF-ANALYTICS-SE-13
+    title: "WAF-ANALYTICS-SE-13. Event Hubs data is encrypted with customer-managed keys (and double encryption) where required"
+    severity: medium
+    query: "$.domains.integration.eventHubNamespaces[*]"
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-SE-13. Use an RSA 2048 key in Key Vault with a 90-day rotation; double encryption can only be set at creation."
+    manual: true
+  # diagnostic-settings coverage for the namespace type [EH-SE-R]
+  - id: WAF-ANALYTICS-SE-14
+    title: "WAF-ANALYTICS-SE-14. Event Hubs namespaces send diagnostic logs to Log Analytics"
+    severity: medium
+    query: "$.opsPosture.diagnosticCoverage[?(@.type == 'microsoft.eventhub/namespaces' && @.coveragePct < 100)]"
+    assert: { type: countEquals, value: 0, gate: "$.opsPosture.diagnosticCoverage[?(@.type == 'microsoft.eventhub/namespaces')]" }
+    remediation: "WAF-ANALYTICS-SE-14. Some namespaces have no diagnostic setting. Send logs to Log Analytics and add the Sentinel connector for threat detection."
+    manual: false
+  # secret handling, not ARM [EH-SE-R]
+  - id: WAF-ANALYTICS-SE-15
+    title: "WAF-ANALYTICS-SE-15. Event Hubs connection strings are in Key Vault, with short-lived SAS where SAS is unavoidable"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-SE-15. Keep connection strings in Key Vault with 90-day expiry and use one-hour, entity-level, send-or-listen tokens."
+    manual: true
+  # private link scopes attached; workspace network access flags are not collected (proposed projection in the report) [LA-SE-R]
+  - id: WAF-ANALYTICS-SE-16
+    title: "WAF-ANALYTICS-SE-16. Log Analytics access is limited to private networks and Microsoft Entra authentication"
+    severity: medium
+    query: "$.monitor.privateLinkScopes[*]"
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-SE-16. Use Private Link scopes to limit ingestion and query paths and prefer Entra ID to API keys. Private link scopes are attached."
+    manual: true
+  # the access control mode is not collected (proposed projection in the report); workspaces attached [LA-SE-R]
+  - id: WAF-ANALYTICS-SE-17
+    title: "WAF-ANALYTICS-SE-17. Workspace access control mode is resource or workspace permissions, with table-level RBAC where needed"
+    severity: medium
+    query: "$.management.logAnalyticsWorkspaces[*]"
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-SE-17. Set the access control mode to use resource or workspace permissions and apply table-level RBAC for cross-resource readers."
+    manual: true
+  # cluster linkage is not collected [LA-SE-R]
+  - id: WAF-ANALYTICS-SE-18
+    title: "WAF-ANALYTICS-SE-18. Customer-managed keys protect workspace data where required"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-SE-18. CMK needs a dedicated cluster with enough volume; keep keys in Key Vault."
+    manual: true
+  # diagnostic-settings coverage for the workspace type [LA-SE-R]
+  - id: WAF-ANALYTICS-SE-19
+    title: "WAF-ANALYTICS-SE-19. Log Analytics workspaces send their own diagnostic and query-audit logs to a destination"
+    severity: medium
+    query: "$.opsPosture.diagnosticCoverage[?(@.type == 'microsoft.operationalinsights/workspaces' && @.coveragePct < 100)]"
+    assert: { type: countEquals, value: 0, gate: "$.opsPosture.diagnosticCoverage[?(@.type == 'microsoft.operationalinsights/workspaces')]" }
+    remediation: "WAF-ANALYTICS-SE-19. Some workspaces send no diagnostic data of their own, so query audit logs are not kept. Enable query auditing and review it in Workspace Insights."
+    manual: false
+  # data-export rules and transformations are not collected [LA-SE-R]
+  - id: WAF-ANALYTICS-SE-20
+    title: "WAF-ANALYTICS-SE-20. Audit and compliance data is exported to immutable storage and sensitive log data is filtered or obfuscated"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-SE-20. Use data export to storage with an immutability policy; filter or transform sensitive columns before ingestion."
+    manual: true
+  # tenant and workspace settings are not ARM properties [FAB-SE]
+  - id: WAF-ANALYTICS-SE-21
+    title: "WAF-ANALYTICS-SE-21. Fabric workspaces are isolated, with RBAC, workspace identity and managed identities"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-SE-21. Isolate environments in separate workspaces, grant roles by workspace, and use workspace identity for data access."
+    manual: true
+  # tenant settings are not ARM properties; capacities attached [FAB-SE]
+  - id: WAF-ANALYTICS-SE-22
+    title: "WAF-ANALYTICS-SE-22. Fabric uses private links, managed private endpoints, Conditional Access and customer-managed keys where required"
+    severity: medium
+    query: "$.domains.analytics.fabricCapacities[*]"
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-SE-22. Apply Fabric inbound and outbound network controls and Conditional Access, and customer-managed keys for regulated data."
+    manual: true
+
+  # ---- Cost optimization -------------------------------------------------------------------
+  # cluster settings are data plane; workspaces attached [DBX-CO-R]
+  - id: WAF-ANALYTICS-CO-01
+    title: "WAF-ANALYTICS-CO-01. Databricks compute is cost-governed: job clusters, autoscaling, auto-termination and compute policies"
+    severity: medium
+    query: "$.domains.analytics.databricksWorkspaces[*]"
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-CO-01. Use job clusters for scheduled work, set autotermination (30 to 60 minutes for development) and enforce limits with compute policies."
+    manual: true
+  # data-plane configuration [DBX-CO-R]
+  - id: WAF-ANALYTICS-CO-02
+    title: "WAF-ANALYTICS-CO-02. Serverless SQL warehouses and jobs, pools and Photon are used where they cut cost"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-CO-02. Use serverless for intermittent work and Photon to shorten compute time."
+    manual: true
+  # reservations attached [DBX-CO-R]
+  - id: WAF-ANALYTICS-CO-03
+    title: "WAF-ANALYTICS-CO-03. Databricks reserved capacity covers predictable usage"
+    severity: low
+    query: "$.finops.reservations[*]"
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-CO-03. Buy Databricks Commit Units for stable workloads. Reservations are attached."
+    manual: true
+  # workspace sku (trial only; Standard versus Premium is judgement) [DBX-CO-R]
+  - id: WAF-ANALYTICS-CO-04
+    title: "WAF-ANALYTICS-CO-04. No Databricks workspace runs on the trial SKU"
+    severity: low
+    query: "$.domains.analytics.databricksWorkspaces[?(@.sku == 'trial')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.analytics.databricksWorkspaces[*]" }
+    remediation: "WAF-ANALYTICS-CO-04. The workspaces listed use the trial SKU. Move them to a paid tier: Standard for development and test, and Premium only where its security and compliance features are needed."
+    manual: false
+  # budgets attached (estate-wide) [DBX-CO-R]
+  - id: WAF-ANALYTICS-CO-05
+    title: "WAF-ANALYTICS-CO-05. Databricks cost is monitored with system tables, Cost Management budgets and tags"
+    severity: low
+    query: "$.governance.budgets[*]"
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-CO-05. Create budgets and alerts and tag workspaces and compute. Budgets are attached."
+    manual: true
+  # data-plane maintenance [DBX-CO-R]
+  - id: WAF-ANALYTICS-CO-06
+    title: "WAF-ANALYTICS-CO-06. Delta tables are optimised and vacuumed on a schedule and data formats are efficient"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-CO-06. Schedule OPTIMIZE and VACUUM and use columnar formats."
+    manual: true
+  # tier and retention are not collected (proposed projection in the report); namespaces attached [EH-CO-R]
+  - id: WAF-ANALYTICS-CO-07
+    title: "WAF-ANALYTICS-CO-07. Event Hubs tier, throughput, auto-inflate maximum and retention suit the workload"
+    severity: medium
+    query: "$.domains.integration.eventHubNamespaces[*]"
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-CO-07. Match tier to the economics, cap auto-inflate, align retention to access patterns and use Capture with Cool or Archive storage. Namespaces are attached."
+    manual: true
+  # budgets attached (estate-wide) [EH-CO-R]
+  - id: WAF-ANALYTICS-CO-08
+    title: "WAF-ANALYTICS-CO-08. Event Hubs has budgets, policy limits and shutdown automation for non-production"
+    severity: low
+    query: "$.governance.budgets[*]"
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-CO-08. Use budgets with 50, 75, 90 and 100 percent thresholds, Azure Policy caps and scheduled shutdown of development namespaces."
+    manual: true
+  # pricing tier is not collected (proposed projection in the report); workspaces attached [LA-CO-R]
+  - id: WAF-ANALYTICS-CO-09
+    title: "WAF-ANALYTICS-CO-09. Log Analytics uses a commitment tier or dedicated cluster where volume justifies it"
+    severity: medium
+    query: "$.management.logAnalyticsWorkspaces[*]"
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-CO-09. Review the pricing tier against daily ingestion and link workspaces in a region to a shared cluster for pooled pricing. Workspaces are attached."
+    manual: true
+  # table plans are not collected [LA-CO-R]
+  - id: WAF-ANALYTICS-CO-10
+    title: "WAF-ANALYTICS-CO-10. Retention, archive, Basic logs and summary rules keep long-term log cost down"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-CO-10. Archive for long retention, use Basic logs for debug and audit tables, and summarise high-volume streams."
+    manual: true
+  # the daily cap is not collected (proposed projection in the report); workspaces attached [LA-CO-R]
+  - id: WAF-ANALYTICS-CO-11
+    title: "WAF-ANALYTICS-CO-11. A daily cap and high-ingestion alerts guard against runaway cost"
+    severity: low
+    query: "$.management.logAnalyticsWorkspaces[*]"
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-CO-11. Set a daily cap above normal volume, alert at 90 percent, and alert on unusually high collection."
+    manual: true
+  # Sentinel workspaces attached [LA-CO-R]
+  - id: WAF-ANALYTICS-CO-12
+    title: "WAF-ANALYTICS-CO-12. Microsoft Sentinel logs are in a separate workspace"
+    severity: low
+    query: "$.domains.security.sentinelWorkspaces[*]"
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-CO-12. Keep Sentinel-priced security logs apart from operational logs. Sentinel workspaces are attached."
+    manual: true
+  # utilisation is not collected; capacities attached [FAB-CO]
+  - id: WAF-ANALYTICS-CO-13
+    title: "WAF-ANALYTICS-CO-13. Fabric capacity is sized to the workload, shared deliberately, paused or scaled by automation and monitored for utilisation"
+    severity: medium
+    query: "$.domains.analytics.fabricCapacities[*]"
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-CO-13. Right-size capacities, share where patterns complement, automate pause and scale, and govern retention. Capacities are attached."
+    manual: true
+
+  # ---- Operational excellence --------------------------------------------------------------
+  # deployment method is not an ARM property [DBX-OE-R]
+  - id: WAF-ANALYTICS-OE-01
+    title: "WAF-ANALYTICS-OE-01. Databricks workspaces are deployed with ARM or Bicep, with environment parameters"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-OE-01. Define workspace, network and Unity Catalog settings as code."
+    manual: true
+  # practice, not ARM [DBX-OE-R]
+  - id: WAF-ANALYTICS-OE-02
+    title: "WAF-ANALYTICS-OE-02. Notebooks and code are in Git with CI/CD"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-OE-02. Use Databricks Repos or Git folders with Azure DevOps or GitHub Actions pipelines."
+    manual: true
+  # type not yet in the diagnostic-settings sweep (proposed in the report) [DBX-OE-R]
+  - id: WAF-ANALYTICS-OE-03
+    title: "WAF-ANALYTICS-OE-03. Databricks diagnostic settings send platform, audit and cluster logs to Log Analytics with alert rules"
+    severity: high
+    query: "$.opsPosture.diagnosticCoverage[?(@.type == 'microsoft.databricks/workspaces')]"
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-OE-03. Turn on all log categories to a workspace and alert on cluster failures, job errors and capacity limits. Databricks is not in the diagnostic-settings sweep yet; coverage rows are attached once it is."
+    manual: true
+  # data-plane practice [DBX-OE-R]
+  - id: WAF-ANALYTICS-OE-04
+    title: "WAF-ANALYTICS-OE-04. Pipelines enforce data-quality expectations, and workspace artefacts are backed up"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-OE-04. Use declarative pipelines with expectations and schedule backups of notebooks, jobs and settings."
+    manual: true
+  # workspace configuration [DBX-OE-R]
+  - id: WAF-ANALYTICS-OE-05
+    title: "WAF-ANALYTICS-OE-05. Cluster lifecycle policies and environment-specific RBAC separate development, test and production"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-OE-05. Enforce termination and limits with policies and separate access by environment."
+    manual: true
+  # deployment method is not an ARM property [EH-OE-R]
+  - id: WAF-ANALYTICS-OE-06
+    title: "WAF-ANALYTICS-OE-06. Event Hubs namespaces and hubs are deployed as code through staged pipelines"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-OE-06. Define namespaces, hubs, partitions and consumer groups in Bicep or Terraform and deploy infrastructure, consumers and schemas in separate stages."
+    manual: true
+  # workbooks attached (estate-wide) [EH-OE-R]
+  - id: WAF-ANALYTICS-OE-07
+    title: "WAF-ANALYTICS-OE-07. Event Hubs has dashboards, correlation-aware logging and runbook workbooks"
+    severity: medium
+    query: "$.monitor.workbooks[*]"
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-OE-07. Build Azure Monitor dashboards for partition health and lag, with workbooks as operational runbooks. Workbooks are attached."
+    manual: true
+  # policy and test practice, not collected per namespace [EH-OE-R]
+  - id: WAF-ANALYTICS-OE-08
+    title: "WAF-ANALYTICS-OE-08. Azure Policy enforces Event Hubs diagnostics, retention and network restrictions, and load tests precede release"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-OE-08. Assign the built-in policies, and run Azure Load Testing before production promotion."
+    manual: true
+  # workspaces attached for counting [LA-OE-R]
+  - id: WAF-ANALYTICS-OE-09
+    title: "WAF-ANALYTICS-OE-09. Log Analytics workspace architecture is deliberate: number, placement and production versus non-production separation"
+    severity: medium
+    query: "$.management.logAnalyticsWorkspaces[*]"
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-OE-09. Design the workspace topology and keep production apart from non-production. Workspaces are attached."
+    manual: true
+  # deployment method is not an ARM property [LA-OE-R]
+  - id: WAF-ANALYTICS-OE-10
+    title: "WAF-ANALYTICS-OE-10. Log Analytics workspaces are deployed as code, through pipelines, with Azure Policy enforcing standards"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-OE-10. Define workspaces and saved queries in templates, deploy through CI/CD and enforce standards with policy."
+    manual: true
+  # scheduled query rules attached (estate-wide) [LA-OE-R]
+  - id: WAF-ANALYTICS-OE-11
+    title: "WAF-ANALYTICS-OE-11. Workspace health is monitored with Workspace Insights and operation-table alerts"
+    severity: medium
+    query: "$.monitor.scheduledQueryRules[*]"
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-OE-11. Alert on operational problems using the operation table and recommended health alerts. Scheduled query rules are attached."
+    manual: true
+  # resource locks attached (estate-wide) [LA-OE-R]
+  - id: WAF-ANALYTICS-OE-12
+    title: "WAF-ANALYTICS-OE-12. Workspaces are treated as static and protected from deletion"
+    severity: medium
+    query: "$.governance.resourceLocks[*]"
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-OE-12. Leave workspaces out of replace-on-deploy packaging and apply delete locks. Resource locks are attached."
+    manual: true
+  # tenant and workspace practice, not ARM [FAB-OE]
+  - id: WAF-ANALYTICS-OE-13
+    title: "WAF-ANALYTICS-OE-13. Fabric uses deployment pipelines, Git, automated testing, progressive rollout and workspace monitoring"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-OE-13. Promote through deployment pipelines with version control and monitor workspaces."
+    manual: true
+
+  # ---- Performance efficiency --------------------------------------------------------------
+  # cluster settings are data plane; workspaces attached [DBX-PE-R]
+  - id: WAF-ANALYTICS-PE-01
+    title: "WAF-ANALYTICS-PE-01. Databricks cluster types and autoscale bounds match the workload"
+    severity: low
+    query: "$.domains.analytics.databricksWorkspaces[*]"
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-PE-01. Use memory-optimised or GPU VMs for large-memory or deep-learning work, and tune autoscaling."
+    manual: true
+  # data-plane configuration [DBX-PE-R]
+  - id: WAF-ANALYTICS-PE-02
+    title: "WAF-ANALYTICS-PE-02. Delta tables are optimised, clustered and cached; Photon and adaptive query execution are on"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-PE-02. Run OPTIMIZE with Z-order, enable Delta cache, Photon and AQE, and partition by common filters."
+    manual: true
+  # data-plane configuration [DBX-PE-R]
+  - id: WAF-ANALYTICS-PE-03
+    title: "WAF-ANALYTICS-PE-03. Serverless SQL warehouses serve BI and interactive queries, and streaming triggers match latency needs"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-PE-03. Use serverless warehouses for unplanned querying and set structured-streaming triggers from latency targets."
+    manual: true
+  # tier is not collected (proposed projection in the report); namespaces attached [EH-PE-R]
+  - id: WAF-ANALYTICS-PE-04
+    title: "WAF-ANALYTICS-PE-04. Event Hubs tier and partition count suit throughput and retention needs"
+    severity: medium
+    query: "$.domains.integration.eventHubNamespaces[*]"
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-PE-04. Standard supports up to 32 partitions, Premium adds networking and CMK, Dedicated scales to 1,024 partitions; test the choice. Namespaces are attached."
+    manual: true
+  # scale settings are not collected; namespaces attached [EH-PE-R]
+  - id: WAF-ANALYTICS-PE-05
+    title: "WAF-ANALYTICS-PE-05. Auto-inflate or capacity-unit scaling is configured and tested"
+    severity: medium
+    query: "$.domains.integration.eventHubNamespaces[*]"
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-PE-05. Set auto-inflate with a maximum and an 80 to 90 percent trigger on Standard and Premium, and enable scaling on Dedicated clusters. Namespaces are attached."
+    manual: true
+  # client code, not ARM [EH-PE-R]
+  - id: WAF-ANALYTICS-PE-06
+    title: "WAF-ANALYTICS-PE-06. Producers and consumers are tuned: batching, prefetch, connection reuse and consumer groups"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-PE-06. Tune SDK batch size, prefetch and retry policy and give each downstream service its own consumer group."
+    manual: true
+  # collection endpoints attached; workspace location is not collected [LA-PE-R]
+  - id: WAF-ANALYTICS-PE-07
+    title: "WAF-ANALYTICS-PE-07. The Log Analytics workspace and its collection endpoints are deployed close to the workload"
+    severity: low
+    query: "$.monitor.dataCollectionEndpoints[*]"
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-PE-07. Place workspaces and data collection endpoints near the data sources. Collection endpoints are attached."
+    manual: true
+  # data collection rules attached [LA-PE-R]
+  - id: WAF-ANALYTICS-PE-08
+    title: "WAF-ANALYTICS-PE-08. Slow queries are found with query auditing and data collection rules are split for performance and events"
+    severity: low
+    query: "$.monitor.dataCollectionRules[*]"
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-PE-08. Optimise slow queries and keep separate rules for performance counters and events. Data collection rules are attached."
+    manual: true
+  # quota values are not collected [LA-PE-R]
+  - id: WAF-ANALYTICS-PE-09
+    title: "WAF-ANALYTICS-PE-09. Service limits are reviewed and extra workspaces used where limits bind"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-PE-09. Review Azure Monitor limits and use more than one workspace when needed."
+    manual: true
+  # utilisation is not collected; capacities attached [FAB-PE]
+  - id: WAF-ANALYTICS-PE-10
+    title: "WAF-ANALYTICS-PE-10. Fabric capacities are right-sized, heavy workloads isolated, and queries, pipelines and refresh optimised"
+    severity: medium
+    query: "$.domains.analytics.fabricCapacities[*]"
+    assert: { type: manual }
+    remediation: "WAF-ANALYTICS-PE-10. Isolate heavy workloads, optimise queries and pipelines, use caching, incremental refresh and bursting. Capacities are attached."
+    manual: true

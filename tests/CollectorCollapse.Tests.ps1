@@ -217,6 +217,25 @@ Describe 'ConvertFrom-ScoutInventory — KQL semantics are preserved' {
         $row.coveragePct | Should -Be 50
     }
 
+    It 'marks resource groups deployed from a template with the deployment''s templateHash (AB#9300)' {
+        $containers = @(
+            [pscustomobject]@{ id = '/subscriptions/sub1/resourceGroups/rg-iac'; type = 'microsoft.resources/subscriptions/resourcegroups'; name = 'rg-iac'; subscriptionId = 'sub1' }
+            [pscustomobject]@{ id = '/subscriptions/sub1/resourceGroups/rg-portal'; type = 'microsoft.resources/subscriptions/resourcegroups'; name = 'rg-portal'; subscriptionId = 'sub1' }
+        )
+        $deployments = @(
+            [pscustomobject]@{ id = '/subscriptions/sub1/resourceGroups/rg-iac/providers/Microsoft.Resources/deployments/d1'; type = 'microsoft.resources/deployments'; name = 'd1'; resourceGroup = 'RG-IAC'; subscriptionId = 'sub1'
+                properties = [pscustomobject]@{ templateHash = 'old'; timestamp = '2026-01-01T00:00:00Z' } }
+            [pscustomobject]@{ id = '/subscriptions/sub1/resourceGroups/rg-iac/providers/Microsoft.Resources/deployments/d2'; type = 'microsoft.resources/deployments'; name = 'd2'; resourceGroup = 'rg-iac'; subscriptionId = 'sub1'
+                properties = [pscustomobject]@{ templateHash = 'new'; timestamp = '2026-06-01T00:00:00Z' } }
+        )
+        $shaped = ConvertFrom-ScoutInventory -Resources $deployments -ResourceContainers $containers
+        $iac = $shaped['deployments'] | Where-Object name -EQ 'rg-iac'
+        $portal = $shaped['deployments'] | Where-Object name -EQ 'rg-portal'
+        $iac.properties.templateHash | Should -Be 'new'
+        $iac.properties.templateDeploymentCount | Should -Be 2
+        $portal.PSObject.Properties['properties'] | Should -BeNullOrEmpty -Because 'a resource group with no template deployment carries no templateHash'
+    }
+
     It 'reports diagnostic coverage as not measured when no sweep ran, instead of 0%' {
         $shaped = ConvertFrom-ScoutInventory -Resources @(
             New-Resource -Type 'microsoft.storage/storageaccounts' -Name 'a' -Properties @{ diagnosticSettings = [pscustomobject]@{ x = 1 } }

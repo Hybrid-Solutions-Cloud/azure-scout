@@ -1,0 +1,477 @@
+# appmod.readiness.yaml -- App and Data Modernization Readiness Tool (AB#9300)
+#
+# Scores the readiness factors behind the App and Data Modernization Readiness Tool
+# (learn.microsoft.com/assessments/50adbf76-60fb-47ce-a787-f9d5f52f6a48), drawn from the Azure App
+# Modernization Guidance (learn.microsoft.com/azure/app-modernization-guidance). Microsoft does not
+# publish the tool's question text, so every item is Scout's reading of that guidance, labelled
+# Scout-derived. The APPMOD-* ids are Scout's, not Microsoft's.
+#
+# Written ONLY against docs/frameworks/app-modernization-question-set.md. Most items are
+# organisational questions no Azure API can answer. They are manual rules: Scout lists them in
+# assessment-questions.csv and a person answers them (docs/assessment/questionnaire-answers.md).
+# The automated rules are gated on the data they read being present, so an estate without it reports
+# them Not assessed rather than passed or failed:
+#   - repository and pipeline items gate on $.devops.available (needs -IncludeDevOps)
+#   - the policy item gates on $.governance.policyAssignmentsAvailable
+#   - the diagnostics item gates on $.opsPosture.diagnosticCoverageMeasured
+#   - the infrastructure-as-code item gates on deployment records existing
+#   - SQL items gate on SQL servers existing, web app items on App Service web apps existing
+# Resources Scout found are attached to manual questions as evidence of the Azure part of the estate
+# only; on-premises applications and other source hosts are invisible to Scout.
+area: "App and data modernization"
+framework: APPMOD
+frameworkversion: "Microsoft Azure App Modernization Guidance on Microsoft Learn (assess, plan, launch, foundation, expand, innovate, optimize), assessment questions unpublished, docs/frameworks/app-modernization-question-set.md, retrieved 2026-11-25 (62 items, Scout-derived)"
+weight: 1.0
+verifiedAgainst: "docs/frameworks/app-modernization-question-set.md (Scout enumeration of learn.microsoft.com/azure/app-modernization-guidance/*), verified 2026-11-25"
+rules:
+  # ---- Organizational maturity and skills (APPMOD-ORG) ----
+  - id: APPMOD-ORG-01
+    title: "APPMOD-ORG-01. Developer teams' maturity in tools, culture and processes has been assessed, for example with the Developer Velocity Index, and the gaps are tracked"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "APPMOD-ORG-01. Confirm the capabilities and readiness of the development teams have been measured and compared with a benchmark, and that the gaps feed the modernization plan."
+    manual: true
+  - id: APPMOD-ORG-02
+    title: "APPMOD-ORG-02. The organization knows which application modernization maturity category it is in (traditional foundations, emerging pioneers, agile innovators, digital champions) and plans work to match"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "APPMOD-ORG-02. Confirm the current category is agreed, and the modernization activities planned are the ones that category is ready to execute."
+    manual: true
+  - id: APPMOD-ORG-03
+    title: "APPMOD-ORG-03. Stakeholders are aligned on modernization goals, scope and the order of work"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "APPMOD-ORG-03. Confirm business and technical stakeholders agree the goals and communicate regularly, because modernization is also a cultural change, not only a technology upgrade."
+    manual: true
+  - id: APPMOD-ORG-04
+    title: "APPMOD-ORG-04. Team skills are assessed regularly, and training closes the gaps in modern tools and platforms"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "APPMOD-ORG-04. Confirm skills gaps are identified and teams get training and upskilling to be proficient in the platforms they will modernize onto."
+    manual: true
+
+  # ---- Estate inventory and assessment (APPMOD-INV) ----
+  - id: APPMOD-INV-01
+    title: "APPMOD-INV-01. A complete inventory lists every application, database and infrastructure component, on-premises and in the cloud, with its purpose, usage and dependencies"
+    severity: high
+    query: "$.compute.virtualMachines[*]"
+    assert: { type: manual }
+    remediation: "APPMOD-INV-01. Confirm the inventory covers the whole digital estate and is the basis for scoping modernization. Virtual machines Scout found are attached as evidence of the Azure part only."
+    manual: true
+  - id: APPMOD-INV-02
+    title: "APPMOD-INV-02. Dependencies among applications, databases and services are mapped"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "APPMOD-INV-02. Confirm dependencies are mapped with a tool (for example Azure Migrate application and code assessment, or Azure Arc-enabled data services reporting), not from memory."
+    manual: true
+  - id: APPMOD-INV-03
+    title: "APPMOD-INV-03. Application binaries and source code are assessed for cloud readiness, for example with Azure Migrate application and code assessment (AppCAT)"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "APPMOD-INV-03. Confirm code-level cloud readiness reports exist for the applications in scope and are used to find modernization candidates."
+    manual: true
+  - id: APPMOD-INV-04
+    title: "APPMOD-INV-04. Data is classified by sensitivity, compliance requirements and business value"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "APPMOD-INV-04. Confirm a classification exists for the data being modernized and drives how it is migrated and protected."
+    manual: true
+  - id: APPMOD-INV-05
+    title: "APPMOD-INV-05. A security baseline exists, such as the Defender for Cloud secure score, with prioritized recommendations"
+    severity: high
+    query: "$.security.defenderSecureScores[*]"
+    assert: { type: manual }
+    remediation: "APPMOD-INV-05. Confirm the secure score (Microsoft cloud security benchmark) has been reviewed and its recommendations are prioritized. Secure scores are attached as evidence when the run collected them (-IncludePolicyCompliance)."
+    manual: true
+  - id: APPMOD-INV-06
+    title: "APPMOD-INV-06. Regulatory and compliance requirements are identified before modernization plans are made, with evidence of compliance activities kept"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "APPMOD-INV-06. Confirm applicable requirements are listed, a compliance tool is used to compare posture against them, and evidence is kept for audits."
+    manual: true
+  - id: APPMOD-INV-07
+    title: "APPMOD-INV-07. A cost baseline exists (total cost of ownership) for current environments, with savings opportunities identified"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "APPMOD-INV-07. Confirm the current on-premises and cloud cost is known and the opportunities from right-sizing and cloud-native services are listed."
+    manual: true
+
+  # ---- Infrastructure and network readiness (APPMOD-INF) ----
+  - id: APPMOD-INF-01
+    title: "APPMOD-INF-01. Current hardware and software can support modern applications and AI workloads"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "APPMOD-INF-01. Confirm the platforms in use can host modern applications and AI workloads, or that the replacement is planned."
+    manual: true
+  - id: APPMOD-INF-02
+    title: "APPMOD-INF-02. Infrastructure can scale to meet future demand"
+    severity: medium
+    query: "$.monitor.autoscaleSettings[*]"
+    assert: { type: manual }
+    remediation: "APPMOD-INF-02. Confirm scaling is designed in, not manual. Autoscale settings are attached as evidence."
+    manual: true
+  - id: APPMOD-INF-03
+    title: "APPMOD-INF-03. Network bandwidth and latency can handle the traffic and latency needs of modern applications"
+    severity: medium
+    query: "$.networking.expressRouteCircuits[*]"
+    assert: { type: manual }
+    remediation: "APPMOD-INF-03. Confirm the links between sites and Azure meet the needs of the applications being moved. ExpressRoute circuits are attached as evidence."
+    manual: true
+  - id: APPMOD-INF-04
+    title: "APPMOD-INF-04. Redundant network paths provide high availability"
+    severity: medium
+    query: "$.networking.vpnConnections[*]"
+    assert: { type: manual }
+    remediation: "APPMOD-INF-04. Confirm there is more than one path between your sites and Azure. VPN connections are attached as evidence."
+    manual: true
+  - id: APPMOD-INF-05
+    title: "APPMOD-INF-05. Network security measures protect applications and data"
+    severity: high
+    query: "$.networking.firewallPolicies[*]"
+    assert: { type: manual }
+    remediation: "APPMOD-INF-05. Confirm network security controls (firewalling, segmentation, web application firewall) are in place for the applications being modernized. Azure Firewall policies are attached as evidence."
+    manual: true
+  - id: APPMOD-INF-06
+    title: "APPMOD-INF-06. The organization is ready for a hybrid cloud setup, with some resources on-premises and some in the cloud"
+    severity: medium
+    query: "$.domains.hybrid.arcServers[*]"
+    assert: { type: manual }
+    remediation: "APPMOD-INF-06. Confirm the integration points (identity, networking, management) for a hybrid setup are designed. Azure Arc-enabled servers are attached as evidence."
+    manual: true
+  - id: APPMOD-INF-07
+    title: "APPMOD-INF-07. Infrastructure is deployed through automation (infrastructure as code) instead of manual changes"
+    severity: medium
+    query: "$.management.deployments[?(@.properties.templateHash)]"
+    assert: { type: exists, gate: "$.management.deployments[*]" }
+    remediation: "APPMOD-INF-07. Deploy infrastructure from Bicep, Terraform or ARM templates held in source control. The query looks for deployment records that carry a template hash; one is enough to pass, so it shows IaC is used somewhere, not everywhere."
+    manual: false
+  - id: APPMOD-INF-08
+    title: "APPMOD-INF-08. Monitoring tools track the performance, availability and security of infrastructure, and no resource type is left without diagnostics"
+    severity: medium
+    query: "$.opsPosture.diagnosticCoverage[?(@.coveragePct == 0)]"
+    assert: { type: countEquals, value: 0, gate: "$.opsPosture.diagnosticCoverageMeasured" }
+    remediation: "APPMOD-INF-08. Turn on diagnostic settings for the resource types listed, which have no resource sending diagnostics. Needs the diagnostic coverage measurement; without it this is Not assessed."
+    manual: false
+
+  # ---- Process readiness (APPMOD-PRC) ----
+  - id: APPMOD-PRC-01
+    title: "APPMOD-PRC-01. Source code is held in version-controlled repositories"
+    severity: medium
+    query: "$.devops.repositories[*]"
+    assert: { type: exists, gate: "$.devops.available" }
+    remediation: "APPMOD-PRC-01. Put all application source in a repository (a monorepo or one per project). The query looks for Azure DevOps Git repositories, so it needs Azure DevOps access (-IncludeDevOps); other source hosts such as GitHub are not visible to Scout."
+    manual: false
+  - id: APPMOD-PRC-02
+    title: "APPMOD-PRC-02. A branching strategy, frequent commits and pull requests are standard practice"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "APPMOD-PRC-02. Confirm there is an agreed branching strategy and changes are proposed through pull requests."
+    manual: true
+  - id: APPMOD-PRC-03
+    title: "APPMOD-PRC-03. A code review process checks quality, consistency and adherence to best practice"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "APPMOD-PRC-03. Confirm reviews are required for changes and feedback is constructive and collaborative."
+    manual: true
+  - id: APPMOD-PRC-04
+    title: "APPMOD-PRC-04. Semantic versioning and a change log are maintained"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "APPMOD-PRC-04. Confirm releases are versioned semantically and a change log is kept."
+    manual: true
+  - id: APPMOD-PRC-05
+    title: "APPMOD-PRC-05. Builds and deployments run through automated CI/CD pipelines"
+    severity: medium
+    query: "$.devops.pipelines[*]"
+    assert: { type: exists, gate: "$.devops.available" }
+    remediation: "APPMOD-PRC-05. Automate builds and releases with GitHub Actions, Jenkins or Azure DevOps. The query looks for Azure DevOps pipelines, so it needs Azure DevOps access (-IncludeDevOps); pipelines on other tools are not visible to Scout."
+    manual: false
+  - id: APPMOD-PRC-06
+    title: "APPMOD-PRC-06. Automated unit, integration and end-to-end tests run in the pipeline"
+    severity: medium
+    query: "$.devops.playwrightTesting[*]"
+    assert: { type: manual }
+    remediation: "APPMOD-PRC-06. Confirm tests run automatically on each change so problems are found early. Azure Playwright Testing resources are attached as evidence."
+    manual: true
+  - id: APPMOD-PRC-07
+    title: "APPMOD-PRC-07. Monitoring and alerting track application performance and health after deployment"
+    severity: medium
+    query: "$.monitor.appInsights[*]"
+    assert: { type: manual }
+    remediation: "APPMOD-PRC-07. Confirm deployed applications are monitored and alerted on. Application Insights components are attached as evidence."
+    manual: true
+
+  # ---- Data readiness (APPMOD-DAT) ----
+  - id: APPMOD-DAT-01
+    title: "APPMOD-DAT-01. Data sources, types, volumes and storage locations are known"
+    severity: medium
+    query: "$.domains.databases.sqlDatabases[*]"
+    assert: { type: manual }
+    remediation: "APPMOD-DAT-01. Confirm the data estate is inventoried by source, type, volume and location. SQL databases Scout found are attached as evidence of the Azure part only."
+    manual: true
+  - id: APPMOD-DAT-02
+    title: "APPMOD-DAT-02. Data quality (accuracy, completeness, consistency) is evaluated and managed with cleansing and validation"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "APPMOD-DAT-02. Confirm data quality is measured and managed, together with compliance with privacy rules."
+    manual: true
+  - id: APPMOD-DAT-03
+    title: "APPMOD-DAT-03. Data governance policies cover data security, privacy and compliance"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "APPMOD-DAT-03. Confirm policies and procedures for data management exist and are applied."
+    manual: true
+  - id: APPMOD-DAT-04
+    title: "APPMOD-DAT-04. A modern data infrastructure with data lakes and warehouses makes structured and unstructured data available at scale"
+    severity: medium
+    query: "$.domains.analytics.synapseWorkspaces[*]"
+    assert: { type: manual }
+    remediation: "APPMOD-DAT-04. Confirm lakes and warehouses exist or are planned for large volumes of data. Synapse workspaces are attached as evidence."
+    manual: true
+  - id: APPMOD-DAT-05
+    title: "APPMOD-DAT-05. Real-time data processing is available where applications and models need timely data"
+    severity: low
+    query: "$.domains.analytics.streamAnalyticsJobs[*]"
+    assert: { type: manual }
+    remediation: "APPMOD-DAT-05. Confirm streaming or event-driven processing exists where decisions need current data. Stream Analytics jobs are attached as evidence."
+    manual: true
+  - id: APPMOD-DAT-06
+    title: "APPMOD-DAT-06. Data can be integrated across systems and platforms"
+    severity: medium
+    query: "$.domains.analytics.dataFactories[*]"
+    assert: { type: manual }
+    remediation: "APPMOD-DAT-06. Confirm there is a way to move and combine data across sources. Data Factory instances are attached as evidence."
+    manual: true
+  - id: APPMOD-DAT-07
+    title: "APPMOD-DAT-07. The data migration plan includes cleansing, transformation and validation, and a target on modern platforms such as Azure SQL Database or PostgreSQL flexible server"
+    severity: medium
+    query: "$.domains.databases.sqlServers[*]"
+    assert: { type: manual }
+    remediation: "APPMOD-DAT-07. Confirm each data store has a target platform and a plan to cleanse, transform and validate data on the way. SQL servers are attached as evidence."
+    manual: true
+  - id: APPMOD-DAT-08
+    title: "APPMOD-DAT-08. SQL servers do not allow public network access"
+    severity: high
+    query: "$.domains.databases.sqlServers[?(@.publicNetworkAccess == 'Enabled')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.databases.sqlServers[*]" }
+    remediation: "APPMOD-DAT-08. Set public network access to Disabled on the SQL servers listed and use private endpoints."
+    manual: false
+  - id: APPMOD-DAT-09
+    title: "APPMOD-DAT-09. Microsoft Defender for SQL is enabled at the Standard tier"
+    severity: high
+    query: "$.domains.databases.sqlDefenderPricing[?(@.pricingTier == 'Standard')]"
+    assert: { type: exists, gate: "$.domains.databases.sqlServers[*]" }
+    remediation: "APPMOD-DAT-09. Enable the Defender for Cloud SQL servers plan at Standard tier. This is a per-subscription setting, so it is a coarse signal that the plan is on somewhere."
+    manual: false
+
+  # ---- Application estate readiness (APPMOD-APP) ----
+  - id: APPMOD-APP-01
+    title: "APPMOD-APP-01. Application health is measured (response times, error rates, resource use), and under-performing applications are identified"
+    severity: medium
+    query: "$.monitor.appInsights[*]"
+    assert: { type: manual }
+    remediation: "APPMOD-APP-01. Confirm key health metrics are tracked per application and used to rank which applications to fix or modernize first. Application Insights components are attached as evidence."
+    manual: true
+  - id: APPMOD-APP-02
+    title: "APPMOD-APP-02. Each application's technology stack (languages, frameworks, databases) is reviewed for compatibility with modern platforms"
+    severity: medium
+    query: "$.compute.virtualMachines[*]"
+    assert: { type: manual }
+    remediation: "APPMOD-APP-02. Confirm outdated or unsupported technologies are identified, because they set the effort needed to move. Virtual machines are attached as evidence of the Azure part only."
+    manual: true
+  - id: APPMOD-APP-03
+    title: "APPMOD-APP-03. Licensing agreements and support contracts for existing applications are reviewed"
+    severity: medium
+    query: "$.compute.virtualMachines[*]"
+    assert: { type: manual }
+    remediation: "APPMOD-APP-03. Confirm the licences needed to keep running the software, and access to support, are known before moving it. Virtual machines are attached so licence types can be reviewed."
+    manual: true
+  - id: APPMOD-APP-04
+    title: "APPMOD-APP-04. Applications are prioritized for modernization by business value and effort, for example with an Eisenhower matrix, with stakeholder pain points gathered"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "APPMOD-APP-04. Confirm business-critical applications on outdated technology are ranked highest and stakeholders have said which applications would deliver most value if modernized."
+    manual: true
+  - id: APPMOD-APP-05
+    title: "APPMOD-APP-05. A modernization strategy (rehost, replatform, refactor, rebuild, retire or retain) is chosen and evaluated for each application"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "APPMOD-APP-05. Confirm each application in scope has a chosen strategy with the reasons recorded, using the 6 Rs."
+    manual: true
+  - id: APPMOD-APP-06
+    title: "APPMOD-APP-06. Applications move to PaaS or container platforms (App Service, Functions, AKS) where that improves scalability and management"
+    severity: medium
+    query: "$.domains.web.webApps[*]"
+    assert: { type: manual }
+    remediation: "APPMOD-APP-06. Confirm there is a plan to replatform suitable applications onto PaaS. App Service web apps are attached as evidence."
+    manual: true
+  - id: APPMOD-APP-07
+    title: "APPMOD-APP-07. App Service web apps accept HTTPS only"
+    severity: medium
+    query: "$.domains.web.webApps[?(@.httpsOnly == false)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.web.webApps[*]" }
+    remediation: "APPMOD-APP-07. Turn on HTTPS Only for the web apps listed."
+    manual: false
+  - id: APPMOD-APP-08
+    title: "APPMOD-APP-08. App Service web apps require TLS 1.2 or later"
+    severity: medium
+    query: "$.domains.web.webApps[?(@.minTls == '1.0' || @.minTls == '1.1')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.web.webApps[*]" }
+    remediation: "APPMOD-APP-08. Raise the minimum TLS version to 1.2 on the web apps listed."
+    manual: false
+
+  # ---- AI readiness (APPMOD-AIR) ----
+  - id: APPMOD-AIR-01
+    title: "APPMOD-AIR-01. A responsible AI approach (transparency, accountability, fairness) is defined, with governance and oversight to mitigate bias"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "APPMOD-AIR-01. Confirm the organization has a responsible AI framework and oversight mechanisms before it ships AI features."
+    manual: true
+  - id: APPMOD-AIR-02
+    title: "APPMOD-AIR-02. The choice between model training and retrieval-augmented generation (RAG) is made for each use case"
+    severity: medium
+    query: "$.domains.ai.searchServices[*]"
+    assert: { type: manual }
+    remediation: "APPMOD-AIR-02. Confirm the approach is chosen on the use case, with RAG considered for real-time and sensitive-data scenarios. Azure AI Search services are attached as evidence."
+    manual: true
+  - id: APPMOD-AIR-03
+    title: "APPMOD-AIR-03. Machine learning operations (MLOps) streamline deployment, monitoring and management of AI models"
+    severity: medium
+    query: "$.domains.ai.mlWorkspaces[*]"
+    assert: { type: manual }
+    remediation: "APPMOD-AIR-03. Confirm model delivery uses DevOps practices with data science and operations working together. Machine learning workspaces are attached as evidence."
+    manual: true
+  - id: APPMOD-AIR-04
+    title: "APPMOD-AIR-04. Model versioning tracks changes and supports reproducibility and compliance"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "APPMOD-AIR-04. Confirm models are versioned so changes can be traced and results reproduced."
+    manual: true
+  - id: APPMOD-AIR-05
+    title: "APPMOD-AIR-05. Data used with AI is protected with encryption, access controls and continuous monitoring"
+    severity: high
+    query: "$.domains.ai.cognitiveAccounts[*]"
+    assert: { type: manual }
+    remediation: "APPMOD-AIR-05. Confirm sensitive data in AI workflows is encrypted, access is controlled and use is monitored. Azure AI services accounts are attached as evidence."
+    manual: true
+  - id: APPMOD-AIR-06
+    title: "APPMOD-AIR-06. An API management solution exposes data and services securely to approved applications"
+    severity: low
+    query: "$.domains.integration.apiManagement[*]"
+    assert: { type: exists, gate: "$.domains.web.webApps[*]" }
+    remediation: "APPMOD-AIR-06. Put Azure API Management (or an equivalent gateway) in front of data and services that applications and AI consume. The query looks for API Management instances, so it applies only where the estate has App Service web apps."
+    manual: false
+  - id: APPMOD-AIR-07
+    title: "APPMOD-AIR-07. Data drift is monitored, and models are retrained and updated when it occurs"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "APPMOD-AIR-07. Confirm monitoring detects change in the data feeding models and models are retrained as needed."
+    manual: true
+
+  # ---- Operational readiness (APPMOD-OPS) ----
+  - id: APPMOD-OPS-01
+    title: "APPMOD-OPS-01. Continuous integration, continuous delivery, automation and continuous monitoring are adopted as DevOps practice"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "APPMOD-OPS-01. Confirm teams integrate changes frequently, automate packaging, testing and deployment, and use monitoring feedback to resolve issues quickly."
+    manual: true
+  - id: APPMOD-OPS-02
+    title: "APPMOD-OPS-02. An incident response plan documents how to handle outages, and a post-incident review leads to preventive action"
+    severity: high
+    query: "$.monitor.actionGroups[*]"
+    assert: { type: manual }
+    remediation: "APPMOD-OPS-02. Confirm a plan exists and reviews find root causes. Action groups are attached as evidence of alert routing."
+    manual: true
+  - id: APPMOD-OPS-03
+    title: "APPMOD-OPS-03. A change control board (or an equivalent process) reviews significant changes and keeps detailed change logs"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "APPMOD-OPS-03. Confirm significant changes during modernization are reviewed and recorded with the reasons and impact."
+    manual: true
+  - id: APPMOD-OPS-04
+    title: "APPMOD-OPS-04. Teams can experiment, learn from failure and make small continuous improvements, using Agile methods such as Scrum or Kanban"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "APPMOD-OPS-04. Confirm teams are free to test ideas, work in short cycles and respond to feedback, with cross-functional collaboration."
+    manual: true
+  - id: APPMOD-OPS-05
+    title: "APPMOD-OPS-05. Reliability and availability practices are applied to applications and services"
+    severity: high
+    query: "$.management.recoveryVaults[*]"
+    assert: { type: manual }
+    remediation: "APPMOD-OPS-05. Confirm applications are designed and operated for reliability and availability. Recovery vaults are attached as evidence of backup coverage."
+    manual: true
+  - id: APPMOD-OPS-06
+    title: "APPMOD-OPS-06. Security is built into development and deployment (DevSecOps)"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "APPMOD-OPS-06. Confirm security checks are part of the build and release process rather than a later review."
+    manual: true
+  - id: APPMOD-OPS-07
+    title: "APPMOD-OPS-07. Compliance with industry regulations and standards is ensured"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "APPMOD-OPS-07. Confirm compliance is checked as part of delivery and evidence is kept."
+    manual: true
+
+  # ---- Identity, security and compliance (APPMOD-SEC) ----
+  - id: APPMOD-SEC-01
+    title: "APPMOD-SEC-01. Applications use single sign-on with Microsoft Entra ID as the single source of identity"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "APPMOD-SEC-01. Confirm applications authenticate through Entra ID using SAML, OAuth or OpenID Connect, with SaaS applications from the gallery where possible."
+    manual: true
+  - id: APPMOD-SEC-02
+    title: "APPMOD-SEC-02. Multifactor authentication and Conditional Access protect all single sign-on integrations"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "APPMOD-SEC-02. Confirm MFA and Conditional Access policies (location, device state, risk) apply, and Identity Protection detects identity-based threats. Scout does not read Entra Conditional Access."
+    manual: true
+  - id: APPMOD-SEC-03
+    title: "APPMOD-SEC-03. Hybrid identity gives users one set of credentials across on-premises and cloud resources"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "APPMOD-SEC-03. Confirm identities are synchronized between on-premises directories and Entra ID."
+    manual: true
+  - id: APPMOD-SEC-04
+    title: "APPMOD-SEC-04. Azure Policy assignments enforce organizational standards"
+    severity: high
+    query: "$.governance.policyAssignments[*]"
+    assert: { type: countGreaterThan, value: 0, gate: "$.governance.policyAssignmentsAvailable" }
+    remediation: "APPMOD-SEC-04. Assign Azure Policy to enforce standards and assess compliance at scale. The query lists the policy assignments Scout found."
+    manual: false
+  - id: APPMOD-SEC-05
+    title: "APPMOD-SEC-05. Entra audit logs and reports are monitored to detect anomalies"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "APPMOD-SEC-05. Confirm audit logs are reviewed and anomalies in access are detected."
+    manual: true

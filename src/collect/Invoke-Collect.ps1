@@ -2770,6 +2770,11 @@ resources
             # and WAF-OE-01 have nothing true to score (AB#9300).
             $rawArgs.IncludeArmChildResources = $true
             $rawArgs.ArmChildDataset = @('ResourceDiagnosticSettings')
+            # ARM deployment history lives in Resource Graph's deploymentresources table, not the
+            # resources table. It is what tells the infrastructure-as-code rules (WAF-OE-02/08,
+            # CAF-PA, DevOps, Platform Engineering) whether a resource group was deployed from a
+            # template; without it those rules could never pass (AB#9300).
+            $rawArgs.ResourceGraphDiscoveryTable = @('deploymentresources')
             if ($IncludeAzureLocalArm) {
                 $rawArgs.ArmChildDataset = @('ResourceDiagnosticSettings', 'AzureLocalVirtualMachineInstances')
                 $rawArgs.TenantWideDefinitionsOnly = $false

@@ -1,0 +1,922 @@
+# waf.dataservices.yaml -- Data Services technology review (AB#9300)
+#
+# Scores Scout's reading of the Well-Architected service guides for the data services, the scope of Microsoft's
+# "Data Services" Well-Architected review (learn.microsoft.com/assessments/azure-architecture-review-data). Microsoft does
+# not publish the review's question text, so every item is Scout's reading of the guides' design checklists and
+# configuration-recommendation tables, enumerated in docs/frameworks/waf-data-services-checklist.md. Every rule cites
+# an id from that file; the id is WAF-DATA-<service>-NN.
+#
+# WHY framework: WAF-DATA and not WAF: the review spans eight services and all five pillars, so no single pillar area
+# fits; it is a Scout-internal axis like WAF-AI.
+#
+# Azure HorizonDB has no collected dataset yet, so its items are all manual. SQL servers and Event Hubs namespaces are
+# collected without an id, so private-endpoint pairing for them is manual. Several settings (high availability, backup
+# redundancy, Entra-only authentication, shared-key access) are not projected yet and are manual rather than guessed.
+# Every automated rule is gated on its resources (or their diagnostic-coverage rows) existing.
+area: "Data services"
+framework: WAF-DATA
+frameworkversion: "Azure Well-Architected Framework service guides for Azure SQL Database, SQL Managed Instance, Cosmos DB, Database for PostgreSQL, Database for MySQL, Azure Managed Redis, Azure HorizonDB and Blob Storage (Microsoft's review question text unpublished), docs/frameworks/waf-data-services-checklist.md, retrieved 2026-11-25 (100 items)"
+weight: 1.0
+verifiedAgainst: "docs/frameworks/waf-data-services-checklist.md (Scout enumeration of learn.microsoft.com/azure/well-architected/service-guides/*), verified 2026-11-25"
+rules:
+
+  # ---- SQL, Reliability --------------------------------------------------------------------
+  # database zoneRedundant (master excluded) [SQL-RE-R]
+  - id: WAF-DATA-SQL-01
+    title: "WAF-DATA-SQL-01. SQL databases are zone redundant"
+    severity: high
+    query: "$.domains.databases.sqlDatabases[?(@.zoneRedundant != true && @.name != 'master')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.databases.sqlDatabases[*]" }
+    remediation: "WAF-DATA-SQL-01. The databases listed are not zone redundant. Configure zone redundancy so compute and storage span availability zones and survive a zone outage without losing committed data."
+    manual: false
+  # failover groups and replica links are child resources, not collected (proposed in the report); servers attached [SQL-RE-C, SQL-RE-R]
+  - id: WAF-DATA-SQL-02
+    title: "WAF-DATA-SQL-02. Active geo-replication or failover groups protect against a regional failure"
+    severity: high
+    query: "$.domains.databases.sqlServers[*]"
+    assert: { type: manual }
+    remediation: "WAF-DATA-SQL-02. Use failover groups for automatic failover with unchanged listener endpoints, or active geo-replication for a readable secondary. The failover group and replica links are not collected."
+    manual: true
+  # backup policy is a child resource, not collected [SQL-RE-R]
+  - id: WAF-DATA-SQL-03
+    title: "WAF-DATA-SQL-03. Backups cover point-in-time restore, geo-restore and long-term retention, with immutability"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-DATA-SQL-03. Configure PITR, geo-restore and LTR and enable backup immutability aligned to retention needs."
+    manual: true
+  # the tier of each database is attached; which are critical is judgement [SQL-RE-C]
+  - id: WAF-DATA-SQL-04
+    title: "WAF-DATA-SQL-04. Critical databases use the Business Critical or Hyperscale tier"
+    severity: medium
+    query: "$.domains.databases.sqlDatabases[*]"
+    assert: { type: manual }
+    remediation: "WAF-DATA-SQL-04. Business Critical gives the highest reliability guarantees; Hyperscale suits strict RTO and RPO. Databases are attached with their tier."
+    manual: true
+  # client code, not ARM [SQL-RE-C, SQL-RE-R]
+  - id: WAF-DATA-SQL-05
+    title: "WAF-DATA-SQL-05. Applications retry with backoff and isolate connection pools by function"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-DATA-SQL-05. Implement retry with backoff and give each functional area its own connection pool (Application Name)."
+    manual: true
+
+  # ---- SQL, Security -----------------------------------------------------------------------
+  # server publicNetworkAccess [SQL-SE-R]
+  - id: WAF-DATA-SQL-06
+    title: "WAF-DATA-SQL-06. SQL servers have public network access disabled"
+    severity: high
+    query: "$.domains.databases.sqlServers[?(@.publicNetworkAccess != 'Disabled')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.databases.sqlServers[*]" }
+    remediation: "WAF-DATA-SQL-06. The servers listed allow public network access. Disable it and use Private Link."
+    manual: false
+  # server id is not projected (proposed in the report); private endpoints attached [SQL-SE-R]
+  - id: WAF-DATA-SQL-07
+    title: "WAF-DATA-SQL-07. Each SQL server has a private endpoint"
+    severity: medium
+    query: "$.networking.privateEndpoints[?(@.targetProvider == 'microsoft.sql' && @.targetType == 'servers')]"
+    assert: { type: manual }
+    remediation: "WAF-DATA-SQL-07. Use Azure Private Link so clients connect privately. Private endpoints that target SQL servers are attached; the server id is not collected, so the pairing cannot be computed yet."
+    manual: true
+  # minimalTlsVersion is not collected (proposed in the report); servers attached [SQL-SE-R]
+  - id: WAF-DATA-SQL-08
+    title: "WAF-DATA-SQL-08. The minimum TLS version is 1.2 or higher"
+    severity: medium
+    query: "$.domains.databases.sqlServers[*]"
+    assert: { type: manual }
+    remediation: "WAF-DATA-SQL-08. Set the minimal TLS version to 1.2, and 1.3 where practical."
+    manual: true
+  # the Entra-only flag is not collected (proposed in the report); servers attached [SQL-SE-R]
+  - id: WAF-DATA-SQL-09
+    title: "WAF-DATA-SQL-09. SQL authentication is disabled and Microsoft Entra-only authentication is on"
+    severity: medium
+    query: "$.domains.databases.sqlServers[*]"
+    assert: { type: manual }
+    remediation: "WAF-DATA-SQL-09. Allow Microsoft Entra authentication only and configure a user-assigned managed identity as the server identity."
+    manual: true
+  # subscription Defender for SQL tier [SQL-SE-R]
+  - id: WAF-DATA-SQL-10
+    title: "WAF-DATA-SQL-10. Microsoft Defender for SQL is on Standard"
+    severity: medium
+    query: "$.domains.databases.sqlDefenderPricing[?(@.pricingTier != 'Standard')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.databases.sqlServers[*]" }
+    remediation: "WAF-DATA-SQL-10. The subscriptions listed do not have Defender for SQL on the Standard tier. Enable vulnerability assessment and advanced threat protection. (Checked per subscription.)"
+    manual: false
+  # auditing and column encryption are not collected [SQL-SE-R]
+  - id: WAF-DATA-SQL-11
+    title: "WAF-DATA-SQL-11. Auditing is on with immutable storage, and sensitive data is protected with Always Encrypted or ledger"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-DATA-SQL-11. Track events with SQL auditing to immutable storage and use Always Encrypted (with enclaves) or ledger tables for sensitive data."
+    manual: true
+
+  # ---- SQL, Cost optimization --------------------------------------------------------------
+  # elastic pools attached; databases are in the reliability item [SQL-CO-R]
+  - id: WAF-DATA-SQL-12
+    title: "WAF-DATA-SQL-12. The service tier, serverless and elastic pools match each database's use"
+    severity: low
+    query: "$.domains.databases.sqlElasticPools[*]"
+    assert: { type: manual }
+    remediation: "WAF-DATA-SQL-12. Choose the tier from capacity planning; consider Serverless for intermittent use, Hyperscale for flexibility and elastic pools for varied demand. Databases and pools are attached."
+    manual: true
+  # reservations attached [SQL-CO-R]
+  - id: WAF-DATA-SQL-13
+    title: "WAF-DATA-SQL-13. Reserved capacity and Azure Hybrid Benefit are used for steady workloads"
+    severity: low
+    query: "$.finops.reservations[*]"
+    assert: { type: manual }
+    remediation: "WAF-DATA-SQL-13. Reserve compute for one or three years and apply Azure Hybrid Benefit with Software Assurance. Reservations are attached."
+    manual: true
+  # metrics, not ARM [SQL-CO-R]
+  - id: WAF-DATA-SQL-14
+    title: "WAF-DATA-SQL-14. Backup storage consumption is tuned and queries are optimised to cut resource use"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-DATA-SQL-14. Review backup storage per type and use Query Performance Insight and recommendations to right-size."
+    manual: true
+
+  # ---- SQL, Operational excellence ---------------------------------------------------------
+  # diagnostic-settings coverage for the database type [SQL-OE-R]
+  - id: WAF-DATA-SQL-15
+    title: "WAF-DATA-SQL-15. SQL databases send diagnostics to Log Analytics"
+    severity: low
+    query: "$.opsPosture.diagnosticCoverage[?(@.type == 'microsoft.sql/servers/databases' && @.coveragePct < 100)]"
+    assert: { type: countEquals, value: 0, gate: "$.opsPosture.diagnosticCoverage[?(@.type == 'microsoft.sql/servers/databases')]" }
+    remediation: "WAF-DATA-SQL-15. Some databases have no diagnostic setting. Monitor with diagnostic settings and database watcher to detect reliability incidents."
+    manual: false
+  # practice, not ARM [SQL-OE-R]
+  - id: WAF-DATA-SQL-16
+    title: "WAF-DATA-SQL-16. SQL projects deploy through CI/CD and servers are backed up with Azure Backup"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-DATA-SQL-16. Use IaC and CI/CD for schema and infrastructure; use Azure Backup for centralised, cross-region restore."
+    manual: true
+
+  # ---- SQL, Performance efficiency ---------------------------------------------------------
+  # database-scoped configuration, not collected [SQL-PE-R]
+  - id: WAF-DATA-SQL-17
+    title: "WAF-DATA-SQL-17. Query Store, automatic tuning and performance recommendations are enabled and acted on"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-DATA-SQL-17. Use automatic tuning, Query Store and Query Performance Insight; resolve blocking and deadlocks."
+    manual: true
+  # databases attached [SQL-PE-C, SQL-PE-R]
+  - id: WAF-DATA-SQL-18
+    title: "WAF-DATA-SQL-18. The vCore model, read scale-out and connection pooling are used"
+    severity: low
+    query: "$.domains.databases.sqlDatabases[*]"
+    assert: { type: manual }
+    remediation: "WAF-DATA-SQL-18. Prefer vCore, offload reads to replicas and pool connections. Databases are attached."
+    manual: true
+
+  # ---- MI, Reliability ---------------------------------------------------------------------
+  # zoneRedundant and failover groups are not collected (proposed in the report); instances attached [MI-RE]
+  - id: WAF-DATA-MI-01
+    title: "WAF-DATA-MI-01. Managed instances are zone redundant and covered by failover groups"
+    severity: high
+    query: "$.domains.databases.sqlManagedInstances[*]"
+    assert: { type: manual }
+    remediation: "WAF-DATA-MI-01. Enable zone redundancy and a failover group for regional resilience. Instances are attached; the zone and group settings are not collected."
+    manual: true
+  # backup settings are not collected [MI-RE]
+  - id: WAF-DATA-MI-02
+    title: "WAF-DATA-MI-02. Backups meet RPO, including geo-redundancy where policy allows"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-DATA-MI-02. Configure backup redundancy and retention for the recovery objectives; review the policy that discourages GRS backups."
+    manual: true
+
+  # ---- MI, Security ------------------------------------------------------------------------
+  # publicDataEndpointEnabled [MI-SE]
+  - id: WAF-DATA-MI-03
+    title: "WAF-DATA-MI-03. The public data endpoint is off"
+    severity: high
+    query: "$.domains.databases.sqlManagedInstances[?(@.publicDataEndpointEnabled == true)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.databases.sqlManagedInstances[*]" }
+    remediation: "WAF-DATA-MI-03. The instances listed expose a public data endpoint. Turn it off; use virtual-network-local connectivity or private endpoints, and NSG rules if public access is unavoidable."
+    manual: false
+  # private endpoints attached [MI-SE]
+  - id: WAF-DATA-MI-04
+    title: "WAF-DATA-MI-04. Cross-network access uses private endpoints"
+    severity: medium
+    query: "$.networking.privateEndpoints[?(@.targetProvider == 'microsoft.sql' && @.targetType == 'managedinstances')]"
+    assert: { type: manual }
+    remediation: "WAF-DATA-MI-04. Use private endpoints for cross-virtual-network clients. Private endpoints that target managed instances are attached; the instance-to-endpoint pairing is not computed."
+    manual: true
+  # the setting is not collected (proposed in the report); instances attached [MI-SE]
+  - id: WAF-DATA-MI-05
+    title: "WAF-DATA-MI-05. Microsoft Entra-only authentication and a user-assigned identity are used"
+    severity: medium
+    query: "$.domains.databases.sqlManagedInstances[*]"
+    assert: { type: manual }
+    remediation: "WAF-DATA-MI-05. Turn off SQL authentication and use a user-assigned managed identity as the instance identity."
+    manual: true
+  # the protector configuration is not collected; Key Vaults attached [MI-SE]
+  - id: WAF-DATA-MI-06
+    title: "WAF-DATA-MI-06. TDE uses customer-managed keys in a Key Vault with soft delete and purge protection"
+    severity: medium
+    query: "$.domains.security.keyVaults[*]"
+    assert: { type: manual }
+    remediation: "WAF-DATA-MI-06. Keep the protector in a dedicated vault with soft delete, purge protection and automated rotation."
+    manual: true
+  # agent, NSG and subnet detail are not collected per instance [MI-SE]
+  - id: WAF-DATA-MI-07
+    title: "WAF-DATA-MI-07. Defender for SQL is on, SQL Agent is off if unused, and the subnet NSG denies by default"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-DATA-MI-07. Enable vulnerability assessment and threat protection, disable unused SQL Agent and apply deny-by-default NSG rules with unique route tables per subnet."
+    manual: true
+  # type not yet in the diagnostic-settings sweep (proposed in the report) [MI-SE]
+  - id: WAF-DATA-MI-08
+    title: "WAF-DATA-MI-08. Server and operator auditing go to blob storage and Azure Monitor logs"
+    severity: medium
+    query: "$.opsPosture.diagnosticCoverage[?(@.type == 'microsoft.sql/managedinstances')]"
+    assert: { type: manual }
+    remediation: "WAF-DATA-MI-08. Configure dual-destination auditing with immutable storage and a separate operator audit. Managed instances are not in the diagnostic-settings sweep yet."
+    manual: true
+
+  # ---- MI, Cost optimization ---------------------------------------------------------------
+  # instances attached with sku and vCores [MI-CO]
+  - id: WAF-DATA-MI-09
+    title: "WAF-DATA-MI-09. vCores and service tier are right-sized, with reservations and Azure Hybrid Benefit"
+    severity: low
+    query: "$.domains.databases.sqlManagedInstances[*]"
+    assert: { type: manual }
+    remediation: "WAF-DATA-MI-09. Match vCores to measured need and use reserved capacity and Azure Hybrid Benefit. Instances are attached."
+    manual: true
+
+  # ---- MI, Operational excellence ----------------------------------------------------------
+  # maintenance configurations attached (estate-wide) [MI-OE]
+  - id: WAF-DATA-MI-10
+    title: "WAF-DATA-MI-10. Maintenance windows and the update policy are chosen deliberately"
+    severity: low
+    query: "$.management.maintenanceConfigurations[*]"
+    assert: { type: manual }
+    remediation: "WAF-DATA-MI-10. Set a maintenance window and the update policy that balances immediate patching against Managed Instance link compatibility. Maintenance configurations are attached."
+    manual: true
+
+  # ---- MI, Performance efficiency ----------------------------------------------------------
+  # instances attached [MI-PE]
+  - id: WAF-DATA-MI-11
+    title: "WAF-DATA-MI-11. The service tier, vCores and storage are validated against the workload"
+    severity: low
+    query: "$.domains.databases.sqlManagedInstances[*]"
+    assert: { type: manual }
+    remediation: "WAF-DATA-MI-11. Review service tier, read scale-out and tuning features against load tests. Instances are attached."
+    manual: true
+
+  # ---- COS, Reliability --------------------------------------------------------------------
+  # the per-region isZoneRedundant flag is not collected (proposed in the report); accounts attached [COS-RE-R]
+  - id: WAF-DATA-COS-01
+    title: "WAF-DATA-COS-01. Cosmos DB accounts are distributed across availability zones"
+    severity: high
+    query: "$.domains.databases.cosmosDbAccounts[*]"
+    assert: { type: manual }
+    remediation: "WAF-DATA-COS-01. Enable availability-zone support on each region so replicas are spread across zones. Accounts are attached; the per-region zone flag is not collected."
+    manual: true
+  # the locations list is not collected (proposed in the report); accounts attached [COS-RE-R]
+  - id: WAF-DATA-COS-02
+    title: "WAF-DATA-COS-02. Accounts span at least two regions"
+    severity: high
+    query: "$.domains.databases.cosmosDbAccounts[*]"
+    assert: { type: manual }
+    remediation: "WAF-DATA-COS-02. Add a second region so the account survives a regional outage. Accounts are attached; the region list is not collected."
+    manual: true
+  # enableAutomaticFailover is not collected (proposed in the report); accounts attached [COS-RE-R]
+  - id: WAF-DATA-COS-03
+    title: "WAF-DATA-COS-03. Service-managed failover is enabled"
+    severity: medium
+    query: "$.domains.databases.cosmosDbAccounts[*]"
+    assert: { type: manual }
+    remediation: "WAF-DATA-COS-03. Enable service-managed failover for single-write accounts with multiple read regions."
+    manual: true
+  # the backup policy type is not collected (proposed in the report); accounts attached [COS-RE-C]
+  - id: WAF-DATA-COS-04
+    title: "WAF-DATA-COS-04. Continuous backup with point-in-time restore is configured"
+    severity: medium
+    query: "$.domains.databases.cosmosDbAccounts[*]"
+    assert: { type: manual }
+    remediation: "WAF-DATA-COS-04. Configure continuous backup and pick the retention that matches the business need."
+    manual: true
+
+  # ---- COS, Security -----------------------------------------------------------------------
+  # account publicNetworkAccess [COS-SE-R]
+  - id: WAF-DATA-COS-05
+    title: "WAF-DATA-COS-05. Cosmos DB accounts have public network access disabled"
+    severity: high
+    query: "$.domains.databases.cosmosDbAccounts[?(@.publicNetworkAccess != 'Disabled' && @.publicNetworkAccess != 'SecuredByPerimeter')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.databases.cosmosDbAccounts[*]" }
+    remediation: "WAF-DATA-COS-05. The accounts listed accept public network access. Disable the public endpoint and use private endpoints."
+    manual: false
+  # account to private endpoint join [COS-SE-R]
+  - id: WAF-DATA-COS-06
+    title: "WAF-DATA-COS-06. Each Cosmos DB account has a private endpoint"
+    severity: medium
+    join:
+      left: "$.domains.databases.cosmosDbAccounts[*]"
+      leftKey: "id"
+      right: "$.networking.privateEndpoints[*]"
+      rightKey: "targetResourceId"
+      mode: "leftOnly"
+      leftLabel: "Cosmos DB account"
+      rightLabel: "private endpoint"
+    assert: { type: countEquals, value: 0, gate: "$.domains.databases.cosmosDbAccounts[*]" }
+    remediation: "WAF-DATA-COS-06. The accounts listed have no private endpoint. Add one to reduce the attack surface."
+    manual: false
+  # disableLocalAuth [COS-SE-R]
+  - id: WAF-DATA-COS-07
+    title: "WAF-DATA-COS-07. Key-based (local) authentication is disabled in favour of Microsoft Entra ID"
+    severity: high
+    query: "$.domains.databases.cosmosDbAccounts[?(@.disableLocalAuth != true)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.databases.cosmosDbAccounts[*]" }
+    remediation: "WAF-DATA-COS-07. The accounts listed still accept keys. Move clients to Entra ID and set disableLocalAuth to true (check last-used key metadata first)."
+    manual: false
+  # network rules are not collected (proposed in the report); accounts attached [COS-SE-R]
+  - id: WAF-DATA-COS-08
+    title: "WAF-DATA-COS-08. Access is limited by RBAC at control and data plane, with virtual network rules and NSGs"
+    severity: medium
+    query: "$.domains.databases.cosmosDbAccounts[*]"
+    assert: { type: manual }
+    remediation: "WAF-DATA-COS-08. Use role-based access with least privilege, plus service endpoints or firewall rules where public access remains."
+    manual: true
+  # Defender plan row attached; the plan name was not re-verified [COS-SE-R]
+  - id: WAF-DATA-COS-09
+    title: "WAF-DATA-COS-09. Microsoft Defender for Azure Cosmos DB is enabled"
+    severity: medium
+    query: "$.security.defenderPlans[?(@.name == 'CosmosDbs')]"
+    assert: { type: manual }
+    remediation: "WAF-DATA-COS-09. Enable Defender for Azure Cosmos DB for anomaly alerts. The Defender plan row is attached when present."
+    manual: true
+  # diagnostic-settings coverage for the account type [COS-SE-C, COS-SE-R]
+  - id: WAF-DATA-COS-10
+    title: "WAF-DATA-COS-10. Cosmos DB accounts send control-plane logs and metrics to Log Analytics"
+    severity: medium
+    query: "$.opsPosture.diagnosticCoverage[?(@.type == 'microsoft.documentdb/databaseaccounts' && @.coveragePct < 100)]"
+    assert: { type: countEquals, value: 0, gate: "$.opsPosture.diagnosticCoverage[?(@.type == 'microsoft.documentdb/databaseaccounts')]" }
+    remediation: "WAF-DATA-COS-10. Some Cosmos DB accounts have no diagnostic setting. Audit control-plane logs to detect unauthorised changes and monitor data-plane metrics."
+    manual: false
+  # the key setting is not collected (proposed in the report); accounts attached [COS-SE-C]
+  - id: WAF-DATA-COS-11
+    title: "WAF-DATA-COS-11. Data is encrypted with customer-managed keys where regulation requires"
+    severity: medium
+    query: "$.domains.databases.cosmosDbAccounts[*]"
+    assert: { type: manual }
+    remediation: "WAF-DATA-COS-11. Use customer-managed keys when you must control the key lifecycle; service-managed keys otherwise encrypt data at rest."
+    manual: true
+
+  # ---- COS, Cost optimization --------------------------------------------------------------
+  # container and database settings are data plane [COS-CO-R]
+  - id: WAF-DATA-COS-12
+    title: "WAF-DATA-COS-12. The throughput model, indexing policy, TTL and consistency level are chosen for cost"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-DATA-COS-12. Pick serverless, autoscale or manual throughput; index only needed paths; expire data with TTL; use the weakest consistency that works."
+    manual: true
+  # metric alert rules attached (estate-wide) [COS-CO-R]
+  - id: WAF-DATA-COS-13
+    title: "WAF-DATA-COS-13. Normalised RU consumption is monitored and alerted"
+    severity: low
+    query: "$.monitor.metricAlertRules[*]"
+    assert: { type: manual }
+    remediation: "WAF-DATA-COS-13. Alert on normalised RU consumption and review queries that burn throughput. Metric alert rules are attached."
+    manual: true
+
+  # ---- COS, Operational excellence ---------------------------------------------------------
+  # practice, not ARM [COS-OE-R]
+  - id: WAF-DATA-COS-14
+    title: "WAF-DATA-COS-14. Accounts and containers deploy as code and SDKs are current"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-DATA-COS-14. Deploy with Bicep, ARM or Terraform, keep the SDK at the recommended version and capture client diagnostics."
+    manual: true
+  # metric alert rules attached (estate-wide) [COS-OE-R]
+  - id: WAF-DATA-COS-15
+    title: "WAF-DATA-COS-15. Throttling, host resources and key metrics have alerts"
+    severity: low
+    query: "$.monitor.metricAlertRules[*]"
+    assert: { type: manual }
+    remediation: "WAF-DATA-COS-15. Alert on throttling and client-host resources and track RU use by partition. Metric alert rules are attached."
+    manual: true
+
+  # ---- COS, Performance efficiency ---------------------------------------------------------
+  # data-plane design [COS-PE-R]
+  - id: WAF-DATA-COS-16
+    title: "WAF-DATA-COS-16. Data model, partition key and queries are designed for performance"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-DATA-COS-16. Keep items small, choose an even partition key, avoid cross-partition queries, use Direct mode and bulk, and consider composite indexes."
+    manual: true
+  # accounts attached with location [COS-PE-R]
+  - id: WAF-DATA-COS-17
+    title: "WAF-DATA-COS-17. Regions are close to users and multi-region writes are used where clients are distributed"
+    severity: low
+    query: "$.domains.databases.cosmosDbAccounts[*]"
+    assert: { type: manual }
+    remediation: "WAF-DATA-COS-17. Deploy near users and use multi-region writes if the workload can handle conflict resolution. Accounts are attached."
+    manual: true
+
+  # ---- PG, Reliability ---------------------------------------------------------------------
+  # the HA mode is not collected (proposed in the report); servers attached [PG-RE-R]
+  - id: WAF-DATA-PG-01
+    title: "WAF-DATA-PG-01. PostgreSQL servers use zone-redundant high availability"
+    severity: high
+    query: "$.domains.databases.postgreSqlFlexibleServers[*]"
+    assert: { type: manual }
+    remediation: "WAF-DATA-PG-01. Configure high availability so a standby is provisioned and managed. Servers are attached; the HA mode is not collected."
+    manual: true
+  # the backup redundancy is not collected (proposed in the report); servers attached [PG-RE-R]
+  - id: WAF-DATA-PG-02
+    title: "WAF-DATA-PG-02. Geo-redundant backups or a cross-region replica protect against regional failure, and restores are tested"
+    severity: medium
+    query: "$.domains.databases.postgreSqlFlexibleServers[*]"
+    assert: { type: manual }
+    remediation: "WAF-DATA-PG-02. Enable geo-redundant backup in supported regions or use Azure Backup, and test restores regularly."
+    manual: true
+
+  # ---- PG, Security ------------------------------------------------------------------------
+  # network.publicNetworkAccess [PG-SE-R]
+  - id: WAF-DATA-PG-03
+    title: "WAF-DATA-PG-03. PostgreSQL servers have public network access disabled"
+    severity: high
+    query: "$.domains.databases.postgreSqlFlexibleServers[?(@.publicNetworkAccess != 'Disabled')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.databases.postgreSqlFlexibleServers[*]" }
+    remediation: "WAF-DATA-PG-03. The servers listed allow public network access. Use private access (virtual network) or Private Link and disable the public endpoint."
+    manual: false
+  # the authentication configuration is not collected (proposed in the report); servers attached [PG-SE-R]
+  - id: WAF-DATA-PG-04
+    title: "WAF-DATA-PG-04. Microsoft Entra authentication is used, with managed identities"
+    severity: medium
+    query: "$.domains.databases.postgreSqlFlexibleServers[*]"
+    assert: { type: manual }
+    remediation: "WAF-DATA-PG-04. Use Entra ID for authentication and authorisation."
+    manual: true
+  # private endpoints attached; pairing is not computed because private-access servers need none [PG-SE-R]
+  - id: WAF-DATA-PG-05
+    title: "WAF-DATA-PG-05. Private Link endpoints and network security groups or firewall rules segment access"
+    severity: medium
+    query: "$.networking.privateEndpoints[?(@.targetProvider == 'microsoft.dbforpostgresql')]"
+    assert: { type: manual }
+    remediation: "WAF-DATA-PG-05. Use Private Link and NSG or firewall rules to limit paths. Private endpoints that target PostgreSQL servers are attached."
+    manual: true
+  # server parameters and features are not collected [PG-SE-R]
+  - id: WAF-DATA-PG-06
+    title: "WAF-DATA-PG-06. Defender for Cloud, row-level security, customer-managed keys, confidential compute and connection throttling are used where needed"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-DATA-PG-06. Enable Defender for Cloud assessments, row-level security, CMK, confidential compute for the strictest needs, and connection_throttling."
+    manual: true
+
+  # ---- PG, Cost optimization ---------------------------------------------------------------
+  # servers attached with sku [PG-CO-R]
+  - id: WAF-DATA-PG-07
+    title: "WAF-DATA-PG-07. The tier and SKU fit the load, with scaling and start or stop for non-production"
+    severity: low
+    query: "$.domains.databases.postgreSqlFlexibleServers[*]"
+    assert: { type: manual }
+    remediation: "WAF-DATA-PG-07. Right-size compute and storage (storage cannot shrink) and stop idle non-production servers. Servers are attached."
+    manual: true
+
+  # ---- PG, Operational excellence ----------------------------------------------------------
+  # diagnostic-settings coverage for the server type [PG-OE-R]
+  - id: WAF-DATA-PG-08
+    title: "WAF-DATA-PG-08. PostgreSQL servers send diagnostics to Log Analytics"
+    severity: low
+    query: "$.opsPosture.diagnosticCoverage[?(@.type == 'microsoft.dbforpostgresql/flexibleservers' && @.coveragePct < 100)]"
+    assert: { type: countEquals, value: 0, gate: "$.opsPosture.diagnosticCoverage[?(@.type == 'microsoft.dbforpostgresql/flexibleservers')]" }
+    remediation: "WAF-DATA-PG-08. Some servers have no diagnostic setting. Collect logs and metrics to detect problems early."
+    manual: false
+  # servers attached with version [PG-OE-R]
+  - id: WAF-DATA-PG-09
+    title: "WAF-DATA-PG-09. Backups, maintenance windows and major-version currency are managed"
+    severity: low
+    query: "$.domains.databases.postgreSqlFlexibleServers[*]"
+    assert: { type: manual }
+    remediation: "WAF-DATA-PG-09. Use Azure Backup with native backups, set custom maintenance windows and keep to supported major versions with pre-upgrade checks. Servers are attached with version."
+    manual: true
+
+  # ---- PG, Performance efficiency ----------------------------------------------------------
+  # server parameters, not collected [PG-PE-R]
+  - id: WAF-DATA-PG-10
+    title: "WAF-DATA-PG-10. Query Store, Query Performance Insight, index tuning, intelligent tuning and PgBouncer are used"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-DATA-PG-10. Enable these to find slow queries and manage connections."
+    manual: true
+
+  # ---- MYS, Reliability --------------------------------------------------------------------
+  # the HA mode is not collected (proposed in the report); servers attached [MYS-RE-R]
+  - id: WAF-DATA-MYS-01
+    title: "WAF-DATA-MYS-01. MySQL servers use zone-redundant or local-redundant high availability and tested failover"
+    severity: high
+    query: "$.domains.databases.mySqlFlexibleServers[*]"
+    assert: { type: manual }
+    remediation: "WAF-DATA-MYS-01. Enable high availability with the right mode (zone-redundant only at creation). Servers are attached; the HA mode is not collected."
+    manual: true
+  # schema, not ARM [MYS-RE-R]
+  - id: WAF-DATA-MYS-02
+    title: "WAF-DATA-MYS-02. Tables have explicit primary keys and clients retry with backoff"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-DATA-MYS-02. Add explicit primary keys (or GIPK) and retry connections with exponential backoff to cut failover time."
+    manual: true
+
+  # ---- MYS, Security -----------------------------------------------------------------------
+  # network.publicNetworkAccess [MYS-SE-R]
+  - id: WAF-DATA-MYS-03
+    title: "WAF-DATA-MYS-03. MySQL servers have public network access disabled"
+    severity: high
+    query: "$.domains.databases.mySqlFlexibleServers[?(@.publicNetworkAccess != 'Disabled')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.databases.mySqlFlexibleServers[*]" }
+    remediation: "WAF-DATA-MYS-03. The servers listed allow public network access. Use virtual network integration or private endpoints for production."
+    manual: false
+  # server parameters are child resources, not collected [MYS-SE-R]
+  - id: WAF-DATA-MYS-04
+    title: "WAF-DATA-MYS-04. TLS 1.3 is set and secure transport is required"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-DATA-MYS-04. Set tls_version to TLS 1.3 and require_secure_transport to ON after checking client support."
+    manual: true
+  # authentication settings are not collected [MYS-SE-R]
+  - id: WAF-DATA-MYS-05
+    title: "WAF-DATA-MYS-05. Microsoft Entra-only authentication is used and admin credentials are held in Key Vault"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-DATA-MYS-05. Use Entra-only authentication with a managed identity, keep the admin secret in Key Vault for emergencies and use least-privilege database accounts."
+    manual: true
+  # diagnostic-settings coverage for the server type [MYS-SE-R]
+  - id: WAF-DATA-MYS-06
+    title: "WAF-DATA-MYS-06. MySQL servers send diagnostic and audit logs to Log Analytics"
+    severity: medium
+    query: "$.opsPosture.diagnosticCoverage[?(@.type == 'microsoft.dbformysql/flexibleservers' && @.coveragePct < 100)]"
+    assert: { type: countEquals, value: 0, gate: "$.opsPosture.diagnosticCoverage[?(@.type == 'microsoft.dbformysql/flexibleservers')]" }
+    remediation: "WAF-DATA-MYS-06. Some servers have no diagnostic setting. Set audit_log_enabled, route MySqlAuditLogs to Log Analytics and alert on unusual connection patterns."
+    manual: false
+
+  # ---- MYS, Cost optimization --------------------------------------------------------------
+  # servers attached with sku [MYS-CO-R]
+  - id: WAF-DATA-MYS-07
+    title: "WAF-DATA-MYS-07. Server size, reservations, maintenance window and stop or start are chosen for cost"
+    severity: low
+    query: "$.domains.databases.mySqlFlexibleServers[*]"
+    assert: { type: manual }
+    remediation: "WAF-DATA-MYS-07. Right-size the compute tier, schedule maintenance off-peak and use near-zero-downtime maintenance. Servers are attached."
+    manual: true
+
+  # ---- MYS, Operational excellence ---------------------------------------------------------
+  # backup configuration is not collected [MYS-OE]
+  - id: WAF-DATA-MYS-08
+    title: "WAF-DATA-MYS-08. Backups, restore tests and monitoring are in place"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-DATA-MYS-08. Use automatic backups with point-in-time restore, test restores and monitor with Azure Monitor."
+    manual: true
+
+  # ---- MYS, Performance efficiency ---------------------------------------------------------
+  # servers attached [MYS-PE]
+  - id: WAF-DATA-MYS-09
+    title: "WAF-DATA-MYS-09. The compute tier, storage IOPS and connection handling suit the workload"
+    severity: low
+    query: "$.domains.databases.mySqlFlexibleServers[*]"
+    assert: { type: manual }
+    remediation: "WAF-DATA-MYS-09. Validate the compute tier against load and use connection pooling and query tuning. Servers are attached."
+    manual: true
+
+  # ---- RED, Reliability --------------------------------------------------------------------
+  # the HA setting is not collected (proposed in the report); caches attached [AMR-RE-R]
+  - id: WAF-DATA-RED-01
+    title: "WAF-DATA-RED-01. Redis high availability is on, in a zone-capable region"
+    severity: high
+    query: "$.domains.databases.redisCaches[*]"
+    assert: { type: manual }
+    remediation: "WAF-DATA-RED-01. Enable high availability so replica shards fail over across zones. Caches are attached; the HA setting is not collected."
+    manual: true
+  # replication and persistence are not collected [AMR-RE-R]
+  - id: WAF-DATA-RED-02
+    title: "WAF-DATA-RED-02. Active geo-replication, persistence and scheduled exports match the recovery need"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-DATA-RED-02. Configure geo-replication for regional recovery, choose RDB or AOF persistence (not with geo-replication) and test imports."
+    manual: true
+  # client code, not ARM [AMR-RE-R]
+  - id: WAF-DATA-RED-03
+    title: "WAF-DATA-RED-03. Clients use bounded retries with backoff and separate connection and command timeouts"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-DATA-RED-03. Configure timeouts separately and retry with backoff and jitter."
+    manual: true
+
+  # ---- RED, Security -----------------------------------------------------------------------
+  # publicNetworkAccess [AMR-SE-R]
+  - id: WAF-DATA-RED-04
+    title: "WAF-DATA-RED-04. Redis caches have public network access disabled"
+    severity: high
+    query: "$.domains.databases.redisCaches[?(@.publicNetworkAccess != 'Disabled')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.databases.redisCaches[*]" }
+    remediation: "WAF-DATA-RED-04. The caches listed allow public network access. Disable it and connect over a private endpoint with private DNS."
+    manual: false
+  # cache to private endpoint join [AMR-SE-R]
+  - id: WAF-DATA-RED-05
+    title: "WAF-DATA-RED-05. Each Redis cache has a private endpoint"
+    severity: medium
+    join:
+      left: "$.domains.databases.redisCaches[*]"
+      leftKey: "id"
+      right: "$.networking.privateEndpoints[*]"
+      rightKey: "targetResourceId"
+      mode: "leftOnly"
+      leftLabel: "Redis cache"
+      rightLabel: "private endpoint"
+    assert: { type: countEquals, value: 0, gate: "$.domains.databases.redisCaches[*]" }
+    remediation: "WAF-DATA-RED-05. The caches listed have no private endpoint. Create one and configure private DNS."
+    manual: false
+  # the access-key setting is not collected (proposed in the report); caches attached [AMR-SE-R]
+  - id: WAF-DATA-RED-06
+    title: "WAF-DATA-RED-06. Microsoft Entra authentication with a managed identity is used and access keys are disabled"
+    severity: medium
+    query: "$.domains.databases.redisCaches[*]"
+    assert: { type: manual }
+    remediation: "WAF-DATA-RED-06. Move clients to Entra ID, then disable access-key authentication (plan for connection resets)."
+    manual: true
+  # TLS and encryption settings are not collected (proposed in the report); caches attached [AMR-SE-R]
+  - id: WAF-DATA-RED-07
+    title: "WAF-DATA-RED-07. Non-TLS access is disabled, clients validate the certificate, and customer-managed keys are set at creation where required"
+    severity: medium
+    query: "$.domains.databases.redisCaches[*]"
+    assert: { type: manual }
+    remediation: "WAF-DATA-RED-07. Keep TLS 1.2 or 1.3 and certificate validation; configure CMK when the instance is created."
+    manual: true
+  # type not yet in the diagnostic-settings sweep (proposed in the report) [AMR-SE-R]
+  - id: WAF-DATA-RED-08
+    title: "WAF-DATA-RED-08. ConnectionEvents diagnostics and activity logs are collected"
+    severity: medium
+    query: "$.opsPosture.diagnosticCoverage[?(@.type == 'microsoft.cache/redisenterprise')]"
+    assert: { type: manual }
+    remediation: "WAF-DATA-RED-08. Enable ConnectionEvents on each instance and collect activity and sign-in logs. Redis is not in the diagnostic-settings sweep yet."
+    manual: true
+
+  # ---- RED, Cost optimization --------------------------------------------------------------
+  # caches attached with sku [AMR-CO-R]
+  - id: WAF-DATA-RED-09
+    title: "WAF-DATA-RED-09. The tier and SKU fit memory and compute needs, with reservations for steady usage and no-HA only for disposable environments"
+    severity: low
+    query: "$.domains.databases.redisCaches[*]"
+    assert: { type: manual }
+    remediation: "WAF-DATA-RED-09. Match tier to need, consider one- or three-year reservations, set eviction and expiry policies, and tag and budget. Caches are attached."
+    manual: true
+
+  # ---- RED, Operational excellence ---------------------------------------------------------
+  # practice, not ARM [AMR-OE-R]
+  - id: WAF-DATA-RED-10
+    title: "WAF-DATA-RED-10. Instances deploy as code with health gates, dashboards, alerts and tested recovery runbooks"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-DATA-RED-10. Use IaC for redisEnterprise and its default database, add DNS, TLS and auth checks to health gates and rehearse force-unlink recovery."
+    manual: true
+
+  # ---- RED, Performance efficiency ---------------------------------------------------------
+  # caches attached with location [AMR-PE-R]
+  - id: WAF-DATA-RED-11
+    title: "WAF-DATA-RED-11. OSS clustering, connection reuse, pipelining and co-location with the application are used"
+    severity: low
+    query: "$.domains.databases.redisCaches[*]"
+    assert: { type: manual }
+    remediation: "WAF-DATA-RED-11. Use a cluster-aware client, reuse connections, bound pipelines and deploy cache and app in one region. Caches are attached."
+    manual: true
+
+  # ---- HZ, Reliability ---------------------------------------------------------------------
+  # HorizonDB is not collected yet (proposed dataset in the report) [HZ-RE-R]
+  - id: WAF-DATA-HZ-01
+    title: "WAF-DATA-HZ-01. Production clusters have at least one reader node and ZoneRedundant high availability"
+    severity: medium
+    query: "$.networking.privateEndpoints[?(@.targetProvider == 'microsoft.horizondb')]"
+    assert: { type: manual }
+    remediation: "WAF-DATA-HZ-01. Add a reader node (two nodes in total) and set the pool high-availability option to ZoneRedundant in regions with zones."
+    manual: true
+  # not collected [HZ-RE-R]
+  - id: WAF-DATA-HZ-02
+    title: "WAF-DATA-HZ-02. Applications use cluster endpoints with retry, and backup retention and geo-redundant backup match recovery needs"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-DATA-HZ-02. Connect through the read-write and read-only endpoints with exponential backoff, set 1 to 35 days retention and choose geo-redundant backup at creation in paired regions."
+    manual: true
+  # activity-log alert rules attached (estate-wide) [HZ-RE-R]
+  - id: WAF-DATA-HZ-03
+    title: "WAF-DATA-HZ-03. Resource Health alerts exist for each cluster"
+    severity: medium
+    query: "$.monitor.activityLogAlertRules[*]"
+    assert: { type: manual }
+    remediation: "WAF-DATA-HZ-03. Create Resource Health alerts to tell operations of health changes."
+    manual: true
+
+  # ---- HZ, Security ------------------------------------------------------------------------
+  # not collected [HZ-SE-R]
+  - id: WAF-DATA-HZ-04
+    title: "WAF-DATA-HZ-04. Production clusters use private endpoints, or tightly scoped firewall rules, never all-Azure-services access"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-DATA-HZ-04. Use private endpoints; if public, allow specific IPv4 addresses only."
+    manual: true
+  # not collected [HZ-SE-R]
+  - id: WAF-DATA-HZ-05
+    title: "WAF-DATA-HZ-05. TLS 1.3 and secure transport are required and clients verify the server certificate"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-DATA-HZ-05. Set ssl_min_protocol_version to TLSv1.3 and require_secure_transport to ON."
+    manual: true
+  # not collected [HZ-SE-R]
+  - id: WAF-DATA-HZ-06
+    title: "WAF-DATA-HZ-06. Microsoft Entra-only authentication with managed identities is used, with least-privilege roles and a short extension allow-list"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-DATA-HZ-06. Use Entra-only authentication, revoke CREATE on the public schema, restrict azure.extensions and grant model-registry access narrowly."
+    manual: true
+  # not collected [HZ-SE-R]
+  - id: WAF-DATA-HZ-07
+    title: "WAF-DATA-HZ-07. pgaudit is on and audit logs go to Log Analytics, with Azure RBAC at least privilege on management actions"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-DATA-HZ-07. Enable pgaudit with the required classes, send logs to Log Analytics and restrict who can delete clusters."
+    manual: true
+
+  # ---- HZ, Cost optimization ---------------------------------------------------------------
+  # not collected [HZ-CO-C]
+  - id: WAF-DATA-HZ-08
+    title: "WAF-DATA-HZ-08. Cost model, backup retention, geo-redundant backup and savings plan are chosen deliberately"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-DATA-HZ-08. Model compute, storage and backup, keep retention to need, use geo-redundant backup only where regional recovery is required and use the database savings plan for steady compute."
+    manual: true
+
+  # ---- HZ, Operational excellence ----------------------------------------------------------
+  # not collected [HZ-OE-C]
+  - id: WAF-DATA-HZ-09
+    title: "WAF-DATA-HZ-09. Clusters deploy as code with parameter groups, and monitoring covers per-node metrics"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-DATA-HZ-09. Define clusters, pools and parameter groups in Bicep or Terraform, test schema changes first and monitor per node."
+    manual: true
+
+  # ---- HZ, Performance efficiency ----------------------------------------------------------
+  # not collected [HZ-PE-R]
+  - id: WAF-DATA-HZ-10
+    title: "WAF-DATA-HZ-10. Processor type, read endpoint use, pooling and query store are set from load tests"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-DATA-HZ-10. Test AMD and Intel, send read-tolerant queries to the read-only endpoint, pool connections, enable query store and co-locate the application."
+    manual: true
+
+  # ---- BLOB, Security ----------------------------------------------------------------------
+  # allowBlobPublicAccess [BLOB-SE-R]
+  - id: WAF-DATA-BLOB-01
+    title: "WAF-DATA-BLOB-01. Anonymous blob access is disabled on storage accounts"
+    severity: high
+    query: "$.domains.storage.storageAccounts[?(@.publicAccess == true)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.storage.storageAccounts[*]" }
+    remediation: "WAF-DATA-BLOB-01. The accounts listed allow anonymous blob access. Disable it so no container can be made public."
+    manual: false
+  # supportsHttpsTrafficOnly [BLOB-SE-C, BLOB-SE-S]
+  - id: WAF-DATA-BLOB-02
+    title: "WAF-DATA-BLOB-02. Secure transfer (HTTPS) is required"
+    severity: medium
+    query: "$.domains.storage.storageAccounts[?(@.httpsOnly == false)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.storage.storageAccounts[*]" }
+    remediation: "WAF-DATA-BLOB-02. The accounts listed allow HTTP. Require secure transfer so HTTP requests fail."
+    manual: false
+  # minimumTlsVersion [BLOB-SE-R]
+  - id: WAF-DATA-BLOB-03
+    title: "WAF-DATA-BLOB-03. The minimum TLS version is 1.2"
+    severity: medium
+    query: "$.domains.storage.storageAccounts[?(@.minTls == 'TLS1_0' || @.minTls == 'TLS1_1')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.storage.storageAccounts[*]" }
+    remediation: "WAF-DATA-BLOB-03. The accounts listed allow TLS 1.0 or 1.1. Set the minimum TLS version to 1.2."
+    manual: false
+  # networkAcls.defaultAction [BLOB-SE-C, BLOB-SE-R]
+  - id: WAF-DATA-BLOB-04
+    title: "WAF-DATA-BLOB-04. The storage firewall denies by default"
+    severity: medium
+    query: "$.domains.storage.storageAccounts[?(@.networkDefaultDeny == false)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.storage.storageAccounts[*]" }
+    remediation: "WAF-DATA-BLOB-04. The accounts listed allow traffic by default. Disable public endpoint traffic or limit access to specific virtual networks and private endpoints."
+    manual: false
+  # account to private endpoint join (any service) [BLOB-SE-R]
+  - id: WAF-DATA-BLOB-05
+    title: "WAF-DATA-BLOB-05. Each storage account has a private endpoint for clients that run in Azure"
+    severity: medium
+    join:
+      left: "$.domains.storage.storageAccounts[*]"
+      leftKey: "id"
+      right: "$.networking.privateEndpoints[*]"
+      rightKey: "targetResourceId"
+      mode: "leftOnly"
+      leftLabel: "storage account"
+      rightLabel: "private endpoint"
+    assert: { type: countEquals, value: 0, gate: "$.domains.storage.storageAccounts[*]" }
+    remediation: "WAF-DATA-BLOB-05. The accounts listed have no private endpoint. Create one for Azure-hosted clients; enable the public endpoint only for external clients that need it."
+    manual: false
+  # allowSharedKeyAccess is not collected (proposed in the report); accounts attached [BLOB-SE-R, BLOB-SE-S]
+  - id: WAF-DATA-BLOB-06
+    title: "WAF-DATA-BLOB-06. Shared Key authorisation is disallowed and access uses Microsoft Entra RBAC"
+    severity: medium
+    query: "$.domains.storage.storageAccounts[*]"
+    assert: { type: manual }
+    remediation: "WAF-DATA-BLOB-06. Disallow Shared Key (which also blocks account and service SAS), and use RBAC or user-delegation SAS with an SAS expiry policy."
+    manual: true
+  # Defender plan row attached; CMK setting is not collected [BLOB-SE-C, BLOB-SE-R]
+  - id: WAF-DATA-BLOB-07
+    title: "WAF-DATA-BLOB-07. Customer-managed keys protect data where required, and Defender for Storage detects threats"
+    severity: medium
+    query: "$.security.defenderPlans[?(@.name == 'StorageAccounts')]"
+    assert: { type: manual }
+    remediation: "WAF-DATA-BLOB-07. Use CMK with Key Vault rotation where regulation requires and enable Defender for Storage. Storage Defender plan rows are attached."
+    manual: true
+  # resource locks attached (estate-wide) [BLOB-SE-C, BLOB-SE-R]
+  - id: WAF-DATA-BLOB-08
+    title: "WAF-DATA-BLOB-08. Critical data is immutable and the account is protected by a resource lock"
+    severity: medium
+    query: "$.governance.resourceLocks[*]"
+    assert: { type: manual }
+    remediation: "WAF-DATA-BLOB-08. Apply immutability policies to compliance data and a delete lock to the account. Resource locks are attached."
+    manual: true
+
+  # ---- BLOB, Reliability -------------------------------------------------------------------
+  # account sku redundancy [BLOB-RE-C]
+  - id: WAF-DATA-BLOB-09
+    title: "WAF-DATA-BLOB-09. Storage accounts use zone-redundant or geo-redundant replication"
+    severity: medium
+    query: "$.domains.storage.storageAccounts[?(@.sku == 'Standard_LRS' || @.sku == 'Premium_LRS')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.storage.storageAccounts[*]" }
+    remediation: "WAF-DATA-BLOB-09. The accounts listed use locally redundant storage. Use ZRS, GRS or GZRS for data that must survive a zone or regional failure; read-access options let applications read from the secondary."
+    manual: false
+  # the blob-service data-protection settings are not collected (proposed in the report); accounts attached [BLOB-RE-R]
+  - id: WAF-DATA-BLOB-10
+    title: "WAF-DATA-BLOB-10. Soft delete, versioning and point-in-time restore are enabled"
+    severity: medium
+    query: "$.domains.storage.storageAccounts[*]"
+    assert: { type: manual }
+    remediation: "WAF-DATA-BLOB-10. Enable container and blob soft delete, versioning and point-in-time restore so deletes and corruption are recoverable."
+    manual: true
+  # protected items attached (estate-wide) [BLOB-RE-C, BLOB-RE-R]
+  - id: WAF-DATA-BLOB-11
+    title: "WAF-DATA-BLOB-11. Vaulted backup for blobs and a tested recovery plan exist"
+    severity: medium
+    query: "$.management.backupProtectedItems[*]"
+    assert: { type: manual }
+    remediation: "WAF-DATA-BLOB-11. Configure vaulted backup (up to 10 years) and a recovery plan covering data loss and failover time. Protected items are attached."
+    manual: true
+
+  # ---- BLOB, Operational excellence --------------------------------------------------------
+  # diagnostic-settings coverage for the storage account type [BLOB-RE-C]
+  - id: WAF-DATA-BLOB-12
+    title: "WAF-DATA-BLOB-12. Storage accounts send diagnostic logs and metrics to Log Analytics"
+    severity: low
+    query: "$.opsPosture.diagnosticCoverage[?(@.type == 'microsoft.storage/storageaccounts' && @.coveragePct < 100)]"
+    assert: { type: countEquals, value: 0, gate: "$.opsPosture.diagnosticCoverage[?(@.type == 'microsoft.storage/storageaccounts')]" }
+    remediation: "WAF-DATA-BLOB-12. Some storage accounts have no diagnostic setting. Use metrics and diagnostic logs for alerts and subscribe to Service Health."
+    manual: false
+
+  # ---- BLOB, Cost optimization -------------------------------------------------------------
+  # lifecycle policies are not collected (proposed in the report); accounts attached [BLOB-CO]
+  - id: WAF-DATA-BLOB-13
+    title: "WAF-DATA-BLOB-13. Access tiers and lifecycle management move cold data to cheaper tiers"
+    severity: low
+    query: "$.domains.storage.storageAccounts[*]"
+    assert: { type: manual }
+    remediation: "WAF-DATA-BLOB-13. Use Hot, Cool, Cold and Archive tiers with lifecycle policies and review redundancy against need. Accounts are attached; lifecycle policies are not collected."
+    manual: true
+
+  # ---- BLOB, Performance efficiency --------------------------------------------------------
+  # accounts attached with sku [BLOB-PE]
+  - id: WAF-DATA-BLOB-14
+    title: "WAF-DATA-BLOB-14. Account type, tier and region match throughput and latency needs"
+    severity: low
+    query: "$.domains.storage.storageAccounts[*]"
+    assert: { type: manual }
+    remediation: "WAF-DATA-BLOB-14. Choose standard or premium block blob accounts and place storage in the client region; use Azure Storage Discovery to review the estate. Accounts are attached."
+    manual: true

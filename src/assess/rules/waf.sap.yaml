@@ -1,0 +1,375 @@
+# waf.sap.yaml — SAP on Azure workload assessment (AB#9300)
+#
+# Scores the scope of Microsoft's "SAP on Azure | Well-Architected Review" assessment
+# (learn.microsoft.com/assessments/b45998e4-8e92-41b1-a0bd-ab07e665db64) for SAP running on Azure
+# virtual machines.
+#
+# Written ONLY against docs/frameworks/waf-sap-workload-checklist.md. Microsoft does not publish that
+# assessment's question text, and the well-architected/sap/* design-area pages now redirect to the
+# SAP on Azure product documentation, so every item is Scout's reading of the live SAP guidance named
+# per row in the enumeration.
+#
+# HOW AN ESTATE IS RECOGNISED AS SAP. ARM has no "this VM runs SAP" flag. The one first-party signal is
+# a Virtual Instance for SAP solutions (Microsoft.Workloads/sapVirtualInstances), which Azure Center
+# for SAP solutions creates when a system is deployed or registered, together with its central,
+# database and application instance children. Those rows are read from the universal discovery index
+# (`$.discovery.Resources[*]`, AB#7366), which keeps the Resource Graph row of EVERY discovered
+# resource -- so no SAP-specific projection exists yet and none is invented here. The ARM property
+# names used below (health, state, environment, vmDetails[].virtualMachineId, storageDetails[].id,
+# loadBalancerDetails.id) come from the Microsoft.Workloads REST reference; they were not exercised
+# against a live SAP estate, only against fixtures in tests/Assessment.SapOracle.Tests.ps1.
+#
+# Every automated rule is therefore gated on SAP virtual-instance data being present. An estate that
+# runs SAP without registering it with Azure Center for SAP solutions reports every automated rule
+# Not assessed (never Pass), and the manual rules remain answerable through the questionnaire.
+#
+# Joins use the VM ids that the central, database and application instances list in `vmDetails`, so a
+# rule only ever scores the virtual machines Azure itself says belong to a registered SAP system.
+#
+# JSONPath notes (Newtonsoft): parentheses inside a filter are not supported, so alternatives are
+# written as regex groups; `.` stands in for `/` and `\.` in resource-type regexes because YAML
+# double-quoted strings would need every backslash doubled.
+area: "SAP on Azure workload"
+framework: WAF-SAP
+frameworkversion: "SAP on Azure | Well-Architected Review (questions unpublished) + SAP on Azure guidance on Microsoft Learn (workload deployment checklist, availability zones, Azure Monitor for SAP solutions, Microsoft.Workloads REST reference), docs/frameworks/waf-sap-workload-checklist.md, verified 2026-11-25 (38 items)"
+weight: 1.0
+verifiedAgainst: "docs/frameworks/waf-sap-workload-checklist.md (Scout enumeration of learn.microsoft.com/azure/sap/*), verified 2026-11-25"
+rules:
+  # ---- Reliability (WAF-SAP-RE) -------------------------------------------------------------
+  - id: WAF-SAP-RE-01
+    title: "WAF-SAP-RE-01. SAP virtual machines are deployed to availability zones in zone-capable regions"
+    severity: high
+    join:
+      left: "$.discovery.Resources[?(@.Type =~ /^microsoft.workloads.sapvirtualinstances.(central|database|application)instances$/i)].Properties.vmDetails[*]"
+      leftKey: "virtualMachineId"
+      right: "$.compute.virtualMachines[?(@.zoneEligible == true && @.zoneRedundant == false)]"
+      rightKey: "id"
+      mode: leftMatched
+      leftLabel: "SAP instance virtual machine"
+      rightLabel: "virtual machine with no zone, in a region that has zones"
+    assert: { type: countEquals, value: 0, gate: "$.discovery.Resources[?(@.Type =~ /^microsoft.workloads.sapvirtualinstances.(central|database|application)instances$/i)].Properties.vmDetails[*]" }
+    remediation: "WAF-SAP-RE-01. The SAP virtual machines listed have no availability zone in a region that supports zones. Microsoft's recommended SAP architecture spreads the central services and database pairs across two zones (flexible scale set with FD=1, or zonal VMs). Availability sets remain valid for regions without zones or where you deliberately chose them; confirm that choice was deliberate."
+    manual: false
+  - id: WAF-SAP-RE-02
+    title: "WAF-SAP-RE-02. Production systems have a high-availability design for central services and the database"
+    severity: high
+    query: "$.discovery.Resources[?(@.Type =~ /^microsoft.workloads.sapvirtualinstances$/i && @.Properties.environment == 'Prod')]"
+    assert: { type: manual }
+    remediation: "WAF-SAP-RE-02. The production SAP systems registered with Azure Center for SAP solutions are attached as evidence. Confirm each has clustered ASCS/ERS and a replicated database (HANA System Replication, SQL Server Always On, Oracle Data Guard or Db2 HADR) on two VMs in separate zones or availability sets, never a shared-disk database cluster, and that application VM roles are not mixed in one availability set."
+    manual: true
+  - id: WAF-SAP-RE-03
+    title: "WAF-SAP-RE-03. Registered SAP systems and their central services report healthy"
+    severity: high
+    query: "$.discovery.Resources[?(@.Type =~ /^microsoft.workloads.sapvirtualinstances(.(central|application)instances)?$/i && @.Properties.health =~ /^(Unhealthy|Degraded)$/)]"
+    assert: { type: countEquals, value: 0, gate: "$.discovery.Resources[?(@.Type =~ /^microsoft.workloads.sapvirtualinstances$/i)]" }
+    remediation: "WAF-SAP-RE-03. The SAP systems or instances listed report Unhealthy or Degraded in Azure Center for SAP solutions. Open the Virtual Instance for SAP solutions health view and fix the failing message server, enqueue server or gateway before relying on the system's resilience."
+    manual: false
+  - id: WAF-SAP-RE-04
+    title: "WAF-SAP-RE-04. No SAP system is stuck in a failed deployment, installation or registration state"
+    severity: medium
+    query: "$.discovery.Resources[?(@.Type =~ /^microsoft.workloads.sapvirtualinstances$/i && @.Properties.state =~ /Failed$/)]"
+    assert: { type: countEquals, value: 0, gate: "$.discovery.Resources[?(@.Type =~ /^microsoft.workloads.sapvirtualinstances$/i)]" }
+    remediation: "WAF-SAP-RE-04. The Virtual Instances for SAP solutions listed are in a failed infrastructure-deployment, software-installation, software-detection or discovery state, so Azure cannot monitor or manage them. Fix the reported error and re-register or redeploy the system."
+    manual: false
+  - id: WAF-SAP-RE-05
+    title: "WAF-SAP-RE-05. Failover clusters use a Standard SKU load balancer"
+    severity: high
+    join:
+      left: "$.discovery.Resources[?(@.Type =~ /^microsoft.workloads.sapvirtualinstances.(central|database|application)instances$/i)].Properties.loadBalancerDetails"
+      leftKey: "id"
+      right: "$.networking.loadBalancers[?(@.sku == 'Basic')]"
+      rightKey: "id"
+      mode: leftMatched
+      leftLabel: "SAP instance load balancer"
+      rightLabel: "Basic SKU load balancer"
+    assert: { type: countEquals, value: 0, numeratorKey: Key, gate: "$.discovery.Resources[?(@.Type =~ /^microsoft.workloads.sapvirtualinstances.(central|database|application)instances$/i)].Properties.loadBalancerDetails" }
+    remediation: "WAF-SAP-RE-05. The load balancers listed front SAP instances and use the Basic SKU. Basic cannot be used across availability zones for Windows Server Failover Clustering or Pacemaker and is being retired. Replace with a Standard load balancer with floating IP and HA ports."
+    manual: false
+  - id: WAF-SAP-RE-06
+    title: "WAF-SAP-RE-06. SAP virtual machines have an Azure Backup protected item"
+    severity: medium
+    join:
+      left: "$.discovery.Resources[?(@.Type =~ /^microsoft.workloads.sapvirtualinstances.(central|database|application)instances$/i)].Properties.vmDetails[*]"
+      leftKey: "virtualMachineId"
+      right: "$.management.backupProtectedItems[*]"
+      rightKey: "sourceResourceId"
+      mode: leftOnly
+      leftLabel: "SAP instance virtual machine"
+      rightLabel: "Azure Backup protected item"
+    assert: { type: countEquals, value: 0, gate: "$.discovery.Resources[?(@.Type =~ /^microsoft.workloads.sapvirtualinstances.(central|database|application)instances$/i)].Properties.vmDetails[*]" }
+    remediation: "WAF-SAP-RE-06. The SAP virtual machines listed have no Azure Backup protected item (VM or SAP HANA workload backup). Back up the application-layer VMs and the databases after go-live. Systems protected only by Backint to storage, NetApp Files snapshots or a third-party tool are not visible to this check, so confirm those before treating the row as a gap."
+    manual: false
+  - id: WAF-SAP-RE-07
+    title: "WAF-SAP-RE-07. Cross-region disaster recovery is designed and rehearsed"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-SAP-RE-07. Confirm a cross-region DR design exists for the database (vendor replication), the application layer (Azure Site Recovery or a regression-test system used as the DR target), or a combined zonal HA/DR design for single-region compliance, and that drills are run on a schedule."
+    manual: true
+  - id: WAF-SAP-RE-08
+    title: "WAF-SAP-RE-08. Failover, backup and restore were tested and their timings meet the recovery objectives"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-SAP-RE-08. Confirm failover was simulated (for example by panicking an OS or disabling a NIC), measured, and tuned (SBD devices on SUSE, more storage bandwidth for HANA reload), and that restore times were measured against the RTO and RPO."
+    manual: true
+
+  # ---- Security (WAF-SAP-SE) ----------------------------------------------------------------
+  - id: WAF-SAP-SE-01
+    title: "WAF-SAP-SE-01. No network virtual appliance sits in the path between the SAP application and database layers"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-SAP-SE-01. Confirm no network virtual appliance or firewall inspects traffic between the SAP application layer and the DBMS layer; that placement is not supported for SAP NetWeaver or ABAP platform systems. Check route tables on both subnets."
+    manual: true
+  - id: WAF-SAP-SE-02
+    title: "WAF-SAP-SE-02. Application and database layers share a virtual network (or directly peered ones) with NSG and ASG rules scoped to SAP traffic"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-SAP-SE-02. Confirm the SAP application and DBMS VMs are in the same or directly peered virtual networks (never unpeered ones) and that network and application security group rules allow only the planned SAP ports. Prefer separate spoke virtual networks for SAP in a hub-and-spoke or Virtual WAN design."
+    manual: true
+  - id: WAF-SAP-SE-03
+    title: "WAF-SAP-SE-03. SAP virtual machines accept no unplanned inbound traffic from the internet"
+    severity: high
+    query: "$.networking.nsgPublicInbound[*]"
+    assert: { type: manual }
+    remediation: "WAF-SAP-SE-03. NSG rules open to the internet are listed (estate-wide, not scoped to SAP). Confirm none apply to SAP subnets other than deliberately published endpoints such as SAP Fiori or SAProuter, and that those are secured and reachable only as designed."
+    manual: true
+  - id: WAF-SAP-SE-04
+    title: "WAF-SAP-SE-04. Disk and storage encryption follows the SAP-specific rules"
+    severity: medium
+    query: "$.domains.storage.diskEncryptionSets[*]"
+    assert: { type: manual }
+    remediation: "WAF-SAP-SE-04. Disk encryption sets are attached as evidence. Confirm server-side encryption (on by default) is kept, customer-managed keys are used only where key rotation requires them, host-based encryption is not enabled on M-series Linux VMs, Azure Disk Encryption is not used on Linux SAP images, and encryption keys are backed up and protected against loss."
+    manual: true
+  - id: WAF-SAP-SE-05
+    title: "WAF-SAP-SE-05. Database-native encryption protects DBMS data and backups, with its keys secured"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-SAP-SE-05. Confirm database-native encryption such as Transparent Data Encryption is deployed for the SAP database and its backups and that key management and location are secured. It works inside the VM and is independent of storage encryption."
+    manual: true
+  - id: WAF-SAP-SE-06
+    title: "WAF-SAP-SE-06. Azure RBAC separates SAP Basis, network and platform duties"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-SAP-SE-06. Confirm the SAP Basis team can deploy VMs and attach disks but cannot create or change virtual networks, and that the network team cannot deploy VMs into the SAP virtual networks or change or delete SAP VMs and disks."
+    manual: true
+  - id: WAF-SAP-SE-07
+    title: "WAF-SAP-SE-07. Microsoft Defender for Servers is enabled"
+    severity: high
+    query: "$.security.defenderPlans[?(@.name == 'VirtualMachines' && @.properties.pricingTier != 'Standard')]"
+    assert: { type: countEquals, value: 0, gate: "$.discovery.Resources[?(@.Type =~ /^microsoft.workloads.sapvirtualinstances.(central|database|application)instances$/i)].Properties.vmDetails[*]" }
+    remediation: "WAF-SAP-SE-07. Defender for Servers is not on the Standard tier in the subscriptions listed. Enable it for subscriptions that host SAP virtual machines. (Checked per subscription, not per SAP system.)"
+    manual: false
+  - id: WAF-SAP-SE-08
+    title: "WAF-SAP-SE-08. SAP virtual machines are assessed for operating-system updates automatically"
+    severity: low
+    join:
+      left: "$.discovery.Resources[?(@.Type =~ /^microsoft.workloads.sapvirtualinstances.(central|database|application)instances$/i)].Properties.vmDetails[*]"
+      leftKey: "virtualMachineId"
+      right: "$.compute.virtualMachines[?(@.assessmentMode != 'AutomaticByPlatform')]"
+      rightKey: "id"
+      mode: leftMatched
+      leftLabel: "SAP instance virtual machine"
+      rightLabel: "virtual machine without periodic update assessment"
+    assert: { type: countEquals, value: 0, gate: "$.discovery.Resources[?(@.Type =~ /^microsoft.workloads.sapvirtualinstances.(central|database|application)instances$/i)].Properties.vmDetails[*]" }
+    remediation: "WAF-SAP-SE-08. The SAP virtual machines listed are not on periodic update assessment. Turn it on in Azure Update Manager so missing OS patches are visible; keep patch installation under your SAP change process and keep OS, database and kernel releases uniform across the landscape."
+    manual: false
+  - id: WAF-SAP-SE-09
+    title: "WAF-SAP-SE-09. Storage accounts that back SAP shared file systems have a private endpoint"
+    severity: medium
+    join:
+      left: "$.discovery.Resources[?(@.Type =~ /^microsoft.workloads.sapvirtualinstances.(central|database|application)instances$/i)].Properties.vmDetails[*].storageDetails[*]"
+      leftKey: "id"
+      right: "$.networking.privateEndpoints[*]"
+      rightKey: "targetResourceId"
+      mode: leftOnly
+      leftLabel: "storage account attached to an SAP virtual machine"
+      rightLabel: "private endpoint"
+    assert: { type: countEquals, value: 0, numeratorKey: Key, gate: "$.discovery.Resources[?(@.Type =~ /^microsoft.workloads.sapvirtualinstances.(central|database|application)instances$/i)].Properties.vmDetails[*].storageDetails[*]" }
+    remediation: "WAF-SAP-SE-09. The storage accounts listed provide NFS or SMB shares to SAP virtual machines and have no private endpoint. Route traffic to Azure Files or NetApp Files over private address space using a private endpoint."
+    manual: false
+
+  # ---- Cost optimization (WAF-SAP-CO) -------------------------------------------------------
+  - id: WAF-SAP-CO-01
+    title: "WAF-SAP-CO-01. Non-production SAP systems are shut down when they are not needed"
+    severity: medium
+    query: "$.discovery.Resources[?(@.Type =~ /^microsoft.workloads.sapvirtualinstances$/i && @.Properties.environment == 'NonProd')]"
+    assert: { type: manual }
+    remediation: "WAF-SAP-CO-01. The non-production SAP systems registered with Azure Center for SAP solutions are attached as evidence. Confirm availability usage patterns were recorded and that systems which are not needed around the clock are stopped (SAP start and stop through Azure Center for SAP solutions) on a schedule."
+    manual: true
+  - id: WAF-SAP-CO-02
+    title: "WAF-SAP-CO-02. Stable production systems use reservations or savings plans instead of pay-as-you-go"
+    severity: medium
+    query: "$.finops.reservations[*]"
+    assert: { type: manual }
+    remediation: "WAF-SAP-CO-02. Reservations are attached as evidence (estate-wide). Once the SAP solution has stabilised, confirm Azure Reserved Instances or savings plans cover the steady production compute."
+    manual: true
+  - id: WAF-SAP-CO-03
+    title: "WAF-SAP-CO-03. Sizing is reviewed continuously against measured utilisation"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-SAP-CO-03. Confirm capacity reviews right-size VMs and storage from measured CPU, memory, IOPS and throughput, and that new VM SKUs are compared for price and performance. Remember that downsizing also reduces a VM's storage and network bandwidth."
+    manual: true
+  - id: WAF-SAP-CO-04
+    title: "WAF-SAP-CO-04. Azure cost is reviewed per SAP system under an owned FinOps practice"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-SAP-CO-04. Confirm invoices are reviewed for high-charging SAP systems, that cost analysis per SAP system is available (Azure Center for SAP solutions), and that someone owns the Azure cost optimisation capability."
+    manual: true
+
+  # ---- Operational excellence (WAF-SAP-OE) --------------------------------------------------
+  - id: WAF-SAP-OE-01
+    title: "WAF-SAP-OE-01. Azure Monitor for SAP solutions is deployed"
+    severity: high
+    query: "$.discovery.Resources[?(@.Type =~ /^microsoft.workloads.monitors$/i)]"
+    assert: { type: countGreaterThan, value: 0, gate: "$.discovery.Resources[?(@.Type =~ /^microsoft.workloads.sapvirtualinstances$/i)]" }
+    remediation: "WAF-SAP-OE-01. SAP systems are registered but no Azure Monitor for SAP solutions resource was found. Deploy one per SAP virtual network and add providers (HANA, NetWeaver, operating system, high-availability cluster, database) so OS and application KPIs are visible during and after go-live."
+    manual: false
+  - id: WAF-SAP-OE-02
+    title: "WAF-SAP-OE-02. No Azure Monitor for SAP solutions resource is in a failed provisioning state"
+    severity: medium
+    query: "$.discovery.Resources[?(@.Type =~ /^microsoft.workloads.monitors$/i && @.Properties.provisioningState == 'Failed')]"
+    assert: { type: countEquals, value: 0, gate: "$.discovery.Resources[?(@.Type =~ /^microsoft.workloads.monitors$/i)]" }
+    remediation: "WAF-SAP-OE-02. The Azure Monitor for SAP solutions resources listed failed provisioning, so they collect nothing. Review the reported errors, then redeploy or repair the monitor and its providers."
+    manual: false
+  - id: WAF-SAP-OE-03
+    title: "WAF-SAP-OE-03. Monitor providers cover the operating system, database, NetWeaver and cluster layers"
+    severity: medium
+    query: "$.discovery.Resources[?(@.Type =~ /^microsoft.workloads.monitors$/i)]"
+    assert: { type: manual }
+    remediation: "WAF-SAP-OE-03. Monitor resources are attached as evidence; provider instances are not part of the collection. Confirm providers exist for the OS, the HA Pacemaker cluster, the database (HANA, SQL Server or Db2) and SAP NetWeaver, and that alerts are configured on them."
+    manual: true
+  - id: WAF-SAP-OE-04
+    title: "WAF-SAP-OE-04. Deployment and configuration are automated"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-SAP-OE-04. Confirm infrastructure is deployed by automation (Azure Center for SAP solutions, the SAP on Azure deployment automation framework, or your own Terraform, Ansible or CLI pipelines) and that the automation is updated for new VM types and Azure features."
+    manual: true
+  - id: WAF-SAP-OE-05
+    title: "WAF-SAP-OE-05. Azure-specific SAP quality checks are run and acted on"
+    severity: medium
+    query: "$.discovery.Resources[?(@.Type =~ /^microsoft.workloads.sapvirtualinstances$/i)]"
+    assert: { type: manual }
+    remediation: "WAF-SAP-OE-05. Registered systems are attached as evidence. Confirm the quality checks and insights in Azure Center for SAP solutions, or the SAP on Azure Quality Check tool and Inventory Checks workbook, are reviewed and their warnings are remediated."
+    manual: true
+  - id: WAF-SAP-OE-06
+    title: "WAF-SAP-OE-06. A playbook exists for planned Azure maintenance events"
+    severity: medium
+    query: "$.management.maintenanceConfigurations[*]"
+    assert: { type: manual }
+    remediation: "WAF-SAP-OE-06. Maintenance configurations are attached as evidence (estate-wide). Confirm the order in which systems and VMs are rebooted for planned maintenance is documented and rehearsed."
+    manual: true
+  - id: WAF-SAP-OE-07
+    title: "WAF-SAP-OE-07. Timeout and operating-system settings follow the Azure guidance"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-SAP-OE-07. Confirm net.ipv4.tcp_timestamps is 0 behind Azure Load Balancer on Linux, the Windows KeepAlive and failover-cluster thresholds are set, rdisp/keepalive and enque/encni/set_so_keepalive are configured, and the Azure-specific SAP notes for the OS and database were applied. These are guest settings, not ARM."
+    manual: true
+  - id: WAF-SAP-OE-08
+    title: "WAF-SAP-OE-08. Alerts and Service Health notifications cover the SAP landscape"
+    severity: medium
+    query: "$.monitor.activityLogAlertRules[*]"
+    assert: { type: manual }
+    remediation: "WAF-SAP-OE-08. Activity-log alert rules are attached (estate-wide). Confirm Service Health alerts cover the regions that host SAP and that infrastructure and SAP application alerts reach the SAP operations team."
+    manual: true
+  - id: WAF-SAP-OE-09
+    title: "WAF-SAP-OE-09. No update installation has failed on an SAP virtual machine"
+    severity: medium
+    join:
+      left: "$.discovery.Resources[?(@.Type =~ /^microsoft.workloads.sapvirtualinstances.(central|database|application)instances$/i)].Properties.vmDetails[*]"
+      leftKey: "virtualMachineId"
+      right: "$.updateManager.patchInstallations[?(@.status == 'Failed')]"
+      rightKey: "machineId"
+      mode: leftMatched
+      leftLabel: "SAP instance virtual machine"
+      rightLabel: "failed update installation"
+    assert: { type: countEquals, value: 0, gate: "$.discovery.Resources[?(@.Type =~ /^microsoft.workloads.sapvirtualinstances.(central|database|application)instances$/i)].Properties.vmDetails[*]" }
+    remediation: "WAF-SAP-OE-09. The SAP virtual machines listed had a failed patch installation in the last 30 days. Review the Update Manager run, fix the cause, and confirm the OS, database and SAP kernel releases remain uniform across the landscape."
+    manual: false
+  - id: WAF-SAP-OE-10
+    title: "WAF-SAP-OE-10. Support prerequisites and supported release combinations are reviewed on a cadence"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-SAP-OE-10. Confirm the required Microsoft support contract for SAP on Azure is in place (SAP note 2015553), that SAP, OS and DBMS release combinations are supported on the chosen VM types, and that a design review with the SAP partner and Microsoft recurs at each project milestone."
+    manual: true
+
+  # ---- Performance efficiency (WAF-SAP-PE) --------------------------------------------------
+  - id: WAF-SAP-PE-01
+    title: "WAF-SAP-PE-01. SAP virtual machines have no Standard HDD data disks"
+    severity: medium
+    join:
+      left: "$.discovery.Resources[?(@.Type =~ /^microsoft.workloads.sapvirtualinstances.(central|database|application)instances$/i)].Properties.vmDetails[*]"
+      leftKey: "virtualMachineId"
+      right: "$.discovery.Resources[?(@.Type =~ /^microsoft.compute.virtualmachines$/i && @.Properties.storageProfile.dataDisks[?(@.managedDisk.storageAccountType == 'Standard_LRS')])]"
+      rightKey: "Id"
+      mode: leftMatched
+      leftLabel: "SAP instance virtual machine"
+      rightLabel: "virtual machine with a Standard HDD data disk"
+    assert: { type: countEquals, value: 0, gate: "$.discovery.Resources[?(@.Type =~ /^microsoft.workloads.sapvirtualinstances.(central|database|application)instances$/i)].Properties.vmDetails[*]" }
+    remediation: "WAF-SAP-PE-01. The SAP virtual machines listed have Standard HDD data disks. Microsoft does not recommend Standard HDD for SAP; use at least Standard SSD for application layers and non-performance-sensitive databases, and Premium SSD, Premium SSD v2 or NetApp Files for production database data and log."
+    manual: false
+  - id: WAF-SAP-PE-02
+    title: "WAF-SAP-PE-02. SAP virtual machines have no Standard HDD operating-system disk"
+    severity: medium
+    join:
+      left: "$.discovery.Resources[?(@.Type =~ /^microsoft.workloads.sapvirtualinstances.(central|database|application)instances$/i)].Properties.vmDetails[*]"
+      leftKey: "virtualMachineId"
+      right: "$.discovery.Resources[?(@.Type =~ /^microsoft.compute.virtualmachines$/i && @.Properties.storageProfile.osDisk.managedDisk.storageAccountType == 'Standard_LRS')]"
+      rightKey: "Id"
+      mode: leftMatched
+      leftLabel: "SAP instance virtual machine"
+      rightLabel: "virtual machine with a Standard HDD OS disk"
+    assert: { type: countEquals, value: 0, gate: "$.discovery.Resources[?(@.Type =~ /^microsoft.workloads.sapvirtualinstances.(central|database|application)instances$/i)].Properties.vmDetails[*]" }
+    remediation: "WAF-SAP-PE-02. The SAP virtual machines listed boot from Standard HDD. Move the OS disk to Standard SSD or Premium SSD; the disk type also changes the single-VM availability SLA."
+    manual: false
+  - id: WAF-SAP-PE-03
+    title: "WAF-SAP-PE-03. Production database storage uses Premium SSD, Premium SSD v2, Ultra Disk or NetApp Files"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-SAP-PE-03. Confirm every production-grade SAP environment uses Premium SSD, Premium SSD v2 or Azure NetApp Files for database data and log areas, and that disk and VM-level bursting was considered when sizing."
+    manual: true
+  - id: WAF-SAP-PE-04
+    title: "WAF-SAP-PE-04. Disk striping, caching and Write Accelerator follow the DBMS guidance"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-SAP-PE-04. Confirm data and log areas are striped across multiple disks with the right stripe size (LVM on Linux, Storage Spaces on Windows), that only disks holding DBMS online logs use no caching plus Write Accelerator, and that other Premium disks use None or ReadOnly caching as the DBMS guide requires."
+    manual: true
+  - id: WAF-SAP-PE-05
+    title: "WAF-SAP-PE-05. Accelerated networking is enabled on every network interface of every SAP virtual machine"
+    severity: medium
+    join:
+      left: "$.discovery.Resources[?(@.Type =~ /^microsoft.workloads.sapvirtualinstances.(central|database|application)instances$/i)].Properties.vmDetails[*]"
+      leftKey: "virtualMachineId"
+      right: "$.discovery.Resources[?(@.Type =~ /^microsoft.network.networkinterfaces$/i && @.Properties.enableAcceleratedNetworking == false)].Properties.virtualMachine"
+      rightKey: "id"
+      mode: leftMatched
+      leftLabel: "SAP instance virtual machine"
+      rightLabel: "virtual machine with a network interface that has accelerated networking off"
+    assert: { type: countEquals, value: 0, numeratorKey: Key, gate: "$.discovery.Resources[?(@.Type =~ /^microsoft.workloads.sapvirtualinstances.(central|database|application)instances$/i)].Properties.vmDetails[*]" }
+    remediation: "WAF-SAP-PE-05. The SAP virtual machines listed have a network interface with accelerated networking turned off. Enable it on every interface used for SAP; it is required for the network latency SAP expects between the application and database layers."
+    manual: false
+  - id: WAF-SAP-PE-06
+    title: "WAF-SAP-PE-06. Network latency between application and database layers was measured and is in an acceptable range"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-SAP-PE-06. Confirm latency was measured with niping (not ping) per SAP notes 500235 and 1100926, that zone choice for the database and application layers rests on measured cross-zone latency, and that proximity placement groups are used only where the placement guidance allows."
+    manual: true
+  - id: WAF-SAP-PE-07
+    title: "WAF-SAP-PE-07. VM sizes are SAP-certified, sized from measured demand, and tested for storage and network limits"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-SAP-PE-07. Confirm the VM types appear in SAP note 1928533 and the SAP HANA hardware directory, were sized from SAP Quicksizer or measured SAPS, were checked against each VM's uncached disk and network throughput limits, and that generation 2 VMs are used throughout the landscape."
+    manual: true

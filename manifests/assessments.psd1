@@ -220,6 +220,122 @@
         Tags = @('waf', 'avd', 'workload-review'); Reporters = @('Html', 'Excel')
     }
 
+    # ---- Microsoft workload, technology and service reviews (AB#9300 phase 2) ----
+    # Each is a Microsoft assessment Scout did not have. Microsoft publishes none of their question
+    # text, so every item is Scout's reading of the named guidance (see each docs/frameworks page).
+    # Automated items are gated on their resources, so an estate without them reports Not assessed.
+    'Workload: SAP on Azure' = @{
+        Description = 'SAP on Azure workload review -- 38 items across all 5 WAF pillars from Microsoft''s current SAP on Azure guidance; registered virtual instances, instance VMs, load balancers, backup, Azure Monitor for SAP solutions, disks and networking. SAP not registered with Azure Center for SAP solutions is answered through the questionnaire'
+        Category    = 'Compute'; Collect = @('Compute', 'Networking', 'Storage', 'Security', 'Management', 'Monitor'); Ingest = @()
+        Rules = @('waf.sap'); Frameworks = @('WAF: SAP on Azure workload')
+        Tags = @('waf', 'sap', 'workload-review'); Reporters = @('Html', 'Excel')
+    }
+    'Workload: Oracle on Azure IaaS' = @{
+        Description = 'Oracle on Azure IaaS workload review -- 34 items across all 5 WAF pillars from Microsoft''s Oracle on Azure VM guidance; automated checks cover VMs built from Oracle Marketplace images, the rest is answered through the questionnaire. Not Oracle Database@Azure'
+        Category    = 'Compute'; Collect = @('Compute', 'Networking', 'Storage', 'Security', 'Management', 'Monitor'); Ingest = @()
+        Rules = @('waf.oracle'); Frameworks = @('WAF: Oracle on Azure IaaS workload')
+        Tags = @('waf', 'oracle', 'workload-review'); Reporters = @('Html', 'Excel')
+    }
+    'WAF: Azure Machine Learning' = @{
+        Description = 'Azure Machine Learning technology review (Well-Architected service guide) -- 44 items across all 5 pillars; workspace network isolation, public access, private endpoints, identity; see docs/frameworks/waf-machine-learning-checklist.md'
+        Category    = 'AI'; Collect = @('AI', 'Networking', 'Storage', 'Monitor', 'Management', 'FinOps'); Ingest = @('Governance')
+        Rules = @('waf.machinelearning'); Frameworks = @('WAF: Azure Machine Learning')
+        Tags = @('waf', 'ai', 'machine-learning', 'technology-review'); Reporters = @('Html', 'Excel')
+    }
+    'WAF: Azure AI Search' = @{
+        Description = 'Azure AI Search technology review (no Microsoft service guide; Scout reading of the product reliability, security, cost and performance articles) -- 37 items across all 5 pillars; tier, replicas, public access, private endpoints, key authentication'
+        Category    = 'AI'; Collect = @('AI', 'Networking', 'Monitor', 'Management'); Ingest = @('Governance')
+        Rules = @('waf.aisearch'); Frameworks = @('WAF: Azure AI Search')
+        Tags = @('waf', 'ai', 'search', 'technology-review'); Reporters = @('Html', 'Excel')
+    }
+    'WAF: Analytics' = @{
+        Description = 'Analytics technology review (Well-Architected guides for Azure Databricks, Event Hubs, Log Analytics and Microsoft Fabric) -- 74 items across all 5 pillars; see docs/frameworks/waf-analytics-checklist.md'
+        Category    = 'Analytics'; Collect = @('Analytics', 'Integration', 'Management', 'Monitor', 'Networking', 'Security', 'FinOps'); Ingest = @('Governance')
+        Rules = @('waf.analytics'); Frameworks = @('WAF: Analytics')
+        Tags = @('waf', 'analytics', 'technology-review'); Reporters = @('Html', 'Excel')
+    }
+    'WAF: Data Services' = @{
+        Description = 'Data Services technology review (Well-Architected guides for Azure SQL Database, SQL Managed Instance, Cosmos DB, PostgreSQL, MySQL, Azure Managed Redis, HorizonDB and Blob Storage) -- 100 items across all 5 pillars; see docs/frameworks/waf-data-services-checklist.md'
+        Category    = 'Databases'; Collect = @('Databases', 'Storage', 'Networking', 'Security', 'Monitor', 'Management', 'FinOps'); Ingest = @('Governance')
+        Rules = @('waf.dataservices'); Frameworks = @('WAF: Data Services')
+        Tags = @('waf', 'databases', 'storage', 'technology-review'); Reporters = @('Html', 'Excel')
+    }
+    'WAF: Mission Critical' = @{
+        Description = 'Mission-critical workload review -- 81 items across the 8 design areas of Microsoft''s mission-critical guidance (application design, platform, data platform, networking, health modeling, deployment and testing, security, operations); 41 scored from collected data, 40 questionnaire items. Scout''s reading of the guidance; Microsoft does not publish the assessment''s questions'
+        Category    = '*'; Collect = @('Compute', 'Networking', 'Security', 'Storage', 'Databases', 'Containers', 'Web', 'Integration', 'Monitor', 'Management', 'DevOps', 'Identity'); Ingest = @('Governance')
+        Rules = @('waf.missioncritical'); Frameworks = @('WAF: Mission-critical workload')
+        Tags = @('waf', 'mission-critical', 'workload-review'); Reporters = @('Html', 'Excel')
+    }
+    'WAF: Sustainability' = @{
+        Description = 'Sustainability workload review -- 67 items from the five pillar sustainability recommendation pages and sustainable AI design; idle and orphaned resources, autoscale, edge protections and Advisor cost findings are scored, carbon and application-efficiency items are questionnaire items. Scout''s reading of the guidance'
+        Category    = '*'; Collect = @('Compute', 'Networking', 'Security', 'Storage', 'Databases', 'Web', 'Integration', 'Monitor', 'Management', 'Cost', 'FinOps', 'DevOps', 'AI'); Ingest = @('Governance', 'AdvisorScores')
+        Rules = @('waf.sustainability'); Frameworks = @('WAF: Sustainability workload')
+        Tags = @('waf', 'sustainability', 'workload-review'); Reporters = @('Html', 'Excel')
+    }
+    'WAF: Go-Live' = @{
+        Description = 'Go-live readiness review -- 57 launch-gate items from the five Well-Architected design review checklists (SLOs and DR, security baseline, monitoring and alerting, cost guardrails, safe deployment, performance). Microsoft publishes only a landing page for its Go-Live assessment, so this is Scout''s own review, not comparable to it'
+        Category    = '*'; Collect = @('Compute', 'Networking', 'Security', 'Storage', 'Databases', 'Containers', 'Web', 'AI', 'Monitor', 'Management', 'Cost', 'FinOps', 'DevOps'); Ingest = @('Governance', 'AdvisorScores')
+        Rules = @('waf.golive'); Frameworks = @('WAF: Go-live readiness')
+        Tags = @('waf', 'go-live', 'workload-review'); Reporters = @('Html', 'Excel')
+    }
+    # ---- Questionnaire-led Microsoft assessments (AB#9300 phase 3) ----
+    # Microsoft does not publish these assessments' questions. Every item is Scout-derived from the
+    # published guidance; most are organisational questions answered through -AssessmentAnswers.
+    'Workload: SaaS' = @{
+        Description = 'Azure Well-Architected SaaS workload review -- 108 Scout-derived items (95 questionnaire items, 13 automated checks) across the SaaS design areas: billing and cost, governance, resource organization, identity, compute, networking, data, DevOps, incident management and AI strategy. Microsoft does not publish the assessment''s questions (see docs/frameworks/waf-saas-checklist.md)'
+        Category    = '*'; Collect = @('Compute', 'Containers', 'Databases', 'Storage', 'Networking', 'Security', 'Identity', 'AI', 'Integration', 'Analytics', 'Management', 'Monitor', 'Cost'); Ingest = @('Governance')
+        Rules = @('waf.saas'); Frameworks = @('WAF: SaaS workload')
+        Tags = @('waf', 'saas', 'workload-review', 'questionnaire'); Reporters = @('Html', 'Excel')
+    }
+    'Microsoft: AI Readiness' = @{
+        Description = 'AI Readiness Assessment -- 64 Scout-derived items (53 questionnaire items, 11 automated checks) across Microsoft''s seven pillars: Business Strategy, AI Governance & Security, Data Foundations, AI Strategy & Experience, Organization & Culture, Infrastructure for AI, Model Management. Microsoft does not publish the questions; items are Scout''s reading of the CAF AI adoption and AI agent guidance'
+        Category    = 'AI'; Collect = @('AI', 'Analytics', 'Security', 'Networking', 'Storage', 'Management', 'Monitor'); Ingest = @('Governance')
+        Rules = @('ai.readiness'); Frameworks = @('AI: Readiness (7 pillars)')
+        Tags = @('ai', 'readiness', 'caf-ai', 'questionnaire'); Reporters = @('Html', 'Excel')
+    }
+    'Microsoft: Generative AI Technical' = @{
+        Description = 'Technical Assessment for Generative AI in Azure -- 50 Scout-derived items (40 questionnaire items, 10 automated checks): team skills, solution design, grounding data, security, responsible AI, reliability, operations and cost. Microsoft does not publish the questions; items are Scout''s reading of the WAF AI workload and Microsoft Foundry guidance'
+        Category    = 'AI'; Collect = @('AI', 'Analytics', 'Integration', 'Security', 'Networking', 'Management', 'Monitor'); Ingest = @('Governance')
+        Rules = @('genai.technical'); Frameworks = @('AI: Generative AI technical readiness')
+        Tags = @('ai', 'generative-ai', 'foundry', 'questionnaire'); Reporters = @('Html', 'Excel')
+    }
+    'Microsoft: GenAIOps Maturity' = @{
+        Description = 'GenAIOps Maturity Model Assessment -- 30 Scout-derived items (28 questionnaire items, 2 automated checks): four maturity levels (initial, defined, managed, optimized) across seven dimensions. Scout reports the share of statements met per dimension and does not reproduce Microsoft''s 0-28 points'
+        Category    = 'AI'; Collect = @('AI', 'Security', 'Management', 'Monitor'); Ingest = @('Governance')
+        Rules = @('genaiops.maturity'); Frameworks = @('AI: GenAIOps maturity')
+        Tags = @('ai', 'genaiops', 'llmops', 'maturity', 'questionnaire'); Reporters = @('Html', 'Excel')
+    }
+    'Microsoft: Platform Engineering' = @{
+        Description = 'Platform Engineering Technical Assessment -- Microsoft''s Platform Engineering Capability Model (investment, adoption, governance, provisioning and management, interfaces, measurement and feedback), 36 items; Scout-derived questions (Microsoft does not publish the text). 30 are questionnaire items; 6 read Azure Policy, role assignments, budgets, deployment records and Azure DevOps pipelines'
+        Category    = '*'; Collect = @('DevOps', 'Management', 'Monitor'); Ingest = @('Governance', 'DevOpsCapability')
+        Rules = @('platform.engineering'); Frameworks = @('Platform Engineering Capability Model: 6 capabilities')
+        Tags = @('platform-engineering', 'devops', 'questionnaire', 'inferred-enumeration'); Reporters = @('Html', 'Excel')
+    }
+    'Microsoft: Analytics Journey Tracker' = @{
+        Description = 'Analytics Journey Tracker -- data and analytics capability against the CAF unified data platform guidance and the Microsoft Fabric adoption roadmap, 52 items in 7 areas; Scout-derived questions and areas (Microsoft names five maturity levels but publishes neither pillars nor questions). 47 are questionnaire items; 5 check Data Factory and Synapse settings'
+        Category    = '*'; Collect = @('Analytics', 'Networking', 'Databases', 'AI', 'FinOps'); Ingest = @()
+        Rules = @('analytics.journey'); Frameworks = @('Analytics Journey Tracker: 7 areas (Scout-derived)')
+        Tags = @('analytics', 'data', 'fabric', 'questionnaire', 'inferred-enumeration'); Reporters = @('Html', 'Excel')
+    }
+    'Microsoft: App and Data Modernization' = @{
+        Description = 'App and Data Modernization Readiness Tool -- readiness against the Azure App Modernization Guidance, 62 items in 9 areas; Scout-derived questions (Microsoft does not publish the text). 52 are questionnaire items; 10 read IaC deployments, diagnostics, Azure DevOps, SQL, web app and policy settings. On-premises applications are not visible to Scout'
+        Category    = '*'; Collect = @('Compute', 'Networking', 'Hybrid', 'Databases', 'Web', 'Analytics', 'AI', 'Integration', 'Security', 'Management', 'Monitor', 'DevOps'); Ingest = @('Governance', 'DevOpsCapability')
+        Rules = @('appmod.readiness'); Frameworks = @('App and Data Modernization Readiness: 9 areas (Scout-derived)')
+        Tags = @('modernization', 'readiness', 'questionnaire', 'inferred-enumeration'); Reporters = @('Html', 'Excel')
+    }
+    'Microsoft: Well-Architected Reliability Assessment' = @{
+        Description = 'Well-Architected Reliability Assessment (WARA) from the data Scout already collected, backed by the Azure Proactive Resiliency Library (APRL) -- 31 items across compute, containers, web, databases, storage, backup, networking and integration: zones, redundancy SKUs, backup coverage, Key Vault protection, gateway and load-balancer SKUs'
+        Category    = '*'; Collect = @('Compute', 'Storage', 'Networking', 'Containers', 'Web', 'Databases', 'Security', 'Integration', 'Management'); Ingest = @()
+        Rules = @('wara.reliability'); Frameworks = @('WARA: Reliability (WARA / APRL)')
+        Tags = @('wara', 'aprl', 'reliability', 'microsoft'); Reporters = @('Html', 'Excel')
+    }
+    'Microsoft: Azure Advisor' = @{
+        Description = 'Azure Advisor recommendations scored by category (Reliability, Security, Performance, Cost, Operational excellence) and impact, with service-retirement notices and the Advisor score -- 15 items; reports Not assessed when Advisor was skipped'
+        Category    = 'Management'; Collect = @('Management', 'Monitor'); Ingest = @('AdvisorScores')
+        Rules = @('advisor.recommendations'); Frameworks = @('ADVISOR: Azure Advisor')
+        Tags = @('advisor', 'microsoft', 'recommendations'); Reporters = @('Html', 'Excel')
+    }
+
     # ---- finer sub-bundles inside a category ----
     # 'Policy' used to sit here too, byte-identical to 'Governance' (same Category, Collect,
     # Ingest, Rules, Frameworks — literally the same assessment under two names). Removed by

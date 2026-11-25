@@ -1,0 +1,313 @@
+# waf.oracle.yaml — Oracle on Azure IaaS workload assessment (AB#9300)
+#
+# Scores the scope of Microsoft's "Azure Well-Architected Oracle on Azure IaaS workload" assessment
+# (learn.microsoft.com/assessments/d3acb4d8-8045-4635-9a31-0bcb3b10724a): Oracle software running on
+# Azure virtual machines that the customer manages. It is NOT Oracle Database@Azure
+# (oracle.database/*), which is an OCI-managed service in Azure datacenters and has its own
+# resources, so it is out of scope here.
+#
+# Written ONLY against docs/frameworks/waf-oracle-iaas-workload-checklist.md. Microsoft does not
+# publish that assessment's question text, and the well-architected/oracle-iaas/* pages now
+# redirect to the Oracle on Azure product documentation, so every item is Scout's reading of the
+# live Oracle-on-Azure-VM guidance named per row in the enumeration.
+#
+# HOW AN ORACLE VM IS RECOGNISED. ARM cannot say "this VM runs an Oracle database". The only
+# control-plane signal Scout reads is the Azure Marketplace image: a VM built from an image whose
+# publisher is Oracle (Oracle Linux, Oracle Database images), taken from the universal discovery
+# index (`$.discovery.Resources[*]`, AB#7366) at `Properties.storageProfile.imageReference.publisher`.
+# An Oracle database on Red Hat, another endorsed distribution, or a custom image is invisible to
+# every automated rule, which then reports Not assessed rather than a pass. An Oracle Linux VM that
+# runs no Oracle software would be scored, so each remediation says the rule keys on the image.
+# No Oracle-specific projection exists yet and none is invented here.
+#
+# Every automated rule is gated on at least one Oracle-image VM being present, so an estate without
+# one reports them Not assessed. Everything that depends on the database itself (Data Guard, RMAN,
+# AWR sizing, Oracle licensing, ASM) is manual. The JSONPath notes in waf.sap.yaml apply here too.
+area: "Oracle on Azure IaaS workload"
+framework: WAF-ORACLE
+frameworkversion: "Azure Well-Architected Oracle on Azure IaaS workload assessment (questions unpublished) + Oracle on Azure virtual machines guidance on Microsoft Learn (overview, reference architectures, backup strategies, design and performance best practice), docs/frameworks/waf-oracle-iaas-workload-checklist.md, verified 2026-11-25 (34 items)"
+weight: 1.0
+verifiedAgainst: "docs/frameworks/waf-oracle-iaas-workload-checklist.md (Scout enumeration of learn.microsoft.com/azure/virtual-machines/workloads/oracle/*), verified 2026-11-25"
+rules:
+  # ---- Reliability (WAF-ORA-RE) -------------------------------------------------------------
+  - id: WAF-ORA-RE-01
+    title: "WAF-ORA-RE-01. Oracle virtual machines are deployed to availability zones in zone-capable regions"
+    severity: high
+    join:
+      left: "$.discovery.Resources[?(@.Type =~ /^microsoft.compute.virtualmachines$/i && @.Properties.storageProfile.imageReference.publisher =~ /^oracle$/i)]"
+      leftKey: "Id"
+      right: "$.compute.virtualMachines[?(@.zoneEligible == true && @.zoneRedundant == false)]"
+      rightKey: "id"
+      mode: leftMatched
+      leftLabel: "Oracle-image virtual machine"
+      rightLabel: "virtual machine with no zone, in a region that has zones"
+    assert: { type: countEquals, value: 0, gate: "$.discovery.Resources[?(@.Type =~ /^microsoft.compute.virtualmachines$/i && @.Properties.storageProfile.imageReference.publisher =~ /^oracle$/i)]" }
+    remediation: "WAF-ORA-RE-01. The virtual machines listed use an Oracle-published image and have no availability zone in a region that supports zones. Microsoft's Oracle reference architecture spreads the database VMs across zones (99.99% VM SLA with Data Guard or GoldenGate) and falls back to availability sets (99.95%) only where zones are not available. The rule keys on the Marketplace image, so confirm the VM actually hosts Oracle."
+    manual: false
+  - id: WAF-ORA-RE-02
+    title: "WAF-ORA-RE-02. Database high availability uses Data Guard or GoldenGate across separate zones, not Oracle RAC alone"
+    severity: high
+    query: "$.discovery.Resources[?(@.Type =~ /^microsoft.compute.virtualmachines$/i && @.Properties.storageProfile.imageReference.publisher =~ /^oracle$/i)]"
+    assert: { type: manual }
+    remediation: "WAF-ORA-RE-02. Oracle-image virtual machines are attached as evidence. Confirm two database VMs in the same virtual network, in separate zones or fault domains, replicate with Data Guard (Fast-Start Failover with two observers on lightweight VMs in separate zones) or GoldenGate. RAC protects only against instance failure, and Oracle RAC is not supported on Azure."
+    manual: true
+  - id: WAF-ORA-RE-03
+    title: "WAF-ORA-RE-03. A disaster-recovery standby exists in another region, with Far Sync where zero data loss over distance is needed"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ORA-RE-03. Confirm a standby database runs in the paired region (Data Guard, or GoldenGate or a third-party tool for Standard Edition) and that Active Data Guard Far Sync is deployed on its own VM where zero data loss across regions is required. Far Sync needs an Active Data Guard licence."
+    manual: true
+  - id: WAF-ORA-RE-04
+    title: "WAF-ORA-RE-04. A backup strategy is in place and restores are tested"
+    severity: high
+    query: "$.management.backupProtectedItems[*]"
+    assert: { type: manual }
+    remediation: "WAF-ORA-RE-04. Azure Backup protected items are attached (estate-wide). Confirm database backups exist by RMAN to Azure Files or Blob, application-consistent Azure Backup snapshots (database in archive log mode), or Azure NetApp Files snapshots orchestrated with AzAcSnap, and that restores were rehearsed against the RTO and RPO. RMAN backups are invisible to ARM."
+    manual: true
+  - id: WAF-ORA-RE-05
+    title: "WAF-ORA-RE-05. Backups survive a regional outage"
+    severity: medium
+    query: "$.management.recoveryVaults[*]"
+    assert: { type: manual }
+    remediation: "WAF-ORA-RE-05. Recovery Services vaults are attached (estate-wide). Confirm backups are stored geo-redundantly (GRS or GZRS, vault with Cross Region Restore, or NetApp Files cross-region replication or backup) unless Data Guard already covers regional loss. Vault redundancy cannot be changed after items are protected."
+    manual: true
+  - id: WAF-ORA-RE-06
+    title: "WAF-ORA-RE-06. The application tier uses cloud-native resilience patterns"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ORA-RE-06. Confirm the application tier uses retry and circuit-breaker patterns so a database failover or a transient network fault does not become an outage, and is load-balanced across the database tier's zones."
+    manual: true
+
+  # ---- Security (WAF-ORA-SE) ----------------------------------------------------------------
+  - id: WAF-ORA-SE-01
+    title: "WAF-ORA-SE-01. Oracle virtual machines have no public IP address"
+    severity: high
+    join:
+      left: "$.discovery.Resources[?(@.Type =~ /^microsoft.compute.virtualmachines$/i && @.Properties.storageProfile.imageReference.publisher =~ /^oracle$/i)]"
+      leftKey: "Id"
+      right: "$.discovery.Resources[?(@.Type =~ /^microsoft.network.networkinterfaces$/i && @.Properties.ipConfigurations[?(@.properties.publicIPAddress.id =~ /./)])].Properties.virtualMachine"
+      rightKey: "id"
+      mode: leftMatched
+      leftLabel: "Oracle-image virtual machine"
+      rightLabel: "virtual machine with a network interface that has a public IP"
+    assert: { type: countEquals, value: 0, numeratorKey: Key, gate: "$.discovery.Resources[?(@.Type =~ /^microsoft.compute.virtualmachines$/i && @.Properties.storageProfile.imageReference.publisher =~ /^oracle$/i)]" }
+    remediation: "WAF-ORA-SE-01. The virtual machines listed use an Oracle-published image and have a public IP address on a network interface. Administrators should not connect straight to the database or application servers; remove the public IP and reach the VM through a bastion host or jumpbox with IP-restricted access."
+    manual: false
+  - id: WAF-ORA-SE-02
+    title: "WAF-ORA-SE-02. Microsoft Defender for Servers is enabled"
+    severity: high
+    query: "$.security.defenderPlans[?(@.name == 'VirtualMachines' && @.properties.pricingTier != 'Standard')]"
+    assert: { type: countEquals, value: 0, gate: "$.discovery.Resources[?(@.Type =~ /^microsoft.compute.virtualmachines$/i && @.Properties.storageProfile.imageReference.publisher =~ /^oracle$/i)]" }
+    remediation: "WAF-ORA-SE-02. Defender for Servers is not on the Standard tier in the subscriptions listed. Enable it for subscriptions that host Oracle virtual machines to get OS configuration checks, missing-update detection, endpoint protection recommendations, vulnerability assessment and threat detection. (Checked per subscription, not per VM.)"
+    manual: false
+  - id: WAF-ORA-SE-03
+    title: "WAF-ORA-SE-03. Oracle virtual machines are assessed for operating-system updates automatically"
+    severity: medium
+    join:
+      left: "$.discovery.Resources[?(@.Type =~ /^microsoft.compute.virtualmachines$/i && @.Properties.storageProfile.imageReference.publisher =~ /^oracle$/i)]"
+      leftKey: "Id"
+      right: "$.compute.virtualMachines[?(@.assessmentMode != 'AutomaticByPlatform')]"
+      rightKey: "id"
+      mode: leftMatched
+      leftLabel: "Oracle-image virtual machine"
+      rightLabel: "virtual machine without periodic update assessment"
+    assert: { type: countEquals, value: 0, gate: "$.discovery.Resources[?(@.Type =~ /^microsoft.compute.virtualmachines$/i && @.Properties.storageProfile.imageReference.publisher =~ /^oracle$/i)]" }
+    remediation: "WAF-ORA-SE-03. The virtual machines listed are not on periodic update assessment. Turn it on in Azure Update Manager so missing OS patches are visible, and schedule installation in a maintenance window."
+    manual: false
+  - id: WAF-ORA-SE-04
+    title: "WAF-ORA-SE-04. Administrators reach database VMs only through a bastion host or jumpbox"
+    severity: high
+    query: "$.networking.nsgPublicInbound[*]"
+    assert: { type: manual }
+    remediation: "WAF-ORA-SE-04. NSG rules open to the internet are listed (estate-wide). Confirm none expose SSH or the listener port to the internet for Oracle subnets, and that administrators use Azure Bastion or an IP-restricted jumpbox that alone can reach the application and database tiers."
+    manual: true
+  - id: WAF-ORA-SE-05
+    title: "WAF-ORA-SE-05. Application and database tiers sit in separate subnets under subnet-level NSG policy"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ORA-SE-05. Confirm the application service and the database are on separate subnets and that NSG policy is defined at the subnet level, where it is simpler to control and to force-route through application firewalls."
+    manual: true
+  - id: WAF-ORA-SE-06
+    title: "WAF-ORA-SE-06. Data at rest and in transit is encrypted, including backup media"
+    severity: medium
+    query: "$.domains.storage.diskEncryptionSets[*]"
+    assert: { type: manual }
+    remediation: "WAF-ORA-SE-06. Disk encryption sets are attached as evidence. Confirm managed-disk encryption (platform or customer-managed keys), Oracle Transparent Data Encryption and SQL*Net encryption, and that backup storage uses SMB 3.0 (encryption in transit) or an NFS-mounted storage account locked to a virtual network."
+    manual: true
+  - id: WAF-ORA-SE-07
+    title: "WAF-ORA-SE-07. Azure RBAC gives each team the least privilege it needs on Oracle resources"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ORA-SE-07. Confirm database administrators, application owners and platform teams each hold only the Azure roles they need on the Oracle resource groups and storage, assigned to groups rather than individuals."
+    manual: true
+
+  # ---- Cost optimization (WAF-ORA-CO) -------------------------------------------------------
+  - id: WAF-ORA-CO-01
+    title: "WAF-ORA-CO-01. VM size was derived from AWR or Statspack and uses constrained vCPU sizes where core count drives licence cost"
+    severity: medium
+    query: "$.discovery.Resources[?(@.Type =~ /^microsoft.compute.virtualmachines$/i && @.Properties.storageProfile.imageReference.publisher =~ /^oracle$/i)]"
+    assert: { type: manual }
+    remediation: "WAF-ORA-CO-01. Oracle-image virtual machines are attached as evidence. Confirm each size came from measured CPU, memory and I/O (AWR for Enterprise Edition, Statspack otherwise) and that constrained-core vCPU sizes are used for databases needing high memory and I/O bandwidth but not high core count, since Oracle licenses by core."
+    manual: true
+  - id: WAF-ORA-CO-02
+    title: "WAF-ORA-CO-02. Oracle licence entitlement matches the deployed vCPUs under the bring-your-own-licence model"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ORA-CO-02. Confirm a current Oracle licence and support agreement covers the deployment, and that vCPUs are counted the way Oracle's cloud policy states (two vCPUs per processor licence when hyper-threading is on). The Oracle core-factor table does not apply in Azure."
+    manual: true
+  - id: WAF-ORA-CO-03
+    title: "WAF-ORA-CO-03. Storage choice balances price and performance, with lower tiers for development and test"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ORA-CO-03. Confirm Premium SSD v2 (usually the best price per performance), Premium SSD, Ultra Disk, Elastic SAN or NetApp Files was chosen from the AWR I/O profile, and that D-series VMs and lower-tier disks are limited to small, development or test databases."
+    manual: true
+  - id: WAF-ORA-CO-04
+    title: "WAF-ORA-CO-04. Non-production Oracle VMs are deallocated when idle"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ORA-CO-04. Confirm development, test and clone environments (estimated at roughly half of production sizing) are shut down or scaled down outside working hours, since stopped VMs do not incur compute cost."
+    manual: true
+  - id: WAF-ORA-CO-05
+    title: "WAF-ORA-CO-05. Steady production capacity is covered by reservations or savings plans"
+    severity: medium
+    query: "$.finops.reservations[*]"
+    assert: { type: manual }
+    remediation: "WAF-ORA-CO-05. Reservations are attached as evidence (estate-wide). Confirm steady-state production database VMs are covered by Azure Reserved Instances or savings plans once sizing has stabilised."
+    manual: true
+
+  # ---- Operational excellence (WAF-ORA-OE) --------------------------------------------------
+  - id: WAF-ORA-OE-01
+    title: "WAF-ORA-OE-01. Oracle workloads are identifiable in Azure (tags, naming or Marketplace image)"
+    severity: medium
+    query: "$.compute.virtualMachines[?(@.name =~ /(^|[-_])(ora|oracle|oradb|odb)([-_0-9]|$)/i)]"
+    assert: { type: manual }
+    remediation: "WAF-ORA-OE-01. Virtual machines whose names suggest Oracle are attached as evidence (a naming guess, not proof). ARM cannot say which VMs run Oracle, and Scout scores automated Oracle checks only on VMs built from Oracle-published images, so tag Oracle database and application VMs so reviews and policy can find them."
+    manual: true
+  - id: WAF-ORA-OE-02
+    title: "WAF-ORA-OE-02. Azure Monitor with VM insights collects the disk metrics Oracle needs"
+    severity: high
+    query: "$.monitor.dataCollectionRules[*]"
+    assert: { type: manual }
+    remediation: "WAF-ORA-OE-02. Data collection rules are attached (estate-wide). Confirm VM insights is enabled on Oracle VMs and that OS and data disk IOPS-consumed percentage, read and write bytes per second, queue depth and per-LUN bandwidth are monitored."
+    manual: true
+  - id: WAF-ORA-OE-03
+    title: "WAF-ORA-OE-03. Oracle Enterprise Manager provides database-layer monitoring on its own virtual machine"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ORA-OE-03. Confirm Oracle Enterprise Manager is deployed on a separate VM for database management, monitoring and logging, alongside Azure Monitor."
+    manual: true
+  - id: WAF-ORA-OE-04
+    title: "WAF-ORA-OE-04. Alerts cover disk saturation and Azure Service Health for the Oracle regions"
+    severity: medium
+    query: "$.monitor.metricAlertRules[*]"
+    assert: { type: manual }
+    remediation: "WAF-ORA-OE-04. Metric alert rules are attached (estate-wide). Confirm alerts exist on disk IOPS consumed, queue depth and bandwidth for Oracle VMs, and that Service Health alerts cover their regions."
+    manual: true
+  - id: WAF-ORA-OE-05
+    title: "WAF-ORA-OE-05. No update installation has failed on an Oracle virtual machine"
+    severity: medium
+    join:
+      left: "$.discovery.Resources[?(@.Type =~ /^microsoft.compute.virtualmachines$/i && @.Properties.storageProfile.imageReference.publisher =~ /^oracle$/i)]"
+      leftKey: "Id"
+      right: "$.updateManager.patchInstallations[?(@.status == 'Failed')]"
+      rightKey: "machineId"
+      mode: leftMatched
+      leftLabel: "Oracle-image virtual machine"
+      rightLabel: "failed update installation"
+    assert: { type: countEquals, value: 0, gate: "$.discovery.Resources[?(@.Type =~ /^microsoft.compute.virtualmachines$/i && @.Properties.storageProfile.imageReference.publisher =~ /^oracle$/i)]" }
+    remediation: "WAF-ORA-OE-05. The Oracle-image virtual machines listed had a failed patch installation in the last 30 days. Review the Update Manager run and fix the cause; two servers in different zones should never be patched at the same time."
+    manual: false
+  - id: WAF-ORA-OE-06
+    title: "WAF-ORA-OE-06. Database patching and maintenance are automated and scheduled to minimise downtime"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ORA-OE-06. Confirm Oracle patching is automated and scheduled (Azure Pipelines, Azure Automation or equivalent), ideally with blue-green or rolling approaches across the Data Guard pair."
+    manual: true
+  - id: WAF-ORA-OE-07
+    title: "WAF-ORA-OE-07. Infrastructure and database configuration are deployed as code"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ORA-OE-07. Confirm Terraform, Azure CLI or portal-driven templates build the Azure infrastructure and Ansible (or equivalent) configures the database inside the VM."
+    manual: true
+  - id: WAF-ORA-OE-08
+    title: "WAF-ORA-OE-08. File systems mount managed disks by device UUID, not device name"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ORA-OE-08. Confirm /etc/fstab uses UUIDs, because managed-disk device names can change on restart and break database mounts."
+    manual: true
+
+  # ---- Performance efficiency (WAF-ORA-PE) --------------------------------------------------
+  - id: WAF-ORA-PE-01
+    title: "WAF-ORA-PE-01. Oracle virtual machines have no Standard HDD or Standard SSD data disks"
+    severity: high
+    query: "$.discovery.Resources[?(@.Type =~ /^microsoft.compute.virtualmachines$/i && @.Properties.storageProfile.imageReference.publisher =~ /^oracle$/i && @.Properties.storageProfile.dataDisks[?(@.managedDisk.storageAccountType =~ /^Standard/i)])]"
+    assert: { type: countEquals, value: 0, gate: "$.discovery.Resources[?(@.Type =~ /^microsoft.compute.virtualmachines$/i && @.Properties.storageProfile.imageReference.publisher =~ /^oracle$/i)]" }
+    remediation: "WAF-ORA-PE-01. The Oracle-image virtual machines listed have Standard HDD or Standard SSD data disks. Microsoft recommends Premium SSD, Premium SSD v2 or Ultra Disk for Oracle workloads; size by IOPS and throughput, not capacity. Confirm the VM actually holds database files."
+    manual: false
+  - id: WAF-ORA-PE-02
+    title: "WAF-ORA-PE-02. Oracle virtual machines boot from a Premium SSD operating-system disk"
+    severity: medium
+    query: "$.discovery.Resources[?(@.Type =~ /^microsoft.compute.virtualmachines$/i && @.Properties.storageProfile.imageReference.publisher =~ /^oracle$/i && @.Properties.storageProfile.osDisk.managedDisk.storageAccountType =~ /^Standard/i)]"
+    assert: { type: countEquals, value: 0, gate: "$.discovery.Resources[?(@.Type =~ /^microsoft.compute.virtualmachines$/i && @.Properties.storageProfile.imageReference.publisher =~ /^oracle$/i)]" }
+    remediation: "WAF-ORA-PE-02. The Oracle-image virtual machines listed boot from Standard HDD or Standard SSD. Use Premium SSD with read-write host caching for the OS disk, and keep application and database files off it."
+    manual: false
+  - id: WAF-ORA-PE-03
+    title: "WAF-ORA-PE-03. No Oracle data disk uses read-write host caching"
+    severity: high
+    query: "$.discovery.Resources[?(@.Type =~ /^microsoft.compute.virtualmachines$/i && @.Properties.storageProfile.imageReference.publisher =~ /^oracle$/i && @.Properties.storageProfile.dataDisks[?(@.caching == 'ReadWrite')])]"
+    assert: { type: countEquals, value: 0, gate: "$.discovery.Resources[?(@.Type =~ /^microsoft.compute.virtualmachines$/i && @.Properties.storageProfile.imageReference.publisher =~ /^oracle$/i)]" }
+    remediation: "WAF-ORA-PE-03. The Oracle-image virtual machines listed have a data disk with read-write host caching. For Oracle, use ReadOnly for data files, temp files, control files and flashback logs and None for online redo logs; read-write caching can leave data-file writes only in the cache."
+    manual: false
+  - id: WAF-ORA-PE-04
+    title: "WAF-ORA-PE-04. Accelerated networking is enabled on every network interface of every Oracle virtual machine"
+    severity: medium
+    join:
+      left: "$.discovery.Resources[?(@.Type =~ /^microsoft.compute.virtualmachines$/i && @.Properties.storageProfile.imageReference.publisher =~ /^oracle$/i)]"
+      leftKey: "Id"
+      right: "$.discovery.Resources[?(@.Type =~ /^microsoft.network.networkinterfaces$/i && @.Properties.enableAcceleratedNetworking == false)].Properties.virtualMachine"
+      rightKey: "id"
+      mode: leftMatched
+      leftLabel: "Oracle-image virtual machine"
+      rightLabel: "virtual machine with a network interface that has accelerated networking off"
+    assert: { type: countEquals, value: 0, numeratorKey: Key, gate: "$.discovery.Resources[?(@.Type =~ /^microsoft.compute.virtualmachines$/i && @.Properties.storageProfile.imageReference.publisher =~ /^oracle$/i)]" }
+    remediation: "WAF-ORA-PE-04. The Oracle-image virtual machines listed have a network interface with accelerated networking turned off. Enable it for better network performance, since Azure network latency is higher than on-premises and round trips matter."
+    manual: false
+  - id: WAF-ORA-PE-05
+    title: "WAF-ORA-PE-05. VM series is memory optimised with a memory-to-vCore ratio suited to Oracle"
+    severity: medium
+    query: "$.discovery.Resources[?(@.Type =~ /^microsoft.compute.virtualmachines$/i && @.Properties.storageProfile.imageReference.publisher =~ /^oracle$/i)]"
+    assert: { type: manual }
+    remediation: "WAF-ORA-PE-05. Oracle-image virtual machines are attached as evidence. Confirm the series was chosen for the workload: E-series (Ebdsv5 first) for most databases, M-series for very large ones, D-series only for small, development or test databases, checked against the VM's own IOPS and throughput limits."
+    manual: true
+  - id: WAF-ORA-PE-06
+    title: "WAF-ORA-PE-06. Redo logs, temp and undo are on separate data disks with the right caching, and Write Accelerator or Ultra Disk is used for redo"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ORA-PE-06. Confirm data tablespaces are spread across several disks (managed-disk striping or Oracle ASM), redo, temp and undo sit on separate disks, no application files are on the OS disk, Write Accelerator is on the redo disk of M-series VMs, and high-latency redo moves to Ultra Disk."
+    manual: true
+  - id: WAF-ORA-PE-07
+    title: "WAF-ORA-PE-07. Disk performance was load-tested before the database was created and again under realistic load"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ORA-PE-07. Confirm storage was tested with Orion, fio, Sysbench or SLOB for latency and throughput, then re-tested with regular and peak workload, and that IOPS were taken from AWR (redo, physical reads and writes), not guessed from capacity."
+    manual: true
+  - id: WAF-ORA-PE-08
+    title: "WAF-ORA-PE-08. Guest and placement tuning follows the Oracle on Azure guidance"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "WAF-ORA-PE-08. Confirm huge pages are enabled with use_large_pages=ONLY, TRIM/UNMAP is on where the distribution supports it, chatty applications are consolidated to reduce round trips, and proximity placement groups are considered to cut latency between application and database."
+    manual: true

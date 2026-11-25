@@ -55,6 +55,14 @@ BeforeAll {
         # (January 2027). It spans plan, prepare, execute, optimise and decommission, so no single
         # CAF design area names it -- same reasoning as the SMART entry above.
         'CAF Migrate'
+        # AB#9300 phases 2-3: Microsoft's per-workload and per-technology reviews and its other
+        # assessments. Each spans several pillars or is not organised by pillar at all, so each
+        # carries its own framework axis rather than borrowing a pillar or design-area name.
+        'WAF-SAP', 'WAF-ORACLE', 'WAF-MC', 'WAF-SUS', 'WAF-GOLIVE'
+        'WAF-ML', 'WAF-AISEARCH', 'WAF-ANALYTICS', 'WAF-DATA'
+        'WARA', 'ADVISOR'
+        'WAF-SAAS', 'AI-READINESS', 'GENAI-TECH', 'GENAIOPS'
+        'PLATFORM-ENG', 'ANALYTICS-JOURNEY', 'APPMOD'
         'XR'
         'WAF-AI'
         'WAF-AVD'

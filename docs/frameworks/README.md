@@ -157,6 +157,24 @@ parallel record.
 | `waf-ai-workload-checklist.md` | WAF-AI | All ten AI workload design areas plus the AI architecture pattern, 63 items |
 | `waf-avd-azure-workload-checklist.md` | WAF-AVD | Azure Virtual Desktop in Azure, 30 items across the five pillars |
 | `waf-avd-workload-checklist.md` | WAF-AVD | Azure Virtual Desktop on Azure Local, 20 items |
+| `waf-mission-critical-checklist.md` | WAF-MC | Mission-critical workload, 8 design areas, 81 items |
+| `waf-sustainability-checklist.md` | WAF-SUS | Sustainability workload, 5 pillars plus sustainable AI, 67 items |
+| `waf-go-live-checklist.md` | WAF-GOLIVE | Go-live readiness from the 5 pillar checklists (Scout's own; Microsoft publishes no Go-Live questions), 57 items |
+| `waf-sap-workload-checklist.md` | WAF-SAP | SAP on Azure workload, 38 items |
+| `waf-oracle-iaas-workload-checklist.md` | WAF-ORACLE | Oracle on Azure IaaS (VMs) workload, 34 items |
+| `waf-machine-learning-checklist.md` | WAF-ML | Azure Machine Learning service guide, 44 items |
+| `waf-ai-search-checklist.md` | WAF-AISEARCH | Azure AI Search (no Microsoft service guide; product articles), 37 items |
+| `waf-analytics-checklist.md` | WAF-ANALYTICS | Databricks, Event Hubs, Log Analytics and Fabric guidance, 74 items |
+| `waf-data-services-checklist.md` | WAF-DATA | SQL, SQL MI, Cosmos DB, PostgreSQL, MySQL, Managed Redis, HorizonDB, Blob Storage guidance, 100 items |
+| `wara-aprl-checklist.md` | WARA | Well-Architected Reliability Assessment items from the Azure Proactive Resiliency Library, 31 items |
+| `advisor-recommendations.md` | ADVISOR | Azure Advisor recommendations by category and impact, 15 items |
+| `waf-saas-checklist.md` | WAF-SAAS | SaaS workload, 10 design areas, 108 items (Scout-derived) |
+| `ai-readiness-question-set.md` | AI-READINESS | AI Readiness, Microsoft's 7 pillars, 64 items (Scout-derived questions) |
+| `genai-technical-question-set.md` | GENAI-TECH | Technical Assessment for Generative AI, 50 items (Scout-derived) |
+| `genaiops-maturity-question-set.md` | GENAIOPS | GenAIOps maturity, 7 dimensions x 4 levels, 30 items (Scout-derived) |
+| `platform-engineering-question-set.md` | PLATFORM-ENG | Platform Engineering Capability Model, 36 items (Scout-derived questions) |
+| `analytics-journey-question-set.md` | ANALYTICS-JOURNEY | Analytics Journey Tracker, 52 items in 7 areas (Scout-derived) |
+| `app-modernization-question-set.md` | APPMOD | App and Data Modernization Readiness, 62 items in 9 areas (Scout-derived) |
 | `waf-pillar-checklists.md` | WAF | All five WAF pillar design-review checklists, 59 items total, Microsoft's own item codes (`RE:01` etc.) |
 | `caf-landing-zone-design-areas.md` | CAF | All eight CAF landing-zone design areas (393 items total); Network topology and connectivity (135 items, 11 of ~14 pages) still has ~3-4 unfetched child pages recorded as a residual gap |
 

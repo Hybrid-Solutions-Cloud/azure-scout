@@ -344,6 +344,9 @@ function Get-ScoutRawInventory {
         # resources (Get-ScoutResourceGraphDiscoveryTable), and a cross-check against Resource
         # Manager's own resource list for types Resource Graph does not index.
         [bool]     $CollectAllResourceGraphTables = $false,
+        # Named discovery tables only (for example 'deploymentresources' for an assessment run that
+        # scores infrastructure-as-code). Ignored when -CollectAllResourceGraphTables is set.
+        [string[]] $ResourceGraphDiscoveryTable,
         [bool]     $CollectArmResourceCrossCheck = $false,
         [string[]] $ResourceTypes,
 
@@ -944,17 +947,22 @@ function Get-ScoutRawInventory {
     # guest-configuration and maintenance assignments, Kubernetes extensions, DNS records, ...),
     # and a type Resource Graph does not index at all is in none of them. Only for an unfiltered
     # discovery: a -ResourceTypes run asks for named types only.
-    if (($CollectAllResourceGraphTables -or $CollectArmResourceCrossCheck) -and $resolvedResourceTypes.Count -eq 0) {
+    $namedDiscoveryTables = @($ResourceGraphDiscoveryTable | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+    if (($CollectAllResourceGraphTables -or $CollectArmResourceCrossCheck -or $namedDiscoveryTables.Count -gt 0) -and $resolvedResourceTypes.Count -eq 0) {
         $discoveredIds = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
         foreach ($existing in $resources) {
             if ($null -ne $existing -and $existing.PSObject.Properties['id'] -and $existing.id) { $null = $discoveredIds.Add([string]$existing.id) }
         }
 
-        if ($CollectAllResourceGraphTables -and (Import-ScoutRawInventoryHelper -CommandName 'Get-ScoutResourceGraphDiscoveryTable' -FileName 'Get-ScoutResourceGraphDiscoveryTable.ps1')) {
+        if (($CollectAllResourceGraphTables -or $namedDiscoveryTables.Count -gt 0) -and (Import-ScoutRawInventoryHelper -CommandName 'Get-ScoutResourceGraphDiscoveryTable' -FileName 'Get-ScoutResourceGraphDiscoveryTable.ps1')) {
             $tableTimer = [System.Diagnostics.Stopwatch]::StartNew()
             $tableCounts = [System.Collections.Generic.List[string]]::new()
             $tableRows = 0
-            foreach ($table in @(Get-ScoutResourceGraphDiscoveryTable)) {
+            $discoveryTables = @(Get-ScoutResourceGraphDiscoveryTable)
+            if (-not $CollectAllResourceGraphTables) {
+                $discoveryTables = @($discoveryTables | Where-Object { $namedDiscoveryTables -contains [string]$_.Table })
+            }
+            foreach ($table in $discoveryTables) {
                 $tableQuery = "$($table.Table) $rgClause $tagClause $mgJoinClause $($table.Filter) | project $columns | order by id asc"
                 $added = 0
                 # Plain parentheses, as every other table here: Invoke-ScoutRawTable returns its

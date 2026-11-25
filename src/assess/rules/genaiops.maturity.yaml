@@ -1,0 +1,248 @@
+# genaiops.maturity.yaml -- GenAIOps Maturity Model Assessment (AB#9300)
+#
+# Scout's rule set for Microsoft's "GenAIOps Maturity Model Assessment"
+# (learn.microsoft.com/assessments/e14e1e9f-d339-4d7e-b2bb-24f056cf08b6), which places an organisation on
+# a four-level GenAIOps maturity model (initial, defined, managed, optimized). Microsoft's guidance
+# ("Advance your maturity level for Generative Artificial Intelligence Operations (GenAIOps)") names the
+# score bands: initial 0-9, maturing 10-14 (level 2) and 15-19 (level 3), optimized 20-28.
+#
+# Written ONLY against docs/frameworks/genaiops-maturity-question-set.md. Microsoft does not publish the
+# assessment's question text or its points, so every item is SCOUT-DERIVED: Scout turns each level's
+# description in the maturity guidance, and the operating practices in the GenAIOps guidance, into a
+# ladder of four statements per dimension (one per level). The GENAIOPS-* ids are Scout's own. Scout
+# scores the share of statements met per dimension; it does not reproduce Microsoft's 0-28 points or
+# place the organisation on a level.
+#
+# This is an organisational-maturity assessment, so most rules are `manual: true` and are answered with
+# -AssessmentAnswers. Answer each statement on its own merits: a higher-level practice can be met while a
+# lower one is not. Two automated checks (Defender for AI services, Azure budgets) are gated and report
+# Not assessed on an estate without the resources they judge.
+area: "GenAIOps maturity"
+framework: GENAIOPS
+frameworkversion: "Microsoft GenAIOps Maturity Model Assessment (questions unpublished) + Advance your maturity level for GenAIOps and GenAIOps for organizations with MLOps investments, docs/frameworks/genaiops-maturity-question-set.md, verified 2026-11-25 (Scout-derived ladder of four levels across seven dimensions)"
+weight: 1.0
+verifiedAgainst: "docs/frameworks/genaiops-maturity-question-set.md (Scout enumeration of learn.microsoft.com/azure/machine-learning/prompt-flow/concept-llmops-maturity and azure/architecture/ai-ml/guide/genaiops-for-mlops), verified 2026-11-25"
+rules:
+  # ---- Prompt design and orchestration (PD) -- 4 items --------------------
+  - id: GENAIOPS-PD-01
+    title: "GENAIOPS-PD-01. Prompts are designed deliberately, with a system message and structure, not ad hoc"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "GENAIOPS-PD-01. Organisational -- confirm prompts follow a defined structure and system-message approach, with basic prompt engineering applied. (Initial, level 1.)"
+    manual: true
+  - id: GENAIOPS-PD-02
+    title: "GENAIOPS-PD-02. More complex prompts are integrated into applications through an orchestration layer"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "GENAIOPS-PD-02. Organisational -- confirm prompts with context and instructions are built by application code or an orchestrator rather than pasted by users. (Defined, level 2.)"
+    manual: true
+  - id: GENAIOPS-PD-03
+    title: "GENAIOPS-PD-03. Prompts, orchestration and models are optimised for specific requirements"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "GENAIOPS-PD-03. Organisational -- confirm prompts, retrieval and, where justified, fine-tuned models are tuned to the use case and measured against it. (Managed, level 3.)"
+    manual: true
+  - id: GENAIOPS-PD-04
+    title: "GENAIOPS-PD-04. The prompt and model strategy is revisited as large language models evolve"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "GENAIOPS-PD-04. Organisational -- confirm new models and techniques are evaluated on a schedule and strategy is aligned with business objectives. (Optimized, level 4.)"
+    manual: true
+
+  # ---- Asset management and versioning (AM) -- 4 items --------------------
+  - id: GENAIOPS-AM-01
+    title: "GENAIOPS-AM-01. Prompts and configuration are kept in a shared, known place"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "GENAIOPS-AM-01. Organisational -- confirm prompts and configuration are stored where the team can find them and not held by individuals. (Initial, level 1.)"
+    manual: true
+  - id: GENAIOPS-AM-02
+    title: "GENAIOPS-AM-02. Prompts, datasets, indexes and orchestration code are under source control"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "GENAIOPS-AM-02. Organisational -- confirm every AI asset is versioned in source control, with data and prompt versions recorded alongside experiments. (Defined, level 2.)"
+    manual: true
+  - id: GENAIOPS-AM-03
+    title: "GENAIOPS-AM-03. Advanced version control and rollback exist for prompts, models, indexes and orchestration"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "GENAIOPS-AM-03. Organisational -- confirm any asset can be rolled back to a previous version, including search indexes and model deployments. (Managed, level 3.)"
+    manual: true
+  - id: GENAIOPS-AM-04
+    title: "GENAIOPS-AM-04. A model and prompt catalogue is maintained and retirement dates are tracked"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "GENAIOPS-AM-04. Organisational -- confirm the catalogue of models in use is current, new models are discovered on a cadence, and retirement is planned for. (Optimized, level 4.)"
+    manual: true
+
+  # ---- Evaluation and experimentation (EV) -- 4 items --------------------
+  - id: GENAIOPS-EV-01
+    title: "GENAIOPS-EV-01. Basic metrics evaluate application performance"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "GENAIOPS-EV-01. Organisational -- confirm at least basic quality and performance metrics are collected for the generative AI application. (Initial, level 1.)"
+    manual: true
+  - id: GENAIOPS-EV-02
+    title: "GENAIOPS-EV-02. Evaluation uses groundedness, relevance and similarity"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "GENAIOPS-EV-02. Organisational -- confirm evaluations measure whether answers are grounded in source data, relevant to the question and similar to reference answers, using use-case appropriate metrics. (Defined, level 2.)"
+    manual: true
+  - id: GENAIOPS-EV-03
+    title: "GENAIOPS-EV-03. Evaluations run automatically on every change, against agreed thresholds"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "GENAIOPS-EV-03. Organisational -- confirm prompt, model and retrieval changes are evaluated in the pipeline with thresholds that block release. (Managed, level 3.)"
+    manual: true
+  - id: GENAIOPS-EV-04
+    title: "GENAIOPS-EV-04. Evaluation continues in production with sampled traffic and human feedback"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "GENAIOPS-EV-04. Organisational -- confirm production responses are sampled and scored, and user feedback is used to refine evaluation. (Optimized, level 4.)"
+    manual: true
+
+  # ---- Deployment (DP) -- 4 items --------------------
+  - id: GENAIOPS-DP-01
+    title: "GENAIOPS-DP-01. There is a repeatable way to deploy the generative AI application"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "GENAIOPS-DP-01. Organisational -- confirm deployment follows a documented, repeatable procedure rather than individual effort. (Initial, level 1.)"
+    manual: true
+  - id: GENAIOPS-DP-02
+    title: "GENAIOPS-DP-02. Deployment is systematic and integrated with CI/CD"
+    severity: high
+    query: "$.management.deployments[*]"
+    assert: { type: manual }
+    remediation: "GENAIOPS-DP-02. Organisational -- confirm the orchestrator, indexes and configuration are deployed through pipelines with testing, including infrastructure as code (ARM deployments are attached as evidence). (Defined, level 2.)"
+    manual: true
+  - id: GENAIOPS-DP-03
+    title: "GENAIOPS-DP-03. Structured deployment uses progressive exposure and side-by-side versions"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "GENAIOPS-DP-03. Organisational -- confirm canary or blue-green rollout is used for changes, with a gateway to shift traffic between model versions. (Managed, level 3.)"
+    manual: true
+  - id: GENAIOPS-DP-04
+    title: "GENAIOPS-DP-04. The pipeline automates build, evaluation, promotion and rollback end to end"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "GENAIOPS-DP-04. Organisational -- confirm promotion between environments is automatic when tests and evaluations pass, and rollback is automatic when they do not. (Optimized, level 4.)"
+    manual: true
+
+  # ---- Monitoring and feedback (MN) -- 4 items --------------------
+  - id: GENAIOPS-MN-01
+    title: "GENAIOPS-MN-01. Basic operational metrics are collected"
+    severity: medium
+    query: "$.opsPosture.diagnosticCoverage[?(@.type == 'microsoft.cognitiveservices/accounts')]"
+    assert: { type: manual }
+    remediation: "GENAIOPS-MN-01. Organisational -- confirm errors and response times are visible for the generative AI application (diagnostic coverage for Azure AI accounts is attached as evidence). (Initial, level 1.)"
+    manual: true
+  - id: GENAIOPS-MN-02
+    title: "GENAIOPS-MN-02. Token usage, latency and throttling are monitored with alerts"
+    severity: high
+    query: "$.monitor.metricAlertRules[*]"
+    assert: { type: manual }
+    remediation: "GENAIOPS-MN-02. Organisational -- confirm token consumption, latency and 429 errors are tracked and alert people who can act (metric alert rules are attached as evidence). (Defined, level 2.)"
+    manual: true
+  - id: GENAIOPS-MN-03
+    title: "GENAIOPS-MN-03. Monitoring is proactive, with drift detection and user feedback"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "GENAIOPS-MN-03. Organisational -- confirm groundedness and relevance drift are monitored, user feedback is captured, and problems are found before users report them. (Managed, level 3.)"
+    manual: true
+  - id: GENAIOPS-MN-04
+    title: "GENAIOPS-MN-04. Production learnings feed back into evaluation and improvement automatically"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "GENAIOPS-MN-04. Organisational -- confirm monitoring findings flow into new evaluation cases, prompt changes and model decisions without manual relay. (Optimized, level 4.)"
+    manual: true
+
+  # ---- Content safety and responsible AI (CS) -- 5 items --------------------
+  - id: GENAIOPS-CS-01
+    title: "GENAIOPS-CS-01. Responsible AI and basic content filtering are considered"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "GENAIOPS-CS-01. Organisational -- confirm the team has considered harmful-output risk and uses at least the platform's default content filtering. (Initial, level 1.)"
+    manual: true
+  - id: GENAIOPS-CS-02
+    title: "GENAIOPS-CS-02. Content safety is configured and ethical considerations are reviewed"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "GENAIOPS-CS-02. Organisational -- confirm content filter thresholds were set for the use case and ethical considerations are reviewed before release. (Defined, level 2.)"
+    manual: true
+  - id: GENAIOPS-CS-03
+    title: "GENAIOPS-CS-03. Content safety is comprehensive, covering prompts and completions"
+    severity: high
+    query: null
+    assert: { type: manual }
+    remediation: "GENAIOPS-CS-03. Organisational -- confirm both directions are screened and protections against prompt attacks are in place, with adversarial testing done. (Managed, level 3.)"
+    manual: true
+  - id: GENAIOPS-CS-04
+    title: "GENAIOPS-CS-04. Safety is evaluated continuously and reported"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "GENAIOPS-CS-04. Organisational -- confirm safety metrics are tracked over time and reported to those accountable. (Optimized, level 4.)"
+    manual: true
+  - id: GENAIOPS-CS-05
+    title: "GENAIOPS-CS-05. Defender for Cloud threat protection for AI services is enabled"
+    severity: high
+    query: "$.security.defenderPlans[?(@.name == 'AI' && @.properties.pricingTier == 'Standard')]"
+    assert: { type: exists, gate: "$.domains.ai.cognitiveAccounts[*]" }
+    remediation: "GENAIOPS-CS-05. No subscription has the Defender for AI services plan on the Standard tier. Enable it to detect prompt injection, data leakage and wallet abuse (checked across the estate, not per subscription)."
+    manual: false
+
+  # ---- Resource and cost management (RM) -- 5 items --------------------
+  - id: GENAIOPS-RM-01
+    title: "GENAIOPS-RM-01. Model quotas and token usage are understood"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "GENAIOPS-RM-01. Organisational -- confirm the team knows the quotas, rate limits and billing units of the models it uses. (Initial, level 1.)"
+    manual: true
+  - id: GENAIOPS-RM-02
+    title: "GENAIOPS-RM-02. Usage is tracked per application with budgets"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "GENAIOPS-RM-02. Organisational -- confirm token usage and cost are attributed to each application, with budgets and alerts. (Defined, level 2.)"
+    manual: true
+  - id: GENAIOPS-RM-03
+    title: "GENAIOPS-RM-03. Capacity and cost are optimised per workload"
+    severity: medium
+    query: null
+    assert: { type: manual }
+    remediation: "GENAIOPS-RM-03. Organisational -- confirm provisioned or standard capacity is matched to demand, and requests are routed to lower-cost models where they suffice. (Managed, level 3.)"
+    manual: true
+  - id: GENAIOPS-RM-04
+    title: "GENAIOPS-RM-04. Cost and capacity are forecast and governed centrally"
+    severity: low
+    query: null
+    assert: { type: manual }
+    remediation: "GENAIOPS-RM-04. Organisational -- confirm demand is forecast, quota is managed across applications, and spend is reviewed against value. (Optimized, level 4.)"
+    manual: true
+  - id: GENAIOPS-RM-05
+    title: "GENAIOPS-RM-05. Azure budgets are set"
+    severity: medium
+    query: "$.governance.budgets[*]"
+    assert: { type: countGreaterThan, value: 0, gate: "$.governance.budgetsAvailable" }
+    remediation: "GENAIOPS-RM-05. No Azure budget was found in scope. Set budgets so unexpected token and capacity spend raises an alert early."
+    manual: false
