@@ -1,5 +1,14 @@
 # Handoff
 
+## Session 2026-11-26 (continued) — three-mode release test; assessment-only parity (3.18.21)
+
+Tracking moved to GitHub Issues (PR #101; standard in pmo/work-item-standard.md; commits reference #issue; no project
+board). Release test is now ONE tenant in THREE modes: inventory only, assessment only, both. First such run
+(3.18.20, 27 min) found #102 (assessment-only false Pass on Advisor checks: narrower fallback source marked complete)
+and #103 (assessment-only wrote to .\output, ignored -RunName). Fixed in 3.18.21 with a mode-parity test. Known, not
+fixed: governance *Available flags true over partial per-subscription reads; ARM-child Measured = "at least one GET
+answered"; a failed typed ARG query returns empty with only a warning; combined-run drift history never compares runs.
+
 ## Session 2026-11-26 (continued) — sub-resource depth (3.18.20); tracking moves to GitHub
 
 3.18.19 released and five-tenant tested. 3.18.20: 26 ARM child datasets via a $DepthSpec table in

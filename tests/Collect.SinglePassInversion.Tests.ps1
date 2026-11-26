@@ -474,7 +474,7 @@ Describe 'AB#5648 — Resource Graph round-trip count per entry point' {
 
     BeforeEach { New-CountingSearchAzGraph }
 
-    It 'the DEFAULT assessment collect reaches Resource Graph exactly 8 times' {
+    It 'the DEFAULT assessment collect reaches Resource Graph exactly 10 times' {
         Invoke-Collect -WarningAction SilentlyContinue | Out-Null
 
         # Four raw tables carrying the `project id,name,type,tenantId,kind` marker, plus two more raw
@@ -493,7 +493,13 @@ Describe 'AB#5648 — Resource Graph round-trip count per entry point' {
         # and it is the one signal of infrastructure-as-code the assessment rules score (WAF-OE-02/08,
         # CAF platform automation, DevOps, Platform Engineering). Without it those rules read a
         # property no collected row carried and could never pass.
-        $script:argQueries.Count | Should -Be 8 -Because 'the inverted path is one raw pass (resourcecontainers, resources, networkresources, recoveryservicesresources, patchassessmentresources, patchinstallationresources, deploymentresources) plus sqlDefenderPricing'
+        # TEN since issue #102: the combined run reads desktopvirtualizationresources (AVD session hosts)
+        # and managedservicesresources (Lighthouse delegations) and this pass did not, so those two
+        # datasets came back as clean empty arrays in assessment-only. Each is one more raw-pass
+        # round-trip, requested only when a dataset that reads it is selected (a Security-only collect
+        # still costs 7). Advisor adds a ELEVENTH only when an assessment declares the AdvisorScores
+        # ingest (-IncludeAdvisories), which this default call does not.
+        $script:argQueries.Count | Should -Be 10 -Because 'the inverted path is one raw pass (resourcecontainers, resources, networkresources, recoveryservicesresources, patchassessmentresources, patchinstallationresources, deploymentresources, desktopvirtualizationresources, managedservicesresources) plus sqlDefenderPricing'
 
         # patchassessmentresources/patchinstallationresources deliberately omit the `project
         # $columns` clause every OTHER raw table carries (Get-ScoutRawInventory.ps1's AB#6731
@@ -502,8 +508,9 @@ Describe 'AB#5648 — Resource Graph round-trip count per entry point' {
         # projection). That means the `project id,name,type,tenantId,kind` marker below only ever
         # matches 4 of the 6 raw-pass queries, not all 6 -- an accident of the heuristic, not a
         # sign the patch queries are typed/live queries.
-        # 5 since AB#9300: deploymentresources carries the same projection marker.
-        @($script:argQueries | Where-Object { $_ -match 'project id,name,type,tenantId,kind' }).Count | Should -Be 5
+        # 5 since AB#9300: deploymentresources carries the same projection marker. 7 since issue #102:
+        # desktopvirtualizationresources and managedservicesresources carry it too.
+        @($script:argQueries | Where-Object { $_ -match 'project id,name,type,tenantId,kind' }).Count | Should -Be 7
         @($script:argQueries | Where-Object { $_ -match '^deploymentresources' }).Count | Should -Be 1
         @($script:argQueries | Where-Object { $_ -match 'microsoft\.security/pricings' }).Count | Should -Be 1
         @($script:argQueries | Where-Object { $_ -match '^patchassessmentresources' }).Count | Should -Be 1

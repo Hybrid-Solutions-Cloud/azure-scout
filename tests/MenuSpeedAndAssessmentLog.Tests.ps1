@@ -269,8 +269,10 @@ Describe 'Combined runs collect once' {
     }
 }
 
+# -Force is how a multi-tenant child is invoked (-ReportDir is its attempt folder and the run folder). Without it the log, like the
+# assessment, lands in the run folder allocated under -ReportDir (issue #103); see Assessment.AssessmentOnlyParity.Tests.ps1.
 Describe 'Assessment-only runs write scout-run.log' {
-    It 'writes the log into -ReportDir and closes it as COMPLETED' {
+    It 'writes the log into -ReportDir (-Force) and closes it as COMPLETED' {
         $work = Join-Path $TestDrive 'assess-ok'
         New-Item -ItemType Directory -Path $work -Force | Out-Null
         & $script:Module {
@@ -285,7 +287,7 @@ Describe 'Assessment-only runs write scout-run.log' {
                 '<html></html>' | Set-Content (Join-Path $runPath 'report-react.html')
                 return $runPath
             }
-            $null = Invoke-AzureScout -NoWizard -NoProgress -Assessment 'CAF: Azure Landing Zone' -ReportDir $Work -OutputFormat React -TenantID 'tenant-1' -NonInteractiveAuth 6>$null
+            $null = Invoke-AzureScout -NoWizard -NoProgress -Assessment 'CAF: Azure Landing Zone' -ReportDir $Work -Force -OutputFormat React -TenantID 'tenant-1' -NonInteractiveAuth 6>$null
         } $work
 
         $log = Join-Path $work 'scout-run.log'
@@ -316,7 +318,7 @@ Describe 'Assessment-only runs write scout-run.log' {
 '@ | Set-Content (Join-Path $runPath 'collect.json')
                 return $runPath
             }
-            Invoke-AzureScout -NoWizard -NoProgress -Assessment 'CAF: Azure Landing Zone' -ReportDir $Work -OutputFormat React -TenantID 'tenant-1' -NonInteractiveAuth -PassThru 6>$null
+            Invoke-AzureScout -NoWizard -NoProgress -Assessment 'CAF: Azure Landing Zone' -ReportDir $Work -Force -OutputFormat React -TenantID 'tenant-1' -NonInteractiveAuth -PassThru 6>$null
         } $work
 
         $result = @($result | Where-Object { $_ -and $_.PSObject.Properties['ResourceCount'] })[-1]
@@ -334,7 +336,7 @@ Describe 'Assessment-only runs write scout-run.log' {
                 Mock Test-AZSCInteractiveHost { $false }
                 Mock Connect-AZSCLoginSession { 'tenant-1' }
                 Mock Invoke-ScoutAssessmentCore { throw 'simulated collection failure' }
-                $null = Invoke-AzureScout -NoWizard -NoProgress -Assessment 'CAF: Azure Landing Zone' -ReportDir $Work -OutputFormat React -TenantID 'tenant-1' -NonInteractiveAuth 6>$null
+                $null = Invoke-AzureScout -NoWizard -NoProgress -Assessment 'CAF: Azure Landing Zone' -ReportDir $Work -Force -OutputFormat React -TenantID 'tenant-1' -NonInteractiveAuth 6>$null
             } $work
         } | Should -Throw '*simulated collection failure*'
 

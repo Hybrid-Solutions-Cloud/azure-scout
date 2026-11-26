@@ -15,8 +15,14 @@ $ErrorActionPreference = 'Stop'
     so in a combined run the per-subscription `Get-AzAdvisorRecommendation` sweep re-fetched data
     already sitting in memory, through a slower API (AB#6777, audit section 10 defect 4).
 
-    Otherwise it falls back to the per-subscription cmdlet, which is still the only source for
-    an assessment-only run.
+    Otherwise it falls back to the per-subscription cmdlet. That is a last resort, and it is
+    never reported as complete: issue #102 found it returning 147 recommendations for a tenant
+    whose Resource Graph query returned 647 (no Security, no Performance), so any rule that
+    reads Advisor and passed on the cmdlet's rows passed on missing data. The fallback rows are
+    still attached (with the subscription id in `Subscription`, as the Resource Graph rows have)
+    for the report, but `advisorAvailable` stays $false and every Advisor-dependent rule reads
+    Not assessed. An assessment-only run no longer reaches this path in normal operation:
+    Invoke-Collect -IncludeAdvisories reads the same Resource Graph table the combined run does.
 
 .PARAMETER Collect
     The collect object to attach `advisor` to.
@@ -121,8 +127,11 @@ function Import-AdvisorScores {
                 if ($subscriptionTenantId) { $switchParams['Tenant'] = $subscriptionTenantId }
                 Set-AzContext @switchParams -ErrorAction Stop | Out-Null
 
+                # `Subscription` is the subscription ID, exactly as the Resource Graph projection above
+                # fills it. It held the subscription NAME here, so the same field meant two things
+                # depending on how the run was started.
                 Get-AzAdvisorRecommendation -ErrorAction Stop | Select-Object Category, Impact, ImpactedField, ImpactedValue,
-                    @{ n = 'Subscription'; e = { $s.Name } }, ShortDescriptionProblem, ShortDescriptionSolution
+                    @{ n = 'Subscription'; e = { $s.Id } }, ShortDescriptionProblem, ShortDescriptionSolution
             }
             catch {
                 $failed.Add($s.Name)
@@ -134,8 +143,14 @@ function Import-AdvisorScores {
             }
         }
 
+        # Never $true. "No subscription threw" proves the cmdlet answered, not that its answer is the
+        # full set: it returned a strict subset of the Resource Graph query's rows in the field
+        # (issue #102), and nothing here can tell which recommendations are missing. A rule that
+        # counts rows and passes on zero must not pass on rows that were never read, so the gate
+        # stays closed and the dependent rules report Not assessed.
         $Collect | Add-Member -NotePropertyName advisor -NotePropertyValue (@($recs)) -Force
-        $Collect | Add-Member -NotePropertyName advisorAvailable -NotePropertyValue ($failed.Count -eq 0) -Force
+        $Collect | Add-Member -NotePropertyName advisorAvailable -NotePropertyValue $false -Force
+        Write-Warning "Import-AdvisorScores: Advisor recommendations came from the per-subscription fallback, which can omit whole categories that Resource Graph returns. Advisor-dependent findings are reported as Not assessed for this run."
 
         # Say it once, plainly, at the end. A per-subscription warning scrolls past; a summary
         # naming the count is what tells a reader the report's Advisor coverage is partial.

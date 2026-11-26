@@ -53,6 +53,26 @@ Invoke-AzureScout -TenantID '00000000-...' -RunName 'Production-TenantA'
 
 Invalid path characters in a `-RunName` are replaced with `-`.
 
+### The same root in every run mode
+
+Inventory-only, assessment-only (`-Assessment ...`) and combined (`-InventoryAndAssessment`) runs
+all take their folder from the same rule, so `-ReportDir`, `-RunName` and `-Force` mean the same
+thing in each. The base is `-ReportDir`, or `C:\AzureScout\` (`$HOME/AzureScout/` on Linux and
+macOS) — never the current directory.
+
+```powershell
+Invoke-AzureScout -TenantID '00000000-...' -Assessment 'CAF: Azure Landing Zone' -RunName 'Q1-Landing-Zone'
+# → C:\AzureScout\Q1-Landing-Zone\assessment-report\   (collect.json, findings.json, report-react.html, ...)
+```
+
+An assessment-only run writes only the `assessment-report\` folder (and the run log) into its run
+folder; it has no `ReportCache\` or `DiagramCache\`, because it performs no inventory. Earlier
+releases ignored `-RunName` for an assessment-only run and wrote to `.\output` relative to the
+directory it was started from.
+
+The drift history that compares one assessment run with the previous one is kept in
+`<base>\.scout-history\`, shared by every run under the same base, not inside each run folder.
+
 ### Multi-tenant umbrella runs
 
 Direct-access enterprise scans create one root run with a self-contained overview and one isolated

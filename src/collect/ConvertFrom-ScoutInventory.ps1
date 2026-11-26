@@ -1321,7 +1321,13 @@ function ConvertFrom-ScoutInventory {
     $diagnosticOperations = @(@($SourceOperations) | Where-Object {
             $null -ne $_ -and $_.PSObject.Properties['Dataset'] -and [string]$_.Dataset -eq 'ResourceDiagnosticSettings'
         })
-    $result['diagnosticCoverageMeasured'] = $diagnosticOperations.Count -gt 0
+    # Measured means a GET ANSWERED (Success or Empty), exactly as every other sweep flag below
+    # (Test-ScoutSweepMeasured). This line counted ATTEMPTS of any status, so a run in which every
+    # diagnostic-settings GET was denied reported the sweep as measured, handed the coverage rules an
+    # empty list, and let them pass on it (issue #102 flag audit).
+    $result['diagnosticCoverageMeasured'] = @($diagnosticOperations | Where-Object {
+            $_.PSObject.Properties['Status'] -and [string]$_.Status -in 'Success', 'Empty'
+        }).Count -gt 0
     $typeById = @{}
     foreach ($row in $rows) {
         $rowId = [string](Get-ScoutProp $row 'id')

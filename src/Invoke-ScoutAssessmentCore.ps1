@@ -144,7 +144,7 @@ function Assert-ScoutAssessmentCollectProvenance {
 
 .EXAMPLE
     Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -CollectOnly
-    Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -FromCollect ./output/20260720_101500/collect.json -OutputFormat React
+    Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -FromCollect C:\AzureScout\2026-07-20_101500\assessment-report\collect.json -OutputFormat React
 
 .NOTES
     Tracks ADO Epic AB#5023 (Feature AB#5024, Story AB#5026) and Epic AB#5056.
@@ -192,6 +192,12 @@ function Invoke-ScoutAssessmentCore {
         [ValidateSet('PowerBi', 'Html', 'Pptx', 'Excel', 'Json', 'JsonEvidence', 'React', 'Pdf', 'Word', 'EChartsDashboard', 'All')]
         [string[]] $OutputFormat = @('React'),
         [string]   $OutputPath = './output',
+        # Issue #103 -- where the cross-run drift history lives. Invoke-AzureScout hands every
+        # assessment-only run its own run folder as -OutputPath, so the history cannot live under
+        # it (each run would see an empty one and drift would never compare anything); it passes
+        # the shared base folder's .scout-history here instead. Omitted, the history stays under
+        # -OutputPath as it always has been, and the run id stays the bare run-folder name.
+        [string]   $HistoryPath,
         [switch]   $PermissionAudit,
         [switch]   $CollectOnly,                 # stop after collect.json
         [string]   $FromCollect,                 # skip collect, assess an existing collect.json
@@ -376,6 +382,15 @@ function Invoke-ScoutAssessmentCore {
         # doc comment), so only an assessment that actually scores them pays for it.
         $wantsAzureLocalArm = [bool](@($Assessment | Where-Object { $manifest.ContainsKey($_) -and $manifest[$_] -is [hashtable] -and $manifest[$_].ContainsKey('RequiresAzureLocalArm') -and $manifest[$_].RequiresAzureLocalArm }).Count)
         if ($wantsAzureLocalArm) { $collectArgs.IncludeAzureLocalArm = $true }
+        # Issue #102 -- an assessment that scores Advisor reads the Resource Graph `advisorresources`
+        # table through the SAME raw pass the combined run's inventory uses (Medium and High impact
+        # recommendations, `Subscription` = subscription id). Without this switch the live collect
+        # never queried it, and the ingest below fell back to the per-subscription Az.Advisor
+        # cmdlet: a narrower set (no Security, no Performance in the field), a subscription NAME in
+        # the `Subscription` field, and a "complete" flag -- so assessment-only runs falsely passed
+        # nine Advisor-dependent rules that the combined run failed. Ignored when the rows come from
+        # an inventory pass (-FromInventory), which already holds them.
+        if ($requiredIngestors -contains 'AdvisorScores' -and -not $FromInventory) { $collectArgs.IncludeAdvisories = $true }
         $collect = Invoke-Collect @collectArgs
 
         # ingest third-party collectors declared by the chosen assessments
@@ -421,6 +436,12 @@ function Invoke-ScoutAssessmentCore {
                 # inventory pass, so hand them over instead of re-fetching per subscription
                 # through a slower API.
                 'AdvisorScores' {
+                    # Issue #102 -- Invoke-Collect already attached the Advisor rows (and decided
+                    # `advisorAvailable`) from its own Resource Graph query. Nothing is left to ingest.
+                    $advisorFromCollectPass = [bool]$collect.PSObject.Properties['advisorAvailable']
+                    if ($advisorFromCollectPass) {
+                        Write-Verbose 'Invoke-ScoutAssessmentCore: Advisor rows came from the collect pass Resource Graph query -- no per-subscription sweep.'
+                    }
                     $advisorArgs = @{ Collect = $collect }
                     $advisorInventoryUnavailable = @(
                         if ($FromInventory -and $FromInventory.PSObject.Properties['CollectionHealth']) {
@@ -454,7 +475,7 @@ function Invoke-ScoutAssessmentCore {
                     elseif ($advisorInventoryUnavailable) {
                         Write-Warning 'Invoke-ScoutAssessmentCore: the inventory Advisor query was unavailable; attempting the independent per-subscription Advisor API fallback.'
                     }
-                    $collect = Import-AdvisorScores @advisorArgs
+                    if (-not $advisorFromCollectPass) { $collect = Import-AdvisorScores @advisorArgs }
                 }
                 # AB#6826 (Feature AB#6749) -- Get-ScoutCostInventory wired into the collect
                 # pipeline for the first time (previously built, never called -- see the
@@ -463,8 +484,15 @@ function Invoke-ScoutAssessmentCore {
                 # RBAC in place) or it is not, and the ingestor itself computes `available`.
                 'CostInventory' {
                     $costArgs = @{ Collect = $collect }
+                    # The inventory pass leaves `Costs` $null unless -IncludeCosts ran, and the
+                    # property is always present. `@($null)` is a ONE-element array, which the
+                    # ingestor read as "the inventory already pulled one subscription's costs, and
+                    # it was empty" -- finops.available = $true over zero rows, a clean-looking
+                    # FinOps result for a run that never read cost data. Hand rows over only when
+                    # there are some; otherwise the ingestor pulls them itself, as assessment-only does.
                     if ($FromInventory -and $FromInventory.PSObject.Properties['Costs']) {
-                        $costArgs.FromInventory = @($FromInventory.Costs)
+                        $inventoryCostRows = @($FromInventory.Costs | Where-Object { $null -ne $_ })
+                        if ($inventoryCostRows.Count -gt 0) { $costArgs.FromInventory = $inventoryCostRows }
                     }
                     $collect = Import-ScoutCostInventory @costArgs
                 }
@@ -490,10 +518,12 @@ function Invoke-ScoutAssessmentCore {
             )
         }
         if ($FromInventory) {
-            $entraRows = if ($FromInventory -and $FromInventory.PSObject.Properties['EntraResources']) {
-                @($FromInventory.EntraResources)
-            }
-            else { @() }
+            # `@(if ...)`, not `$x = if ... { @(...) }`: an if-statement's value goes through the output
+            # stream, which unrolls a ONE-element array into a bare object, so a tenant with exactly one
+            # Entra object serialised `entraResources` as an object where every other run wrote an array.
+            $entraRows = @(if ($FromInventory -and $FromInventory.PSObject.Properties['EntraResources']) {
+                    $FromInventory.EntraResources
+                })
             $collect | Add-Member -NotePropertyName entraResources -NotePropertyValue $entraRows -Force
         }
         if ($ReportCachePath) {
@@ -619,7 +649,12 @@ function Invoke-ScoutAssessmentCore {
     $drift = $null
     if (-not $InventoryOnly) {
         try {
-            $drift = Get-ScoutDrift -Findings $scored -HistoryPath (Join-Path $OutputPath '.scout-history') -RunId $runId
+            # With a caller-supplied shared history, every run's folder ends in the same leaf
+            # ('assessment-report'), so the run id is qualified by the run folder that holds it;
+            # otherwise two runs would share an id and each would overwrite the other's record.
+            $driftHistoryPath = if ($HistoryPath) { $HistoryPath } else { Join-Path $OutputPath '.scout-history' }
+            $driftRunId = if ($HistoryPath) { '{0}/{1}' -f (Split-Path (Split-Path $runPath -Parent) -Leaf), $runId } else { $runId }
+            $drift = Get-ScoutDrift -Findings $scored -HistoryPath $driftHistoryPath -RunId $driftRunId
         }
         catch {
             Write-Warning "Invoke-ScoutAssessmentCore: drift tracking skipped: $($_.Exception.Message)"

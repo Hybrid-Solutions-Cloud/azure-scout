@@ -181,7 +181,8 @@ $ErrorActionPreference = 'Stop'
 
 .PARAMETER RunName
     Friendly name for this run's output folder instead of the generated timestamp, for example
-    -RunName 'Production-TenantA'. Invalid path characters are replaced with '-'.
+    -RunName 'Production-TenantA'. Invalid path characters are replaced with '-'. Honoured by
+    every run mode: an assessment-only run writes to <base>\<RunName>\assessment-report.
 
 .PARAMETER Force
     Write output directly into the base report directory, overwriting any previous run in place.
@@ -240,7 +241,9 @@ $ErrorActionPreference = 'Stop'
     Specifies the name of the report. Default is 'AzureScout'.
 
 .PARAMETER ReportDir
-    Specifies the directory where the report will be saved.
+    Specifies the base directory where the run folder is created. The same base applies to every
+    run mode (inventory, assessment-only and combined); the default is C:\AzureScout on Windows and
+    $HOME/AzureScout elsewhere, never the current directory.
 
 .EXAMPLE
     Default utilization. Read all tenants you have privileges, select a tenant in menu and collect from all subscriptions:
@@ -767,6 +770,29 @@ Function Invoke-AzureScout {
         # as well as the wizard, without collecting from Azure twice to get both reports.
         if ($wizardRunBoth -or $InventoryAndAssessment.IsPresent) { $deferredAssessArgs = $assessArgs }
         else {
+            # Issue #103. An assessment-only run used to bypass the run-folder allocation every other
+            # mode goes through: it handed -ReportDir (or nothing) straight to the assessment core,
+            # whose own default is './output' relative to the CURRENT DIRECTORY. -RunName was ignored
+            # outright and a run started from C:\ wrote to C:\output while the same command with
+            # -InventoryAndAssessment wrote under C:\AzureScout. The same Set-AZSCReportPath call the
+            # inventory and combined paths use now decides the root and the run folder, so all three
+            # modes honour -ReportDir, -RunName and -Force identically; the assessment is then written
+            # to <run folder>\assessment-report exactly as a combined run's is.
+            #
+            # A multi-tenant child is always given -ReportDir (its attempt folder) and -Force, so it
+            # still writes straight into that folder. A permission-only invocation allocates nothing:
+            # the assessment core returns before it would create a folder, and an empty run folder per
+            # permission check is the clutter its own guard exists to prevent.
+            $standaloneReportPath = $null
+            if (-not $PermissionAudit.IsPresent) {
+                $standaloneReportPath = Set-AZSCReportPath -ReportDir $ReportDir -RunName $RunName -ScopeId $TenantID -Force:$Force
+                $assessArgs.OutputPath = $standaloneReportPath.DefaultPath
+                # The drift history is shared by every run under the base folder. It used to live under
+                # the assessment's OutputPath, which was one fixed folder; with a run folder per
+                # invocation that would give every run its own, empty history and no drift.
+                $assessArgs.HistoryPath = Join-Path $standaloneReportPath.BasePath '.scout-history'
+            }
+
             $standaloneAssessmentOperation = {
                 Invoke-ScoutAssessmentCore @assessArgs
             }
@@ -774,10 +800,12 @@ Function Invoke-AzureScout {
             # call is on the inventory path further down, which this branch returns before
             # reaching. A multi-tenant child (always given -ReportDir = its attempt folder) left
             # that folder empty for the whole collection, so an operator watching a slow or stuck
-            # tenant had nothing to read. Start the same log here, in the folder the assessment
+            # tenant had nothing to read. Start the same log here, in the run folder the assessment
             # writes under, before any Azure call.
-            # Without -ReportDir the assessment core writes under its own default, './output'.
-            $standaloneLogDir = if ($ReportDir) { $ReportDir } else { './output' }
+            # A permission-only invocation has no run folder; its log goes in the base folder (with
+            # -Force, Set-AZSCReportPath only resolves the base and creates nothing).
+            $standaloneLogDir = if ($standaloneReportPath) { $standaloneReportPath.DefaultPath }
+            else { (Set-AZSCReportPath -ReportDir $ReportDir -Force).DefaultPath }
             $standaloneLogContext = Get-AzContext -ErrorAction SilentlyContinue
             Start-AZSCRunLog -DefaultPath $standaloneLogDir -NoTranscript:$Automation -Metadata @{
                 'Module'      = (Get-Module -Name 'AzureScout' | Select-Object -First 1).Version
