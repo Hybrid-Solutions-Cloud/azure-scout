@@ -1,0 +1,36 @@
+name: Bug
+description: Released behaviour that is wrong
+type: Bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **This repo is public.** Do not include tenant, subscription, customer or resource names or IDs, people's names or e-mail addresses, secrets, or unredacted logs and screenshots. Describe the environment by its shape ("a tenant with 40 subscriptions"). See the [work-item standard](https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/pmo/work-item-standard.md).
+  - type: textarea
+    id: happens
+    attributes: { label: What happens }
+    validations: { required: true }
+  - type: textarea
+    id: expected
+    attributes: { label: What should happen }
+    validations: { required: true }
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: The command you ran, with environment details replaced by placeholders.
+    validations: { required: true }
+  - type: input
+    id: version
+    attributes:
+      label: Azure Scout version
+      description: "(Get-Module AzureScout -ListAvailable).Version"
+    validations: { required: true }
+  - type: input
+    id: psversion
+    attributes: { label: PowerShell version }
+  - type: textarea
+    id: impact
+    attributes:
+      label: Impact
+      description: Who is affected and how badly.

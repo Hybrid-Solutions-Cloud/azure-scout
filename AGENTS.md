@@ -44,7 +44,7 @@ this file is the offline fallback.
 - No secrets, tokens, passwords, subscription/tenant/client IDs, or connection strings in any committed file.
 - All scripts: PowerShell 7+ — `#Requires -Version 7.0`, `Set-StrictMode -Version Latest`, `$ErrorActionPreference = 'Stop'`. Never PS 5.1, never Bash.
 - All documentation is Markdown only. Diagrams are draw.io only — commit the `.drawio` XML alongside any exported `.png`.
-- Commit format: `type(scope): short description` — types `feat`, `fix`, `docs`, `chore`, `refactor`, `test` — with an `AB#<id>` work-item reference.
+- Commit format: `type(scope): short description` — types `feat`, `fix`, `docs`, `chore`, `refactor`, `test` — with the GitHub issue it belongs to, as `#<issue>`. Work is tracked in GitHub Issues: see `pmo/work-item-standard.md`.
 
 **Standards reference (public site — no auth required):**
 
@@ -73,8 +73,6 @@ Full contract: the [AI workspace standard](https://platform.hybridsolutions.clou
 
 | Fact | Value |
 |---|---|
-| ADO org | <https://dev.azure.com/hybridcloudsolutions> |
-| ADO project | N/A - see registry.yaml `ado_project` or ask the HCS Governance MCP `get_repo` for this repo's work-item tracking project |
-| Area path | N/A - see registry.yaml or ask the HCS Governance MCP |
 | Key Vault | kv-hcs-vault-01 |
-| Work item format | `AB#<id>` in commits and PRs |
+| Work tracking | GitHub Issues in this repo; standard in `pmo/work-item-standard.md` |
+| Work item format | `#<issue>` in commits and PRs (GitHub Issues; older history uses `AB#<id>`) |

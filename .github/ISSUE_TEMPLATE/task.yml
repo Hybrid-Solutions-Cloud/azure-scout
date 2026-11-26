@@ -1,0 +1,21 @@
+name: Task
+description: One unit of work, normally one pull request
+type: Task
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **This repo is public.** Do not include tenant, subscription, customer or resource names or IDs, people's names or e-mail addresses, secrets, or unredacted logs and screenshots. Describe the environment by its shape ("a tenant with 40 subscriptions"). See the [work-item standard](https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/pmo/work-item-standard.md).
+  - type: textarea
+    id: what
+    attributes: { label: What, description: "The change, in one or two sentences." }
+    validations: { required: true }
+  - type: textarea
+    id: done
+    attributes:
+      label: Done when
+      value: |
+        - [ ] 
+        - [ ] Tests added or updated
+        - [ ] Docs updated, or "no doc change" with the reason
+    validations: { required: true }

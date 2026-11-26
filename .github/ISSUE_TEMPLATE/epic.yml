@@ -1,0 +1,29 @@
+name: Epic
+description: A goal spanning several releases (maintainers)
+type: Epic
+labels: ["roadmap"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **This repo is public.** Do not include tenant, subscription, customer or resource names or IDs, people's names or e-mail addresses, secrets, or unredacted logs and screenshots. Describe the environment by its shape ("a tenant with 40 subscriptions"). See the [work-item standard](https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/pmo/work-item-standard.md).
+  - type: textarea
+    id: goal
+    attributes: { label: Goal, description: What is true for a user when this is done. }
+    validations: { required: true }
+  - type: textarea
+    id: why
+    attributes: { label: Why, description: "The problem, with numbers where they exist." }
+    validations: { required: true }
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      value: |
+        - In: 
+        - Out (non-goals): 
+    validations: { required: true }
+  - type: textarea
+    id: done
+    attributes: { label: Done when, value: "- [ ] " }
+    validations: { required: true }
