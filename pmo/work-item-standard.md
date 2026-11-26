@@ -3,9 +3,9 @@
 How issues, features, epics and roadmap items are written in this repo. It applies to everyone
 who creates one: maintainers, contributors and AI agents.
 
-Status: draft, introduced by
-[`plans/github-tracking-migration.md`](plans/github-tracking-migration.md). It takes effect when
-that plan's step 3 is complete.
+Status: in effect from 2026-11-26. Introduced by
+[`plans/github-tracking-migration.md`](plans/github-tracking-migration.md). The issue forms in
+`.github/ISSUE_TEMPLATE/` ask for the fields below.
 
 ## Rule 1: this repo is public
 
@@ -120,7 +120,7 @@ Who is affected and how badly.
 
 - A roadmap item is an Epic or Feature with the `roadmap` label.
 - Its **milestone** is its target release. No milestone means "not scheduled".
-- It appears in the "Azure Scout Roadmap" project; the project's Status field is kept current.
+- The roadmap is the issue list filtered by the `roadmap` label. There is no project board.
 - It is closed only when released, with a closing comment naming the release.
 
 ## Linking work

@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security weakness
+    url: https://github.com/Hybrid-Solutions-Cloud/azure-scout/security/advisories/new
+    about: Do not open a public issue for a security weakness in Azure Scout. Report it privately here.

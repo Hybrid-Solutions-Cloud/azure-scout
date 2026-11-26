@@ -366,6 +366,8 @@ Once you create the module file, it must be placed in the correct folder structu
 
 If you have questions or need help with your contribution:
 
+- **Follow the work-item standard**: issues, features and roadmap items are written to [`pmo/work-item-standard.md`](pmo/work-item-standard.md). This repo is public: never include tenant, subscription or resource names, or secrets. Security weaknesses are reported privately; see [`SECURITY.md`](SECURITY.md).
+- **Reference the issue in commits**: `type(scope): short description #<issue>`.
 - **Open an Issue**: Create a new issue in the [GitHub repository](https://github.com/Hybrid-Solutions-Cloud/azure-scout/issues)
 - **Documentation**: Refer to the [README.md](README.md) and other documentation
 - **Community Discussions**: Check existing discussions in the Issues tab

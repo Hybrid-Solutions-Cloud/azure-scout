@@ -15,6 +15,13 @@ The Azure Scout project takes security seriously. We are committed to ensuring t
 
 ### Reporting Process
 
+You can report privately in either of two ways:
+
+- **GitHub private vulnerability reporting**: open the repository's **Security** tab and choose **Report a vulnerability**, or go to <https://github.com/Hybrid-Solutions-Cloud/azure-scout/security/advisories/new>.
+- **E-mail**, as described below.
+
+This repository is public. Replace tenant, subscription and resource names with placeholders in anything you send.
+
 1. **Email us** at [security@hybridsolutions.cloud](mailto:security@hybridsolutions.cloud) with a detailed description of the vulnerability.
 
 2. **Response timeline**: You should receive an acknowledgment within 48 hours. We will work with you to understand the scope and impact of the issue.

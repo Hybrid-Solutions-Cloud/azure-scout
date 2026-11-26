@@ -1,0 +1,32 @@
+name: Feature
+description: A capability a user can see
+type: Feature
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **This repo is public.** Do not include tenant, subscription, customer or resource names or IDs, people's names or e-mail addresses, secrets, or unredacted logs and screenshots. Describe the environment by its shape ("a tenant with 40 subscriptions"). See the [work-item standard](https://github.com/Hybrid-Solutions-Cloud/azure-scout/blob/main/pmo/work-item-standard.md).
+  - type: textarea
+    id: gets
+    attributes: { label: What the user gets, description: One or two sentences. }
+    validations: { required: true }
+  - type: textarea
+    id: why
+    attributes: { label: Why }
+    validations: { required: true }
+  - type: textarea
+    id: criteria
+    attributes:
+      label: Acceptance criteria
+      description: Observable, testable behaviour, one per line.
+      value: "- [ ] "
+    validations: { required: true }
+  - type: textarea
+    id: calls
+    attributes:
+      label: Permissions and Azure calls
+      description: New permissions needed and extra Azure calls per run. "None" is a valid answer.
+    validations: { required: true }
+  - type: textarea
+    id: notincluded
+    attributes: { label: Not included }

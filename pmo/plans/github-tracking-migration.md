@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| Status | Draft for review. Nothing in this plan has been created on GitHub yet. |
+| Status | In progress. Steps 1 to 4 done 2026-11-26: types, labels, milestones, issue forms and six epics with 35 sub-issues exist. |
 | Written | 2026-11-26 |
 | Owner | Repo maintainer |
 | Standard it introduces | [`pmo/work-item-standard.md`](../work-item-standard.md) |
@@ -27,7 +27,6 @@ project boards, and every file in `pmo/`. The plan is built around that.
   private vulnerability reporting (to be enabled, see step 3) and become public only after a
   fix ships.
 - Scan output, logs and screenshots are attached only after redaction.
-- The GitHub Project is public, like the repo. Nothing sensitive goes in its fields.
 
 ## Non-goals
 
@@ -76,11 +75,10 @@ Hierarchy uses GitHub sub-issues: Epic → Feature → Task.
 
 - Every roadmap item is an **Epic or Feature issue** carrying the `roadmap` label.
 - **Milestones are releases** (for example `3.19.0`). An item's milestone is its target release.
-- One **GitHub Project, "Azure Scout Roadmap"**, shows them. Fields: Status (Backlog, Ready,
-  In progress, In review, Released), Priority, Area, Target release. Views: roadmap by release,
-  board by status, table per epic.
+- There is **no project board**. The roadmap is the issue list filtered by the `roadmap` label;
+  a release's content is its milestone; hierarchy is sub-issues.
 - `docs/project/roadmap.md` keeps a short narrative (current, previous, next) and links to the
-  project. It no longer lists individual future items; the issues are the source of truth.
+  `roadmap` label filter and the milestones. It no longer lists individual future items; the issues are the source of truth.
 - Closing a roadmap issue requires the release it shipped in.
 
 ## Steps
@@ -88,7 +86,7 @@ Hierarchy uses GitHub sub-issues: Epic → Feature → Task.
 1. **Export ADO.** Open Epics, Features, Stories, Tasks and Bugs with title, description,
    state, parent, area and tags. The export file stays out of the repo.
 2. **Triage.** Each open item is marked keep, merge or drop. Only keeps move.
-3. **Create the structure on GitHub.** Epic issue type; labels; milestones; the project; issue
+3. **Create the structure on GitHub.** Epic issue type; labels; milestones; issue
    forms (YAML) replacing the three markdown templates, each enforcing the standard's fields;
    enable private vulnerability reporting and add `SECURITY.md`.
 4. **Create the new epics** listed below. They are new work and need no migration.
@@ -98,7 +96,7 @@ Hierarchy uses GitHub sub-issues: Epic → Feature → Task.
 6. **Switch conventions.** Commits and pull requests reference `#<issue>`. Update `AGENTS.md`,
    `CONTRIBUTING.md` (link to the standard), the commit-format rule, and the test that requires
    `AB#` in version notes.
-7. **Point the roadmap page at the project** (see above).
+7. **Point the roadmap page at the `roadmap` label filter and the milestones** (see above).
 8. **Freeze ADO.** A note on the ADO project points to GitHub; the area path becomes read-only.
 
 ## Decisions (made 2026-11-26)
@@ -106,7 +104,7 @@ Hierarchy uses GitHub sub-issues: Epic → Feature → Task.
 1. Only open ADO items are candidates, and each is reviewed first: many are already done.
 2. ADO conventions do not carry over. The standards and naming for GitHub are new and are
    defined in the work-item standard. `AB#<id>` references stop; commits reference `#<issue>`.
-3. The project is public, like the repo.
+3. Everything is public, like the repo. Tracking is issues, labels, types and milestones only; a project board was tried and removed on 2026-11-26.
 
 ## ADO open items (read 2026-11-26)
 

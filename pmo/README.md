@@ -11,7 +11,7 @@ Project management artefacts for Azure Scout. Not product documentation — that
 ## Conventions
 
 - Markdown only, per the HCS documentation standard.
-- Every plan names the ADO epic it delivers and cites the work items it creates.
+- Every plan names the GitHub epic issue it delivers. Work items are GitHub Issues, written to [`work-item-standard.md`](work-item-standard.md). Plans written before 2026-11-26 cite Azure DevOps work items (`AB#<id>`).
 - A plan states its **non-goals** explicitly. Most failed work here was scope that nobody
   wrote down as out of scope.
 - Research spikes record what was rejected and **why**, not only what was chosen — see
