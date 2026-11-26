@@ -157,7 +157,7 @@ parallel record.
 | `waf-ai-workload-checklist.md` | WAF-AI | All ten AI workload design areas plus the AI architecture pattern, 63 items |
 | `waf-avd-azure-workload-checklist.md` | WAF-AVD | Azure Virtual Desktop in Azure, 30 items across the five pillars |
 | `waf-avd-workload-checklist.md` | WAF-AVD | Azure Virtual Desktop on Azure Local, 20 items |
-| `waf-service-guides-checklist.md` | WAF-SVC | Configuration recommendations of 20 WAF service guides, 214 items (126 automated) |
+| `waf-service-guides-checklist.md` | WAF-SVC | Configuration recommendations of 20 WAF service guides, 214 items (138 automated) |
 | `waf-mission-critical-checklist.md` | WAF-MC | Mission-critical workload, 8 design areas, 81 items |
 | `waf-sustainability-checklist.md` | WAF-SUS | Sustainability workload, 5 pillars plus sustainable AI, 67 items |
 | `waf-go-live-checklist.md` | WAF-GOLIVE | Go-live readiness from the 5 pillar checklists (Scout's own; Microsoft publishes no Go-Live questions), 57 items |

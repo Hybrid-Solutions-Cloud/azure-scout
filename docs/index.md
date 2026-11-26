@@ -30,7 +30,7 @@ features:
     link: /reference/arm-modules
     linkText: Browse the collectors
   - title: 66 assessments
-    details: CAF design areas, CAF Govern and Migrate, WAF pillars, workload and technology reviews (AI, AVD, AVS, Azure Local, SAP, Oracle, SaaS, Mission Critical, Sustainability, Machine Learning, AI Search, Analytics, Data Services, 20 service guides), WARA, Advisor, AI readiness, FinOps, DevOps, Platform Engineering and compliance — 1,732 rules with published automated-versus-manual counts, and questionnaire answers for the questions only a person can answer.
+    details: CAF design areas, CAF Govern and Migrate, WAF pillars, workload and technology reviews (AI, AVD, AVS, Azure Local, SAP, Oracle, SaaS, Mission Critical, Sustainability, Machine Learning, AI Search, Analytics, Data Services, 20 service guides), WARA, Advisor, AI readiness, FinOps, DevOps, Platform Engineering and compliance — 1,733 rules with published automated-versus-manual counts, and questionnaire answers for the questions only a person can answer.
     link: /reference/assessment-catalogue
     linkText: Browse the assessments
   - title: Read-only, always

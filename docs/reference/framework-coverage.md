@@ -4,7 +4,7 @@ description: How much of each enumerated framework Azure Scout actually has a ru
 
 # Framework Coverage
 
-Across every framework Azure Scout enumerates, **1447 of 1870 items (77%) have a rule behind them**.
+Across every framework Azure Scout enumerates, **1448 of 1870 items (77%) have a rule behind them**.
 
 ::: warning Read this number the right way
 Scout **enumerates** each framework in full — see [Frameworks](../frameworks/README.md) — and a test
@@ -53,7 +53,7 @@ and a fresh regeneration disagree.
 | [`waf-azure-local-checklist`](../frameworks/waf-azure-local-checklist.md) | 33 | 33 | **100%** | 1 / 1 |
 | [`waf-avd-azure-workload-checklist`](../frameworks/waf-avd-azure-workload-checklist.md) | 30 | 30 | **100%** | 1 / 1 |
 | [`genaiops-maturity-question-set`](../frameworks/genaiops-maturity-question-set.md) | 30 | 30 | **100%** | 1 / 1 |
-| [`waf-avs-workload-checklist`](../frameworks/waf-avs-workload-checklist.md) | 27 | 26 | **96%** | 1 / 1 |
+| [`waf-avs-workload-checklist`](../frameworks/waf-avs-workload-checklist.md) | 27 | 27 | **100%** | 1 / 1 |
 | [`waf-avd-workload-checklist`](../frameworks/waf-avd-workload-checklist.md) | 20 | 20 | **100%** | 1 / 1 |
 | [`devops-capability-question-set`](../frameworks/devops-capability-question-set.md) | 20 | 20 | **100%** | 2 / 2 |
 | [`advisor-recommendations`](../frameworks/advisor-recommendations.md) | 15 | 15 | **100%** | 1 / 1 |
@@ -61,7 +61,7 @@ and a fresh regeneration disagree.
 | `finops-review-question-set` | — | — | *not enumerated with item ids* | — |
 | `avs-landing-zone-question-set` | — | — | *not enumerated with item ids* | — |
 | `waf-analytics-checklist` | — | — | *not enumerated with item ids* | — |
-| **Total** | **1870** | **1447** | **77%** | |
+| **Total** | **1870** | **1448** | **77%** | |
 
 ::: warning Where item coverage reads 0%, check the areas column
 `caf-landing-zone-design-areas` enumerates individual recommendations (`AUT-DEV-01`,
@@ -86,10 +86,6 @@ The specific items with no rule of their own. This is the backlog, stated rather
 ### `waf-pillar-checklists` — 28 of 59 uncovered
 
 `WAF-CO-10`, `WAF-CO-11`, `WAF-CO-12`, `WAF-CO-13`, `WAF-CO-14`, `WAF-OE-03`, `WAF-OE-04`, `WAF-OE-09`, `WAF-OE-10`, `WAF-OE-11`, `WAF-PE-03`, `WAF-PE-08`, `WAF-PE-09`, `WAF-PE-10`, `WAF-PE-11`, `WAF-PE-12`, `WAF-RE-01`, `WAF-RE-02`, `WAF-RE-04`, `WAF-RE-06`, `WAF-RE-07`, `WAF-RE-08`, `WAF-RE-10`, `WAF-SE-08`, `WAF-SE-09`, `WAF-SE-10`, `WAF-SE-11`, `WAF-SE-12`
-
-### `waf-avs-workload-checklist` — 1 of 27 uncovered
-
-`AVS-SEC-05`
 
 ### `wara-aprl-checklist` — 1 of 39 uncovered
 

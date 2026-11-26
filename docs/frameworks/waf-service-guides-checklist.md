@@ -74,7 +74,7 @@ Guides enumerated:
 
 ### Azure Kubernetes Service (WAF-SVC-AKS) — 14 items
 
-Guide: <https://learn.microsoft.com/azure/well-architected/service-guides/azure-kubernetes-service>. 11 automated, 3 manual.
+Guide: <https://learn.microsoft.com/azure/well-architected/service-guides/azure-kubernetes-service>. 12 automated, 2 manual.
 
 | # | Item | Pillar | Scout |
 |---|---|---|---|
@@ -90,7 +90,7 @@ Guide: <https://learn.microsoft.com/azure/well-architected/service-guides/azure-
 | WAF-SVC-AKS-10 | Automatic cluster upgrades are enabled | Operational excellence | ✅ `upgradeChannel` |
 | WAF-SVC-AKS-11 | The cluster autoscaler scales every node pool | Cost optimization | ✅ `allPoolsAutoscale` |
 | WAF-SVC-AKS-12 | Clusters that need strong API segmentation are private, and egress passes through a firewall, NAT gateway or proxy | Security | ❌ Manual — evidence attached |
-| WAF-SVC-AKS-13 | Azure Policy and deployment safeguards enforce pod and cluster standards | Security | ❌ Manual — no collected field |
+| WAF-SVC-AKS-13 | Azure Policy and deployment safeguards enforce pod and cluster standards | Security | ✅ `azurePolicyAddon`; the deployment safeguards level and the policy assignments are not read |
 | WAF-SVC-AKS-14 | Cluster state and application data are backed up, and maintenance is scheduled | Reliability | ❌ Manual — evidence attached |
 
 ### Azure App Service (Web Apps) (WAF-SVC-APP) — 17 items
@@ -135,7 +135,7 @@ The Functions guide builds on the App Service guide; function apps are the web a
 
 ### Azure Container Apps (WAF-SVC-ACA) — 11 items
 
-Guide: <https://learn.microsoft.com/azure/well-architected/service-guides/azure-container-apps>. 6 automated, 5 manual.
+Guide: <https://learn.microsoft.com/azure/well-architected/service-guides/azure-container-apps>. 8 automated, 3 manual.
 
 | # | Item | Pillar | Scout |
 |---|---|---|---|
@@ -147,13 +147,13 @@ Guide: <https://learn.microsoft.com/azure/well-architected/service-guides/azure-
 | WAF-SVC-ACA-06 | Environments block public network access | Security | ✅ `internal`, `publicNetworkAccess` |
 | WAF-SVC-ACA-07 | Apps that must not be public use internal ingress, and a WAF fronts the ones that are | Security | ❌ Manual — evidence attached |
 | WAF-SVC-ACA-08 | Secrets use Key Vault, registry pulls use Microsoft Entra ID, and egress is controlled | Security | ❌ Manual — no collected field |
-| WAF-SVC-ACA-09 | Health probes, resource limits and resiliency policies are configured | Reliability | ❌ Manual — no collected field |
+| WAF-SVC-ACA-09 | Health probes, resource limits and resiliency policies are configured | Reliability | ✅ `containersWithoutAllProbes`; resource limits (always allocated by the platform) and resiliency policies are not scored |
 | WAF-SVC-ACA-10 | Scale rules match the workload | Performance efficiency | ❌ Manual — no collected field |
-| WAF-SVC-ACA-11 | Logs and traces go to Log Analytics, Application Insights or an OpenTelemetry agent | Operational excellence | ❌ Manual — no collected field |
+| WAF-SVC-ACA-11 | Logs and traces go to Log Analytics, Application Insights or an OpenTelemetry agent | Operational excellence | ✅ `logsExported` on the environment; tracing is not read |
 
 ### Azure API Management (WAF-SVC-APIM) — 12 items
 
-Guide: <https://learn.microsoft.com/azure/well-architected/service-guides/azure-api-management>. 8 automated, 4 manual.
+Guide: <https://learn.microsoft.com/azure/well-architected/service-guides/azure-api-management>. 9 automated, 3 manual.
 
 | # | Item | Pillar | Scout |
 |---|---|---|---|
@@ -165,7 +165,7 @@ Guide: <https://learn.microsoft.com/azure/well-architected/service-guides/azure-
 | WAF-SVC-APIM-06 | Instances have a managed identity | Security | ✅ `identityType` |
 | WAF-SVC-APIM-07 | Microsoft Defender for APIs is enabled | Security | ✅ Defender plan `Api` |
 | WAF-SVC-APIM-08 | Instances send resource logs to a destination | Operational excellence | ✅ diagnostic-settings coverage of `microsoft.apimanagement/service` |
-| WAF-SVC-APIM-09 | The narrowest TLS versions, protocols and ciphers are set, and the developer portal and direct management API are off | Security | ❌ Manual — no collected field |
+| WAF-SVC-APIM-09 | The narrowest TLS versions, protocols and ciphers are set, and the developer portal and direct management API are off | Security | ✅ `legacyProtocolEnabled`, `legacyCipherEnabled`; the developer portal and the direct management API are not read |
 | WAF-SVC-APIM-10 | APIs authenticate with OAuth 2.0, secrets use Key Vault named values, and a WAF fronts internet-exposed gateways | Security | ❌ Manual — no collected field |
 | WAF-SVC-APIM-11 | Backup, restore and a disaster recovery playbook exist, and unrelated APIs are isolated | Reliability | ❌ Manual — no collected field |
 | WAF-SVC-APIM-12 | The tier is the least expensive that meets the workload, and lower environments use non-production tiers | Cost optimization | ❌ Manual — evidence attached |
@@ -211,7 +211,7 @@ The guide index links the Event Grid guide as event-grid/reliability; the guide 
 
 ### Azure Firewall (WAF-SVC-FW) — 11 items
 
-Guide: <https://learn.microsoft.com/azure/well-architected/service-guides/azure-firewall>. 6 automated, 5 manual.
+Guide: <https://learn.microsoft.com/azure/well-architected/service-guides/azure-firewall>. 7 automated, 4 manual.
 
 | # | Item | Pillar | Scout |
 |---|---|---|---|
@@ -220,7 +220,7 @@ Guide: <https://learn.microsoft.com/azure/well-architected/service-guides/azure-
 | WAF-SVC-FW-03 | Firewall policies run threat intelligence in Alert and deny mode | Security | ✅ `firewallPolicies.threatIntelMode` |
 | WAF-SVC-FW-04 | Firewalls without a policy run threat intelligence in Alert and deny mode | Security | ✅ `threatIntelMode` |
 | WAF-SVC-FW-05 | Firewalls protecting sensitive workloads use the Premium tier | Security | ✅ `tier` |
-| WAF-SVC-FW-06 | IDPS, TLS inspection and DNS proxy are enabled on the policy | Security | ❌ Manual — evidence attached |
+| WAF-SVC-FW-06 | IDPS, TLS inspection and DNS proxy are enabled on the policy | Security | ✅ `idpsTlsDnsEnabled` on policies with no base policy |
 | WAF-SVC-FW-07 | Traffic is forced through the firewall by user-defined routes or routing intent | Security | ❌ Manual — evidence attached |
 | WAF-SVC-FW-08 | Resource Health, throughput, SNAT and health-state alerts exist | Operational excellence | ❌ Manual — evidence attached |
 | WAF-SVC-FW-09 | Customer-controlled maintenance is configured | Operational excellence | ❌ Manual — evidence attached |
@@ -339,7 +339,7 @@ Guide: <https://learn.microsoft.com/azure/well-architected/service-guides/azure-
 
 ### Azure Monitor Application Insights (WAF-SVC-APPI) — 7 items
 
-Guide: <https://learn.microsoft.com/azure/well-architected/service-guides/application-insights>. 3 automated, 4 manual.
+Guide: <https://learn.microsoft.com/azure/well-architected/service-guides/application-insights>. 4 automated, 3 manual.
 
 | # | Item | Pillar | Scout |
 |---|---|---|---|
@@ -347,7 +347,7 @@ Guide: <https://learn.microsoft.com/azure/well-architected/service-guides/applic
 | WAF-SVC-APPI-02 | Components require Microsoft Entra authentication for ingestion | Security | ✅ `disableLocalAuth` |
 | WAF-SVC-APPI-03 | Components block public ingestion and query | Security | ✅ `publicNetworkAccessForIngestion`, `publicNetworkAccessForQuery` |
 | WAF-SVC-APPI-04 | One component per workload per environment, in the same region as its workspace | Reliability | ❌ Manual — evidence attached |
-| WAF-SVC-APPI-05 | Microsoft Entra authentication is used for the query API, and personal data is not collected | Security | ❌ Manual — no collected field |
+| WAF-SVC-APPI-05 | Microsoft Entra authentication is used for the query API, and personal data is not collected | Security | ✅ `disableLocalAuth`, `disableIpMasking`; which scripts query with Entra identities is not read |
 | WAF-SVC-APPI-06 | A daily cap, sampling and telemetry filters control volume | Cost optimization | ❌ Manual — no collected field |
 | WAF-SVC-APPI-07 | Auto-instrumentation or the Azure Monitor OpenTelemetry distro is used with connection strings | Operational excellence | ❌ Manual — no collected field |
 
@@ -367,20 +367,20 @@ Guide: <https://learn.microsoft.com/azure/well-architected/service-guides/azure-
 
 ### Azure Traffic Manager (WAF-SVC-TM) — 6 items
 
-Guide: <https://learn.microsoft.com/azure/well-architected/service-guides/azure-traffic-manager>. 3 automated, 3 manual.
+Guide: <https://learn.microsoft.com/azure/well-architected/service-guides/azure-traffic-manager>. 4 automated, 2 manual.
 
 | # | Item | Pillar | Scout |
 |---|---|---|---|
 | WAF-SVC-TM-01 | Profiles have more than one endpoint | Reliability | ✅ `endpointCount` |
 | WAF-SVC-TM-02 | Profile health probes report the profile online | Reliability | ✅ `monitorStatus` |
 | WAF-SVC-TM-03 | Profiles send diagnostic logs to a destination | Operational excellence | ✅ diagnostic-settings coverage of `microsoft.network/trafficmanagerprofiles` |
-| WAF-SVC-TM-04 | DNS TTL is below 60 seconds, AlwaysServe is off, and probe interval and tolerated failures are set deliberately | Reliability | ❌ Manual — evidence attached |
+| WAF-SVC-TM-04 | DNS TTL is below 60 seconds, AlwaysServe is off, and probe interval and tolerated failures are set deliberately | Reliability | ✅ `dnsTtl`, `alwaysServeEndpointCount`; probe interval and tolerated failures are not scored |
 | WAF-SVC-TM-05 | Application gateways front HTTP endpoints, and apex domains use alias records | Reliability | ❌ Manual — no collected field |
 | WAF-SVC-TM-06 | Routing method fits the deployment, using performance routing for multi-region endpoints | Performance efficiency | ❌ Manual — evidence attached |
 
 ### Azure Virtual WAN (WAF-SVC-VWAN) — 9 items
 
-Guide: <https://learn.microsoft.com/azure/well-architected/service-guides/azure-virtual-wan>. 3 automated, 6 manual.
+Guide: <https://learn.microsoft.com/azure/well-architected/service-guides/azure-virtual-wan>. 4 automated, 5 manual.
 
 | # | Item | Pillar | Scout |
 |---|---|---|---|
@@ -388,7 +388,7 @@ Guide: <https://learn.microsoft.com/azure/well-architected/service-guides/azure-
 | WAF-SVC-VWAN-02 | A secured virtual hub runs Azure Firewall | Security | ✅ `azureFirewalls` with sku AZFW_Hub |
 | WAF-SVC-VWAN-03 | Hub gateways send diagnostic logs to a destination | Operational excellence | ✅ diagnostic-settings coverage of hub gateway types |
 | WAF-SVC-VWAN-04 | Virtual hubs exist in at least two regions, with zone-redundant, active-active gateways | Reliability | ❌ Manual — evidence attached |
-| WAF-SVC-VWAN-05 | Site-to-site VPN backs up ExpressRoute, and routing preference is set deliberately | Reliability | ❌ Manual — no collected field |
+| WAF-SVC-VWAN-05 | Site-to-site VPN backs up ExpressRoute, and routing preference is set deliberately | Reliability | ✅ `expressRouteBackedUp`, on hubs that carry an ExpressRoute gateway |
 | WAF-SVC-VWAN-06 | Spokes use custom route tables, NSGs and private endpoints, and point-to-site uses Microsoft Entra ID with Conditional Access | Security | ❌ Manual — no collected field |
 | WAF-SVC-VWAN-07 | Site-to-site connections use GCMAES256 IPsec policies | Security | ❌ Manual — evidence attached |
 | WAF-SVC-VWAN-08 | Routing infrastructure units and gateway scale units are sized from throughput | Performance efficiency | ❌ Manual — no collected field |
@@ -449,28 +449,28 @@ The assessment collects volume name, state and quota only, so every item here is
 
 | Service guide | Items | Automated (✅) | Manual (❌) |
 |---|---|---|---|
-| Azure Kubernetes Service | 14 | 11 | 3 |
+| Azure Kubernetes Service | 14 | 12 | 2 |
 | Azure App Service (Web Apps) | 17 | 14 | 3 |
 | Azure Functions | 7 | 4 | 3 |
-| Azure Container Apps | 11 | 6 | 5 |
-| Azure API Management | 12 | 8 | 4 |
+| Azure Container Apps | 11 | 8 | 3 |
+| Azure API Management | 12 | 9 | 3 |
 | Azure Service Bus | 13 | 9 | 4 |
 | Azure Event Grid | 10 | 6 | 4 |
-| Azure Firewall | 11 | 6 | 5 |
+| Azure Firewall | 11 | 7 | 4 |
 | Azure Application Gateway | 13 | 9 | 4 |
 | Azure Load Balancer | 9 | 5 | 4 |
 | Azure Virtual Network | 13 | 10 | 3 |
 | Azure Virtual Machines | 13 | 9 | 4 |
 | Azure Virtual Machine Scale Sets | 7 | 6 | 1 |
 | Azure Disk Storage | 9 | 5 | 4 |
-| Azure Monitor Application Insights | 7 | 3 | 4 |
+| Azure Monitor Application Insights | 7 | 4 | 3 |
 | Azure Front Door | 7 | 3 | 4 |
-| Azure Traffic Manager | 6 | 3 | 3 |
-| Azure Virtual WAN | 9 | 3 | 6 |
+| Azure Traffic Manager | 6 | 4 | 2 |
+| Azure Virtual WAN | 9 | 4 | 5 |
 | Azure ExpressRoute | 9 | 4 | 5 |
 | Azure Files | 9 | 6 | 3 |
 | Azure NetApp Files | 8 | 0 | 8 |
-| **Total** | **214** | **130** | **84** |
+| **Total** | **214** | **138** | **76** |
 
 ## What these rules read
 

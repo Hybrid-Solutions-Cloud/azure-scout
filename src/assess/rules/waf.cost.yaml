@@ -55,13 +55,17 @@ rules:
 
   # ---- AB#6798: redistributed from the retired waf.storage.yaml -- tiering/lifecycle rules
   # are a cost concern, not a reliability one.
+  # AB#9300, depth wiring. domains.storage.lifecyclePolicies has one row per blob-capable storage account whose management
+  # policy was read (a 404 is an answer: no policy). enabledRuleCount is the number of rules not explicitly disabled, so an
+  # account with no policy and an account whose policy has every rule switched off are both listed. Gated on the Measured
+  # flag: a run that never read the policies, or an estate with no blob-capable account, is Not assessed.
   - id: WAF-CO-07
-    title: "Lifecycle management policy configured for storage accounts"
+    title: "WAF-CO-07. Lifecycle management policy configured for storage accounts"
     severity: low
-    query: null
-    assert: { type: manual }
-    remediation: "Configure a lifecycle management policy to tier or expire aging blobs and control cost/performance tradeoffs. collect.json does not yet capture lifecycle management policy state -- verify via `az storage account management-policy show`."
-    manual: true
+    query: "$.domains.storage.lifecyclePolicies[?(@.enabledRuleCount == 0)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.storage.lifecyclePoliciesMeasured" }
+    remediation: "WAF-CO-07. The storage accounts listed have no enabled lifecycle management rule (no policy, or every rule disabled). Configure a lifecycle management policy to tier or expire aging blobs and control cost/performance tradeoffs. An account whose policy could not be read is not listed; accounts that cannot have a policy (general-purpose v1 and file-only accounts) are not asked."
+    manual: false
 
   # ---- AB#6798: caf.billing.yaml was renamed/rewritten because it held these two cost rules
   # under the CAF "Azure billing and Microsoft Entra tenant" design-area name (a mismatch --

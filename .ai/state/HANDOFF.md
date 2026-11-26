@@ -1,5 +1,17 @@
 # Handoff
 
+## Session 2026-11-26 — collection depth: AVS sub-resources (3.18.19)
+
+3.18.18 released and five-tenant tested (all Completed, 0 Error findings; CA read in all five, PIM checks score).
+Operator concern: Scout reads top-level resources but not the sub-resources Resource Graph does not index. A read-only
+depth audit (scratchpad depth-audit/: depth-audit.md, depth-by-type.csv, recommendations.csv) estimated ~1,520 of
+~2,548 deployable types invisible, 831 unread child types under 299 parent types Scout reads; 115 manual rules are
+manual only for a collection gap. 3.18.19: 13 AVS child datasets (domains.avs, not live-tested -- no AVS anywhere),
+17 rules automated from existing data, -OptionalRead Graph switch. Open: other ARM-swept children are not in the
+discovery index (only AVS mirrored); audit recommendations 1-23 (Front Door origins, SQL retention/TDE/firewall,
+Azure Local update/security settings, Event Hubs/Service Bus, App Service auth, APIM policies); the wiring agent
+stalled before reporting which of the 49 audit candidates it skipped and why.
+
 ## Session 2026-11-25 (continued) — Azure only; Conditional Access and PIM (3.18.18)
 
 User: Scout is Azure only -- removed the seven non-Azure assessments from 3.18.17. 3.18.16 and 3.18.17 were both

@@ -99,7 +99,8 @@ BeforeAll {
             else {
                 [ordered]@{ name = 'fw1'; sku = 'AZFW_VNet'; tier = 'Standard'; zoneCount = $null; hasPolicy = $false; threatIntelMode = 'Alert' }
             })
-        $networking.firewallPolicies = @([ordered]@{ name = 'fwp1'; sku = $(if ($Good) { 'Premium' } else { 'Standard' }); threatIntelMode = $(if ($Good) { 'Deny' } else { 'Alert' }) })
+        $networking.firewallPolicies = @([ordered]@{ name = 'fwp1'; sku = $(if ($Good) { 'Premium' } else { 'Standard' }); threatIntelMode = $(if ($Good) { 'Deny' } else { 'Alert' })
+                idpsEnabled = $Good; tlsInspectionEnabled = $Good; dnsProxyEnabled = $Good; hasBasePolicy = $false; idpsTlsDnsEnabled = $Good })
         $networking.routeTables = @([ordered]@{ name = 'rt1'; subnetCount = 1; defaultRouteNextHopType = 'VirtualAppliance' })
         $networking.networkWatchers = @([ordered]@{ name = 'nw1' })
         $networking.applicationGateways = @(if ($Good) {
@@ -119,9 +120,10 @@ BeforeAll {
                 [ordered]@{ name = 'lb-basic'; location = 'eastus'; sku = 'Basic'; tier = 'Regional'; hasPublicFrontend = $true; probeCount = 0; ruleCount = 0; minFrontendZoneCount = 0 }
                 [ordered]@{ name = 'lb-internal'; location = 'eastus'; sku = 'Standard'; tier = 'Regional'; hasPublicFrontend = $false; probeCount = 1; ruleCount = 1; minFrontendZoneCount = 1 }
             })
-        $networking.trafficManagerProfiles = @([ordered]@{ name = 'tm1'; endpointCount = $(if ($Good) { 2 } else { 1 }); monitorStatus = $(if ($Good) { 'Online' } else { 'Degraded' }) })
+        $networking.trafficManagerProfiles = @([ordered]@{ name = 'tm1'; endpointCount = $(if ($Good) { 2 } else { 1 }); monitorStatus = $(if ($Good) { 'Online' } else { 'Degraded' })
+                dnsTtl = $(if ($Good) { 30 } else { 300 }); alwaysServeEndpointCount = $(if ($Good) { 0 } else { 1 }) })
         $networking.virtualWans = @([ordered]@{ name = 'wan1'; wanType = $(if ($Good) { 'Standard' } else { 'Basic' }) })
-        $networking.virtualHubs = @([ordered]@{ name = 'hub1'; virtualWanName = 'wan1' })
+        $networking.virtualHubs = @([ordered]@{ name = 'hub1'; virtualWanName = 'wan1'; hasExpressRouteGateway = $true; hasVpnGateway = $Good; routingPreference = 'ExpressRoute'; expressRouteBackedUp = $Good })
         $networking.vpnConnections = @([ordered]@{ name = 'conn1' })
         $networking.expressRouteCircuits = @(if ($Good) {
                 [ordered]@{ name = 'er1'; serviceProviderProvisioningState = 'Provisioned' }
@@ -164,10 +166,10 @@ BeforeAll {
         $autoscaleTargets = if ($Good) { $id.Vmss, $id.Apim, $id.Plan } else { @() }
         $monitor = [ordered]@{
             appInsights         = @(if ($Good) {
-                    [ordered]@{ name = 'ai1'; workspaceBased = $true; disableLocalAuth = $true; publicNetworkAccessForIngestion = 'Disabled'; publicNetworkAccessForQuery = 'Disabled' }
+                    [ordered]@{ name = 'ai1'; workspaceBased = $true; disableLocalAuth = $true; disableIpMasking = $false; publicNetworkAccessForIngestion = 'Disabled'; publicNetworkAccessForQuery = 'Disabled' }
                 }
                 else {
-                    [ordered]@{ name = 'ai1'; workspaceBased = $false; disableLocalAuth = $null; publicNetworkAccessForIngestion = 'Enabled'; publicNetworkAccessForQuery = 'Enabled' }
+                    [ordered]@{ name = 'ai1'; workspaceBased = $false; disableLocalAuth = $null; disableIpMasking = $true; publicNetworkAccessForIngestion = 'Enabled'; publicNetworkAccessForQuery = 'Enabled' }
                 })
             autoscaleSettings   = @(if ($Good) { foreach ($t in $autoscaleTargets) { [ordered]@{ name = 'as'; enabled = $true; targetResourceUri = $t.ToLowerInvariant() } } }
                 else { [ordered]@{ name = 'as-off'; enabled = $false; targetResourceUri = $id.Vmss.ToLowerInvariant() } })
@@ -222,15 +224,17 @@ BeforeAll {
         $containers.aksClusters = @(if ($Good) {
                 [ordered]@{ id = "$sub/Microsoft.ContainerService/managedClusters/aks1"; name = 'aks1'; location = 'eastus'; tier = 'Standard'; allPoolsZoned = $true; aadIntegrated = $true
                     disableLocalAccounts = $true; azureRbac = $true; privateCluster = $false; authorizedIpRangeCount = 2; workloadIdentity = $true; defenderEnabled = $true
-                    networkPolicyEnabled = $true; upgradeChannel = 'stable'; allPoolsAutoscale = $true }
+                    networkPolicyEnabled = $true; upgradeChannel = 'stable'; allPoolsAutoscale = $true; azurePolicyAddon = $true }
             }
             else {
                 [ordered]@{ id = "$sub/Microsoft.ContainerService/managedClusters/aks1"; name = 'aks1'; location = 'eastus'; tier = 'Free'; allPoolsZoned = $false; aadIntegrated = $false
                     disableLocalAccounts = $null; azureRbac = $false; privateCluster = $false; authorizedIpRangeCount = $null; workloadIdentity = $false; defenderEnabled = $null
-                    networkPolicyEnabled = $false; upgradeChannel = 'none'; allPoolsAutoscale = $false }
+                    networkPolicyEnabled = $false; upgradeChannel = 'none'; allPoolsAutoscale = $false; azurePolicyAddon = $null }
             })
-        $containers.containerApps = @([ordered]@{ name = 'ca1'; externalIngress = $true; minReplicas = $(if ($Good) { 3 } else { 0 }); allowInsecure = (-not $Good); identityType = $(if ($Good) { 'SystemAssigned' } else { '' }) })
-        $containers.containerAppEnvironments = @([ordered]@{ name = 'cae1'; location = 'eastus'; zoneRedundant = $Good; internal = $Good; vnetIntegrated = $Good; publicNetworkAccess = $(if ($Good) { 'Disabled' } else { 'Enabled' }) })
+        $containers.containerApps = @([ordered]@{ name = 'ca1'; externalIngress = $true; minReplicas = $(if ($Good) { 3 } else { 0 }); allowInsecure = (-not $Good); identityType = $(if ($Good) { 'SystemAssigned' } else { '' })
+                containerCount = 1; containersWithoutAllProbes = $(if ($Good) { 0 } else { 1 }) })
+        $containers.containerAppEnvironments = @([ordered]@{ name = 'cae1'; location = 'eastus'; zoneRedundant = $Good; internal = $Good; vnetIntegrated = $Good; publicNetworkAccess = $(if ($Good) { 'Disabled' } else { 'Enabled' })
+                logDestination = $(if ($Good) { 'azure-monitor' } else { 'none' }); logsExported = $Good })
 
         $storage = [ordered]@{}
         $storage.storageAccounts = @(if ($Good) {
@@ -259,10 +263,12 @@ BeforeAll {
 
         $integration = [ordered]@{}
         $integration.apiManagement = @(if ($Good) {
-                [ordered]@{ id = $id.Apim; name = 'apim1'; sku = 'Premium'; virtualNetworkType = 'None'; zoneCount = 3; capacity = 2; additionalRegionCount = 1; publicNetworkAccess = 'Disabled'; identityType = 'SystemAssigned' }
+                [ordered]@{ id = $id.Apim; name = 'apim1'; sku = 'Premium'; virtualNetworkType = 'None'; zoneCount = 3; capacity = 2; additionalRegionCount = 1; publicNetworkAccess = 'Disabled'; identityType = 'SystemAssigned'
+                    legacyProtocolEnabled = $false; legacyCipherEnabled = $false }
             }
             else {
-                [ordered]@{ id = $id.Apim; name = 'apim1'; sku = 'Premium'; virtualNetworkType = 'None'; zoneCount = $null; capacity = 1; additionalRegionCount = $null; publicNetworkAccess = ''; identityType = '' }
+                [ordered]@{ id = $id.Apim; name = 'apim1'; sku = 'Premium'; virtualNetworkType = 'None'; zoneCount = $null; capacity = 1; additionalRegionCount = $null; publicNetworkAccess = ''; identityType = ''
+                    legacyProtocolEnabled = $true; legacyCipherEnabled = $true }
             })
         $integration.serviceBusNamespaces = @(if ($Good) {
                 [ordered]@{ id = $id.Sb; name = 'sb1'; location = 'eastus'; tier = 'Premium'; zoneRedundant = $true; geoReplicaCount = 2; disableLocalAuth = $true; minimumTlsVersion = '1.2'; publicAccess = 'Disabled'; cmkKeySource = 'Microsoft.KeyVault' }
@@ -329,10 +335,10 @@ Describe 'waf.serviceguides.yaml -- shape' {
         $script:Set.FrameworkVersion | Should -Match 'waf-service-guides-checklist\.md'
     }
 
-    It 'loads 214 rules, 130 automated and 84 manual, with unique ids' {
+    It 'loads 214 rules, 138 automated and 76 manual, with unique ids' {
         $script:Rules.Count | Should -Be 214
-        $script:Automated.Count | Should -Be 130
-        $script:Manual.Count | Should -Be 84
+        $script:Automated.Count | Should -Be 138
+        $script:Manual.Count | Should -Be 76
         @($script:Rules.id | Select-Object -Unique).Count | Should -Be 214
     }
 
@@ -408,7 +414,7 @@ Describe 'waf-service-guides-checklist.md' {
     }
 
     It 'states the same totals the rule file holds' {
-        $script:Doc | Should -Match '\| \*\*Total\*\* \| \*\*214\*\* \| \*\*130\*\* \| \*\*84\*\* \|'
+        $script:Doc | Should -Match '\| \*\*Total\*\* \| \*\*214\*\* \| \*\*138\*\* \| \*\*76\*\* \|'
     }
 }
 

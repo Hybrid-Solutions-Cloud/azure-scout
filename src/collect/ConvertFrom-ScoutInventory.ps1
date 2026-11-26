@@ -364,6 +364,12 @@ function ConvertFrom-ScoutInventory {
     $rows = [System.Collections.Generic.List[object]]::new()
     foreach ($resource in @($Resources)) {
         if ($null -eq $resource) { continue }
+        # AB#9300, 3.18.19. A discovery twin mirrors an AZSC/ARMChild row under its real ARM type so
+        # the discovery index lists it (ConvertTo-ScoutAvsDiscoveryResource). It shares that row's id,
+        # which the de-duplication below would otherwise resolve by arrival order; the AZSC row is the
+        # one that is shaped, so the twin never takes part. A direct member probe, not Get-ScoutProp: this
+        # loop runs once per row of the whole estate (50k on the audited run) and the probe is ~16x cheaper.
+        if ($null -ne $resource.PSObject.Properties['AZSCDiscoveryTwin']) { continue }
         $id = [string] (Get-ScoutProp $resource 'id')
         if ($id -and -not $seenIds.Add($id)) { continue }
         $rows.Add($resource)
@@ -413,6 +419,9 @@ function ConvertFrom-ScoutInventory {
                     name  = [string] (Get-ScoutProp $_ 'name')
                     state = [string] (Get-ScoutProp $_ 'properties.state')
                     tags  = Get-ScoutProp $_ 'tags'
+                    # AB#9300 (depth wiring) -- mirrors the KQL: the length of the management group chain
+                    # (tenant root included). Null when the chain is absent, never 0.
+                    managementGroupLevels = Measure-ScoutArray (Get-ScoutPropArray $_ 'properties.managementGroupAncestorsChain')
                 }
             }
     )
@@ -848,6 +857,11 @@ function ConvertFrom-ScoutInventory {
 
     $result['trafficManagerProfiles'] = @(
         Select-ByType 'microsoft.network/trafficmanagerprofiles' | ForEach-Object {
+            # AB#9300 (depth wiring) -- mirrors the KQL: how many endpoints have AlwaysServe on.
+            $endpointList = Get-ScoutPropArray $_ 'properties.endpoints'
+            $alwaysServeEndpoints = @(@($endpointList) | Where-Object {
+                    $null -ne $_ -and ([string] (Get-ScoutProp $_ 'properties.alwaysServe')) -ieq 'Enabled'
+                }).Count
             [pscustomobject]@{
                 id                   = [string] (Get-ScoutProp $_ 'id')
                 name                 = [string] (Get-ScoutProp $_ 'name')
@@ -859,6 +873,8 @@ function ConvertFrom-ScoutInventory {
                 # AB#6928 -- profile-level probe verdict + endpoint count, mirrors the KQL.
                 monitorStatus        = [string] (Get-ScoutProp $_ 'properties.monitorConfig.profileMonitorStatus')
                 endpointCount        = Measure-ScoutArray (Get-ScoutPropArray $_ 'properties.endpoints')
+                dnsTtl               = ConvertTo-ScoutInt (Get-ScoutProp $_ 'properties.dnsConfig.ttl')
+                alwaysServeEndpointCount = $alwaysServeEndpoints
             }
         }
     )
@@ -942,12 +958,21 @@ function ConvertFrom-ScoutInventory {
 
     $result['virtualHubs'] = @(
         Select-ByType 'microsoft.network/virtualhubs' | ForEach-Object {
+            # AB#9300 (depth wiring) -- mirrors the KQL. The gateways' ids are never carried, only whether
+            # each exists; an unset routing preference is ExpressRoute, the platform default.
+            $hubHasErGateway = -not [string]::IsNullOrEmpty([string] (Get-ScoutProp $_ 'properties.expressRouteGateway.id'))
+            $hubHasVpnGateway = -not [string]::IsNullOrEmpty([string] (Get-ScoutProp $_ 'properties.vpnGateway.id'))
+            $hubRoutingPreference = [string] (Get-ScoutProp $_ 'properties.hubRoutingPreference')
             [pscustomobject]@{
                 name           = [string] (Get-ScoutProp $_ 'name')
                 resourceGroup  = [string] (Get-ScoutProp $_ 'resourceGroup')
                 subscriptionId = [string] (Get-ScoutProp $_ 'subscriptionId')
                 addressPrefix  = [string] (Get-ScoutProp $_ 'properties.addressPrefix')
                 virtualWanName = Get-ScoutNameFromId ([string] (Get-ScoutProp $_ 'properties.virtualWan.id'))
+                hasExpressRouteGateway = $hubHasErGateway
+                hasVpnGateway          = $hubHasVpnGateway
+                routingPreference      = $hubRoutingPreference
+                expressRouteBackedUp   = ($hubHasErGateway -and $hubHasVpnGateway -and ($hubRoutingPreference -in 'ExpressRoute', ''))
             }
         }
     )
@@ -988,6 +1013,11 @@ function ConvertFrom-ScoutInventory {
 
     $result['firewallPolicies'] = @(
         Select-ByType 'microsoft.network/firewallpolicies' | ForEach-Object {
+            # AB#9300 (depth wiring) -- mirrors the KQL: booleans only. The CA's name and Key Vault secret
+            # id are never carried, just whether one is configured.
+            $idpsOn = ([string] (Get-ScoutProp $_ 'properties.intrusionDetection.mode')) -in 'Alert', 'Deny'
+            $tlsOn = -not [string]::IsNullOrEmpty([string] (Get-ScoutProp $_ 'properties.transportSecurity.certificateAuthority.keyVaultSecretId'))
+            $dnsProxyOn = (ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.dnsSettings.enableProxy')) -eq $true
             [pscustomobject]@{
                 id                       = [string] (Get-ScoutProp $_ 'id')
                 name                     = [string] (Get-ScoutProp $_ 'name')
@@ -998,6 +1028,11 @@ function ConvertFrom-ScoutInventory {
                 provisioningState        = [string] (Get-ScoutProp $_ 'properties.provisioningState')
                 threatIntelMode          = [string] (Get-ScoutProp $_ 'properties.threatIntelMode')
                 ruleCollectionGroupCount = Measure-ScoutArray (Get-ScoutPropArray $_ 'properties.ruleCollectionGroups')
+                idpsEnabled              = $idpsOn
+                tlsInspectionEnabled     = $tlsOn
+                dnsProxyEnabled          = $dnsProxyOn
+                hasBasePolicy            = -not [string]::IsNullOrEmpty([string] (Get-ScoutProp $_ 'properties.basePolicy.id'))
+                idpsTlsDnsEnabled        = ($idpsOn -and $tlsOn -and $dnsProxyOn)
             }
         }
     )
@@ -1124,10 +1159,17 @@ function ConvertFrom-ScoutInventory {
     # AB#6820 -- mirrors Invoke-Collect.ps1's `privateClouds` KQL field for field so a combined
     # inventory + assessment run shapes AVS private clouds from the one raw pass instead of
     # issuing a second, live ARG round-trip for them.
+    #
+    # AB#9300, 3.18.19 -- the private cloud's own extended properties, mirrored the same way: the
+    # second zone and circuit of a stretched cloud, provisioning state, DNS zone type, the COUNT of
+    # extended network blocks, the NSX public IP quota, whether a virtual network id is set (a Gen 2
+    # cloud), the managed identity type and the customer-managed key's health. Never a password, a
+    # licence key, a thumbprint, an address block, an endpoint or a key name / version / vault URL.
     $result['privateClouds'] = @(
         Select-ByType 'microsoft.avs/privateclouds' | ForEach-Object {
             $identitySourceCount = Measure-ScoutArray (Get-ScoutPropArray $_ 'properties.identitySources')
             $externalCloudLinkCount = Measure-ScoutArray (Get-ScoutPropArray $_ 'properties.externalCloudLinks')
+            $extendedNetworkBlockCount = Measure-ScoutArray (Get-ScoutPropArray $_ 'properties.extendedNetworkBlocks')
             $clusterSizeRaw = Get-ScoutProp $_ 'properties.managementCluster.clusterSize'
             [pscustomobject]@{
                 id                      = [string] (Get-ScoutProp $_ 'id')
@@ -1137,12 +1179,22 @@ function ConvertFrom-ScoutInventory {
                 sku                     = [string] (Get-ScoutProp $_ 'sku.name')
                 availabilityStrategy    = [string] (Get-ScoutProp $_ 'properties.availability.strategy')
                 availabilityZone        = [string] (Get-ScoutProp $_ 'properties.availability.zone')
+                availabilitySecondaryZone = [string] (Get-ScoutProp $_ 'properties.availability.secondaryZone')
                 clusterSize             = if ($null -eq $clusterSizeRaw) { $null } else { [int] $clusterSizeRaw }
                 expressRouteCircuitId   = [string] (Get-ScoutProp $_ 'properties.circuit.expressRouteID')
+                secondaryCircuitPresent = -not [string]::IsNullOrEmpty([string] (Get-ScoutProp $_ 'properties.secondaryCircuit.expressRouteID'))
                 encryptionStatus        = [string] (Get-ScoutProp $_ 'properties.encryption.status')
+                encryptionKeyState      = [string] (Get-ScoutProp $_ 'properties.encryption.keyVaultProperties.keyState')
+                encryptionKeyVersionType = [string] (Get-ScoutProp $_ 'properties.encryption.keyVaultProperties.versionType')
                 internet                = [string] (Get-ScoutProp $_ 'properties.internet')
                 identitySourceCount     = $identitySourceCount
                 externalCloudLinkCount  = $externalCloudLinkCount
+                provisioningState       = [string] (Get-ScoutProp $_ 'properties.provisioningState')
+                dnsZoneType             = [string] (Get-ScoutProp $_ 'properties.dnsZoneType')
+                extendedNetworkBlockCount = $extendedNetworkBlockCount
+                nsxPublicIpQuotaRaised  = [string] (Get-ScoutProp $_ 'properties.nsxPublicIpQuotaRaised')
+                virtualNetworkIdSet     = -not [string]::IsNullOrEmpty([string] (Get-ScoutProp $_ 'properties.virtualNetworkId'))
+                identityType            = [string] (Get-ScoutProp $_ 'identity.type')
             }
         }
     )
@@ -1349,7 +1401,7 @@ function ConvertFrom-ScoutInventory {
     # Name / resource group / subscription for a parent that only has an id to go on: read them off
     # the parent's own row when it is in the inventory, else off the id itself.
     $summaryParentById = @{}
-    foreach ($summaryParent in @(Select-ByAnyType @('microsoft.sql/servers', 'microsoft.eventhub/namespaces'))) {
+    foreach ($summaryParent in @(Select-ByAnyType @('microsoft.sql/servers', 'microsoft.eventhub/namespaces', 'microsoft.storage/storageaccounts'))) {
         $summaryParentId = [string] (Get-ScoutProp $summaryParent 'id')
         if ($summaryParentId) { $summaryParentById[$summaryParentId.ToLowerInvariant()] = $summaryParent }
     }
@@ -1578,6 +1630,368 @@ function ConvertFrom-ScoutInventory {
         }
     )
 
+    # -- storage lifecycle management policies (AB#9300, depth wiring) --------------------------------
+    # One row per blob-capable storage account whose policy GET ANSWERED. A 404 is an answer -- the
+    # account has no policy -- and for the three lifecycle rules that absence is the finding, so it
+    # produces a row with policyPresent false and every count 0, exactly as an empty failover-group list
+    # does above. A GET that failed produces no row and leaves the account out of the count.
+    # The rows carry counts only: never a rule name, a container prefix or a filter. A rule counts as
+    # enabled unless its `enabled` is an explicit false (the same reading the Storage Lifecycle Policies
+    # worksheet uses), tiers data when it moves blobs, versions or snapshots to Cool, Cold or Archive, and
+    # expires data when it deletes them. `premium` marks a premium block blob account, which has no tiers.
+    $result['lifecyclePoliciesMeasured'] = Test-ScoutSweepMeasured 'StorageLifecyclePolicies'
+    $lifecycleByAccount = Group-ScoutChildRowByParent 'AZSC/ARMChild/StorageLifecyclePolicies'
+    $lifecycleAccounts = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+    # The account an operation answered for is its ParentId, or -- for an inventory banked before this dataset
+    # recorded one -- the account id in the request path, so an old dump still yields a row for an account that
+    # answered 404 (no policy) instead of silently leaving it out.
+    foreach ($lifecycleOperation in $sweepOperations) {
+        if ([string] $lifecycleOperation.Dataset -ne 'StorageLifecyclePolicies' -or [string] $lifecycleOperation.Status -notin 'Success', 'Empty') { continue }
+        $operationParent = if ($lifecycleOperation.PSObject.Properties['ParentId']) { [string] $lifecycleOperation.ParentId } else { '' }
+        if (-not $operationParent -and $lifecycleOperation.PSObject.Properties['Uri']) {
+            $uriMatch = [regex]::Match([string] $lifecycleOperation.Uri, '(?i)(/subscriptions/.+?)/managementPolicies/default')
+            if ($uriMatch.Success) { $operationParent = $uriMatch.Groups[1].Value }
+        }
+        if ($operationParent) { [void] $lifecycleAccounts.Add($operationParent.ToLowerInvariant()) }
+    }
+    foreach ($groupedAccount in $lifecycleByAccount.Keys) { [void] $lifecycleAccounts.Add($groupedAccount) }
+    $result['lifecyclePolicies'] = @(
+        foreach ($accountId in @($lifecycleAccounts | Sort-Object)) {
+            $fact = Get-ScoutSummaryParentFact $accountId
+            $accountRow = $summaryParentById[$accountId.ToLowerInvariant()]
+            $policyRows = @(if ($lifecycleByAccount.Contains($accountId)) { $lifecycleByAccount[$accountId] })
+            $rules = @(foreach ($policyRow in $policyRows) {
+                    $ruleList = Get-ScoutPropArray $policyRow 'properties.policy.rules'
+                    foreach ($ruleItem in @($ruleList)) { if ($null -ne $ruleItem) { $ruleItem } }
+                })
+            $enabledRules = @($rules | Where-Object { (ConvertTo-ScoutBool (Get-ScoutProp $_ 'enabled')) -ne $false })
+            $hasAction = {
+                param($Rule, [string[]] $Actions)
+                foreach ($group in 'baseBlob', 'version', 'snapshot') {
+                    foreach ($action in $Actions) {
+                        if ($null -ne (Get-ScoutProp $Rule "definition.actions.$group.$action")) { return $true }
+                    }
+                }
+                return $false
+            }
+            [pscustomobject]@{
+                storageAccountId  = $accountId
+                name              = $fact.name
+                resourceGroup     = $fact.resourceGroup
+                subscriptionId    = $fact.subscriptionId
+                location          = $fact.location
+                premium           = if ($null -ne $accountRow) { ([string] (Get-ScoutProp $accountRow 'sku.name')) -like 'Premium*' } else { $false }
+                policyPresent     = $policyRows.Count -gt 0
+                ruleCount         = $rules.Count
+                enabledRuleCount  = $enabledRules.Count
+                tieringRuleCount  = @($enabledRules | Where-Object { & $hasAction $_ @('tierToCool', 'tierToCold', 'tierToArchive') }).Count
+                deleteRuleCount   = @($enabledRules | Where-Object { & $hasAction $_ @('delete') }).Count
+            }
+        }
+    )
+
+    # ---- Azure VMware Solution private-cloud children (AB#9300, 3.18.19) ----------------------------
+    # Thirteen datasets Resource Graph cannot supply, read by Get-ScoutArmChildResource and shaped
+    # here under the same contract as the batch-2 datasets above: keyed by the PARENT private cloud's
+    # resource id (lower-cased, field `privateCloudId`), each with a `<name>Measured` flag that is
+    # $true only when at least one GET of that dataset got an answer, so a rule gates on it and reports
+    # NotAssessed rather than passing on an empty list. They come in two shapes:
+    #
+    #   ITEM ROWS     avsClusters, avsDatastores, avsPlacementPolicies, avsMaintenances -- one row per
+    #                 child, because the question is about each one (is THIS cluster big enough, is
+    #                 THIS datastore accessible).
+    #   SUMMARY ROWS  every other dataset -- one row per private cloud whose list ANSWERED, with counts
+    #                 and booleans, and a count of 0 where nothing came back. Here the absence is the
+    #                 finding ("no SRM add-on", "no Global Reach connection"), and an empty list
+    #                 produces no response row to show it. A private cloud whose list failed has NO
+    #                 row, so it is never reported as lacking the thing.
+    #
+    # The two per-cluster datasets are measured per answered GET, like the rest; a private cloud whose
+    # cluster list failed contributes no datastore GET and so leaves them unmeasured.
+    $avsPrivateCloudById = @{}
+    foreach ($avsPrivateCloud in @(Select-ByType 'microsoft.avs/privateclouds')) {
+        $avsPrivateCloudId = [string] (Get-ScoutProp $avsPrivateCloud 'id')
+        if ($avsPrivateCloudId) { $avsPrivateCloudById[$avsPrivateCloudId.ToLowerInvariant()] = $avsPrivateCloud }
+    }
+    # Name / resource group / subscription / location of a private cloud that only has an id to go on.
+    function Get-ScoutAvsParentFact {
+        param([Parameter(Mandatory)] [string] $ParentId)
+        $privateCloud = $avsPrivateCloudById[$ParentId.ToLowerInvariant()]
+        if ($null -ne $privateCloud) {
+            return [pscustomobject]@{
+                name           = [string] (Get-ScoutProp $privateCloud 'name')
+                resourceGroup  = [string] (Get-ScoutProp $privateCloud 'resourceGroup')
+                subscriptionId = [string] (Get-ScoutProp $privateCloud 'subscriptionId')
+                location       = [string] (Get-ScoutProp $privateCloud 'location')
+            }
+        }
+        $parsed = [regex]::Match($ParentId, '(?i)^/subscriptions/(?<sub>[^/]+)/resourceGroups/(?<rg>[^/]+)/providers/.+/(?<name>[^/]+)$')
+        return [pscustomobject]@{
+            name           = if ($parsed.Success) { $parsed.Groups['name'].Value } else { '' }
+            resourceGroup  = if ($parsed.Success) { $parsed.Groups['rg'].Value } else { '' }
+            subscriptionId = if ($parsed.Success) { $parsed.Groups['sub'].Value } else { '' }
+            location       = ''
+        }
+    }
+
+    # One row per private cloud whose list answered. $Shape receives that private cloud's child rows
+    # and returns the dataset's own fields as an ordered table; the identity fields come first.
+    function New-ScoutAvsSummaryRow {
+        param([Parameter(Mandatory)] [string] $Dataset, [Parameter(Mandatory)] [scriptblock] $Shape)
+        $childrenByCloud = Group-ScoutChildRowByParent "AZSC/ARMChild/$Dataset"
+        $clouds = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+        foreach ($checkedCloud in (Get-ScoutSweepCheckedParent $Dataset)) { [void] $clouds.Add($checkedCloud) }
+        foreach ($groupedCloud in $childrenByCloud.Keys) { [void] $clouds.Add($groupedCloud) }
+        foreach ($cloudId in @($clouds | Sort-Object)) {
+            $fact = Get-ScoutAvsParentFact $cloudId
+            $children = @(if ($childrenByCloud.Contains($cloudId)) { $childrenByCloud[$cloudId] })
+            $row = [ordered]@{
+                privateCloudId = $cloudId
+                name           = $fact.name
+                resourceGroup  = $fact.resourceGroup
+                subscriptionId = $fact.subscriptionId
+                location       = $fact.location
+            }
+            $own = & $Shape $children
+            foreach ($key in $own.Keys) { $row[$key] = $own[$key] }
+            [pscustomobject] $row
+        }
+    }
+
+    # The identity fields every item row starts with (the private cloud is the row's PARENT).
+    function Get-ScoutAvsItemIdentity {
+        param([Parameter(Mandatory)] $Row)
+        return [ordered]@{
+            privateCloudId   = ([string] (Get-ScoutProp $Row 'PARENTID')).ToLowerInvariant()
+            privateCloudName = [string] (Get-ScoutProp $Row 'PARENTNAME')
+            resourceGroup    = [string] (Get-ScoutProp $Row 'RESOURCEGROUP')
+            subscriptionId   = [string] (Get-ScoutProp $Row 'subscriptionId')
+            location         = [string] (Get-ScoutProp $Row 'PARENTLOCATION')
+        }
+    }
+
+    function Get-ScoutAvsCount {
+        param([AllowNull()] [object[]] $Rows, [Parameter(Mandatory)] [string] $Path, [Parameter(Mandatory)] [string] $Value)
+        return @(@($Rows) | Where-Object { $null -ne $_ -and ([string] (Get-ScoutProp $_ $Path)) -ieq $Value }).Count
+    }
+
+    # -- clusters -----------------------------------------------------------------------------
+    # The minimum is the AVS floor: 3 hosts, and 6 (3 in each zone) for a stretched, DualZone private
+    # cloud. The private cloud's own row supplies the strategy; a cluster whose private cloud is not
+    # in the inventory is held to the floor of 3.
+    $result['avsClustersMeasured'] = Test-ScoutSweepMeasured 'AvsClusters'
+    $result['avsClusters'] = @(
+        Select-ByType 'AZSC/ARMChild/AvsClusters' | ForEach-Object {
+            $identity = Get-ScoutAvsItemIdentity $_
+            $cloud = $avsPrivateCloudById[([string] $identity.privateCloudId)]
+            $strategy = if ($null -ne $cloud) { ConvertTo-ScoutNullableString (Get-ScoutProp $cloud 'properties.availability.strategy') } else { $null }
+            $clusterSize = ConvertTo-ScoutInt (Get-ScoutProp $_ 'properties.clusterSize')
+            $hostCount = ConvertTo-ScoutInt (Get-ScoutProp $_ 'properties.hostCount')
+            $hosts = if ($null -ne $clusterSize) { $clusterSize } else { $hostCount }
+            $minimumHosts = if ($strategy -ieq 'DualZone') { 6 } else { 3 }
+            $own = [ordered]@{
+                name                 = [string] (Get-ScoutProp $_ 'name')
+                sku                  = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.skuName')
+                clusterSize          = $clusterSize
+                hostCount            = $hostCount
+                provisioningState    = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.provisioningState')
+                availabilityStrategy = $strategy
+                minimumHosts         = $minimumHosts
+                belowMinimumHosts    = if ($null -eq $hosts) { $null } else { $hosts -lt $minimumHosts }
+            }
+            foreach ($key in $own.Keys) { $identity[$key] = $own[$key] }
+            [pscustomobject] $identity
+        }
+    )
+
+    # -- datastores (external storage attached to a cluster) -----------------------------------
+    # `kind` says which provider backs the datastore; the target resource id is never carried.
+    $result['avsDatastoresMeasured'] = Test-ScoutSweepMeasured 'AvsDatastores'
+    $result['avsDatastores'] = @(
+        Select-ByType 'AZSC/ARMChild/AvsDatastores' | ForEach-Object {
+            $identity = Get-ScoutAvsItemIdentity $_
+            $status = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.status')
+            $own = [ordered]@{
+                clusterName       = [string] (Get-ScoutProp $_ 'properties.clusterName')
+                name              = [string] (Get-ScoutProp $_ 'name')
+                kind              = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.kind')
+                status            = $status
+                accessible        = if ($null -eq $status) { $null } else { $status -ieq 'Accessible' }
+                provisioningState = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.provisioningState')
+            }
+            foreach ($key in $own.Keys) { $identity[$key] = $own[$key] }
+            [pscustomobject] $identity
+        }
+    )
+
+    # -- DRS placement policies -----------------------------------------------------------------
+    # The policy's members (VM ids and host names) are reduced to counts before a row exists.
+    $result['avsPlacementPoliciesMeasured'] = Test-ScoutSweepMeasured 'AvsPlacementPolicies'
+    $result['avsPlacementPolicies'] = @(
+        Select-ByType 'AZSC/ARMChild/AvsPlacementPolicies' | ForEach-Object {
+            $identity = Get-ScoutAvsItemIdentity $_
+            $state = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.state')
+            $own = [ordered]@{
+                clusterName            = [string] (Get-ScoutProp $_ 'properties.clusterName')
+                name                   = [string] (Get-ScoutProp $_ 'name')
+                policyType             = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.type')
+                state                  = $state
+                enabled                = if ($null -eq $state) { $null } else { $state -ieq 'Enabled' }
+                affinityType           = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.affinityType')
+                affinityStrength       = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.affinityStrength')
+                azureHybridBenefitType = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.azureHybridBenefitType')
+                vmMemberCount          = ConvertTo-ScoutInt (Get-ScoutProp $_ 'properties.vmMemberCount')
+                hostMemberCount        = ConvertTo-ScoutInt (Get-ScoutProp $_ 'properties.hostMemberCount')
+                provisioningState      = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.provisioningState')
+            }
+            foreach ($key in $own.Keys) { $identity[$key] = $own[$key] }
+            [pscustomobject] $identity
+        }
+    )
+
+    # -- maintenances (platform maintenance the private cloud has pending or just had) -----------
+    $result['avsMaintenancesMeasured'] = Test-ScoutSweepMeasured 'AvsMaintenances'
+    $result['avsMaintenances'] = @(
+        Select-ByType 'AZSC/ARMChild/AvsMaintenances' | ForEach-Object {
+            $identity = Get-ScoutAvsItemIdentity $_
+            $own = [ordered]@{
+                name                       = [string] (Get-ScoutProp $_ 'name')
+                component                  = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.component')
+                state                      = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.state.name')
+                scheduledByMicrosoft       = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.scheduledByMicrosoft')
+                scheduledStartTime         = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.scheduledStartTime')
+                readiness                  = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.maintenanceReadiness.status')
+                estimatedDurationInMinutes = ConvertTo-ScoutInt (Get-ScoutProp $_ 'properties.estimatedDurationInMinutes')
+                provisioningState          = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.provisioningState')
+            }
+            foreach ($key in $own.Keys) { $identity[$key] = $own[$key] }
+            [pscustomobject] $identity
+        }
+    )
+
+    # -- add-ons: Site Recovery Manager, vSphere Replication, HCX, Arc ------------------------------
+    # `...Enabled` means an add-on of that type finished provisioning (Succeeded). The SRM licence key
+    # the list response carries is dropped at the GET; only the type, state, HCX offer and the VRS
+    # count survive.
+    $result['avsAddonsMeasured'] = Test-ScoutSweepMeasured 'AvsAddons'
+    $result['avsAddons'] = @(
+        New-ScoutAvsSummaryRow 'AvsAddons' {
+            param($children)
+            $enabled = {
+                param($type)
+                @($children | Where-Object {
+                        ([string] (Get-ScoutProp $_ 'properties.addonType')) -ieq $type -and
+                        ([string] (Get-ScoutProp $_ 'properties.provisioningState')) -ieq 'Succeeded'
+                    }).Count -gt 0
+            }
+            $hcx = @($children | Where-Object { ([string] (Get-ScoutProp $_ 'properties.addonType')) -ieq 'HCX' } | Select-Object -First 1)
+            $vr = @($children | Where-Object { ([string] (Get-ScoutProp $_ 'properties.addonType')) -ieq 'VR' } | Select-Object -First 1)
+            [ordered]@{
+                addonCount       = $children.Count
+                srmEnabled       = [bool] (& $enabled 'SRM')
+                vrEnabled        = [bool] (& $enabled 'VR')
+                hcxEnabled       = [bool] (& $enabled 'HCX')
+                arcEnabled       = [bool] (& $enabled 'Arc')
+                hcxOffer         = if ($hcx.Count -gt 0) { ConvertTo-ScoutNullableString (Get-ScoutProp $hcx[0] 'properties.offer') } else { $null }
+                vrsCount         = if ($vr.Count -gt 0) { ConvertTo-ScoutInt (Get-ScoutProp $vr[0] 'properties.vrsCount') } else { $null }
+                failedAddonCount = @($children | Where-Object { ([string] (Get-ScoutProp $_ 'properties.provisioningState')) -in 'Failed', 'Canceled', 'Cancelled' }).Count
+            }
+        }
+    )
+
+    # -- ExpressRoute Global Reach connections (on-premises connectivity) -------------------------------
+    # Counts only. The peer circuit's id and authorization key never reach a row; `peerCircuitCount`
+    # says how many connections name a peer circuit.
+    $result['avsGlobalReachConnectionsMeasured'] = Test-ScoutSweepMeasured 'AvsGlobalReachConnections'
+    $result['avsGlobalReachConnections'] = @(
+        New-ScoutAvsSummaryRow 'AvsGlobalReachConnections' {
+            param($children)
+            [ordered]@{
+                connectionCount = $children.Count
+                connectedCount  = Get-ScoutAvsCount -Rows $children -Path 'properties.circuitConnectionStatus' -Value 'Connected'
+                peerCircuitCount = @($children | Where-Object { (ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.peerCircuitPresent')) -eq $true }).Count
+                failedCount     = Get-ScoutAvsCount -Rows $children -Path 'properties.provisioningState' -Value 'Failed'
+            }
+        }
+    )
+
+    # -- ExpressRoute authorizations (the keys that let a virtual network or hub connect) -----------
+    # A COUNT. The authorization key and id are never read into a row.
+    $result['avsAuthorizationsMeasured'] = Test-ScoutSweepMeasured 'AvsAuthorizations'
+    $result['avsAuthorizations'] = @(
+        New-ScoutAvsSummaryRow 'AvsAuthorizations' {
+            param($children)
+            [ordered]@{
+                authorizationCount = $children.Count
+                failedCount        = Get-ScoutAvsCount -Rows $children -Path 'properties.provisioningState' -Value 'Failed'
+            }
+        }
+    )
+
+    # -- cloud links (to other private clouds) -------------------------------------------------------------
+    $result['avsCloudLinksMeasured'] = Test-ScoutSweepMeasured 'AvsCloudLinks'
+    $result['avsCloudLinks'] = @(
+        New-ScoutAvsSummaryRow 'AvsCloudLinks' {
+            param($children)
+            [ordered]@{
+                linkCount   = $children.Count
+                activeCount = Get-ScoutAvsCount -Rows $children -Path 'properties.status' -Value 'Active'
+            }
+        }
+    )
+
+    # -- NSX workload network: segments, DHCP, DNS, gateways ------------------------------------------------
+    # Counts only -- no gateway address, DHCP range, server address, DNS IP or NSX path.
+    $result['avsSegmentsMeasured'] = Test-ScoutSweepMeasured 'AvsSegments'
+    $result['avsSegments'] = @(
+        New-ScoutAvsSummaryRow 'AvsSegments' {
+            param($children)
+            [ordered]@{
+                segmentCount          = $children.Count
+                failedSegmentCount    = Get-ScoutAvsCount -Rows $children -Path 'properties.status' -Value 'FAILURE'
+                connectedSegmentCount = @($children | Where-Object { (ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.connectedGatewaySet')) -eq $true }).Count
+                dhcpSegmentCount      = @($children | Where-Object { (ConvertTo-ScoutInt (Get-ScoutProp $_ 'properties.dhcpRangeCount')) -gt 0 }).Count
+            }
+        }
+    )
+    $result['avsDhcpConfigurationsMeasured'] = Test-ScoutSweepMeasured 'AvsDhcpConfigurations'
+    $result['avsDhcpConfigurations'] = @(
+        New-ScoutAvsSummaryRow 'AvsDhcpConfigurations' {
+            param($children)
+            [ordered]@{
+                configurationCount = $children.Count
+                serverCount        = Get-ScoutAvsCount -Rows $children -Path 'properties.dhcpType' -Value 'SERVER'
+                relayCount         = Get-ScoutAvsCount -Rows $children -Path 'properties.dhcpType' -Value 'RELAY'
+            }
+        }
+    )
+    $result['avsDnsServicesMeasured'] = Test-ScoutSweepMeasured 'AvsDnsServices'
+    $result['avsDnsServices'] = @(
+        New-ScoutAvsSummaryRow 'AvsDnsServices' {
+            param($children)
+            [ordered]@{
+                serviceCount       = $children.Count
+                failedServiceCount = Get-ScoutAvsCount -Rows $children -Path 'properties.status' -Value 'FAILURE'
+            }
+        }
+    )
+    $result['avsGatewaysMeasured'] = Test-ScoutSweepMeasured 'AvsGateways'
+    $result['avsGateways'] = @(
+        New-ScoutAvsSummaryRow 'AvsGateways' {
+            param($children)
+            [ordered]@{ gatewayCount = $children.Count }
+        }
+    )
+
+    # -- iSCSI paths -------------------------------------------------------------------------------------------
+    $result['avsIscsiPathsMeasured'] = Test-ScoutSweepMeasured 'AvsIscsiPaths'
+    $result['avsIscsiPaths'] = @(
+        New-ScoutAvsSummaryRow 'AvsIscsiPaths' {
+            param($children)
+            [ordered]@{ pathCount = $children.Count }
+        }
+    )
+
     # ---- per-domain scalars ----
     $result['storageAccounts'] = @(
         Select-ByType 'microsoft.storage/storageaccounts' | ForEach-Object {
@@ -1706,6 +2120,8 @@ function ConvertFrom-ScoutInventory {
                 defenderEnabled      = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.securityProfile.defender.securityMonitoring.enabled')
                 workloadIdentity     = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.securityProfile.workloadIdentity.enabled')
                 azureRbac            = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.aadProfile.enableAzureRBAC')
+                # AB#9300 (depth wiring) -- mirrors the KQL: the Azure Policy add-on switch, a bool only.
+                azurePolicyAddon     = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.addonProfiles.azurepolicy.enabled')
             }
         }
     )
@@ -1713,6 +2129,10 @@ function ConvertFrom-ScoutInventory {
     $result['containerRegistries'] = @(
         Select-ByType 'microsoft.containerregistry/registries' | ForEach-Object {
             [pscustomobject]@{
+                # AB#9300 (depth wiring) -- id and subscriptionId so a rule can join a registry to its
+                # subscription's Defender for Containers plan.
+                id            = [string] (Get-ScoutProp $_ 'id')
+                subscriptionId = [string] (Get-ScoutProp $_ 'subscriptionId')
                 name          = [string] (Get-ScoutProp $_ 'name')
                 resourceGroup = [string] (Get-ScoutProp $_ 'resourceGroup')
                 sku           = [string] (Get-ScoutProp $_ 'sku.name')
@@ -1738,6 +2158,20 @@ function ConvertFrom-ScoutInventory {
 
     $result['containerApps'] = @(
         Select-ByType 'microsoft.app/containerapps' | ForEach-Object {
+            # AB#9300 (depth wiring) -- mirrors the KQL expand-and-summarise: how many containers there
+            # are, and how many lack ANY of the liveness, readiness and startup probes. Only each
+            # probe's `type` is read -- never its host, path or headers. A container list that is absent
+            # or empty reads containerCount null / 0 and no container is counted as probe-less.
+            $appContainers = Get-ScoutPropArray $_ 'properties.template.containers'
+            $containersWithoutAllProbes = 0
+            foreach ($appContainer in @($appContainers)) {
+                if ($null -eq $appContainer) { continue }
+                # Assigned first: Get-ScoutPropArray returns its array wrapped, so it must be captured before it is enumerated.
+                $probeList = Get-ScoutPropArray $appContainer 'probes'
+                $probeKinds = @(foreach ($probe in @($probeList)) { if ($null -ne $probe) { [string] (Get-ScoutProp $probe 'type') } })
+                $hasAllProbes = ($probeKinds -contains 'Liveness') -and ($probeKinds -contains 'Readiness') -and ($probeKinds -contains 'Startup')
+                if (-not $hasAllProbes) { $containersWithoutAllProbes++ }
+            }
             [pscustomobject]@{
                 id                = [string] (Get-ScoutProp $_ 'id')
                 name              = [string] (Get-ScoutProp $_ 'name')
@@ -1752,12 +2186,16 @@ function ConvertFrom-ScoutInventory {
                 externalIngress   = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.configuration.ingress.external')
                 allowInsecure     = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.configuration.ingress.allowInsecure')
                 identityType      = [string] (Get-ScoutProp $_ 'identity.type')
+                containerCount    = Measure-ScoutArray $appContainers
+                containersWithoutAllProbes = $containersWithoutAllProbes
             }
         }
     )
 
     $result['containerAppEnvironments'] = @(
         Select-ByType 'microsoft.app/managedenvironments' | ForEach-Object {
+            $logDestination = [string] (Get-ScoutProp $_ 'properties.appLogsConfiguration.destination')
+            $otelLogDestinations = Measure-ScoutArray (Get-ScoutPropArray $_ 'properties.openTelemetryConfiguration.logsConfiguration.destinations')
             [pscustomobject]@{
                 id                = [string] (Get-ScoutProp $_ 'id')
                 name              = [string] (Get-ScoutProp $_ 'name')
@@ -1771,6 +2209,11 @@ function ConvertFrom-ScoutInventory {
                 internal            = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.vnetConfiguration.internal')
                 vnetIntegrated      = -not [string]::IsNullOrEmpty([string] (Get-ScoutProp $_ 'properties.vnetConfiguration.infrastructureSubnetId'))
                 publicNetworkAccess = [string] (Get-ScoutProp $_ 'properties.publicNetworkAccess')
+                # AB#9300 (depth wiring) -- mirrors the KQL: where the environment sends its logs, and
+                # whether it sends them anywhere (Log Analytics, Azure Monitor, or an OpenTelemetry logs
+                # destination). Only the destination NAME is read, never a workspace id or key.
+                logDestination      = $logDestination
+                logsExported        = ($logDestination -ieq 'log-analytics') -or ($logDestination -ieq 'azure-monitor') -or ($null -ne $otelLogDestinations -and $otelLogDestinations -gt 0)
             }
         }
     )
@@ -2182,6 +2625,27 @@ function ConvertFrom-ScoutInventory {
 
     $result['apiManagement'] = @(
         Select-ByType 'microsoft.apimanagement/service' | ForEach-Object {
+            # The customProperties keys contain dots, so each is read by its exact name (Get-ScoutProp would
+            # split it into path segments). 'True' / 'False' strings, case-insensitive; absent or blank is null.
+            $apimCustomProperties = Get-ScoutProp $_ 'properties.customProperties'
+            $apimKeyPrefix = 'Microsoft.WindowsAzure.ApiManagement.'
+            $apimProtocolKeys = 'Gateway.Security.Protocols.Ssl30', 'Gateway.Security.Protocols.Tls10', 'Gateway.Security.Protocols.Tls11',
+            'Gateway.Security.Backend.Protocols.Ssl30', 'Gateway.Security.Backend.Protocols.Tls10', 'Gateway.Security.Backend.Protocols.Tls11'
+            $apimProtocolsPresent = 0
+            $apimProtocolsOn = 0
+            foreach ($apimProtocolKey in $apimProtocolKeys) {
+                $apimProtocolValue = if ($null -ne $apimCustomProperties) {
+                    ConvertTo-ScoutBool (Get-ScoutChildValue -InputObject $apimCustomProperties -Name ($apimKeyPrefix + $apimProtocolKey))
+                }
+                else { $null }
+                if ($null -ne $apimProtocolValue) { $apimProtocolsPresent++ }
+                if ($apimProtocolValue -eq $true) { $apimProtocolsOn++ }
+            }
+            $apimLegacyProtocol = if ($apimProtocolsPresent -eq 0) { $null } else { $apimProtocolsOn -gt 0 }
+            $apimLegacyCipher = if ($null -ne $apimCustomProperties) {
+                ConvertTo-ScoutBool (Get-ScoutChildValue -InputObject $apimCustomProperties -Name ($apimKeyPrefix + 'Gateway.Security.Ciphers.TripleDes168'))
+            }
+            else { $null }
             [pscustomobject]@{
                 id                 = [string] (Get-ScoutProp $_ 'id')
                 name               = [string] (Get-ScoutProp $_ 'name')
@@ -2195,6 +2659,11 @@ function ConvertFrom-ScoutInventory {
                 additionalRegionCount = Measure-ScoutArray (Get-ScoutPropArray $_ 'properties.additionalLocations')
                 publicNetworkAccess   = [string] (Get-ScoutProp $_ 'properties.publicNetworkAccess')
                 identityType          = [string] (Get-ScoutProp $_ 'identity.type')
+                # AB#9300 (depth wiring) -- mirrors the KQL: the seven named customProperties keys, each
+                # 'True' / 'False', and nothing else out of the bag. legacyProtocolEnabled is null when none
+                # of the six protocol keys is present (the default then depends on the service's age).
+                legacyProtocolEnabled = $apimLegacyProtocol
+                legacyCipherEnabled   = $apimLegacyCipher
             }
         }
     )
@@ -3134,6 +3603,9 @@ function ConvertFrom-ScoutInventory {
                 # resource id itself is never shaped).
                 workspaceBased                  = -not [string]::IsNullOrEmpty([string] (Get-ScoutProp $_ 'properties.WorkspaceResourceId'))
                 disableLocalAuth                = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.DisableLocalAuth')
+                # AB#9300 (depth wiring) -- mirrors the KQL: true means IP address masking is turned OFF
+                # (full client addresses are stored); null when the property is not on the row.
+                disableIpMasking                = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.DisableIpMasking')
             }
         }
     )
@@ -3317,6 +3789,8 @@ function ConvertFrom-ScoutInventory {
                 encryptionType      = [string] (Get-ScoutProp $_ 'properties.dataEncryption.type')
                 entraAuth           = [string] (Get-ScoutProp $_ 'properties.authConfig.activeDirectoryAuth')
                 passwordAuth        = [string] (Get-ScoutProp $_ 'properties.authConfig.passwordAuth')
+                # AB#9300 (depth wiring) -- mirrors the KQL: Enabled / Disabled, '' when the row does not say.
+                customMaintenanceWindow = [string] (Get-ScoutProp $_ 'properties.maintenanceWindow.customWindow')
             }
         }
     )

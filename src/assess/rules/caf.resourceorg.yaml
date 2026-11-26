@@ -29,13 +29,18 @@ rules:
     remediation: "Normalize tag values to reduce sprawl and enable reliable cost allocation."
     manual: false
 
+  # AB#9300, depth wiring. A subscription's own Resource Graph row carries its management group chain
+  # (properties.managementGroupAncestorsChain), projected as `managementGroupLevels`: 1 means the tenant root group is
+  # the only ancestor, i.e. the subscription sits directly under the root, which is where Azure puts a new subscription
+  # until someone moves it. The gate is a subscription whose chain was read, so a tenant whose chain could not be
+  # read is Not assessed, never a pass.
   - id: CAF-RES-04
-    title: "Every subscription is assigned to a management group"
+    title: "CAF-RES-04. Every subscription is assigned to a management group"
     severity: high
-    query: null
-    assert: { type: manual }
-    remediation: "Confirm no subscriptions remain unassigned at the tenant root. collect.json's managementGroups collection does not yet capture subscription-to-management-group membership to automate this check."
-    manual: true
+    query: "$.subscriptions[?(@.managementGroupLevels == 1)]"
+    assert: { type: countEquals, value: 0, gate: "$.subscriptions[?(@.managementGroupLevels >= 1)]" }
+    remediation: "CAF-RES-04. The subscriptions listed sit directly under the tenant root management group, so no management group's policy, role assignments or budget scope reaches them by design. Move each into a management group that matches its landing zone or archetype (platform, landing zones, sandbox, decommissioned)."
+    manual: false
 
   - id: CAF-RES-05
     title: "Resource and resource-group names follow a documented naming convention"

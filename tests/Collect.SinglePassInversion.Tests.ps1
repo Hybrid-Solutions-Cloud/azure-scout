@@ -126,7 +126,9 @@ param($ManagementGroup, $Subscriptions) return $Subscriptions }
                 subscriptionId = 'aaa'; location = $null; resourceGroup = $null
                 kind = $null; sku = $null; plan = $null; identity = $null; zones = $null
                 extendedLocation = $null; managedBy = $null; tenantId = 'ten'
-                properties = [pscustomobject]@{ state = 'Enabled' }
+                # AB#9300 (depth wiring): the management group chain (leaf group, then the tenant root), whose length the
+                # shaper and the typed query both project as managementGroupLevels.
+                properties = [pscustomobject]@{ state = 'Enabled'; managementGroupAncestorsChain = @([pscustomobject]@{ name = 'mg-platform' }, [pscustomobject]@{ name = 'tenant-root' }) }
                 tags = [pscustomobject]@{ Environment = 'Production'; CostCenter = 'CC-100' }
             }
             [pscustomobject]@{
@@ -286,6 +288,7 @@ param($ManagementGroup, $Subscriptions) return $Subscriptions }
                 properties = [pscustomobject]@{
                     kubernetesVersion    = '1.30.1'
                     enableRBAC           = $true
+                    addonProfiles        = [pscustomobject]@{ azurepolicy = [pscustomobject]@{ enabled = $true } }
                     disableLocalAccounts = $true
                     apiServerAccessProfile = [pscustomobject]@{ enablePrivateCluster = $true; authorizedIPRanges = @('10.0.0.0/24', '10.1.0.0/24') }
                     networkProfile       = [pscustomobject]@{ networkPolicy = 'azure' }
@@ -331,7 +334,7 @@ param($ManagementGroup, $Subscriptions) return $Subscriptions }
         param([string] $Query)
         if ($Query -match 'microsoft\.resources/subscriptions"') {
             return @([pscustomobject]@{ id = 'aaa'; name = 'demo-sub'; state = 'Enabled'
-                    tags = [pscustomobject]@{ Environment = 'Production'; CostCenter = 'CC-100' } })
+                    tags = [pscustomobject]@{ Environment = 'Production'; CostCenter = 'CC-100' }; managementGroupLevels = 2 })
         }
         if ($Query -match 'subscriptions/resourcegroups') {
             return @([pscustomobject]@{ name = 'rg-net'; subscriptionId = 'aaa' })
@@ -388,7 +391,7 @@ param($ManagementGroup, $Subscriptions) return $Subscriptions }
                     privateCluster = $true; rbacEnabled = $true; networkPolicyEnabled = $true; aadIntegrated = $true
                     allPoolsZoned = $false; tier = 'Standard'; systemPoolMinNodes = 1; allPoolsAutoscale = $false
                     disableLocalAccounts = $true; upgradeChannel = 'stable'; nodeOsUpgradeChannel = 'NodeImage'
-                    authorizedIpRangeCount = 2; defenderEnabled = $true; workloadIdentity = $true; azureRbac = $true })
+                    authorizedIpRangeCount = 2; defenderEnabled = $true; workloadIdentity = $true; azureRbac = $true; azurePolicyAddon = $true })
         }
         if ($Query -match 'type =~ "microsoft\.compute/virtualmachines"') {
             return @([pscustomobject]@{ id = '/subscriptions/aaa/resourceGroups/rg-app/providers/microsoft.compute/virtualmachines/vm1'

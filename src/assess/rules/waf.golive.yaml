@@ -9,8 +9,8 @@
 # monitoring and alerting, security baseline, cost guardrails, safe deployment). It is NOT
 # Microsoft's question list and its score is not comparable to a Go-Live Assessment result.
 #
-# Written ONLY against docs/frameworks/waf-go-live-checklist.md. 57 items: 35 automated,
-# 22 manual. Each automated rule is gated on its data being present, so an estate without
+# Written ONLY against docs/frameworks/waf-go-live-checklist.md. 57 items: 36 automated,
+# 21 manual. Each automated rule is gated on its data being present, so an estate without
 # the resource reports Not assessed rather than a pass.
 area: "Go-live readiness"
 framework: WAF-GOLIVE
@@ -126,13 +126,24 @@ rules:
     manual: false
 
   # ---- Security gates (SE) --------------------------------------------------------------------
+  # AB#9300, depth wiring. security.defenderSecureScores is read by the per-subscription Defender sweep (a combined inventory and
+  # assessment run, or the Compliance assessment); a subscription that has a secure score is being measured against the Microsoft
+  # cloud security benchmark, Defender for Cloud's default baseline. The join lists the subscriptions with NO score row. The gate is
+  # the score dataset itself, so a run whose sweep did not happen (an assessment-only run) is Not assessed, never a Fail.
   - id: WAF-GOLIVE-SE-01
     title: "WAF-GOLIVE-SE-01. A security baseline is established and the workload is measured against it"
     severity: high
-    query: null
-    assert: { type: manual }
-    remediation: "WAF-GOLIVE-SE-01. Confirm a baseline aligned to compliance, industry standards and platform recommendations exists and the workload has been measured against it. Secure score is not read by this assessment."
-    manual: true
+    join:
+      left: "$.subscriptions[*]"
+      leftKey: "id"
+      right: "$.security.defenderSecureScores[*]"
+      rightKey: "SubscriptionId"
+      mode: leftOnly
+      leftLabel: "subscription"
+      rightLabel: "secure score"
+    assert: { type: countEquals, value: 0, gate: "$.security.defenderSecureScores[*]" }
+    remediation: "WAF-GOLIVE-SE-01. The subscriptions listed have no Microsoft Defender for Cloud secure score, so nothing is measuring them against the Microsoft cloud security benchmark. Enable Defender for Cloud (the free foundational CSPM tier is enough) so a score is computed, then work the recommendations down. Whether the baseline matches your compliance and industry standards is a design decision: confirm it by hand."
+    manual: false
   - id: WAF-GOLIVE-SE-02
     title: "WAF-GOLIVE-SE-02. Microsoft Defender for Servers is enabled"
     severity: high

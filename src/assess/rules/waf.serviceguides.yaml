@@ -123,14 +123,15 @@ rules:
     assert: { type: manual, gate: "$.domains.containers.aksClusters[*]" }
     remediation: "WAF-SVC-AKS-12. Confirm clusters with segmentation requirements use a private API server and that outbound traffic leaves through Azure Firewall, a NAT gateway or an HTTP proxy. Clusters that are not private are attached as evidence."
     manual: true
-  # Security: no collected field
+  # Security: `azurePolicyAddon` (AB#9300, depth wiring). A cluster with no `azurepolicy` add-on profile reads null, which is
+  # "not enabled", so `!= true` flags it; deployment safeguards need the add-on too.
   - id: WAF-SVC-AKS-13
     title: "WAF-SVC-AKS-13. Azure Policy and deployment safeguards enforce pod and cluster standards"
     severity: medium
-    query: null
-    assert: { type: manual, gate: "$.domains.containers.aksClusters[*]" }
-    remediation: "WAF-SVC-AKS-13. Confirm the Azure Policy add-on and AKS deployment safeguards enforce resource limits, privilege restrictions and approved registries. Add-on state is not collected."
-    manual: true
+    query: "$.domains.containers.aksClusters[?(@.azurePolicyAddon != true)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.containers.aksClusters[*]" }
+    remediation: "WAF-SVC-AKS-13. The clusters listed do not have the Azure Policy add-on enabled, so nothing enforces resource limits, privilege restrictions or approved registries on the pods (deployment safeguards need the add-on too). Enable it and assign the AKS built-in policy initiative; AKS Automatic clusters turn deployment safeguards on for you. Only the add-on switch is read, not the deployment safeguards level or the policy assignments: confirm those by hand."
+    manual: false
   # Reliability: evidence attached
   - id: WAF-SVC-AKS-14
     title: "WAF-SVC-AKS-14. Cluster state and application data are backed up, and maintenance is scheduled"
@@ -415,14 +416,15 @@ rules:
     assert: { type: manual, gate: "$.domains.containers.containerApps[*]" }
     remediation: "WAF-SVC-ACA-08. Confirm secrets and certificates are in Key Vault, image pulls use Microsoft Entra ID rather than admin credentials, and outbound traffic goes through user-defined routes to a firewall. Secrets and registry settings are not collected."
     manual: true
-  # Reliability: no collected field
+  # Reliability: `containerCount`, `containersWithoutAllProbes` (AB#9300, depth wiring). Only each probe's type is read.
+  # The gate is an app that has a container list, so an app whose containers could not be read is not scored.
   - id: WAF-SVC-ACA-09
     title: "WAF-SVC-ACA-09. Health probes, resource limits and resiliency policies are configured"
     severity: medium
-    query: null
-    assert: { type: manual, gate: "$.domains.containers.containerApps[*]" }
-    remediation: "WAF-SVC-ACA-09. Confirm liveness, readiness and startup probes are set, CPU and memory limits are defined, and retries, timeouts and circuit breakers protect service calls. Probe settings are not collected."
-    manual: true
+    query: "$.domains.containers.containerApps[?(@.containersWithoutAllProbes > 0)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.containers.containerApps[?(@.containerCount > 0)]" }
+    remediation: "WAF-SVC-ACA-09. The apps listed have at least one container with no liveness, readiness or startup probe, so a hung container is not restarted and an unready one still receives traffic. Add all three probes with the settings the guide recommends. The platform allocates fixed CPU and memory to every container, so resource limits are not scored, and resiliency policies (retries, timeouts, circuit breakers) are a separate resource that is not read: confirm those by hand."
+    manual: false
   # Performance efficiency: no collected field
   - id: WAF-SVC-ACA-10
     title: "WAF-SVC-ACA-10. Scale rules match the workload"
@@ -431,14 +433,15 @@ rules:
     assert: { type: manual, gate: "$.domains.containers.containerApps[*]" }
     remediation: "WAF-SVC-ACA-10. Confirm scale rules are based on HTTP requests, TCP connections or custom metrics, and that premium ingress or dedicated workload profiles are used for latency-sensitive or high-throughput apps. Scale rules are not collected."
     manual: true
-  # Operational excellence: no collected field
+  # Operational excellence: `logsExported`, `logDestination` (AB#9300, depth wiring). The environment is what carries the
+  # logging configuration, so this reads the environments, not the apps.
   - id: WAF-SVC-ACA-11
     title: "WAF-SVC-ACA-11. Logs and traces go to Log Analytics, Application Insights or an OpenTelemetry agent"
     severity: medium
-    query: null
-    assert: { type: manual, gate: "$.domains.containers.containerApps[*]" }
-    remediation: "WAF-SVC-ACA-11. Confirm the environment sends logs to a workspace and that tracing is enabled. Logging configuration is not collected."
-    manual: true
+    query: "$.domains.containers.containerAppEnvironments[?(@.logsExported == false)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.containers.containerAppEnvironments[*]" }
+    remediation: "WAF-SVC-ACA-11. The environments listed send their console and system logs nowhere: the log destination is none and no OpenTelemetry logs destination is set. Send them to Azure Monitor (the recommended destination; route the categories with a diagnostic setting) or to a Log Analytics workspace, or to an OpenTelemetry destination. Only the destination is read, not the diagnostic setting behind an Azure Monitor destination, and tracing is not read: confirm the apps emit traces to Application Insights or an OpenTelemetry agent."
+    manual: false
 
   # ---- Azure API Management (WAF-SVC-APIM) -- https://learn.microsoft.com/azure/well-architected/service-guides/azure-api-management ----
   # Reliability: `zoneCount`
@@ -512,14 +515,15 @@ rules:
     assert: { type: countEquals, value: 0, gate: "$.opsPosture.diagnosticCoverage[?(@.type =~ /microsoft[.]apimanagement/)]" }
     remediation: "WAF-SVC-APIM-08. Some API Management instances have no diagnostic setting. Send gateway and audit logs to Log Analytics."
     manual: false
-  # Security: no collected field
+  # Security: `legacyProtocolEnabled`, `legacyCipherEnabled` (AB#9300, depth wiring). Both read null when the service reports
+  # none of the settings (the default then depends on the service's creation date), and a null never matches.
   - id: WAF-SVC-APIM-09
     title: "WAF-SVC-APIM-09. The narrowest TLS versions, protocols and ciphers are set, and the developer portal and direct management API are off"
     severity: high
-    query: null
-    assert: { type: manual, gate: "$.domains.integration.apiManagement[*]" }
-    remediation: "WAF-SVC-APIM-09. Confirm legacy TLS and cipher suites are disabled for clients and back ends, the developer portal is disabled or restricted, and the direct management API is off. Protocol settings are not collected."
-    manual: true
+    query: "$.domains.integration.apiManagement[?(@.legacyProtocolEnabled == true || @.legacyCipherEnabled == true)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.integration.apiManagement[*]" }
+    remediation: "WAF-SVC-APIM-09. The services listed still allow a legacy transport protocol (SSL 3.0, TLS 1.0 or TLS 1.1, for clients or for the back ends) or the Triple DES cipher. Turn them off in the service's protocol and cipher settings. A service that reports none of the settings is not scored, because its default depends on when it was created. The developer portal and the direct management API are not read: confirm they are disabled or restricted by hand."
+    manual: false
   # Security: no collected field
   - id: WAF-SVC-APIM-10
     title: "WAF-SVC-APIM-10. APIs authenticate with OAuth 2.0, secrets use Key Vault named values, and a WAF fronts internet-exposed gateways"
@@ -788,14 +792,15 @@ rules:
     assert: { type: countEquals, value: 0, gate: "$.networking.azureFirewalls[*]" }
     remediation: "WAF-SVC-FW-05. The firewalls listed are on the Basic or Standard tier, which lack IDPS and TLS inspection. Use Premium for sensitive workloads such as payment processing; Standard fits the rest."
     manual: false
-  # Security: evidence attached
+  # Security: `idpsTlsDnsEnabled`, `hasBasePolicy` (AB#9300, depth wiring). A child policy inherits from its parent and the
+  # firewall enforces the stricter of the two, so a child's own settings prove nothing and only parent (standalone) policies are scored.
   - id: WAF-SVC-FW-06
     title: "WAF-SVC-FW-06. IDPS, TLS inspection and DNS proxy are enabled on the policy"
     severity: high
-    query: "$.networking.firewallPolicies[*]"
-    assert: { type: manual, gate: "$.networking.azureFirewalls[*]" }
-    remediation: "WAF-SVC-FW-06. Confirm the policy turns on IDPS in Alert or Alert and deny mode, TLS inspection with an enterprise CA, and DNS proxy. Policy settings are not collected; firewall policies are attached as evidence."
-    manual: true
+    query: "$.networking.firewallPolicies[?(@.hasBasePolicy == false && @.idpsTlsDnsEnabled == false)]"
+    assert: { type: countEquals, value: 0, gate: "$.networking.firewallPolicies[*]" }
+    remediation: "WAF-SVC-FW-06. The policies listed lack at least one of the three protections: intrusion detection in Alert or Deny mode, TLS inspection with a certificate authority, and DNS proxy (each policy row shows which). IDPS and TLS inspection need the Premium tier. Child policies that inherit from a base policy are not scored on their own; check the base policy. The certificate authority's validity and the IDPS signature overrides are not read: confirm those by hand."
+    manual: false
   # Security: evidence attached
   - id: WAF-SVC-FW-07
     title: "WAF-SVC-FW-07. Traffic is forced through the firewall by user-defined routes or routing intent"
@@ -1415,14 +1420,15 @@ rules:
     assert: { type: manual, gate: "$.monitor.appInsights[*]" }
     remediation: "WAF-SVC-APPI-04. Confirm components are not shared across environments or workloads and sit with their workspace. Components are attached as evidence."
     manual: true
-  # Security: no collected field
+  # Security: `disableLocalAuth`, `disableIpMasking` (AB#9300, depth wiring). Local authentication on means key-based access is
+  # still accepted (a missing flag is the default, local auth ON, so `!= true` flags it); IP masking OFF stores full client addresses.
   - id: WAF-SVC-APPI-05
     title: "WAF-SVC-APPI-05. Microsoft Entra authentication is used for the query API, and personal data is not collected"
     severity: medium
-    query: null
-    assert: { type: manual, gate: "$.monitor.appInsights[*]" }
-    remediation: "WAF-SVC-APPI-05. Confirm scripts and dashboards query with Entra identities and IP addresses stay masked. Not collected."
-    manual: true
+    query: "$.monitor.appInsights[?(@.disableLocalAuth != true || @.disableIpMasking == true)]"
+    assert: { type: countEquals, value: 0, gate: "$.monitor.appInsights[*]" }
+    remediation: "WAF-SVC-APPI-05. The components listed still accept local (key-based) authentication, or have IP address masking turned off so full client addresses are stored. Disable local authentication so only Microsoft Entra identities can send and query telemetry, and leave IP masking on. Which scripts and dashboards use Entra identities is not read: confirm those by hand, and that no other personal data is captured in custom telemetry."
+    manual: false
   # Cost optimization: no collected field
   - id: WAF-SVC-APPI-06
     title: "WAF-SVC-APPI-06. A daily cap, sampling and telemetry filters control volume"
@@ -1523,14 +1529,15 @@ rules:
     assert: { type: countEquals, value: 0, gate: "$.opsPosture.diagnosticCoverage[?(@.type =~ /microsoft[.]network.trafficmanagerprofiles/)]" }
     remediation: "WAF-SVC-TM-03. Some profiles have no diagnostic setting. Enable them and review probe results."
     manual: false
-  # Reliability: evidence attached
+  # Reliability: `dnsTtl`, `alwaysServeEndpointCount` (AB#9300, depth wiring). A profile with no TTL on its row reads null, and
+  # a null never matches, so an unreadable TTL is not scored.
   - id: WAF-SVC-TM-04
     title: "WAF-SVC-TM-04. DNS TTL is below 60 seconds, AlwaysServe is off, and probe interval and tolerated failures are set deliberately"
     severity: medium
-    query: "$.networking.trafficManagerProfiles[*]"
-    assert: { type: manual, gate: "$.networking.trafficManagerProfiles[*]" }
-    remediation: "WAF-SVC-TM-04. Confirm the TTL, probing interval and tolerated failures meet your recovery targets and AlwaysServe is not used. Probe settings are not collected. Profiles are attached as evidence."
-    manual: true
+    query: "$.networking.trafficManagerProfiles[?(@.dnsTtl >= 60 || @.alwaysServeEndpointCount > 0)]"
+    assert: { type: countEquals, value: 0, gate: "$.networking.trafficManagerProfiles[*]" }
+    remediation: "WAF-SVC-TM-04. The profiles listed have a DNS TTL of 60 seconds or more, or an endpoint with AlwaysServe enabled (which switches that endpoint's health probing off and sends traffic to it regardless of health). Lower the TTL below 60 seconds so a failover reaches clients quickly, and disable AlwaysServe. The probing interval, timeout and tolerated failures are not scored: confirm they match your recovery targets by hand."
+    manual: false
   # Reliability: no collected field
   - id: WAF-SVC-TM-05
     title: "WAF-SVC-TM-05. Application gateways front HTTP endpoints, and apex domains use alias records"
@@ -1581,14 +1588,15 @@ rules:
     assert: { type: manual, gate: "$.networking.virtualWans[*]" }
     remediation: "WAF-SVC-VWAN-04. Confirm hubs are deployed in two or more regions near users and workloads, and VPN gateways are zone redundant with active-active tunnels and BGP. Virtual hubs are attached as evidence."
     manual: true
-  # Reliability: no collected field
+  # Reliability: `hasExpressRouteGateway`, `expressRouteBackedUp` (AB#9300, depth wiring). Only hubs that carry an ExpressRoute
+  # gateway are in scope: a hub with none has nothing to back up, so it is neither passed nor failed.
   - id: WAF-SVC-VWAN-05
     title: "WAF-SVC-VWAN-05. Site-to-site VPN backs up ExpressRoute, and routing preference is set deliberately"
     severity: medium
-    query: null
-    assert: { type: manual, gate: "$.networking.virtualWans[*]" }
-    remediation: "WAF-SVC-VWAN-05. Confirm a VPN gateway backs up ExpressRoute with ExpressRoute preferred, and the hub routing preference matches the primary connectivity. Not collected."
-    manual: true
+    query: "$.networking.virtualHubs[?(@.hasExpressRouteGateway == true && @.expressRouteBackedUp == false)]"
+    assert: { type: countEquals, value: 0, gate: "$.networking.virtualHubs[?(@.hasExpressRouteGateway == true)]" }
+    remediation: "WAF-SVC-VWAN-05. The hubs listed have an ExpressRoute gateway but no site-to-site VPN gateway behind it, or a routing preference that does not favour ExpressRoute. Deploy a VPN gateway in the hub as the backup path and keep the hub routing preference on ExpressRoute so traffic returns to it once it recovers. Whether the preference matches the primary connectivity you intend (VPN, or AS path) is a design decision: confirm it by hand."
+    manual: false
   # Security: no collected field
   - id: WAF-SVC-VWAN-06
     title: "WAF-SVC-VWAN-06. Spokes use custom route tables, NSGs and private endpoints, and point-to-site uses Microsoft Entra ID with Conditional Access"

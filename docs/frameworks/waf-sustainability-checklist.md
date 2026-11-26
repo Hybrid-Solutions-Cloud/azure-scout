@@ -104,7 +104,7 @@ named one.
 | WAF-SUS-CO-06 | CI/CD and engineering workflows are proportionate to the change | ❌ Manual | COST · Keep engineering workflows proportionate; Reduce idle and baseline platform waste |
 | WAF-SUS-CO-07 | Region and timing of execution are chosen deliberately, including lower-carbon regions and flexible batch windows | ❌ Manual | COST · Use geography and timing deliberately; MTH · Build carbon-aware applications |
 | WAF-SUS-CO-08 | Cross-region replication and routing serve a clear workload need | ❌ Manual — geo-replicated storage accounts attached | COST · Use geography and timing deliberately; Limit delivery-path amplification |
-| WAF-SUS-CO-09 | Storage tiers follow access patterns, and stale or duplicated data is removed on purpose | ❌ Manual | COST · Control storage growth over time |
+| WAF-SUS-CO-09 | Storage tiers follow access patterns, and stale or duplicated data is removed on purpose | ✅ `tieringRuleCount`, `deleteRuleCount` of the storage lifecycle policy; duplication across services and backup retention are not read | COST · Control storage growth over time |
 | WAF-SUS-CO-10 | Cost is tracked per workload or feature, with explicit efficiency baselines for critical systems | ❌ Manual | COST · Make cost visible and actionable; Reduce structural waste in the application layer |
 
 ### Operational excellence (WAF-SUS-OE) — 11 items
@@ -161,11 +161,11 @@ named one.
 |---|---|---|---|
 | Reliability | 16 | 7 | 9 |
 | Security | 8 | 5 | 3 |
-| Cost optimization | 10 | 3 | 7 |
+| Cost optimization | 10 | 4 | 6 |
 | Operational excellence | 11 | 3 | 8 |
 | Performance efficiency | 12 | 2 | 10 |
 | Sustainable AI design | 10 | 0 | 10 |
-| **Total** | **67** | **20** | **47** |
+| **Total** | **67** | **21** | **46** |
 
 Where an item says "attached", Scout carries the matching resources as evidence on the Manual
 finding but does not score them.

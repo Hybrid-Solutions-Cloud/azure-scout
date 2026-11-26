@@ -1,5 +1,10 @@
 area: "Azure VMware Solution Landing Zone"
 framework: CAF
+# AB#9300, 3.18.19. Resource Graph indexes a private cloud but not its children, which are now read
+# from the Microsoft.AVS provider (domains.avs, each dataset with a ...Measured flag). AVS-E2 (Site
+# Recovery Manager) is automated from the add-on list and gated on addonsMeasured; AVS-C5 now also
+# accepts a Generation 2 private cloud (virtual network id) as connected; AVS-C3 stays manual and
+# carries the internet-egress setting as evidence.
 # AB#6820 (Feature AB#6748, Epic AB#6454). Service-guide file, not one of CAF's eight real design
 # areas -- same mechanism caf.ai.yaml/caf.hybrid.yaml use (AB#6798). designAreaRef anchors this
 # to Resource organization: docs/frameworks/avs-landing-zone-question-set.md's 8 areas (resource
@@ -23,7 +28,7 @@ requires:
 rules:
   # ---- A: Resource organization plan -------------------------------------------------------------
   - id: AVS-A1
-    title: "Subscription, resource-group, and tagging/naming standards are referenced for AVS"
+    title: "AVS-A1. Subscription, resource-group, and tagging/naming standards are referenced for AVS"
     severity: medium
     # Tag presence only -- naming-convention conformance and resource-group usage guidance have
     # no collected signal, same limitation the source enumeration records.
@@ -34,14 +39,14 @@ rules:
 
   # ---- B: Microsoft Entra ID and Active Directory -------------------------------------------------
   - id: AVS-B1
-    title: "AD Sites and Services directs Azure/AVS AD DS traffic to the correct domain controllers"
+    title: "AVS-B1. AD Sites and Services directs Azure/AVS AD DS traffic to the correct domain controllers"
     severity: medium
     query: null
     assert: { type: manual }
     remediation: "AVS-B1. Organisational/on-premises AD topology, not an ARM resource -- confirm AD Sites and Services subnet-to-site mapping directs AVS traffic correctly."
     manual: true
   - id: AVS-B2
-    title: "An AD DS domain controller is deployed in the identity subscription"
+    title: "AVS-B2. An AD DS domain controller is deployed in the identity subscription"
     severity: medium
     query: null
     assert: { type: manual }
@@ -50,45 +55,55 @@ rules:
 
   # ---- C: Network topology and connectivity --------------------------------------------------------
   - id: AVS-C1
-    title: "Traffic-inspection requirements are established for the AVS deployment"
+    title: "AVS-C1. Traffic-inspection requirements are established for the AVS deployment"
     severity: high
     query: "$.networking.azureFirewalls[*]"
     assert: { type: exists }
     remediation: "AVS-C1. No Azure Firewall was found in scope, so there is no Azure-side traffic-inspection control to evidence. Establish and document traffic-inspection requirements for the AVS deployment."
     manual: false
   - id: AVS-C2
-    title: "Network traffic flows are documented/understood before migration"
+    title: "AVS-C2. Network traffic flows are documented/understood before migration"
     severity: low
     query: null
     assert: { type: manual }
     remediation: "AVS-C2. No flow-log or traffic-pattern data is collected -- confirm traffic flows were documented and understood before migrating workloads to AVS."
     manual: true
   - id: AVS-C3
-    title: "Internet egress and ingress paths are defined"
+    title: "AVS-C3. Internet egress and ingress paths are defined"
     severity: medium
-    query: null
+    # Evidence only (AB#9300, 3.18.19): the private clouds that have Azure's managed internet egress
+    # switched on (properties.internet, Enabled). Whether the egress and ingress paths are DEFINED --
+    # which NSX public IPs, which firewall or NVA, which inbound publishing -- is a network design.
+    query: "$.compute.privateClouds[?(@.internet == 'Enabled')]"
     assert: { type: manual }
-    remediation: "AVS-C3. costCleanup.orphanedPips tracks only UNUSED public IPs, not the full public-IP/NAT-gateway estate, so it cannot honestly answer whether egress/ingress paths are defined -- confirm directly against the network design."
+    remediation: "AVS-C3. costCleanup.orphanedPips tracks only UNUSED public IPs, not the full public-IP/NAT-gateway estate, so it cannot honestly answer whether egress/ingress paths are defined. The private clouds listed as evidence have Azure's managed internet egress enabled; an empty list means none does, not that a path was designed -- confirm the egress and ingress paths (NSX public IPs, firewall or NVA, Virtual WAN public IP) directly against the network design."
     manual: true
   - id: AVS-C4
-    title: "NVA use is considered where required"
+    title: "AVS-C4. NVA use is considered where required"
     severity: low
     query: null
     assert: { type: manual }
     remediation: "AVS-C4. Not distinguishable from general VM/appliance inventory -- confirm whether a network virtual appliance is required and, if so, deployed."
     manual: true
   - id: AVS-C5
-    title: "Connectivity exists to a standard hub VNet or an Azure Virtual WAN hub"
+    title: "AVS-C5. Connectivity exists to a standard hub VNet or an Azure Virtual WAN hub"
     severity: high
     # The Compute/VMWare collector's "Express Route Circuit" field IS an ARM property on the
     # private-cloud resource (properties.circuit.expressRouteID) -- the strongest signal Scout has
     # for this whole enumeration, per the source file's own summary.
-    query: "$.compute.privateClouds[?(@.expressRouteCircuitId == null || @.expressRouteCircuitId == '')]"
+    # AB#9300, 3.18.19. A Generation 2 private cloud does not use the Microsoft-managed ExpressRoute
+    # connection a Generation 1 one does: it is deployed inside an Azure virtual network and reaches
+    # other networks by virtual network peering (Azure VMware Solution in an Azure landing zone,
+    # section 1.1), and its properties.virtualNetworkId names that network. The rule used to flag a
+    # private cloud for having no circuit id, which a Gen 2 private cloud would not have. It now flags
+    # a private cloud with NEITHER: no circuit id and no virtual network id. (Both conditions are tested
+    # with && only; a filter that mixes && and || nests to the right in Newtonsoft JSONPath.)
+    query: "$.compute.privateClouds[?(@.expressRouteCircuitId == '' && @.virtualNetworkIdSet == false)]"
     assert: { type: countEquals, value: 0 }
-    remediation: "AVS-C5. Each listed private cloud has no ExpressRoute circuit ID recorded, so it is not connected to a hub VNet or Virtual WAN hub through the standard AVS ExpressRoute path. Connect the private cloud's ExpressRoute circuit to the hub."
+    remediation: "AVS-C5. Each listed private cloud records neither an ExpressRoute circuit ID (a Generation 1 private cloud's connection to a hub) nor a virtual network ID (a Generation 2 private cloud's home network), so it has no standard path to a hub VNet or Virtual WAN hub. Connect the private cloud's ExpressRoute circuit to the hub gateway or Virtual WAN hub, or deploy it into the hub's virtual network."
     manual: false
   - id: AVS-C6
-    title: "Private connectivity is used rather than public exposure"
+    title: "AVS-C6. Private connectivity is used rather than public exposure"
     severity: high
     query: "$.networking.privateEndpoints[*]"
     assert: { type: exists }
@@ -97,21 +112,21 @@ rules:
 
   # ---- D: Management and monitoring ------------------------------------------------------------
   - id: AVS-D1
-    title: "Alerts and dashboards exist for operations-relevant metrics"
+    title: "AVS-D1. Alerts and dashboards exist for operations-relevant metrics"
     severity: medium
     query: null
     assert: { type: manual }
     remediation: "AVS-D1. Metric alert rules, action groups, and workbooks are not projected into collect.json for any resource type -- confirm alerts and dashboards exist for AVS-relevant metrics directly in Azure Monitor."
     manual: true
   - id: AVS-D2
-    title: "VMware ecosystem tooling is licensed for AVS platform visibility"
+    title: "AVS-D2. VMware ecosystem tooling is licensed for AVS platform visibility"
     severity: low
     query: null
     assert: { type: manual }
     remediation: "AVS-D2. Third-party VMware tooling (vRealize Operations, Log Insight, Network Insight), not an Azure ARM resource -- confirm licensing and deployment directly."
     manual: true
   - id: AVS-D3
-    title: "Guest monitoring is configured for AVS VMs per the hybrid guidance"
+    title: "AVS-D3. Guest monitoring is configured for AVS VMs per the hybrid guidance"
     severity: medium
     # Same signal caf.hybrid.yaml's CAF-HYB-04 uses for Arc-connected servers generally -- Azure
     # Monitor Agent extension presence, not full guest-monitoring coverage validation.
@@ -122,37 +137,44 @@ rules:
 
   # ---- E: Business continuity and disaster recovery -----------------------------------------------
   - id: AVS-E1
-    title: "A validated backup solution protects the AVS VMware VMs"
+    title: "AVS-E1. A validated backup solution protects the AVS VMware VMs"
     severity: high
     query: null
     assert: { type: manual }
     remediation: "AVS-E1. VMware-native/partner backup agents (MABS or a partner product) are not an ARM resource Scout collects; management.recoveryVaults is not populated by any current collection path either. Confirm a validated backup solution protects AVS VMware VMs directly in the Backup center or the partner product's console."
     manual: true
   - id: AVS-E2
-    title: "VMware Site Recovery Manager is configured between primary and secondary sites"
+    title: "AVS-E2. VMware Site Recovery Manager is configured between primary and secondary sites"
     severity: high
-    query: null
-    assert: { type: manual }
-    remediation: "AVS-E2. VMware SRM is not ARM-visible and distinct from Azure Site Recovery -- confirm SRM configuration directly in vCenter."
-    manual: true
+    # AB#9300, 3.18.19. This item was marked "not ARM-visible", which is no longer true: Site Recovery
+    # Manager is an add-on resource of the private cloud (Microsoft.AVS/privateClouds/addons, addonType
+    # SRM). domains.avs.addons has one row per private cloud whose add-on list answered, with
+    # srmEnabled true when an SRM add-on finished provisioning. That evidences the Azure-side half --
+    # SRM is installed -- and nothing past it: the site pairing, the protection groups and the recovery
+    # plans live inside vCenter and SRM. A private cloud whose add-on list could not be read has no row
+    # and is not flagged; the rule is gated on the Measured flag, so an unread estate is NotAssessed.
+    query: "$.domains.avs.addons[?(@.srmEnabled == false)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.avs.addonsMeasured" }
+    remediation: "AVS-E2. Each listed private cloud has no Site Recovery Manager add-on provisioned (VMware SRM, distinct from Azure Site Recovery). Enable the SRM add-on, with its vSphere Replication add-on, on the private cloud and its recovery site. This confirms the add-on only -- that SRM is configured between the primary and secondary sites (pairing, protection groups, recovery plans, a tested failover) is configured and exercised inside vCenter and SRM, so confirm it there. If another disaster-recovery product protects these VMs, record that decision instead."
+    manual: false
 
   # ---- F: Governance and compliance ---------------------------------------------------------------
   - id: AVS-F1
-    title: "Environment governance controls are in place"
+    title: "AVS-F1. Environment governance controls are in place"
     severity: high
     query: "$.governance.policyAssignments[*]"
     assert: { type: exists, gate: "$.governance.policyAssignmentsAvailable" }
     remediation: "AVS-F1. No Azure Policy assignment was found in scope. Assign the landing zone's policy set to the AVS resource group/subscription before workloads arrive."
     manual: false
   - id: AVS-F2
-    title: "Guest application and VM governance controls are in place"
+    title: "AVS-F2. Guest application and VM governance controls are in place"
     severity: medium
     query: null
     assert: { type: manual }
     remediation: "AVS-F2. Guest-OS-level governance is not observed -- confirm application and VM governance controls exist for AVS guest workloads directly."
     manual: true
   - id: AVS-F3
-    title: "Environment and guest compliance are both tracked"
+    title: "AVS-F3. Environment and guest compliance are both tracked"
     severity: medium
     # Environment half only, per the source enumeration's own framing.
     query: "$.domains.management.policyComplianceStates[*]"
@@ -162,7 +184,7 @@ rules:
 
   # ---- G: Security -----------------------------------------------------------------------------
   - id: AVS-G1
-    title: "Identity security for who can perform AVS functions is planned"
+    title: "AVS-G1. Identity security for who can perform AVS functions is planned"
     severity: high
     # roleAssignments existence only -- PIM eligibility (the other half the source enumeration
     # cites) is collected now (governance.pimEligibility, CAF-IDN-02), but whether access to AVS is
@@ -172,7 +194,7 @@ rules:
     remediation: "AVS-G1. No role assignment was found in scope. Plan identity security for who can perform AVS functions -- role-assignment existence alone does not confirm least-privilege scoping or PIM eligibility, which need direct review (governance.pimEligibility and governance.roleAssignmentSchedules in collect.json list the PIM schedules)."
     manual: false
   - id: AVS-G2
-    title: "Environment and network security are reviewed"
+    title: "AVS-G2. Environment and network security are reviewed"
     severity: high
     # Same signal CAF-SEC-01 already uses -- no NSG rule allows unrestricted inbound from the
     # Internet.
@@ -181,7 +203,7 @@ rules:
     remediation: "AVS-G2. Each listed NSG rule allows unrestricted (*/0.0.0.0/0/Internet) inbound from the Internet. Remove or scope these rules as part of the AVS network security review."
     manual: false
   - id: AVS-G3
-    title: "Guest application and VM security are reviewed"
+    title: "AVS-G3. Guest application and VM security are reviewed"
     severity: medium
     query: null
     assert: { type: manual }
@@ -190,14 +212,14 @@ rules:
 
   # ---- H: Platform automation and DevOps -----------------------------------------------------------
   - id: AVS-H1
-    title: "Deployment options for the AVS private cloud are decided"
+    title: "AVS-H1. Deployment options for the AVS private cloud are decided"
     severity: low
     query: null
     assert: { type: manual }
     remediation: "AVS-H1. Deployment method (manual vs. automated) is not recorded against the private-cloud resource -- confirm the decision was made and documented."
     manual: true
   - id: AVS-H2
-    title: "Automated scale considerations and implementation details are documented"
+    title: "AVS-H2. Automated scale considerations and implementation details are documented"
     severity: low
     # compute.privateClouds[].clusterSize is a static, point-in-time snapshot -- it cannot
     # evidence a scaling ACTIVITY or plan, only the cluster's current size, so this stays manual
@@ -207,14 +229,14 @@ rules:
     remediation: "AVS-H2. Compute/VMWare's Cluster Size field is a static snapshot, not a scaling-activity signal -- confirm automated-scale considerations and implementation details are documented separately."
     manual: true
   - id: AVS-H3
-    title: "VMware-level automation within the private cloud is considered"
+    title: "AVS-H3. VMware-level automation within the private cloud is considered"
     severity: low
     query: null
     assert: { type: manual }
     remediation: "AVS-H3. NSX-T/vCenter-level automation is not ARM-visible -- confirm it was considered directly."
     manual: true
   - id: AVS-H4
-    title: "Automation approaches extend from the enterprise landing zone"
+    title: "AVS-H4. Automation approaches extend from the enterprise landing zone"
     severity: low
     # management.deployments (the resourceGroups projection Invoke-Collect actually issues for
     # this key) carries no properties.templateHash field at all -- the four PRE-EXISTING rules
@@ -226,7 +248,7 @@ rules:
     remediation: "AVS-H4. No IaC-deployment signal is currently reliable in collect.json for this purpose -- confirm automation approaches for the AVS private cloud extend from the enterprise landing zone's existing IaC pipeline directly."
     manual: true
   - id: AVS-H5
-    title: "Automation technologies are chosen for deployment/management"
+    title: "AVS-H5. Automation technologies are chosen for deployment/management"
     severity: low
     query: null
     assert: { type: manual }

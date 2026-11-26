@@ -112,7 +112,7 @@ Items that mix an automated check with something ARM does not carry (active geo-
 | WAF-DATA-PG-06 | Security | Defender for Cloud, row-level security, customer-managed keys, confidential compute and connection throttling are used where needed | ❌ Manual — servers attached with data-encryption type; server parameters and features are not collected | PG-SE-R |
 | WAF-DATA-PG-07 | Cost optimization | The tier and SKU fit the load, with scaling and start or stop for non-production | ❌ Manual — servers attached with sku | PG-CO-R |
 | WAF-DATA-PG-08 | Operational excellence | PostgreSQL servers send diagnostics to Log Analytics | ✅ diagnostic-settings coverage for the server type | PG-OE-R |
-| WAF-DATA-PG-09 | Operational excellence | Backups, maintenance windows and major-version currency are managed | ❌ Manual — servers attached with version and backup retention days | PG-OE-R |
+| WAF-DATA-PG-09 | Operational excellence | Backups, maintenance windows and major-version currency are managed | ✅ `customMaintenanceWindow`; backups are native (retention is attached as evidence) and major-version currency is not scored | PG-OE-R |
 | WAF-DATA-PG-10 | Performance efficiency | Query Store, Query Performance Insight, index tuning, intelligent tuning and PgBouncer are used | ❌ Manual — server parameters, not collected | PG-PE-R |
 
 ### Azure Database for MySQL (WAF-DATA-MYS) — 9 items
@@ -176,7 +176,7 @@ Items that mix an automated check with something ARM does not carry (active geo-
 | WAF-DATA-BLOB-10 | Reliability | Soft delete, versioning and point-in-time restore are enabled | ✅ `blobServiceProperties` `deleteRetentionEnabled`, `containerDeleteRetentionEnabled`, `versioningEnabled` and `pointInTimeRestoreEnabled` (any false is a finding; Data Lake and premium accounts cannot use versioning or restore, so record them as exceptions); gated on `blobServicePropertiesMeasured` | BLOB-RE-R |
 | WAF-DATA-BLOB-11 | Reliability | Vaulted backup for blobs and a tested recovery plan exist | ❌ Manual — protected items attached (estate-wide) | BLOB-RE-C, BLOB-RE-R |
 | WAF-DATA-BLOB-12 | Operational excellence | Storage accounts send diagnostic logs and metrics to Log Analytics | ✅ diagnostic-settings coverage for the storage account type | BLOB-RE-C |
-| WAF-DATA-BLOB-13 | Cost optimization | Access tiers and lifecycle management move cold data to cheaper tiers | ❌ Manual — lifecycle policies are not collected (proposed in the report); accounts attached | BLOB-CO |
+| WAF-DATA-BLOB-13 | Cost optimization | Access tiers and lifecycle management move cold data to cheaper tiers | ✅ `tieringRuleCount` of the storage account's lifecycle policy (one read per blob-capable account, gated on `lifecyclePoliciesMeasured`); premium block blob accounts have no tiers and are not listed | BLOB-CO |
 | WAF-DATA-BLOB-14 | Performance efficiency | Account type, tier and region match throughput and latency needs | ❌ Manual — accounts attached with kind, sku and region | BLOB-PE |
 | WAF-DATA-BLOB-15 | Security | Public network access is disabled on storage accounts | ✅ publicNetworkAccess; Disabled and SecuredByPerimeter pass, an absent value (enabled) is a finding. Added with the storage security projection | BLOB-SE-S |
 | WAF-DATA-BLOB-16 | Cost optimization | Storage accounts are general-purpose v2 or a premium kind, not a legacy general-purpose v1 or blob-only account | ✅ account kind (Storage, StorageV1 and BlobStorage are findings). Added with the storage security projection; the source is the general-purpose v1 and legacy blob retirement guidance, not the Well-Architected guide | GPV1 |
@@ -188,10 +188,10 @@ Items that mix an automated check with something ARM does not carry (active geo-
 |---|---|---|---|
 | Reliability | 25 | 15 | 10 |
 | Security | 46 | 30 | 16 |
-| Cost optimization | 12 | 1 | 11 |
-| Operational excellence | 11 | 3 | 8 |
+| Cost optimization | 12 | 2 | 10 |
+| Operational excellence | 11 | 4 | 7 |
 | Performance efficiency | 10 | 0 | 10 |
-| **Total** | **104** | **49** | **55** |
+| **Total** | **104** | **51** | **53** |
 
 Every automated item is gated on its resources, its diagnostic-coverage rows, or the `<name>Measured` flag of the per-resource ARM
 read it scores (blob service, SQL auditing and failover groups, Redis Enterprise databases), so an estate without them, or a run that

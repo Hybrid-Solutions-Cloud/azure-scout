@@ -43,7 +43,7 @@ BeforeAll {
     function Invoke-AZSCGraphRequest {
         [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Shadow function must declare the real signature.')]
         [CmdletBinding()]
-        param([string] $Uri, [string] $TenantID, [string[]] $RequiredScopes, [switch] $SinglePage, [switch] $SuppressFailureWarning)
+        param([string] $Uri, [string] $TenantID, [string[]] $RequiredScopes, [switch] $SinglePage, [switch] $SuppressFailureWarning, [switch] $OptionalRead)
         switch -Wildcard ($Uri) {
             '*conditionalAccess/policies' { $script:FixturePolicies }
             '*namedLocations' { @() }

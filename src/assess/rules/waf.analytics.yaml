@@ -103,14 +103,16 @@ rules:
     assert: { type: manual }
     remediation: "WAF-ANALYTICS-RE-09. Create Azure Monitor alerts on lag, utilisation, throttling and connection and authentication failures, with action groups. Metric alert rules are attached."
     manual: true
-  # workspaces attached with location and replicationEnabled; the zone-capable region list and the workload region are not collected [LA-RE-R]
+  # `location` against the zone-capable region list used by the other service-guide zone rules (WAF-SVC-ACA-01), and `replicationEnabled`
+  # (AB#9300, depth wiring). A workspace in a zone region is zone redundant on its own; outside one, replication to a second region is the
+  # resilience. The workload region and the collection endpoints' region are not collected, so co-location stays a manual check. [LA-RE-R]
   - id: WAF-ANALYTICS-RE-10
     title: "WAF-ANALYTICS-RE-10. The Log Analytics workspace is in a region with data resilience and co-located with the workload and its collection endpoints"
     severity: medium
-    query: "$.management.logAnalyticsWorkspaces[*]"
-    assert: { type: manual }
-    remediation: "WAF-ANALYTICS-RE-10. Deploy workspaces and data collection endpoints in the workload region, in a region that supports availability-zone data resilience. Workspaces are attached with their region and whether workspace replication is on; which regions support zones and where the workload runs are not collected."
-    manual: true
+    query: "$.management.logAnalyticsWorkspaces[?(@.replicationEnabled != true && @.location =~ /^(?!(eastus|eastus2|westus2|westus3|centralus|southcentralus|northeurope|westeurope|uksouth|francecentral|germanywestcentral|switzerlandnorth|norwayeast|swedencentral|southeastasia|eastasia|australiaeast|japaneast|koreacentral|centralindia|canadacentral|brazilsouth|uaenorth|southafricanorth)$)/i)]"
+    assert: { type: countEquals, value: 0, gate: "$.management.logAnalyticsWorkspaces[*]" }
+    remediation: "WAF-ANALYTICS-RE-10. The workspaces listed are in a region without availability zones and do not replicate to a second region, so a regional or zonal outage takes their log data with it. Use a region that supports availability zones, or turn on workspace replication. Whether the workspace, its data collection endpoints and the workload sit in the same region is not collected: confirm that by hand."
+    manual: false
   # data-collection routing, not collected per workspace [LA-RE-R]
   - id: WAF-ANALYTICS-RE-11
     title: "WAF-ANALYTICS-RE-11. Critical logs are multicast or exported so they survive a regional outage"

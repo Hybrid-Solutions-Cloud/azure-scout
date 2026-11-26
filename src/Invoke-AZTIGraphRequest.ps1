@@ -77,7 +77,11 @@ function Invoke-AZSCGraphRequest {
         [ValidateSet('AzureCloud', 'AzureUSGovernment', 'AzureChinaCloud')]
         [string]$AzureEnvironment,
 
-        [switch]$SuppressFailureWarning
+        [switch]$SuppressFailureWarning,
+
+        # A read the caller treats as optional (it reports 'not read' instead of failing). An HTTP
+        # failure is then written to the run log as INFO, not ERROR, so a handled 403 is not noise.
+        [switch]$OptionalRead
     )
 
     if (-not $AzureEnvironment) {
@@ -140,15 +144,16 @@ function Invoke-AZSCGraphRequest {
         }
 
         $response = $null
+        $failureLevel = if ($OptionalRead) { 'INFO' } else { 'ERROR' }
         $retryCount = 0
 
         while ($retryCount -le $MaxRetries) {
             try {
                 $response = if ($useMgGraph) {
-                    Invoke-ScoutDiagnosticOperation -Operation { Invoke-MgGraphRequest @requestParams }
+                    Invoke-ScoutDiagnosticOperation -FailureLevel $failureLevel -Operation { Invoke-MgGraphRequest @requestParams }
                 }
                 else {
-                    Invoke-ScoutDiagnosticOperation -Operation { Invoke-RestMethod @requestParams }
+                    Invoke-ScoutDiagnosticOperation -FailureLevel $failureLevel -Operation { Invoke-RestMethod @requestParams }
                 }
                 break
             }
@@ -156,7 +161,7 @@ function Invoke-AZSCGraphRequest {
                 $failure = Get-ScoutHttpFailure -ErrorRecord $_
                 $statusCode = $failure.StatusCode
                 if (Get-Command Write-AZSCLog -ErrorAction SilentlyContinue) {
-                    Write-AZSCLog -Level ERROR -Message "Graph $Method $currentUri : $($failure.Summary)"
+                    Write-AZSCLog -Level $failureLevel -Message "Graph $Method $currentUri : $($failure.Summary)"
                 }
 
                 # Handle 429 (throttled) and 5xx (transient server errors)

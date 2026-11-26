@@ -6,8 +6,8 @@
 #
 # Written ONLY against docs/frameworks/waf-sustainability-checklist.md. Microsoft does not publish
 # the assessment's question text, so every item is Scout's reading of the per-pillar sustainability
-# recommendation pages and the sustainable AI design page. 67 items: 20 automated,
-# 47 manual.
+# recommendation pages and the sustainable AI design page. 67 items: 21 automated,
+# 46 manual.
 #
 # Scout collects no carbon data, so emissions items are manual. Idle and orphaned resources,
 # autoscale coverage, Advisor findings and edge protections are automated and gated on their data
@@ -261,13 +261,17 @@ rules:
     assert: { type: manual }
     remediation: "WAF-SUS-CO-08. Confirm geo-replicated storage and cross-region traffic are required. Storage accounts replicated to another region are attached for review."
     manual: true
+  # AB#9300, depth wiring. domains.storage.lifecyclePolicies, one row per blob-capable account whose management policy was read:
+  # tieringRuleCount and deleteRuleCount count the ENABLED rules that move data down a tier or delete it. An account with neither has
+  # nothing that follows access patterns or expires stale data. Gated on the Measured flag, so a run that never read the policies
+  # is Not assessed. Duplication across services and backup retention are not read.
   - id: WAF-SUS-CO-09
     title: "WAF-SUS-CO-09. Storage tiers follow access patterns, and stale or duplicated data is removed on purpose"
     severity: low
-    query: null
-    assert: { type: manual }
-    remediation: "WAF-SUS-CO-09. Confirm hot, cool and archive tiers follow access, lifecycle rules expire old data, datasets are not duplicated across services, and backup retention is reviewed. Lifecycle management policies are not yet collected."
-    manual: true
+    query: "$.domains.storage.lifecyclePolicies[?(@.tieringRuleCount == 0 && @.deleteRuleCount == 0)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.storage.lifecyclePoliciesMeasured" }
+    remediation: "WAF-SUS-CO-09. The storage accounts listed have no enabled lifecycle rule that moves data to a cooler tier or deletes it, so data stays on the hottest tier and stale data is kept until someone removes it. Add rules that tier and expire blobs by age or last access. Whether datasets are duplicated across services, and whether backup retention is reviewed, are not collected: confirm those by hand."
+    manual: false
   - id: WAF-SUS-CO-10
     title: "WAF-SUS-CO-10. Cost is tracked per workload or feature, with explicit efficiency baselines for critical systems"
     severity: medium

@@ -9,9 +9,19 @@ is the version, per `docs/frameworks/README.md`; re-date this line when this fil
 
 This is the AB#6810 enumeration for target #7 in the audit's fourteen-assessment programme
 (`pmo/audits/AZURE-SCOUT-AUDIT.md` §14): *"Azure VMware Solution Landing Zone Assessment Review —
-pairs with #6 [WAF AVS workload] — platform readiness rather than workload."* No rule file exists
-against this framework yet; that is deliberate — per DQ12, a rule file is not written until its
-source is enumerated here first.
+pairs with #6 [WAF AVS workload] — platform readiness rather than workload."* The rule file,
+`src/assess/rules/caf.avslandingzone.yaml` (25 rules, 10 automated), was written only after this
+enumeration existed — per DQ12, a rule file is not written until its source is enumerated here first.
+
+**What changed in 3.18.19.** Resource Graph indexes an Azure VMware Solution private cloud but not its
+children, so the rows below that depend on them were written as out of reach. The children (clusters,
+datastores, placement policies, add-ons, Global Reach connections, authorizations, cloud links, the NSX
+workload network, iSCSI paths, maintenances) are now read from the Microsoft.AVS provider into
+`domains.avs` — each dataset gated by a `Measured` flag, so a list Scout could not read is **Not
+assessed**, never a Fail — and the private cloud's own extended properties (such as the virtual network
+id of a Generation 2 cloud) are projected. The rows below that changed are `AVS-C3`, `AVS-C5` and
+`AVS-E2`. Nothing secret is read: the SRM licence key, ExpressRoute authorization keys and the Global
+Reach peer key never reach a row.
 
 ## What this is
 
@@ -77,9 +87,9 @@ currency warnings). Re-verify before quoting, and re-date this page when you do.
 |---|---|---|
 | AVS-C1 | Traffic-inspection requirements are established for the AVS deployment | ⚠️ Partial — `Networking/AzureFirewall`, `Security/WafPolicies` existence |
 | AVS-C2 | Network traffic flows are documented/understood before migration | ❌ No flow-log or traffic-pattern data collected |
-| AVS-C3 | Internet egress and ingress paths are defined | ⚠️ Partial — `Networking/PublicIP`, `Networking/NATGateway` existence |
+| AVS-C3 | Internet egress and ingress paths are defined | ⚠️ Partial — `Networking/PublicIP`, `Networking/NATGateway` existence; manual, with the private clouds that have Azure's managed internet egress switched on (`compute.privateClouds[].internet`) as evidence |
 | AVS-C4 | NVA use is considered where required | ❌ Not distinguishable from general VM/appliance inventory |
-| AVS-C5 | Connectivity exists to a standard hub VNet or an Azure Virtual WAN hub | ✅ `Compute/VMWare` "Express Route Circuit" field · `Networking/VirtualWAN`, `Networking/ExpressRoute`, `Networking/VirtualNetworkGateways` |
+| AVS-C5 | Connectivity exists to a standard hub VNet or an Azure Virtual WAN hub | ✅ `Compute/VMWare` "Express Route Circuit" field (a Generation 1 private cloud) or the private cloud's `virtualNetworkId` (a Generation 2 private cloud, deployed inside a virtual network and so with no circuit of its own — the rule used to flag it) · `Networking/VirtualWAN`, `Networking/ExpressRoute`, `Networking/VirtualNetworkGateways` |
 | AVS-C6 | Private connectivity is used rather than public exposure | ✅ `Networking/PrivateEndpoint` |
 
 ### D — Management and monitoring
@@ -95,7 +105,7 @@ currency warnings). Re-verify before quoting, and re-date this page when you do.
 | # | Item | Scout can evidence? |
 |---|---|---|
 | AVS-E1 | A validated backup solution (MABS or a partner product) protects the AVS VMware VMs | ❌ VMware-native/partner backup agents are not an ARM resource Scout collects — `Management/Backup` and `Management/RecoveryVault` cover Azure-native backup only |
-| AVS-E2 | VMware Site Recovery Manager is configured between primary and secondary sites | ❌ VMware SRM is not ARM-visible; distinct from Azure Site Recovery |
+| AVS-E2 | VMware Site Recovery Manager is configured between primary and secondary sites | ⚠️ Partial — the SRM add-on is an ARM resource (`Microsoft.AVS/privateClouds/addons`, add-on type SRM), read into `domains.avs.addons`; whether SRM is *configured between the sites* (pairing, protection groups, recovery plans) lives inside vCenter and SRM and isn't collected. Distinct from Azure Site Recovery |
 
 ### F — Governance and compliance
 
@@ -125,11 +135,13 @@ currency warnings). Re-verify before quoting, and re-date this page when you do.
 
 ## What this means for the rule file
 
-**8 of 25 items are fully answerable, 12 are partial, 5 are organisational or VMware-native and out
-of reach entirely.** The strongest signal Scout already has for this assessment is network
-connectivity (`AVS-C5`, `AVS-C6`) — the `Compute/VMWare` collector already carries an "Express Route
-Circuit" field that answers a genuine landing-zone-readiness question directly. The weakest area is
-BC/DR (`AVS-E1`, `AVS-E2`): VMware-native backup and Site Recovery Manager sit entirely outside
-ARM's visibility, and no Scout collector will ever close that gap short of reading vCenter/NSX-T
-APIs directly, which is out of scope for an ARM-based tool. A future `caf.avs-landingzone.yaml`
-should mark those `manual: true` rather than silently omitting them.
+**3 of 25 items are fully answerable, 12 are partial, 10 are organisational or VMware-native and out
+of reach entirely** (counted from the tables above; 10 of the 25 have an automated rule, and the rest are
+manual). The 3.18.18 version of this paragraph said 8 / 12 / 5, which did not match its own tables
+(3 / 11 / 11). The strongest signal Scout has for this assessment is network connectivity (`AVS-C5`,
+`AVS-C6`) — the `Compute/VMWare` collector carries an "Express Route Circuit" field, and since 3.18.19 the
+private cloud's virtual network id covers a Generation 2 cloud, which has no circuit. The weakest area is
+BC/DR: VMware-native and partner backup (`AVS-E1`) is not an ARM resource, and `AVS-E2` is answerable only
+as far as the Site Recovery Manager add-on being provisioned, because the pairing and recovery plans live
+inside vCenter and SRM, which is out of scope for an ARM-based tool. `caf.avslandingzone.yaml` marks the
+unanswerable items `manual: true` rather than silently omitting them.

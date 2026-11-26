@@ -533,6 +533,22 @@ Describe 'Get-ScoutArmChildResource - selection, ordering and resilience' {
             @{ Dataset = 'WebAppBasicAuth'; Parent = Get-TestParent -Type 'microsoft.web/sites' -Name 'web'; NotFoundIsEmpty = $true }
             @{ Dataset = 'EventHubGeoDr'; Parent = Get-TestParent -Type 'microsoft.eventhub/namespaces' -Name 'hub'; NotFoundIsEmpty = $true }
             @{ Dataset = 'RedisEnterpriseDatabases'; Parent = Get-TestParent -Type 'microsoft.cache/redisenterprise' -Name 'redis'; NotFoundIsEmpty = $true }
+            # AB#9300, 3.18.19 -- Azure VMware Solution private-cloud children. All thirteen accept a 404
+            # as empty data (a private cloud still building has no workload network yet). The two
+            # per-cluster datasets are driven by the cluster list the matrix stub answers with one cluster.
+            @{ Dataset = 'AvsClusters'; Parent = Get-TestParent -Type 'microsoft.avs/privateclouds' -Name 'pc'; NotFoundIsEmpty = $true }
+            @{ Dataset = 'AvsDatastores'; Parent = Get-TestParent -Type 'microsoft.avs/privateclouds' -Name 'pc'; NotFoundIsEmpty = $true }
+            @{ Dataset = 'AvsPlacementPolicies'; Parent = Get-TestParent -Type 'microsoft.avs/privateclouds' -Name 'pc'; NotFoundIsEmpty = $true }
+            @{ Dataset = 'AvsAddons'; Parent = Get-TestParent -Type 'microsoft.avs/privateclouds' -Name 'pc'; NotFoundIsEmpty = $true }
+            @{ Dataset = 'AvsGlobalReachConnections'; Parent = Get-TestParent -Type 'microsoft.avs/privateclouds' -Name 'pc'; NotFoundIsEmpty = $true }
+            @{ Dataset = 'AvsAuthorizations'; Parent = Get-TestParent -Type 'microsoft.avs/privateclouds' -Name 'pc'; NotFoundIsEmpty = $true }
+            @{ Dataset = 'AvsCloudLinks'; Parent = Get-TestParent -Type 'microsoft.avs/privateclouds' -Name 'pc'; NotFoundIsEmpty = $true }
+            @{ Dataset = 'AvsSegments'; Parent = Get-TestParent -Type 'microsoft.avs/privateclouds' -Name 'pc'; NotFoundIsEmpty = $true }
+            @{ Dataset = 'AvsDhcpConfigurations'; Parent = Get-TestParent -Type 'microsoft.avs/privateclouds' -Name 'pc'; NotFoundIsEmpty = $true }
+            @{ Dataset = 'AvsDnsServices'; Parent = Get-TestParent -Type 'microsoft.avs/privateclouds' -Name 'pc'; NotFoundIsEmpty = $true }
+            @{ Dataset = 'AvsGateways'; Parent = Get-TestParent -Type 'microsoft.avs/privateclouds' -Name 'pc'; NotFoundIsEmpty = $true }
+            @{ Dataset = 'AvsIscsiPaths'; Parent = Get-TestParent -Type 'microsoft.avs/privateclouds' -Name 'pc'; NotFoundIsEmpty = $true }
+            @{ Dataset = 'AvsMaintenances'; Parent = Get-TestParent -Type 'microsoft.avs/privateclouds' -Name 'pc'; NotFoundIsEmpty = $true }
         )
         $declaredDatasets = @(
             (Get-Command Get-ScoutArmChildResource).Parameters['Dataset'].Attributes |
@@ -885,7 +901,10 @@ Describe 'Get-ScoutArmChildResource - per-resource settings (AB#9300 phase 4, ba
                 ForEach-Object ValidValues | Where-Object { $_ -ne 'All' }
         )
         @($script:Batch2Datasets | Where-Object { $declared -notcontains $_ }) | Should -BeNullOrEmpty
-        @($declared | Select-Object -Last 8) | Should -Be $script:Batch2Datasets
+        # The eight sit after the existing datasets and before the thirteen Azure VMware Solution
+        # datasets AB#9300 added in 3.18.19.
+        @($declared | Select-Object -SkipLast 13 | Select-Object -Last 8) | Should -Be $script:Batch2Datasets
+        @($declared | Select-Object -Last 13 | Select-Object -First 1) | Should -Be @('AvsClusters')
 
         $rows = @(Get-ScoutArmChildResource -Resources $script:Batch2Parents)
         $types = @($rows.TYPE | Select-Object -Unique)

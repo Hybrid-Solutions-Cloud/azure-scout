@@ -113,7 +113,11 @@ function Resolve-AZSCExtractionCategoryPlan {
         # honoured instead of silently dropped.
         'StorageBlobServiceProperties', 'StorageFileServiceProperties', 'SqlServerAuditing',
         'SqlFailoverGroups', 'WebAppConfig', 'WebAppBasicAuth', 'EventHubGeoDr',
-        'RedisEnterpriseDatabases'
+        'RedisEnterpriseDatabases',
+        # AB#9300, 3.18.19 -- Azure VMware Solution private-cloud children, same reasoning.
+        'AvsClusters', 'AvsDatastores', 'AvsPlacementPolicies', 'AvsAddons', 'AvsGlobalReachConnections',
+        'AvsAuthorizations', 'AvsCloudLinks', 'AvsSegments', 'AvsDhcpConfigurations', 'AvsDnsServices',
+        'AvsGateways', 'AvsIscsiPaths', 'AvsMaintenances'
     )
     $armChildDataset = @($armChildNames | Where-Object { $_ -in $supportedArmChildren } | Sort-Object -Unique)
     $specialApiTypes = @(
