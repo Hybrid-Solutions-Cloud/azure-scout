@@ -947,7 +947,14 @@ Describe 'ConvertFrom-ScoutInventory — AB#9300 phase 4 collection properties' 
             $kql | Should -Not -Match 'sslCertificates'
             $kql | Should -Not -Match 'configuration\.secrets'
             $kql | Should -Not -Match 'logAnalyticsConfiguration'
-            $kql | Should -Not -Match 'keyVaultProperties'
+            # keyVaultProperties holds a key's NAME, VERSION and VAULT URL, which identify a vault. The one
+            # place the pack reads it is an Azure VMware Solution private cloud's customer-managed key,
+            # for its two STATE enums only (AB#9300, 3.18.19: keyState Connected / AccessDenied and
+            # versionType Fixed / AutoDetected). Every other read, or any read of the name, version or
+            # URL, still fails here.
+            $keyVaultReads = @([regex]::Matches($kql, 'keyVaultProperties\.?\w*') | ForEach-Object { $_.Value } | Sort-Object -Unique)
+            @($keyVaultReads | Where-Object { $_ -notin @('keyVaultProperties.keyState', 'keyVaultProperties.versionType') }) |
+                Should -BeNullOrEmpty -Because 'keyVaultProperties may be read only for keyState and versionType'
             $kql | Should -Not -Match 'administrators\.(sid|login|tenantId)'
             # redisConfiguration is read for exactly one key, by name -- never as a whole.
             $redisReads = @([regex]::Matches($kql, 'redisConfiguration[^\r\n]*') | ForEach-Object { $_.Value })

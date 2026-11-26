@@ -261,13 +261,13 @@
         Tags = @('waf', 'databases', 'storage', 'technology-review'); Reporters = @('Html', 'Excel')
     }
     'WAF: Service Guides' = @{
-        Description = 'Well-Architected Framework service guides -- 214 items (126 automated) from the Configuration recommendations of 20 Azure service guides: AKS, App Service, Functions, Container Apps, API Management, Service Bus, Event Grid, Firewall, Application Gateway, Load Balancer, Virtual Network, Virtual Machines and scale sets, Disk, Application Insights, Front Door, Traffic Manager, Virtual WAN, ExpressRoute, Files and NetApp Files. A guide is assessed only when the estate has that service; see docs/frameworks/waf-service-guides-checklist.md'
+        Description = 'Well-Architected Framework service guides -- 214 items (138 automated) from the Configuration recommendations of 20 Azure service guides: AKS, App Service, Functions, Container Apps, API Management, Service Bus, Event Grid, Firewall, Application Gateway, Load Balancer, Virtual Network, Virtual Machines and scale sets, Disk, Application Insights, Front Door, Traffic Manager, Virtual WAN, ExpressRoute, Files and NetApp Files. A guide is assessed only when the estate has that service; see docs/frameworks/waf-service-guides-checklist.md'
         Category    = '*'; Collect = @('Compute', 'Containers', 'Web', 'Integration', 'Networking', 'Storage', 'Monitor', 'Management', 'Security', 'Databases'); Ingest = @()
         Rules = @('waf.serviceguides'); Frameworks = @('WAF: Service guides')
         Tags = @('waf', 'service-guides'); Reporters = @('Html', 'Excel')
     }
     'WAF: Mission Critical' = @{
-        Description = 'Mission-critical workload review -- 81 items across the 8 design areas of Microsoft''s mission-critical guidance (application design, platform, data platform, networking, health modeling, deployment and testing, security, operations); 41 scored from collected data, 40 questionnaire items. Scout''s reading of the guidance; Microsoft does not publish the assessment''s questions'
+        Description = 'Mission-critical workload review -- 81 items across the 8 design areas of Microsoft''s mission-critical guidance (application design, platform, data platform, networking, health modeling, deployment and testing, security, operations); 42 scored from collected data, 39 questionnaire items. Scout''s reading of the guidance; Microsoft does not publish the assessment''s questions'
         Category    = '*'; Collect = @('Compute', 'Networking', 'Security', 'Storage', 'Databases', 'Containers', 'Web', 'Integration', 'Monitor', 'Management', 'DevOps', 'Identity'); Ingest = @('Governance')
         Rules = @('waf.missioncritical'); Frameworks = @('WAF: Mission-critical workload')
         Tags = @('waf', 'mission-critical', 'workload-review'); Reporters = @('Html', 'Excel')

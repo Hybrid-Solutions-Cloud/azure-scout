@@ -44,6 +44,21 @@ if (-not (Get-Command Get-ScoutHttpFailure -ErrorAction SilentlyContinue)) { . (
     strings, a failover group's partner server ids, an Event Hubs partner namespace -- and a row
     that never held them cannot leak them into a collect.json, a Discovery.json or a log.
 
+    Thirteen more datasets (AB#9300, 3.18.19) read the children of Azure VMware Solution private
+    clouds, which Resource Graph does not index: AvsClusters, AvsDatastores, AvsPlacementPolicies,
+    AvsAddons, AvsGlobalReachConnections, AvsAuthorizations, AvsCloudLinks, AvsSegments,
+    AvsDhcpConfigurations, AvsDnsServices, AvsGateways, AvsIscsiPaths and AvsMaintenances. The
+    parent is `microsoft.avs/privateclouds`; with none in scope the sweep makes no request at all.
+    Eleven are one GET per private cloud and join the parallel batch; AvsDatastores and
+    AvsPlacementPolicies are one GET per CLUSTER, so the cluster list comes first (from AvsClusters,
+    or asked once as a `<Dataset>.Clusters` sub-operation) and a second parallel wave fetches the
+    per-cluster lists. Like the batch-2 datasets, rows are built from an allow-list: the responses
+    sit next to an add-on licence key, ExpressRoute authorization keys, a Global Reach peer
+    authorization key and peer circuit ids, and none of them is ever read into a row. These rows
+    are `AZSC/ARMChild/*`, which the discovery index treats as enrichment of a same-id base
+    resource and never lists on its own, so Get-ScoutRawInventory also mirrors each under its real ARM
+    type (ConvertTo-ScoutAvsDiscoveryResource) to make the children discoverable.
+
     Calls are independently non-fatal. A failed parent/dataset call emits a warning and only that
     child collection is omitted; other parents and datasets continue. Input order, canonical
     dataset order, endpoint-type order, and service response order are preserved.
@@ -65,7 +80,8 @@ if (-not (Get-Command Get-ScoutHttpFailure -ErrorAction SilentlyContinue)) { . (
 
 .PARAMETER ThrottleLimit
     How many requests run at once for the datasets that are one independent GET per parent --
-    ResourceDiagnosticSettings and the eight batch-2 datasets (default 8, 1-16). The requests are
+    ResourceDiagnosticSettings, the eight batch-2 datasets and the eleven per-private-cloud Azure
+    VMware Solution datasets, plus a second wave for the two per-cluster ones (default 8, 1-16). The requests are
     FETCHED concurrently and then APPLIED on the calling thread in input order, so rows, source
     operations, collection health and warnings are identical to a sequential run; only the clock
     differs. 1 runs everything sequentially in the caller's session.
@@ -126,7 +142,21 @@ function Get-ScoutArmChildResource {
             'WebAppConfig',
             'WebAppBasicAuth',
             'EventHubGeoDr',
-            'RedisEnterpriseDatabases'
+            'RedisEnterpriseDatabases',
+            # AB#9300, 3.18.19 -- Azure VMware Solution private-cloud children.
+            'AvsClusters',
+            'AvsDatastores',
+            'AvsPlacementPolicies',
+            'AvsAddons',
+            'AvsGlobalReachConnections',
+            'AvsAuthorizations',
+            'AvsCloudLinks',
+            'AvsSegments',
+            'AvsDhcpConfigurations',
+            'AvsDnsServices',
+            'AvsGateways',
+            'AvsIscsiPaths',
+            'AvsMaintenances'
         )]
         [string[]]$Dataset = @('All'),
 
@@ -197,7 +227,21 @@ function Get-ScoutArmChildResource {
         'WebAppConfig',
         'WebAppBasicAuth',
         'EventHubGeoDr',
-        'RedisEnterpriseDatabases'
+        'RedisEnterpriseDatabases',
+        # AB#9300, 3.18.19. AvsClusters comes first: the two per-cluster datasets reuse its answer.
+        'AvsClusters',
+        'AvsDatastores',
+        'AvsPlacementPolicies',
+        'AvsAddons',
+        'AvsGlobalReachConnections',
+        'AvsAuthorizations',
+        'AvsCloudLinks',
+        'AvsSegments',
+        'AvsDhcpConfigurations',
+        'AvsDnsServices',
+        'AvsGateways',
+        'AvsIscsiPaths',
+        'AvsMaintenances'
     )
 
     # --- Diagnostic-settings parent scope (AB#6769) ---------------------------------------------
@@ -261,6 +305,11 @@ function Get-ScoutArmChildResource {
         'microsoft.insights/components'
         'microsoft.desktopvirtualization/hostpools'
         'microsoft.desktopvirtualization/workspaces'
+        # AB#9300, 3.18.19 -- an Azure VMware Solution private cloud streams its VMware syslog
+        # (vCenter, ESXi, NSX distributed and gateway firewall, NSX edge) through a diagnostic
+        # setting, and WAF-AVS-SEC-07 reads that coverage. One GET per private cloud; none when the
+        # estate has no AVS.
+        'microsoft.avs/privateclouds'
     )
 
     # --- Allow-listed child settings (AB#9300 phase 4, batch 2) ----------------------------------
@@ -284,6 +333,26 @@ function Get-ScoutArmChildResource {
     # Three values are reduced to a count or a boolean rather than copied: a failover group's
     # partner servers and databases (counts), a Redis Enterprise database's linked databases (a
     # count), and a web app's health-check path (a boolean saying whether one is set).
+    #
+    # The thirteen Azure VMware Solution datasets (AB#9300, 3.18.19) follow the same rule. What
+    # their responses hold beside the allow-listed settings, and is therefore never read:
+    #   AvsAddons                 licenseKey (the Site Recovery Manager licence, returned in the list
+    #                             response), the HCX management and uplink networks, the Arc vCenter id
+    #   AvsGlobalReachConnections authorizationKey (the PEER circuit's key), peerExpressRouteCircuit and
+    #                             expressRouteId (circuit resource ids), addressPrefix
+    #   AvsAuthorizations         expressRouteAuthorizationKey, expressRouteAuthorizationId, expressRouteId
+    #   AvsCloudLinks             linkedCloud (another private cloud's resource id)
+    #   AvsClusters               hosts (host FQDNs; only their count is kept)
+    #   AvsDatastores             the NetApp, Elastic SAN, Pure Storage and disk-pool target ids
+    #   AvsPlacementPolicies      vmMembers, hostMembers (VM ids and host names; only counts are kept)
+    #   AvsSegments               subnet gateway address and DHCP ranges, port VIF names
+    #   AvsDhcpConfigurations     server and relay addresses
+    #   AvsDnsServices            dnsServiceIp, defaultDnsZone, fqdnZones (names; only a count is kept)
+    #   AvsGateways               the NSX gateway path
+    #   AvsIscsiPaths             networkBlock
+    # Reductions to a count or a boolean: cluster host count, placement-policy member counts, a
+    # datastore's storage kind, a Global Reach peer circuit being set, a segment's DHCP range and
+    # port counts, a DHCP configuration's segment count, a DNS service's zone count.
     $SafeChildPropertyPaths = @{
         StorageBlobServiceProperties = @(
             'deleteRetentionPolicy.enabled', 'deleteRetentionPolicy.days',
@@ -310,6 +379,24 @@ function Get-ScoutArmChildResource {
             'accessKeysAuthentication', 'clientProtocol',
             'persistence.aofEnabled', 'persistence.aofFrequency',
             'persistence.rdbEnabled', 'persistence.rdbFrequency'
+        )
+        AvsClusters = @('clusterSize', 'provisioningState')
+        AvsDatastores = @('status', 'provisioningState')
+        AvsPlacementPolicies = @(
+            'type', 'state', 'affinityType', 'affinityStrength', 'azureHybridBenefitType', 'provisioningState'
+        )
+        AvsAddons = @('addonType', 'provisioningState', 'offer', 'vrsCount')
+        AvsGlobalReachConnections = @('circuitConnectionStatus', 'provisioningState')
+        AvsAuthorizations = @('provisioningState')
+        AvsCloudLinks = @('status', 'provisioningState')
+        AvsSegments = @('status', 'provisioningState')
+        AvsDhcpConfigurations = @('dhcpType', 'provisioningState')
+        AvsDnsServices = @('logLevel', 'status', 'provisioningState')
+        AvsGateways = @('provisioningState')
+        AvsIscsiPaths = @('provisioningState')
+        AvsMaintenances = @(
+            'component', 'state.name', 'scheduledByMicrosoft', 'provisioningState',
+            'maintenanceReadiness.status', 'estimatedDurationInMinutes'
         )
     }
 
@@ -647,14 +734,23 @@ function Get-ScoutArmChildResource {
             [Parameter(Mandatory)][string]$DatasetName,
             [Parameter(Mandatory)][string]$ParentName,
             [string]$ParentId = '',
-            [switch]$NotFoundIsEmpty
+            [switch]$NotFoundIsEmpty,
+            # Optional caller-owned table. `Answered` is set to $true when the service ANSWERED -- a
+            # document, an empty list, or an accepted 404 -- and left $false for a failure or a
+            # not-registered provider. The returned content is $null in both of those cases, so the
+            # caller cannot tell them apart without this (the AVS cluster list needs to).
+            [AllowNull()][hashtable]$Outcome = $null
         )
 
+        if ($null -ne $Outcome) { $Outcome['Answered'] = $false }
         $Operation = @{ DatasetName = $DatasetName; ParentName = $ParentName; ParentId = $ParentId; StartedAt = $Result.StartedAt }
         foreach ($Page in @($Result.PageOperations)) {
             Write-ArmChildOperation @Operation -Uri $Page.Uri -Status $Page.Status -Count $Page.Count -Reason $null -CompletedAt $Page.CompletedAt
         }
-        if ($Result.Terminal -ne 'Failed') { return $Result.Content }
+        if ($Result.Terminal -ne 'Failed') {
+            if ($null -ne $Outcome) { $Outcome['Answered'] = $true }
+            return $Result.Content
+        }
 
         $Failure = $Result.Failure
         $StatusCode = $Failure.StatusCode
@@ -707,6 +803,7 @@ function Get-ScoutArmChildResource {
         }
         if ($NotFoundIsEmpty -and $StatusCode -eq 404) {
             Write-ArmChildOperation @Operation -Uri $CurrentPath -Status 'Empty'
+            if ($null -ne $Outcome) { $Outcome['Answered'] = $true }
             return $null
         }
         Write-ArmChildOperation @Operation -Uri $CurrentPath -Status 'Failed' -Reason $Message
@@ -742,18 +839,19 @@ function Get-ScoutArmChildResource {
             # per-parent GET covered without parsing the request path.
             [string]$ParentId = '',
             [switch]$NotFoundIsEmpty,
-            [AllowNull()]$Prefetched = $null
+            [AllowNull()]$Prefetched = $null,
+            [AllowNull()][hashtable]$Outcome = $null
         )
 
         $Result = if ($null -ne $Prefetched) { $Prefetched } else { & $FetchChildBlock -Path $Path -DatasetName $DatasetName -Mode 'Az' }
         return Complete-ArmChildFetch -Result $Result -Path $Path -DatasetName $DatasetName -ParentName $ParentName `
-            -ParentId $ParentId -NotFoundIsEmpty:$NotFoundIsEmpty
+            -ParentId $ParentId -NotFoundIsEmpty:$NotFoundIsEmpty -Outcome $Outcome
     }
 
     function Test-StorageServiceSupported {
         param(
             [Parameter(Mandatory)]$Parent,
-            [Parameter(Mandatory)][ValidateSet('Blob', 'File', 'Queue', 'Table')][string]$Service
+            [Parameter(Mandatory)][ValidateSet('Blob', 'File', 'Queue', 'Table', 'Lifecycle')][string]$Service
         )
 
         $Kind = [string](Get-ArmParentValue -InputObject $Parent -Name @('kind', 'KIND'))
@@ -763,6 +861,11 @@ function Get-ScoutArmChildResource {
             'File'  { return $Kind -in @('Storage', 'StorageV2', 'FileStorage') }
             'Queue' { return $Kind -in @('Storage', 'StorageV2') }
             'Table' { return $Kind -in @('Storage', 'StorageV2') }
+            # Lifecycle management applies to block and append blobs in general-purpose v2, premium
+            # block blob and Blob Storage accounts (Microsoft Learn, "Optimize costs by automatically
+            # managing the data lifecycle"). General-purpose v1 and file-only accounts have no policy to
+            # read, so they are not asked (AB#9300, depth wiring).
+            'Lifecycle' { return $Kind -in @('StorageV2', 'BlobStorage', 'BlockBlobStorage') }
         }
     }
 
@@ -853,6 +956,19 @@ function Get-ScoutArmChildResource {
         return [pscustomobject]@{ Found = $true; Value = $Current }
     }
 
+    function Get-ArmCount {
+        # How many elements the array at $Path holds: 0 for an empty array, and for an absent one
+        # either 0 or, with -NullWhenAbsent, $null ("the service did not say").
+        param([AllowNull()]$Source, [Parameter(Mandatory)][string]$Path, [switch]$NullWhenAbsent)
+
+        $Found = Get-ArmPathValue -InputObject $Source -Path $Path
+        if (-not $Found.Found -or $null -eq $Found.Value) {
+            if ($NullWhenAbsent) { return $null }
+            return 0
+        }
+        return @($Found.Value).Count
+    }
+
     function ConvertTo-ArmPlainObject {
         param([AllowNull()]$Node)
 
@@ -908,6 +1024,66 @@ function Get-ScoutArmChildResource {
                 $Found = Get-ArmPathValue -InputObject $RawProperties -Path 'geoReplication.linkedDatabases'
                 if (-not $Tree.Contains('geoReplication')) { $Tree['geoReplication'] = [ordered]@{} }
                 $Tree['geoReplication']['linkedDatabaseCount'] = if ($Found.Found -and $null -ne $Found.Value) { @($Found.Value).Count } else { 0 }
+            }
+
+            # --- Azure VMware Solution (AB#9300, 3.18.19) ------------------------------------------
+            # Counts and booleans stand in for host names, member ids, peer circuit ids, target ids,
+            # IP ranges and NSX paths. A count is $null when the response did not carry the array at
+            # all (the service did not say), and 0 when it carried an empty one.
+            'AvsClusters' {
+                $Tree['hostCount'] = Get-ArmCount -Source $RawProperties -Path 'hosts' -NullWhenAbsent
+                # The cluster's SKU sits on the resource, not under `properties`.
+                $Sku = Get-ArmPathValue -InputObject $Child -Path 'sku.name'
+                $Tree['skuName'] = if ($Sku.Found -and $null -ne $Sku.Value) { [string]$Sku.Value } else { $null }
+            }
+            'AvsDatastores' {
+                # Exactly one storage-kind object is present. Which one is the finding; its target id is not.
+                $Kind = $null
+                foreach ($Pair in @(
+                        @('netAppVolume', 'NetApp'), @('diskPoolVolume', 'DiskPool'),
+                        @('elasticSanVolume', 'ElasticSan'), @('pureStorageVolume', 'PureStorage')
+                    )) {
+                    $Found = Get-ArmPathValue -InputObject $RawProperties -Path $Pair[0]
+                    if ($Found.Found -and $null -ne $Found.Value) { $Kind = $Pair[1]; break }
+                }
+                $Tree['kind'] = $Kind
+            }
+            'AvsPlacementPolicies' {
+                $Tree['vmMemberCount'] = Get-ArmCount -Source $RawProperties -Path 'vmMembers'
+                $Tree['hostMemberCount'] = Get-ArmCount -Source $RawProperties -Path 'hostMembers'
+            }
+            'AvsGlobalReachConnections' {
+                $Found = Get-ArmPathValue -InputObject $RawProperties -Path 'peerExpressRouteCircuit'
+                $Tree['peerCircuitPresent'] = $Found.Found -and -not [string]::IsNullOrWhiteSpace([string]$Found.Value)
+            }
+            'AvsCloudLinks' {
+                $Found = Get-ArmPathValue -InputObject $RawProperties -Path 'linkedCloud'
+                $Tree['linkedCloudPresent'] = $Found.Found -and -not [string]::IsNullOrWhiteSpace([string]$Found.Value)
+            }
+            'AvsSegments' {
+                $Found = Get-ArmPathValue -InputObject $RawProperties -Path 'connectedGateway'
+                $Tree['connectedGatewaySet'] = $Found.Found -and -not [string]::IsNullOrWhiteSpace([string]$Found.Value)
+                $Tree['dhcpRangeCount'] = Get-ArmCount -Source $RawProperties -Path 'subnet.dhcpRanges'
+                $Tree['portCount'] = Get-ArmCount -Source $RawProperties -Path 'portVif'
+            }
+            'AvsDhcpConfigurations' {
+                $Tree['segmentCount'] = Get-ArmCount -Source $RawProperties -Path 'segments'
+            }
+            'AvsDnsServices' {
+                $Tree['fqdnZoneCount'] = Get-ArmCount -Source $RawProperties -Path 'fqdnZones'
+                $Found = Get-ArmPathValue -InputObject $RawProperties -Path 'defaultDnsZone'
+                $Tree['defaultZoneSet'] = $Found.Found -and -not [string]::IsNullOrWhiteSpace([string]$Found.Value)
+            }
+            'AvsIscsiPaths' {
+                $Found = Get-ArmPathValue -InputObject $RawProperties -Path 'networkBlock'
+                $Tree['networkBlockSet'] = $Found.Found -and -not [string]::IsNullOrWhiteSpace([string]$Found.Value)
+            }
+            'AvsMaintenances' {
+                # ConvertFrom-Json turns an ISO 8601 string into a [datetime]; keep it as the string.
+                $Found = Get-ArmPathValue -InputObject $RawProperties -Path 'scheduledStartTime'
+                $Tree['scheduledStartTime'] = if (-not $Found.Found -or $null -eq $Found.Value) { $null }
+                elseif ($Found.Value -is [datetime]) { $Found.Value.ToUniversalTime().ToString('o') }
+                else { [string]$Found.Value }
             }
         }
         if ($null -ne $Extra) { foreach ($Key in $Extra.Keys) { $Tree[$Key] = $Extra[$Key] } }
@@ -993,12 +1169,19 @@ function Get-ScoutArmChildResource {
     $RedisEnterpriseParents = @($Resources | Where-Object {
         (Get-ArmParentValue -InputObject $_ -Name @('type', 'TYPE')) -ieq 'microsoft.cache/redisenterprise'
     })
+    # AB#9300, 3.18.19. Azure VMware Solution private clouds ARE Resource Graph indexed (the typed
+    # `privateClouds` query reads them); their CHILDREN are not. With no private cloud in the
+    # inventory this list is empty and every Avs* dataset below makes no request at all.
+    $AvsPrivateCloudParents = @($Resources | Where-Object {
+        (Get-ArmParentValue -InputObject $_ -Name @('type', 'TYPE')) -ieq 'microsoft.avs/privateclouds'
+    })
 
     # --- The per-parent datasets: build the work, then fetch it (in parallel when it pays) ---------
     #
-    # Nine datasets are ONE independent GET per parent (two for WebAppBasicAuth), with no GET
-    # depending on another's answer: ResourceDiagnosticSettings and the eight AB#9300 phase 4 batch 2
-    # datasets. They are the long pole of a sweep -- one request per storage account, per web app, per
+    # Ten datasets are ONE independent GET per parent (two for WebAppBasicAuth), with no GET
+    # depending on another's answer: ResourceDiagnosticSettings, StorageLifecyclePolicies (AB#9300,
+    # depth wiring) and the eight AB#9300 phase 4 batch 2 datasets (plus the eleven Azure VMware
+    # Solution lists below). They are the long pole of a sweep -- one request per storage account, per web app, per
     # public IP -- and sequentially they cost about 0.6 s each, so a real estate paid minutes for them.
     # Their requests are therefore built up front as a flat work list, fetched up to $ThrottleLimit at
     # a time in ONE batch for the whole sweep, and then APPLIED below in dataset order, work-item
@@ -1011,6 +1194,11 @@ function Get-ScoutArmChildResource {
     # dataset's latest version, an endpoint's deployments), and none is large.
     $ParallelDatasets = @(
         'ResourceDiagnosticSettings',
+        # AB#9300 (depth wiring) -- one GET per blob-capable storage account. Unlike the allow-listed
+        # datasets below it keeps the WHOLE response (like ResourceDiagnosticSettings), because the
+        # Storage Lifecycle Policies worksheet reads the rule list; ConvertFrom-ScoutInventory reduces it
+        # to counts for collect.json.
+        'StorageLifecyclePolicies',
         'StorageBlobServiceProperties',
         'StorageFileServiceProperties',
         'SqlServerAuditing',
@@ -1018,8 +1206,79 @@ function Get-ScoutArmChildResource {
         'WebAppConfig',
         'WebAppBasicAuth',
         'EventHubGeoDr',
-        'RedisEnterpriseDatabases'
+        'RedisEnterpriseDatabases',
+        # AB#9300, 3.18.19 -- the eleven Azure VMware Solution datasets that are one GET per private
+        # cloud. The two per-CLUSTER datasets (AvsDatastores, AvsPlacementPolicies) are not here:
+        # their requests depend on the cluster list, so they get a second wave of their own below.
+        'AvsClusters',
+        'AvsAddons',
+        'AvsGlobalReachConnections',
+        'AvsAuthorizations',
+        'AvsCloudLinks',
+        'AvsSegments',
+        'AvsDhcpConfigurations',
+        'AvsDnsServices',
+        'AvsGateways',
+        'AvsIscsiPaths',
+        'AvsMaintenances'
     )
+
+    # --- Azure VMware Solution (AB#9300, 3.18.19) ----------------------------------------------------
+    #
+    # WHY THESE ARE REST CALLS AND NOT RESOURCE GRAPH ROWS. `microsoft.avs/privateclouds` is
+    # indexed (the typed `privateClouds` query and Compute/VMWare read it) but its children are not:
+    # clusters, datastores, placement policies, add-ons, Global Reach connections, authorizations,
+    # cloud links, the NSX workload network and maintenances exist only behind the Microsoft.AVS
+    # resource provider. Verified against the Microsoft.AVS REST reference (Microsoft Learn).
+    #
+    #   GET {privateCloudId}/clusters                                  AvsClusters
+    #   GET {privateCloudId}/clusters/{cluster}/datastores             AvsDatastores         per cluster
+    #   GET {privateCloudId}/clusters/{cluster}/placementPolicies      AvsPlacementPolicies  per cluster
+    #   GET {privateCloudId}/addons                                    AvsAddons
+    #   GET {privateCloudId}/globalReachConnections                    AvsGlobalReachConnections
+    #   GET {privateCloudId}/authorizations                            AvsAuthorizations
+    #   GET {privateCloudId}/cloudLinks                                AvsCloudLinks
+    #   GET {privateCloudId}/workloadNetworks/default/segments         AvsSegments
+    #   GET {privateCloudId}/workloadNetworks/default/dhcpConfigurations   AvsDhcpConfigurations
+    #   GET {privateCloudId}/workloadNetworks/default/dnsServices      AvsDnsServices
+    #   GET {privateCloudId}/workloadNetworks/default/gateways         AvsGateways
+    #   GET {privateCloudId}/iscsiPaths                                AvsIscsiPaths
+    #   GET {privateCloudId}/maintenances                              AvsMaintenances
+    #
+    # All thirteen are read with api-version 2025-09-01, the oldest GA version that carries every
+    # allow-listed property: Pure Storage datastores arrived in 2024-09-01 and the maintenances list
+    # in 2025-09-01 (2026-03-01 changed nothing here). Control plane, read-only -- each is a
+    # `Microsoft.AVS/privateClouds/.../read`, which Reader's `*/read` covers. Nothing POSTs: the
+    # operations that return credentials (listAdminCredentials and the key-bearing actions) are never
+    # called, and the list responses that happen to carry a key are reduced by the allow-list before
+    # a row exists. The `workloadNetworks/default` collections are used because the workload network
+    # is a singleton named `default`.
+    #
+    # A private cloud still building answers 404 on the workload-network lists; that is ordinary
+    # empty data (-NotFoundIsEmpty), not a failure.
+    $AvsApiVersion = '2025-09-01'
+    $AvsPrivateCloudSuffix = @{
+        AvsClusters               = '/clusters'
+        AvsAddons                 = '/addons'
+        AvsGlobalReachConnections = '/globalReachConnections'
+        AvsAuthorizations         = '/authorizations'
+        AvsCloudLinks             = '/cloudLinks'
+        AvsSegments               = '/workloadNetworks/default/segments'
+        AvsDhcpConfigurations     = '/workloadNetworks/default/dhcpConfigurations'
+        AvsDnsServices            = '/workloadNetworks/default/dnsServices'
+        AvsGateways               = '/workloadNetworks/default/gateways'
+        AvsIscsiPaths             = '/iscsiPaths'
+        AvsMaintenances           = '/maintenances'
+    }
+    # Private cloud id (lower-cased) -> the cluster names its list answered, or $null when the list was
+    # asked and not answered. A key that is absent means "not asked yet".
+    $AvsClusterNames = @{}
+
+    function Get-AvsClusterScopedPath {
+        param([Parameter(Mandatory)][string]$PrivateCloudId, [Parameter(Mandatory)][string]$ClusterName, [Parameter(Mandatory)][string]$DatasetName)
+        $Segment = if ($DatasetName -eq 'AvsDatastores') { 'datastores' } else { 'placementPolicies' }
+        return "$PrivateCloudId/clusters/$([uri]::EscapeDataString($ClusterName))/$Segment`?api-version=$AvsApiVersion"
+    }
 
     function Get-ArmWorkItem {
         # The requests one dataset makes, one item per GET, in the order a sequential sweep makes them.
@@ -1084,6 +1343,15 @@ function Get-ScoutArmChildResource {
                     @{ Parent = $Parent; Suffix = '/providers/Microsoft.Insights/diagnosticSettings?api-version=2021-05-01-preview'; NotFoundIsEmpty = $false }
                 }
             }
+            # A storage account with no lifecycle policy answers 404: ordinary empty data, and for the
+            # lifecycle rules that EMPTY answer is the finding (ConvertFrom-ScoutInventory reads the
+            # source operation's Status and ParentId, not the absence of a row).
+            'StorageLifecyclePolicies' {
+                foreach ($Parent in $StorageAccountParents) {
+                    if (-not (Test-StorageServiceSupported -Parent $Parent -Service Lifecycle)) { continue }
+                    @{ Parent = $Parent; Suffix = '/managementPolicies/default?api-version=2023-05-01'; NotFoundIsEmpty = $true }
+                }
+            }
             'StorageBlobServiceProperties' {
                 foreach ($Parent in $StorageAccountParents) {
                     if (-not (Test-StorageServiceSupported -Parent $Parent -Service Blob)) { continue }
@@ -1131,6 +1399,12 @@ function Get-ScoutArmChildResource {
                     @{ Parent = $Parent; Suffix = '/databases?api-version=2025-04-01'; NotFoundIsEmpty = $true }
                 }
             }
+            # The eleven per-private-cloud Azure VMware Solution lists (AB#9300, 3.18.19).
+            { $AvsPrivateCloudSuffix.ContainsKey($_) } {
+                foreach ($Parent in $AvsPrivateCloudParents) {
+                    @{ Parent = $Parent; Suffix = "$($AvsPrivateCloudSuffix[$DatasetName])`?api-version=$AvsApiVersion"; NotFoundIsEmpty = $true }
+                }
+            }
         })
 
         foreach ($Spec in $Specs) {
@@ -1163,6 +1437,10 @@ function Get-ScoutArmChildResource {
     # Index -> fetch result, for the work the parallel batch already fetched. Anything not in here is
     # fetched sequentially at apply time, so a runspace that failed to answer costs nothing but time.
     $Prefetched = @{}
+    # "<dataset>|<path>" -> fetch result, for the second wave (the per-cluster Azure VMware Solution
+    # lists), whose requests only exist once the cluster lists are in. Same fallback rule.
+    $PrefetchedByPath = @{}
+    $ParallelAuth = $null
 
     $SuppliedEndpoint = $ManagementEndpoint
     $SuppliedToken = $AccessToken
@@ -1239,6 +1517,48 @@ function Get-ScoutArmChildResource {
                     Write-Verbose "Get-ScoutArmChildResource: the parallel batch failed ($($_.Exception.GetType().Name)); fetching sequentially."
                 }
                 Write-Verbose ("Get-ScoutArmChildResource: fetched {0} of {1} per-parent request(s) {2}-wide." -f $Prefetched.Count, $AllWorkItems.Count, $ThrottleLimit)
+
+                # Second wave (AB#9300, 3.18.19): the per-CLUSTER Azure VMware Solution lists. Which
+                # clusters exist is only known once the cluster lists are in, so these requests could
+                # not join the first batch. They are built from the cluster answers just fetched -- the
+                # same responses the apply step reads the cluster names from -- so the apply step asks
+                # for exactly these paths, and fetches any that are missing one at a time.
+                $ClusterScoped = @($Selected | Where-Object { $_ -in @('AvsDatastores', 'AvsPlacementPolicies') })
+                if ($ClusterScoped.Count -gt 0 -and $WorkItems.ContainsKey('AvsClusters')) {
+                    $SecondWave = [System.Collections.Generic.List[object]]::new()
+                    $NextIndex = $AllWorkItems.Count
+                    foreach ($ClusterItem in $WorkItems['AvsClusters']) {
+                        if (-not $Prefetched.ContainsKey($ClusterItem.Index)) { continue }
+                        $ClusterResult = $Prefetched[$ClusterItem.Index]
+                        if ($ClusterResult.Terminal -ne 'Content') { continue }
+                        foreach ($ClusterChild in @(Get-ArmChildItemSet -Content $ClusterResult.Content)) {
+                            $ClusterName = [string](Get-ArmParentValue -InputObject $ClusterChild -Name @('name', 'NAME'))
+                            if ([string]::IsNullOrWhiteSpace($ClusterName)) { continue }
+                            foreach ($ScopedDataset in $ClusterScoped) {
+                                $SecondWave.Add([pscustomobject]@{
+                                        Index   = $NextIndex++
+                                        Dataset = $ScopedDataset
+                                        Path    = Get-AvsClusterScopedPath -PrivateCloudId $ClusterItem.ParentId -ClusterName $ClusterName -DatasetName $ScopedDataset
+                                    })
+                            }
+                        }
+                    }
+                    if ($SecondWave.Count -gt 0) {
+                        $SecondWaveByIndex = @{}
+                        foreach ($SecondWaveRequest in $SecondWave) { $SecondWaveByIndex[[int]$SecondWaveRequest.Index] = $SecondWaveRequest }
+                        try {
+                            foreach ($FetchResult in @(Invoke-ArmParallelFetch -Requests @($SecondWave) -ManagementHost $ParallelAuth.ManagementHost -Authorization $ParallelAuth.Authorization)) {
+                                if ($null -eq $FetchResult -or -not $FetchResult.PSObject.Properties['Index']) { continue }
+                                $SecondWaveRequest = $SecondWaveByIndex[[int]$FetchResult.Index]
+                                if ($null -ne $SecondWaveRequest) { $PrefetchedByPath["$($SecondWaveRequest.Dataset)|$($SecondWaveRequest.Path)"] = $FetchResult }
+                            }
+                        }
+                        catch {
+                            Write-Verbose "Get-ScoutArmChildResource: the second parallel wave failed ($($_.Exception.GetType().Name)); fetching sequentially."
+                        }
+                        Write-Verbose ("Get-ScoutArmChildResource: fetched {0} of {1} per-cluster request(s) {2}-wide." -f $PrefetchedByPath.Count, $SecondWave.Count, $ThrottleLimit)
+                    }
+                }
                 $ParallelAuth = $null
             }
         }
@@ -1629,19 +1949,9 @@ function Get-ScoutArmChildResource {
                     }
                 }
             }
-            'StorageLifecyclePolicies' {
-                foreach ($Parent in $StorageAccountParents) {
-                    $Base = [string](Get-ArmParentValue -InputObject $Parent -Name @('id', 'ID'))
-                    # Singleton, not a list: an account with no policy returns 404. That absence
-                    # is ordinary empty data and must not become a warning/transcript error.
-                    $Content = Get-ArmChildContent -Path "$Base/managementPolicies/default?api-version=2023-05-01" -DatasetName $DatasetName -ParentName (
-                        Get-ArmParentValue -InputObject $Parent -Name @('name', 'NAME')
-                    ) -NotFoundIsEmpty
-                    foreach ($Child in @(Get-ArmChildItemSet -Content $Content)) {
-                        ConvertTo-ArmChildRow -Child $Child -Parent $Parent -DatasetName $DatasetName
-                    }
-                }
-            }
+            # StorageLifecyclePolicies is one of the per-parent datasets read by the shared apply step
+            # below (a singleton, not a list: an account with no policy returns 404, ordinary empty data
+            # that must not become a warning or a transcript error).
 
             # --- Storage queues (AB#7087, Story AB#7059, Feature AB#7069, Epic AB#7099) -------------
             #
@@ -1779,20 +2089,89 @@ function Get-ScoutArmChildResource {
                 }
             }
 
-            # The nine one-GET-per-parent datasets (see Get-ArmWorkItem for what each reads). The GETs
-            # may already have been made in parallel; this applies them in work-item order.
+            # The one-GET-per-parent datasets (see Get-ArmWorkItem for what each reads). The GETs may
+            # already have been made in parallel; this applies them in work-item order.
             { $ParallelDatasets -contains $_ } {
                 foreach ($Item in $WorkItems[$DatasetName]) {
+                    $Outcome = @{}
                     $Content = Get-ArmChildContent -Path $Item.Path -DatasetName $DatasetName -ParentId $Item.ParentId `
-                        -ParentName $Item.ParentName -NotFoundIsEmpty:$Item.NotFoundIsEmpty `
+                        -ParentName $Item.ParentName -NotFoundIsEmpty:$Item.NotFoundIsEmpty -Outcome $Outcome `
                         -Prefetched $(if ($Prefetched.ContainsKey($Item.Index)) { $Prefetched[$Item.Index] } else { $null })
-                    foreach ($Child in @(Get-ArmChildItemSet -Content $Content)) {
+                    $ChildItems = @(Get-ArmChildItemSet -Content $Content)
+
+                    if ($DatasetName -eq 'AvsClusters') {
+                        # The per-cluster datasets need to know which clusters exist -- and whether
+                        # the list was actually answered, which an empty $Content cannot say.
+                        $ClusterNameList = @($ChildItems | ForEach-Object { [string](Get-ArmParentValue -InputObject $_ -Name @('name', 'NAME')) } |
+                                Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+                        $AvsClusterNames[([string]$Item.ParentId).ToLowerInvariant()] = [pscustomobject]@{
+                            Answered = [bool]$Outcome['Answered']
+                            Names    = $ClusterNameList
+                        }
+                    }
+
+                    foreach ($Child in $ChildItems) {
                         # ResourceDiagnosticSettings keeps the whole setting (the worksheet shows its
-                        # destinations); the other eight keep only their allow-listed scalars.
-                        $RowChild = if ($DatasetName -eq 'ResourceDiagnosticSettings') { $Child } else {
+                        # destinations) and so does StorageLifecyclePolicies (its worksheet lists the rules);
+                        # every other dataset keeps only its allow-listed scalars.
+                        $RowChild = if ($DatasetName -in @('ResourceDiagnosticSettings', 'StorageLifecyclePolicies')) { $Child } else {
                             ConvertTo-ArmSafeChild -Child $Child -DatasetName $DatasetName -Extra $Item.Extra
                         }
                         ConvertTo-ArmChildRow -Child $RowChild -Parent $Item.Parent -DatasetName $DatasetName
+                    }
+                }
+            }
+
+            # --- Azure VMware Solution, per cluster (AB#9300, 3.18.19) ----------------------------
+            #
+            # Datastores and placement policies hang off a CLUSTER, so the cluster names come first:
+            # from the AvsClusters answer when that dataset ran (it always precedes these in the
+            # canonical order), otherwise asked here once per private cloud as the sub-operation
+            # '<dataset>.Clusters' -- which keeps a failure owned by the dataset that needed it, the
+            # way '<dataset>.LatestVersion' does for the ML datasets. A private cloud whose cluster
+            # list was not answered contributes nothing, and its datastores are therefore not
+            # measured. The per-cluster GETs themselves are made in the second parallel wave when
+            # there was one, and one at a time otherwise.
+            { $_ -in @('AvsDatastores', 'AvsPlacementPolicies') } {
+                foreach ($Parent in $AvsPrivateCloudParents) {
+                    $Base = [string](Get-ArmParentValue -InputObject $Parent -Name @('id', 'ID'))
+                    $ParentName = [string](Get-ArmParentValue -InputObject $Parent -Name @('name', 'NAME'))
+                    $ParentKey = $Base.ToLowerInvariant()
+                    if (-not $AvsClusterNames.ContainsKey($ParentKey)) {
+                        $Outcome = @{}
+                        $ClusterContent = Get-ArmChildContent -Path "$Base/clusters`?api-version=$AvsApiVersion" -DatasetName "$DatasetName.Clusters" `
+                            -ParentName $ParentName -ParentId $Base -NotFoundIsEmpty -Outcome $Outcome
+                        $ClusterNameList = @(Get-ArmChildItemSet -Content $ClusterContent |
+                                ForEach-Object { [string](Get-ArmParentValue -InputObject $_ -Name @('name', 'NAME')) } |
+                                Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+                        $AvsClusterNames[$ParentKey] = [pscustomobject]@{ Answered = [bool]$Outcome['Answered']; Names = $ClusterNameList }
+                    }
+                    if (-not $AvsClusterNames[$ParentKey].Answered) {
+                        # Nothing to ask without the clusters. The cluster list's own failure is already
+                        # recorded (under AvsClusters, or under this dataset when it asked); say here that
+                        # THIS dataset was therefore not read, once, so health lists every dataset that
+                        # has no answer. The dataset stays unmeasured because no GET of it was answered.
+                        if ($null -ne $CollectionHealth -and $FailedHealthDatasets.Add($DatasetName)) {
+                            [void]$CollectionHealth.Add([pscustomobject]@{
+                                    Dataset       = $DatasetName
+                                    Operation     = "$DatasetName.Clusters"
+                                    Status        = 'NotAssessed'
+                                    Reason        = "Parent '$ParentName' at '$Base': the cluster list was not answered, so its clusters' $(if ($DatasetName -eq 'AvsDatastores') { 'datastores' } else { 'placement policies' }) were not asked for."
+                                    ResourceTypes = @("AZSC/ARMChild/$DatasetName")
+                                })
+                        }
+                        continue
+                    }
+
+                    foreach ($ClusterName in @($AvsClusterNames[$ParentKey].Names)) {
+                        $ClusterPath = Get-AvsClusterScopedPath -PrivateCloudId $Base -ClusterName $ClusterName -DatasetName $DatasetName
+                        $PrefetchKey = "$DatasetName|$ClusterPath"
+                        $Content = Get-ArmChildContent -Path $ClusterPath -DatasetName $DatasetName -ParentName $ParentName -ParentId $Base -NotFoundIsEmpty `
+                            -Prefetched $(if ($PrefetchedByPath.ContainsKey($PrefetchKey)) { $PrefetchedByPath[$PrefetchKey] } else { $null })
+                        foreach ($Child in @(Get-ArmChildItemSet -Content $Content)) {
+                            $RowChild = ConvertTo-ArmSafeChild -Child $Child -DatasetName $DatasetName -Extra @{ clusterName = $ClusterName }
+                            ConvertTo-ArmChildRow -Child $RowChild -Parent $Parent -DatasetName $DatasetName
+                        }
                     }
                 }
             }

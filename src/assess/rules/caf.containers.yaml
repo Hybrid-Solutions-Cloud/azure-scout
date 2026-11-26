@@ -53,13 +53,30 @@ rules:
     assert: { type: countEquals, value: 0 }
     remediation: "Enable a network policy engine (Azure or Calico) to restrict pod-to-pod traffic."
     manual: false
+  # AB#9300, depth wiring. Registry image scanning is a Defender for Containers capability, billed and switched on per
+  # SUBSCRIPTION, so the question is whether the subscription each registry sits in has the Containers plan on the
+  # Standard tier. A registry is listed when there is no such plan row for its subscription. Gated on both datasets:
+  # no registry, or no Defender plan read at all (the plan sweep failed), is Not assessed rather than a Fail. Whether the
+  # plan's registry vulnerability assessment extension is on, and which images were scanned, are not read.
   - id: CAF-CON-07
-    title: "Container registries enable vulnerability scanning"
+    title: "CAF-CON-07. Container registries enable vulnerability scanning"
     severity: high
-    query: null
-    assert: { type: manual }
-    remediation: "Enable Microsoft Defender for Containers / ACR image scanning (or content trust for signed images). collect.json does not yet capture scanning or content-trust configuration — verify in Defender for Cloud registry coverage."
-    manual: true
+    join:
+      left: "$.domains.containers.containerRegistries[*]"
+      leftKey: "subscriptionId"
+      right: "$.security.defenderPlans[?(@.name == 'Containers' && @.properties.pricingTier == 'Standard')]"
+      rightKey: "subscriptionId"
+      mode: leftOnly
+      leftLabel: "container registry"
+      rightLabel: "Defender for Containers plan"
+    assert:
+      type: countEquals
+      value: 0
+      gate:
+        - "$.domains.containers.containerRegistries[*]"
+        - "$.security.defenderPlans[*]"
+    remediation: "CAF-CON-07. The registries listed sit in subscriptions where Microsoft Defender for Containers is not on the Standard tier, so their images are not scanned for vulnerabilities. Enable the Containers plan on the subscription (its registry vulnerability assessment extension scans images on push, pull and continuously). Whether that extension is switched on within the plan, and which images were scanned, are not read: confirm them in Defender for Cloud's registry coverage, or use content trust for signed images."
+    manual: false
   - id: CAF-CON-08
     title: "AKS clusters use Entra ID integrated authentication"
     severity: high

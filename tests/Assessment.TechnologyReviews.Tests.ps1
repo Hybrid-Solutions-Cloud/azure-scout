@@ -68,8 +68,8 @@ Describe 'Technology review rule files' {
         $script:Reviews = @(
             @{ File = 'waf.machinelearning'; Framework = 'WAF-ML'; Doc = 'waf-machine-learning-checklist.md'; Rules = 44; Auto = 6 }
             @{ File = 'waf.aisearch'; Framework = 'WAF-AISEARCH'; Doc = 'waf-ai-search-checklist.md'; Rules = 37; Auto = 8 }
-            @{ File = 'waf.analytics'; Framework = 'WAF-ANALYTICS'; Doc = 'waf-analytics-checklist.md'; Rules = 74; Auto = 18 }
-            @{ File = 'waf.dataservices'; Framework = 'WAF-DATA'; Doc = 'waf-data-services-checklist.md'; Rules = 104; Auto = 49 }
+            @{ File = 'waf.analytics'; Framework = 'WAF-ANALYTICS'; Doc = 'waf-analytics-checklist.md'; Rules = 74; Auto = 19 }
+            @{ File = 'waf.dataservices'; Framework = 'WAF-DATA'; Doc = 'waf-data-services-checklist.md'; Rules = 104; Auto = 51 }
         )
     }
 
@@ -91,8 +91,8 @@ Describe 'Technology review rule files' {
     It '<File> declares framework <Framework>, a version and the number of automated rules <Auto>' -ForEach @(
         @{ File = 'waf.machinelearning'; Framework = 'WAF-ML'; Auto = 6 }
         @{ File = 'waf.aisearch'; Framework = 'WAF-AISEARCH'; Auto = 8 }
-        @{ File = 'waf.analytics'; Framework = 'WAF-ANALYTICS'; Auto = 18 }
-        @{ File = 'waf.dataservices'; Framework = 'WAF-DATA'; Auto = 49 }
+        @{ File = 'waf.analytics'; Framework = 'WAF-ANALYTICS'; Auto = 19 }
+        @{ File = 'waf.dataservices'; Framework = 'WAF-DATA'; Auto = 51 }
     ) {
         $set = & $script:Module { param($f) Get-RuleSet -Patterns $f } $File
         $set.Framework | Should -Be $Framework
@@ -333,9 +333,9 @@ Describe 'Technology review: Analytics' {
             [ordered]@{ id = "$p/Microsoft.Databricks/workspaces/$Name"; name = $Name; sku = $Sku; vnetInjected = $Vnet; noPublicIp = $NoPublicIp; publicNetworkAccess = 'Disabled' }
         }
         $la = {
-            param($Name, $Retention, $Ingest, $Query, $LocalAuthOff, $Resource, $Quota)
+            param($Name, $Retention, $Ingest, $Query, $LocalAuthOff, $Resource, $Quota, $Region = 'eastus')
             [ordered]@{
-                id = "$p/Microsoft.OperationalInsights/workspaces/$Name"; name = $Name; location = 'x'; retentionInDays = $Retention; skuName = 'PerGB2018'
+                id = "$p/Microsoft.OperationalInsights/workspaces/$Name"; name = $Name; location = $Region; retentionInDays = $Retention; skuName = 'PerGB2018'
                 dailyQuotaGb = $Quota; publicNetworkAccessForIngestion = $Ingest; publicNetworkAccessForQuery = $Query; disableLocalAuth = $LocalAuthOff
                 resourceContextAccess = $Resource; replicationEnabled = $false
             }
@@ -351,7 +351,7 @@ Describe 'Technology review: Analytics' {
             (& $dbx 'dbx-bad' 'trial' $false $null)
             (& $dbx 'dbx-b2' 'premium' $true $false)
         ) @(
-            (& $la 'la-bad' 7 'Enabled' 'Enabled' $null $false -1)
+            (& $la 'la-bad' 7 'Enabled' 'Enabled' $null $false -1 'brazilsoutheast')   # not in a zone region, no replication (RE-10)
             (& $la 'la-b2' 90 'Disabled' 'Disabled' $true $true 10)
             (& $la 'la-b3' 90 'Disabled' 'Enabled' $true $null $null)
         ) @(
@@ -403,6 +403,7 @@ Describe 'Technology review: Analytics' {
         @{ Id = 'WAF-ANALYTICS-SE-16'; Count = 2 }   # la-bad (public, key auth) and la-b3 (public query)
         @{ Id = 'WAF-ANALYTICS-SE-17'; Count = 2 }   # la-bad (false) and la-b3 (null)
         @{ Id = 'WAF-ANALYTICS-CO-11'; Count = 2 }   # la-bad (-1) and la-b3 (null) have no cap
+        @{ Id = 'WAF-ANALYTICS-RE-10'; Count = 1 }   # la-bad is in a region without availability zones and does not replicate
         @{ Id = 'WAF-ANALYTICS-PE-05'; Count = 1 }   # eh-bad; Premium eh-b3 is skipped
     ) {
         $script:AnBad[$Id].Status | Should -Be 'Fail'
@@ -422,7 +423,7 @@ Describe 'Technology review: Analytics' {
             $script:AnBad[$id].Status | Should -Be 'Manual'
             $script:AnBad[$id].EvidenceCount | Should -Be 3
         }
-        foreach ($id in 'WAF-ANALYTICS-RE-10', 'WAF-ANALYTICS-CO-09') {
+        foreach ($id in 'WAF-ANALYTICS-CO-09') {
             $script:AnBad[$id].Status | Should -Be 'Manual'
             $script:AnBad[$id].EvidenceCount | Should -Be 3
         }
@@ -481,12 +482,12 @@ Describe 'Technology review: Data Services' {
 
             # ---- PostgreSQL (pg2 has every new flag ABSENT) and MySQL ----
             $pgRow = {
-                param($Name, $Pna, $Ha, $Geo, $Entra, $PwAuth)
-                [ordered]@{ id = (& $id "Microsoft.DBforPostgreSQL/flexibleServers/$Name"); name = $Name; sku = 'Standard_D2s_v3'; version = '16'; publicNetworkAccess = $Pna; tier = 'GeneralPurpose'; haMode = $Ha; geoBackup = $Geo; backupRetentionDays = 7; encryptionType = 'SystemManaged'; entraAuth = $Entra; passwordAuth = $PwAuth }
+                param($Name, $Pna, $Ha, $Geo, $Entra, $PwAuth, $Window = 'Enabled')
+                [ordered]@{ id = (& $id "Microsoft.DBforPostgreSQL/flexibleServers/$Name"); name = $Name; sku = 'Standard_D2s_v3'; version = '16'; publicNetworkAccess = $Pna; tier = 'GeneralPurpose'; haMode = $Ha; geoBackup = $Geo; backupRetentionDays = 7; encryptionType = 'SystemManaged'; entraAuth = $Entra; passwordAuth = $PwAuth; customMaintenanceWindow = $Window }
             }
-            $pgs = @($(if ($Compliant) { & $pgRow 'pg' 'Disabled' 'ZoneRedundant' 'Enabled' 'Enabled' 'Disabled' } else { & $pgRow 'pg' 'Enabled' 'SameZone' 'Disabled' 'Disabled' 'Enabled' }))
+            $pgs = @($(if ($Compliant) { & $pgRow 'pg' 'Disabled' 'ZoneRedundant' 'Enabled' 'Enabled' 'Disabled' } else { & $pgRow 'pg' 'Enabled' 'SameZone' 'Disabled' 'Disabled' 'Enabled' 'Disabled' }))
             if (-not $Compliant) {
-                $pgs += & $pgRow 'pg2' 'Enabled' '' $null $null $null
+                $pgs += & $pgRow 'pg2' 'Enabled' '' $null $null $null ''
                 $pgs += & $pgRow 'pg3' 'Disabled' 'ZoneRedundant' 'Enabled' 'Enabled' 'Disabled'
             }
             $myRow = {
@@ -539,6 +540,15 @@ Describe 'Technology review: Data Services' {
             }
             $blobs = @($(if ($Compliant) { & $blobRow 'sto' $true $true $true $true } else { & $blobRow 'sto' $false $false $false $false }))
             if (-not $Compliant) { $blobs += (& $blobRow 'sto2' $true $true $false $false), (& $blobRow 'sto3' $true $true $true $true) }
+            # Lifecycle management policies (depth wiring), one row per blob-capable account that was read: sto has no tiering rule on the bad
+            # estate, sto3 is a premium block blob account (no access tiers), sto4 tiers. sto2 is general-purpose v1 and is never asked.
+            $lifecycleRow = {
+                param($Name, $Premium, $Tiering, $Delete)
+                [ordered]@{ storageAccountId = (& $id "Microsoft.Storage/storageAccounts/$Name").ToLowerInvariant(); name = $Name; premium = $Premium; policyPresent = (($Tiering + $Delete) -gt 0)
+                    ruleCount = ($Tiering + $Delete); enabledRuleCount = ($Tiering + $Delete); tieringRuleCount = $Tiering; deleteRuleCount = $Delete }
+            }
+            $lifecycle = @($(if ($Compliant) { & $lifecycleRow 'sto' $false 1 1 } else { & $lifecycleRow 'sto' $false 0 0 }))
+            if (-not $Compliant) { $lifecycle += (& $lifecycleRow 'sto3' $true 0 0), (& $lifecycleRow 'sto4' $false 1 0) }
             # SQL auditing and failover groups, one row per server: srv is Disabled with no group, srv2 has an unreadable state and no group, srv3 is audited and in two groups.
             $auditRow = { param($Name, $State) [ordered]@{ sqlServerId = (& $id "Microsoft.Sql/servers/$Name").ToLowerInvariant(); name = $Name; resourceGroup = 'rg'; subscriptionId = 's'; location = 'x'; auditingState = $State; azureMonitorTargetEnabled = ($State -eq 'Enabled') } }
             $fogRow = { param($Name, $Count) [ordered]@{ sqlServerId = (& $id "Microsoft.Sql/servers/$Name").ToLowerInvariant(); name = $Name; resourceGroup = 'rg'; subscriptionId = 's'; location = 'x'; failoverGroupCount = $Count; automaticFailoverGroupCount = $Count; hasAutomaticFailover = ($Count -gt 0); failoverPolicies = @(if ($Count -gt 0) { 'Automatic' }) } }
@@ -573,7 +583,7 @@ Describe 'Technology review: Data Services' {
                         redisEnterpriseDatabasesMeasured = $true
                         redisEnterpriseDatabases  = $redDbs
                     }
-                    storage   = [ordered]@{ storageAccounts = $stos; blobServicePropertiesMeasured = $true; blobServiceProperties = $blobs }
+                    storage   = [ordered]@{ storageAccounts = $stos; blobServicePropertiesMeasured = $true; blobServiceProperties = $blobs; lifecyclePoliciesMeasured = $true; lifecyclePolicies = $lifecycle }
                     security  = [ordered]@{ keyVaults = @() }
                 }
                 networking = [ordered]@{ privateEndpoints = @($pe) }
@@ -659,6 +669,8 @@ Describe 'Technology review: Data Services' {
         @{ Id = 'WAF-DATA-BLOB-16'; Count = 3 }    # Storage, StorageV1 and BlobStorage
         @{ Id = 'WAF-DATA-SQL-02'; Count = 2 }     # srv and srv2 have no failover group; srv3 has two
         @{ Id = 'WAF-DATA-SQL-11'; Count = 2 }     # srv (Disabled) and srv2 (unreadable state); srv3 is Enabled
+        @{ Id = 'WAF-DATA-PG-09'; Count = 2 }       # pg (platform window) and pg2 (no window reported); pg3 chose one
+        @{ Id = 'WAF-DATA-BLOB-13'; Count = 1 }     # sto has no tiering rule; sto3 is premium (no tiers); sto4 tiers
         @{ Id = 'WAF-DATA-BLOB-10'; Count = 2 }    # sto (everything off) and sto2 (no versioning or restore); sto3 is protected
         @{ Id = 'WAF-DATA-MI-08'; Count = 1 }      # the managed-instance coverage row at 0 percent
         @{ Id = 'WAF-DATA-RED-08'; Count = 2 }     # the classic and the Enterprise coverage rows at 0 percent
@@ -689,7 +701,7 @@ Describe 'Technology review: Data Services' {
     }
 
     It 'keeps the items ARM cannot answer Manual, with their evidence attached' {
-        foreach ($id in 'WAF-DATA-RED-02', 'WAF-DATA-SQL-18', 'WAF-DATA-COS-17', 'WAF-DATA-PG-09', 'WAF-DATA-MYS-08', 'WAF-DATA-RED-09', 'WAF-DATA-BLOB-14') {
+        foreach ($id in 'WAF-DATA-RED-02', 'WAF-DATA-SQL-18', 'WAF-DATA-COS-17', 'WAF-DATA-MYS-08', 'WAF-DATA-RED-09', 'WAF-DATA-BLOB-14') {
             $script:DtBad[$id].Status | Should -Be 'Manual' -Because "$id needs a human"
         }
         $script:DtBad['WAF-DATA-COS-17'].EvidenceCount | Should -Be 4
@@ -838,8 +850,8 @@ Describe 'Technology reviews on an estate with none of the resources' {
     It '<File> reports every automated rule NotAssessed and never Pass, Fail or Error' -ForEach @(
         @{ File = 'waf.machinelearning'; Auto = 6 }
         @{ File = 'waf.aisearch'; Auto = 8 }
-        @{ File = 'waf.analytics'; Auto = 18 }
-        @{ File = 'waf.dataservices'; Auto = 49 }
+        @{ File = 'waf.analytics'; Auto = 19 }
+        @{ File = 'waf.dataservices'; Auto = 51 }
     ) {
         $findings = $script:Empty[$File]
         @($findings | Where-Object { $_.Status -in 'Pass', 'Fail', 'Partial', 'Error' }).Count | Should -Be 0
@@ -849,8 +861,8 @@ Describe 'Technology reviews on an estate with none of the resources' {
     It '<File> returns every other rule as Manual' -ForEach @(
         @{ File = 'waf.machinelearning'; Manual = 38 }
         @{ File = 'waf.aisearch'; Manual = 29 }
-        @{ File = 'waf.analytics'; Manual = 56 }
-        @{ File = 'waf.dataservices'; Manual = 55 }
+        @{ File = 'waf.analytics'; Manual = 55 }
+        @{ File = 'waf.dataservices'; Manual = 53 }
     ) {
         @($script:Empty[$File] | Where-Object Status -eq 'Manual').Count | Should -Be $Manual
     }

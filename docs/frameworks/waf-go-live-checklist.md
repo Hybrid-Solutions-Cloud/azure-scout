@@ -82,7 +82,7 @@ databases.
 
 | # | Item | Scout | Source |
 |---|---|---|---|
-| WAF-GOLIVE-SE-01 | A security baseline is established and the workload is measured against it | ❌ Manual | SE:01 |
+| WAF-GOLIVE-SE-01 | A security baseline is established and the workload is measured against it | ✅ a Defender for Cloud secure score per subscription (read by the Defender sweep); whether the baseline matches your standards is a design decision | SE:01 |
 | WAF-GOLIVE-SE-02 | Microsoft Defender for Servers is enabled | ✅ Defender plan tier (per subscription) | SE:01, SE:10 |
 | WAF-GOLIVE-SE-03 | Microsoft Defender for SQL is enabled | ✅ Defender for SQL tier (per subscription) | SE:10 |
 | WAF-GOLIVE-SE-04 | Azure Policy assignments enforce the security baseline | ✅ policy assignment exists (estate-wide) | SE:01 |
@@ -146,11 +146,11 @@ databases.
 | Pillar gates | Items | Automated (✅) | Manual (❌) |
 |---|---|---|---|
 | Reliability gates | 14 | 9 | 5 |
-| Security gates | 15 | 11 | 4 |
+| Security gates | 15 | 12 | 3 |
 | Cost guardrail gates | 9 | 5 | 4 |
 | Safe deployment and operations gates | 10 | 5 | 5 |
 | Performance gates | 9 | 5 | 4 |
-| **Total** | **57** | **35** | **22** |
+| **Total** | **57** | **36** | **21** |
 
 Where an item says "attached", Scout carries the matching resources as evidence on the Manual
 finding but does not score them.

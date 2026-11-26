@@ -42,7 +42,7 @@ Log Analytics workspaces now carry location, pricing tier, daily cap, public net
 | WAF-ANALYTICS-RE-07 | Geo-replication or geo-disaster recovery is configured for regional failure | ✅ `eventHubGeoDr` `geoDrConfigured` false and no geo-replication (`geoReplicaCount` above 1), joined by namespace id; gated on `eventHubGeoDrMeasured` | EH-RE-C, EH-RE-R |
 | WAF-ANALYTICS-RE-08 | Capacity is planned: throughput units, partition count and auto-inflate suit the load | ❌ Manual — namespaces attached with tier, capacity, auto-inflate and throughput ceiling; the load and the partition count are not collected | EH-RE-C, EH-RE-R |
 | WAF-ANALYTICS-RE-09 | Alerts cover consumer lag, throughput utilisation and throttling, tied to SLOs | ❌ Manual — metric alert rules attached (estate-wide) | EH-RE-R |
-| WAF-ANALYTICS-RE-10 | The Log Analytics workspace is in a region with data resilience and co-located with the workload and its collection endpoints | ❌ Manual — workspaces attached with region and replication flag; the zone-capable region list and the workload region are not collected | LA-RE-R |
+| WAF-ANALYTICS-RE-10 | The Log Analytics workspace is in a region with data resilience and co-located with the workload and its collection endpoints | ✅ `location` against the zone-region list, and `replicationEnabled`; where the workload and the collection endpoints run is not collected | LA-RE-R |
 | WAF-ANALYTICS-RE-11 | Critical logs are multicast or exported so they survive a regional outage | ❌ Manual — data-collection routing, not collected per workspace | LA-RE-R |
 | WAF-ANALYTICS-RE-12 | Data collection rules are single-purpose, and a daily cap with alerts and a retention policy protect ingestion | ❌ Manual — data collection rules attached; the daily cap is scored by WAF-ANALYTICS-CO-11 and retention by RE-13 | LA-RE-R |
 | WAF-ANALYTICS-RE-13 | Workspace retention is at least 30 days | ✅ retentionInDays (Scout threshold of 30) | LA-RE-R |
@@ -132,12 +132,12 @@ Log Analytics workspaces now carry location, pricing tier, daily cap, public net
 
 | Pillar | Items | Automated (✅) | Manual (❌) |
 |---|---|---|---|
-| Reliability | 16 | 4 | 12 |
+| Reliability | 16 | 5 | 11 |
 | Security | 22 | 10 | 12 |
 | Cost optimization | 13 | 2 | 11 |
 | Operational excellence | 13 | 1 | 12 |
 | Performance efficiency | 10 | 1 | 9 |
-| **Total** | **74** | **18** | **56** |
+| **Total** | **74** | **19** | **55** |
 
 Every automated item is gated on its resources (or its diagnostic-coverage rows) existing, so an estate
 without them reports the item Not assessed. The rules live in `src/assess/rules/waf.analytics.yaml`.

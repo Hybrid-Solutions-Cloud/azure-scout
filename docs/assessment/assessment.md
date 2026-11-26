@@ -117,6 +117,45 @@ control makes it "MFA or a compliant device"). `domains.identity.directoryRoles`
 Entra directory role assignments from the inventory pass, and the eligible ones only
 when the sign-in's token carried `RoleEligibilitySchedule.Read.Directory`
 (`eligibilityCollected` says which).
+
+Azure VMware Solution arrives in two parts. A private cloud (`Microsoft.AVS/privateClouds`) is indexed by
+Resource Graph, so `compute.privateClouds` carries its own properties: availability strategy and zones, the
+management cluster size, the ExpressRoute circuit, encryption status and the customer-managed key's state
+(`encryptionKeyState`, Connected or AccessDenied), the second zone and circuit of a stretched cloud, the DNS
+zone type, a count of extended network blocks, whether a virtual network id is set (a Generation 2 cloud),
+provisioning state and the managed identity type. Its **children** are not indexed, so thirteen ARM reads
+(api-version 2025-09-01, one GET per private cloud and two per cluster, none when the estate has no AVS)
+fill `domains.avs`:
+
+| `domains.avs.` | Read from `{privateCloud}/…` | Rows |
+|---|---|---|
+| `clusters` | `clusters` | one per cluster: SKU, size, host count, state, `minimumHosts` (3, or 6 for a stretched cloud), `belowMinimumHosts` |
+| `datastores` | `clusters/{cluster}/datastores` | one per datastore: storage kind (NetApp, DiskPool, ElasticSan, PureStorage), status, state |
+| `placementPolicies` | `clusters/{cluster}/placementPolicies` | one per policy: type, state, affinity, member counts |
+| `maintenances` | `maintenances` | one per maintenance: component, state, whether Microsoft scheduled it, start time, readiness |
+| `addons` | `addons` | one per private cloud: `srmEnabled`, `vrEnabled`, `hcxEnabled`, `arcEnabled`, HCX offer, counts |
+| `globalReachConnections` | `globalReachConnections` | one per private cloud: connections, connected, with a peer circuit |
+| `authorizations` | `authorizations` | one per private cloud: a count and a failed count |
+| `cloudLinks` | `cloudLinks` | one per private cloud: links and active links |
+| `segments`, `dhcpConfigurations`, `dnsServices`, `gateways` | `workloadNetworks/default/…` | one per private cloud: counts of segments (failed, with DHCP ranges), DHCP servers and relays, DNS services, gateways |
+| `iscsiPaths` | `iscsiPaths` | one per private cloud: a count |
+
+Each dataset has a `…Measured` flag that is true only when a GET of it was answered, and the rules gate on it:
+a list Scout could not read is **Not assessed**, never a Fail. For the one-row-per-private-cloud datasets a
+private cloud whose own list failed has no row, so it is never reported as lacking the thing. Rows are built
+from an allow-list, so what a response carries beside the settings never reaches `collect.json`: the SRM
+licence key, ExpressRoute authorization keys and ids, the Global Reach peer circuit and its key, a linked
+private cloud's id, storage target ids, host names, VM ids, IP addresses and ranges, NSX paths and DNS zone
+names. The private cloud's diagnostic setting (the VMware syslog) joins the diagnostic sweep, so
+`opsPosture.diagnosticCoverage` has a `microsoft.avs/privateclouds` row. These datasets are not inventory
+worksheets (no collector manifest declares them, as with the other ARM-child datasets): they feed the
+assessment, and every swept child is also listed in the discovery index (`Discovery.json`) under its real
+ARM type — `microsoft.avs/privateclouds/clusters`, `…/datastores`, `…/addons`, `…/workloadnetworks/segments`
+and so on — in the Compute category, and appears in the React report under Compute, other discovered
+resources. The other ARM-child datasets (a diagnostic setting, a blob container, a Log Analytics table)
+are not listed in the index one by one: a synthetic row is enrichment of a base resource with the same id,
+and a child has none. Azure VMware Solution children are deployable resources Resource Graph does not
+index, so each is mirrored as a resource of its own.
 :::
 
 ::: info `ArgQueryPack` is retired

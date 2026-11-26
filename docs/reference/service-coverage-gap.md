@@ -238,7 +238,7 @@ much larger axis than "sub-services" and is not what this page tracks.
 | Azure Quantum | Collected (AB#7088) | `QuantumWorkspaces` (`microsoft.quantum/workspaces` -- every published API version is `-preview` tagged, same as the previously-collected `microsoft.iotoperations/instances`, but it is ARG-indexed per `manifests/azure-provider-types.json`, which is this repo's collection bar) |
 | Azure Spot Virtual Machines | Collected | `VirtualMachine` (same resource type, priority attribute) |
 | Azure Spring Apps | Collected (cross-category: Web) | `SpringApps` |
-| Azure VMware Solution | Collected | `VMWare` |
+| Azure VMware Solution | Collected | `VMWare` (the private cloud, `microsoft.avs/privateclouds`) plus, from 3.18.19, its children -- clusters, datastores, placement policies, add-ons, Global Reach connections, authorizations, cloud links, the NSX workload network, iSCSI paths and maintenances -- read by the ARM-child sweep (`AZSC/ARMChild/Avs*`, 13 datasets) into the assessment payload (`domains.avs`), not as inventory worksheets. Resource Graph indexes only the private cloud; see `Get-ScoutArmChildResource.ps1` |
 | Batch | Collected (AB#7088) | `BatchAccounts` (`microsoft.batch/batchaccounts`) |
 | Cloud Services | Not collected (out of scope, AB#7088) | classic deployment model, retired 31 August 2024 -- no new creation and Microsoft's own guidance is migration to VMSS/VMs, not continued inventorying |
 | Linux Virtual Machines | Collected | `VirtualMachine` (same resource type as Windows) |
@@ -397,7 +397,7 @@ is asked for when someone wants the sub-services under a main category.
 | Azure Local gallery/marketplace images | Collected | `GalleryImages`, `MarketplaceGalleryImages` |
 | Azure Local logical networks | Collected | `LogicalNetworks` |
 | Azure Local storage containers | Collected | `StorageContainers` |
-| Azure VMware Solution | Collected (cross-category: Compute) | `VMWare` |
+| Azure VMware Solution | Collected (cross-category: Compute) | `VMWare` (the private cloud, `microsoft.avs/privateclouds`) plus, from 3.18.19, its children -- clusters, datastores, placement policies, add-ons, Global Reach connections, authorizations, cloud links, the NSX workload network, iSCSI paths and maintenances -- read by the ARM-child sweep (`AZSC/ARMChild/Avs*`, 13 datasets) into the assessment payload (`domains.avs`), not as inventory worksheets. Resource Graph indexes only the private cloud; see `Get-ScoutArmChildResource.ps1` |
 | Azure Stack Edge | Collected (cross-category: Migration) | `StackEdge` |
 | Azure Stack Hub | **Out of scope** | not a gap — Azure Scout does not cover Azure Stack Hub. Product decision, 2026-08-04. Do not re-raise this as missing coverage. |
 | Azure Operator Nexus / Operator Service Manager | Not collected | real gap — telco-specific, likely low priority |

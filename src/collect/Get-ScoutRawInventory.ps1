@@ -166,7 +166,9 @@ function Remove-ScoutStaleSecurityAssessment {
     ARM REST sweep is not paying for ML/Search/Storage/Backup/diagnostics children nothing reads.
     'All' includes the eight AB#9300 phase 4 batch 2 per-resource datasets (storage blob/file
     service settings, SQL auditing and failover groups, web app configuration and basic-auth
-    policies, Event Hubs geo-DR, Redis Enterprise databases), each one ARM GET per parent.
+    policies, Event Hubs geo-DR, Redis Enterprise databases), each one ARM GET per parent, and the
+    thirteen AB#9300 (3.18.19) Azure VMware Solution datasets for a private cloud's children
+    (one GET per private cloud, two per cluster; none when the estate has no private cloud).
 
 .PARAMETER IncludeSubscriptionSecurityPolicy
     Also collect one synthetic Defender/diagnostics/policy-compliance envelope per discovered
@@ -416,7 +418,9 @@ function Get-ScoutRawInventory {
             'microsoft.databricks/workspaces', 'microsoft.sql/managedinstances',
             'microsoft.cache/redis', 'microsoft.cache/redisenterprise',
             'microsoft.eventgrid/topics', 'microsoft.insights/components',
-            'microsoft.desktopvirtualization/hostpools', 'microsoft.desktopvirtualization/workspaces'
+            'microsoft.desktopvirtualization/hostpools', 'microsoft.desktopvirtualization/workspaces',
+            # AB#9300, 3.18.19 -- Azure VMware Solution private clouds (VMware syslog diagnostic setting).
+            'microsoft.avs/privateclouds'
         )
         'azsc/armchild/reservationutilization' = @('microsoft.capacity/reservationorders/reservations')
         'azsc/armchild/azurelocalvirtualmachineinstances' = @('microsoft.hybridcompute/machines')
@@ -431,6 +435,21 @@ function Get-ScoutRawInventory {
         'azsc/armchild/webappbasicauth' = @('microsoft.web/sites')
         'azsc/armchild/eventhubgeodr' = @('microsoft.eventhub/namespaces')
         'azsc/armchild/redisenterprisedatabases' = @('microsoft.cache/redisenterprise')
+        # AB#9300, 3.18.19 -- Azure VMware Solution private-cloud children. The parent is the ARG-indexed
+        # private cloud, so a failed `resources` query means none of these was genuinely observed.
+        'azsc/armchild/avsclusters' = @('microsoft.avs/privateclouds')
+        'azsc/armchild/avsdatastores' = @('microsoft.avs/privateclouds')
+        'azsc/armchild/avsplacementpolicies' = @('microsoft.avs/privateclouds')
+        'azsc/armchild/avsaddons' = @('microsoft.avs/privateclouds')
+        'azsc/armchild/avsglobalreachconnections' = @('microsoft.avs/privateclouds')
+        'azsc/armchild/avsauthorizations' = @('microsoft.avs/privateclouds')
+        'azsc/armchild/avscloudlinks' = @('microsoft.avs/privateclouds')
+        'azsc/armchild/avssegments' = @('microsoft.avs/privateclouds')
+        'azsc/armchild/avsdhcpconfigurations' = @('microsoft.avs/privateclouds')
+        'azsc/armchild/avsdnsservices' = @('microsoft.avs/privateclouds')
+        'azsc/armchild/avsgateways' = @('microsoft.avs/privateclouds')
+        'azsc/armchild/avsiscsipaths' = @('microsoft.avs/privateclouds')
+        'azsc/armchild/avsmaintenances' = @('microsoft.avs/privateclouds')
     }
     $networkDiagnosticParentTypes = @(
         'microsoft.network/networksecuritygroups', 'microsoft.network/applicationgateways',
@@ -1151,6 +1170,23 @@ function Get-ScoutRawInventory {
         }
         catch {
             Write-Warning "Get-ScoutRawInventory: AVD Azure Local row transform failed; continuing without its synthetic rows: $($_.Exception.Message)"
+        }
+    }
+
+    # AB#9300, 3.18.19. The Azure VMware Solution children the ARM-child sweep read are real ARM
+    # resources with no Resource Graph row, and the discovery index lists an AZSC/* row only as
+    # enrichment of a base resource with the same id -- so, alone, they would never be discovered. A
+    # pure transform of rows already collected (no Azure call) mirrors each under its real type
+    # (microsoft.avs/privateclouds/clusters ...), appended AFTER the AZSC rows, so discovery lists it.
+    # With no private cloud there are no rows to mirror and nothing is added.
+    if (Import-ScoutRawInventoryHelper -CommandName 'ConvertTo-ScoutAvsDiscoveryResource' -FileName 'ConvertTo-ScoutAvsDiscoveryResource.ps1') {
+        try {
+            foreach ($row in @(ConvertTo-ScoutAvsDiscoveryResource -Resources @($resources))) {
+                if ($null -ne $row) { $resources.Add($row) }
+            }
+        }
+        catch {
+            Write-Warning "Get-ScoutRawInventory: Azure VMware Solution discovery transform failed; continuing without its mirrored rows: $($_.Exception.Message)"
         }
     }
 

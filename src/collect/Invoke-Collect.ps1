@@ -17,7 +17,9 @@ $ErrorActionPreference = 'Stop'
     enrich `governance` / `advisor` afterward.
 
     Canonical shape (top-level keys the rules query):
-        subscriptions[], tags[]
+        subscriptions[{id,name,state,tags,managementGroupLevels}], tags[]   (managementGroupLevels: AB#9300,
+                       depth wiring -- the length of the subscriptions management group chain,
+                       tenant root included; 1 means it hangs directly off the root; null if unread)
         networking { virtualNetworks[{id,name,location,peeringCount,ddosEnabled,encryptionEnabled}],
                      subnets[{ipUtilizationPct}],
                      azureFirewalls[{sku,tier,zoneCount,hasPolicy,threatIntelMode}],  (AB#9300 phase 4)
@@ -42,7 +44,9 @@ $ErrorActionPreference = 'Stop'
                      routeTables[{routeCount,subnetCount,disableBgpRoutePropagation,routes,
                                    defaultRouteNextHopType}],
                      trafficManagerProfiles[{profileStatus,trafficRoutingMethod,monitorStatus,
-                                              endpointCount}],   (AB#6928 -- edge-and-delivery detail)
+                                              endpointCount,dnsTtl,
+                                              alwaysServeEndpointCount}],   (AB#6928 -- edge-and-delivery detail;
+                     dnsTtl and alwaysServeEndpointCount AB#9300, depth wiring)
                      virtualWans[{wanType,allowBranchToBranchTraffic}],   (AB#7110, Story AB#7059,
                      Feature AB#7069, Epic AB#7099 -- 13 ordinary ARG-indexed Networking types)
                      vnetPeerings[{vnet,remoteVnetId,remoteVnetName,peeringState,
@@ -50,12 +54,15 @@ $ErrorActionPreference = 'Stop'
                      vpnConnections[{gatewayName,connectionType,connectionStatus,
                                       localNetworkGatewayName,localAddressPrefixes,sharedKeyPresent}],
                      localNetworkGateways[{gatewayIpAddress,addressPrefixes}],
-                     virtualHubs[{addressPrefix,virtualWanName}],   (AB#6928 -- connectivity
-                     relationship detail)
+                     virtualHubs[{addressPrefix,virtualWanName,hasExpressRouteGateway,hasVpnGateway,
+                                   routingPreference,expressRouteBackedUp}],   (AB#6928 -- connectivity
+                     relationship detail; the gateway flags AB#9300, depth wiring -- bools, never an id)
                      cdnProfiles[{sku,provisioningState,frontDoorId}],
                      networkManagers[{provisioningState,scopeSubscriptionCount,scopeAccesses}],
                      firewallPolicies[{sku,provisioningState,threatIntelMode,
-                                        ruleCollectionGroupCount}],
+                                        ruleCollectionGroupCount,idpsEnabled,tlsInspectionEnabled,
+                                        dnsProxyEnabled,hasBasePolicy,idpsTlsDnsEnabled}],   (the last five:
+                     AB#9300, depth wiring -- booleans; the CA name and Key Vault secret id never)
                      networkFunctions[{provisioningState,vendorProvisioningState,serviceKey}],
                      publicIPAddresses[{id,name,resourceGroup,location,skuName,skuTier,zoneCount,
                                          ddosProtectionMode,allocationMethod,attached}],
@@ -78,7 +85,16 @@ $ErrorActionPreference = 'Stop'
                      avdScalingPlans[{hostPoolRefCount,enabledHostPools[{id}]}],
                      avdWorkspaces[{id,location,publicNetworkAccess}] }  (AB#6819, AB#9300)
                      privateClouds[{availabilityStrategy,availabilityZone,clusterSize,
-                                     expressRouteCircuitId,encryptionStatus}] }   (AB#6820)
+                                     expressRouteCircuitId,encryptionStatus,
+                                     availabilitySecondaryZone,secondaryCircuitPresent,
+                                     encryptionKeyState,encryptionKeyVersionType,internet,
+                                     identitySourceCount,externalCloudLinkCount,provisioningState,
+                                     dnsZoneType,extendedNetworkBlockCount,nsxPublicIpQuotaRaised,
+                                     virtualNetworkIdSet,identityType}] }   (AB#6820; the extended
+                     fields AB#9300, 3.18.19 -- scalars, counts and booleans from the private cloud's
+                     own Resource Graph row. Never a password, licence key, thumbprint, address block,
+                     endpoint, or the customer-managed key's name, version or vault URL. The private
+                     cloud's CHILDREN are `domains.avs`, below.)
         management { recoveryVaults[{backupItems[]}], deployments[],
                      logAnalyticsWorkspaces[{id,location,retentionInDays,skuName,dailyQuotaGb,
                                               publicNetworkAccessForIngestion,
@@ -173,7 +189,8 @@ $ErrorActionPreference = 'Stop'
                       smartDetectorAlertRules[{state,severity,frequency,actionGroupCount}],
                       appInsights[{applicationType,flowType,retentionInDays,samplingPercentage,
                                     ingestionMode,publicNetworkAccessForIngestion,publicNetworkAccessForQuery,
-                                    workspaceBased,disableLocalAuth}],            (AB#9300 phase 4)
+                                    workspaceBased,disableLocalAuth,disableIpMasking}],   (AB#9300 phase 4;
+                                    disableIpMasking: depth wiring -- true means IP masking is OFF)
                       workbooks[{kind,category,sourceId,version}],
                       privateLinkScopes[{accessMode,ingestionAccessMode,privateEndpointConnectionCount,
                                           scopedResourceCount}],
@@ -206,12 +223,23 @@ $ErrorActionPreference = 'Stop'
                                                         shareDeleteRetentionDays,smbVersions,
                                                         smbChannelEncryption,
                                                         smbAuthenticationMethods}],
-                                fileServicePropertiesMeasured},   (AB#9300 phase 4, batch 2 -- one ARM
+                                fileServicePropertiesMeasured,
+                                lifecyclePolicies[{storageAccountId,premium,policyPresent,ruleCount,
+                                                    enabledRuleCount,tieringRuleCount,
+                                                    deleteRuleCount}],
+                                lifecyclePoliciesMeasured},   (AB#9300 phase 4, batch 2 -- one ARM
                                 GET per storage account, NOT Resource Graph; the *Measured flags are
                                 true only when at least one GET got an answer, so a rule gates on them
                                 and reports NotAssessed rather than passing on an empty list. Every
                                 id is the parent's, lower-cased. smb* are the service's own strings,
-                                $null meaning "all allowed".)
+                                $null meaning "all allowed". lifecyclePolicies, AB#9300 depth wiring:
+                                one row per blob-capable (StorageV2, BlobStorage, BlockBlobStorage)
+                                account whose managementPolicies/default GET answered -- a 404 is an
+                                answer, policyPresent false and every count 0 -- carrying COUNTS of
+                                rules, never a rule name, a container prefix or a filter. tiering rules
+                                move blobs, versions or snapshots to Cool, Cold or Archive; delete rules
+                                expire them; premium marks a premium block blob account, which has no
+                                access tiers.)
                       databases{sqlServers[{id,location,minimalTlsVersion,entraOnlyAuth,identityType,
                                              cmkEnabled}],
                                 sqlDatabases[{id,location,backupRedundancy,secondaryType,
@@ -223,7 +251,8 @@ $ErrorActionPreference = 'Stop'
                                                    cmkEnabled}],
                                 postgreSqlFlexibleServers[{tier,haMode,geoBackup,
                                                             backupRetentionDays,encryptionType,
-                                                            entraAuth,passwordAuth}],
+                                                            entraAuth,passwordAuth,
+                                                            customMaintenanceWindow}],   (depth wiring)
                                 mySqlFlexibleServers[{haMode,geoBackup,backupRetentionDays,
                                                        encryptionType,storageAutoGrow}],
                                 redisCaches[{sku,skuFamily,skuCapacity,zoneCount,
@@ -270,13 +299,18 @@ $ErrorActionPreference = 'Stop'
                                                tier,systemPoolMinNodes,allPoolsAutoscale,
                                                disableLocalAccounts,upgradeChannel,
                                                nodeOsUpgradeChannel,authorizedIpRangeCount,
-                                               defenderEnabled,workloadIdentity,azureRbac}],
-                                 containerRegistries[],
+                                               defenderEnabled,workloadIdentity,azureRbac,
+                                               azurePolicyAddon}],   (azurePolicyAddon: AB#9300, depth wiring)
+                                 containerRegistries[{id,subscriptionId,name,resourceGroup,sku,
+                                                       adminEnabled,publicAccess}],   (id, subscriptionId: depth wiring)
                                  openShiftClusters[{provisioningState}],
                                  containerApps[{provisioningState,environmentId,minReplicas,
-                                                 externalIngress,allowInsecure,identityType}],
+                                                 externalIngress,allowInsecure,identityType,
+                                                 containerCount,containersWithoutAllProbes}],   (the last two: AB#9300,
+                                 depth wiring -- how many containers, and how many lack a liveness, readiness or startup probe)
                                  containerAppEnvironments[{provisioningState,zoneRedundant,internal,
-                                                            vnetIntegrated,publicNetworkAccess}],
+                                                            vnetIntegrated,publicNetworkAccess,logDestination,
+                                                            logsExported}],   (the last two: AB#9300, depth wiring)
                                  containerGroups[{osType,restartPolicy}]},   (AB#7110 -- 4 ordinary
                                  ARG-indexed Containers types; AB#9300 phase 4 scalars)
                       security{keyVaults[]},
@@ -397,12 +431,69 @@ $ErrorActionPreference = 'Stop'
                              (arcSites/azureLocalVirtualMachineInstances are ALWAYS present as
                              keys but only ever populated when the caller passes
                              -IncludeAzureLocalArm -- AB#6803, Feature AB#6747)
+                      avs{clusters[{privateCloudId,privateCloudName,name,sku,clusterSize,hostCount,
+                                     provisioningState,availabilityStrategy,minimumHosts,
+                                     belowMinimumHosts}],
+                          clustersMeasured,
+                          datastores[{privateCloudId,clusterName,name,kind,status,accessible,
+                                       provisioningState}],
+                          datastoresMeasured,
+                          placementPolicies[{privateCloudId,clusterName,name,policyType,state,
+                                              enabled,affinityType,affinityStrength,
+                                              azureHybridBenefitType,vmMemberCount,
+                                              hostMemberCount,provisioningState}],
+                          placementPoliciesMeasured,
+                          maintenances[{privateCloudId,name,component,state,scheduledByMicrosoft,
+                                         scheduledStartTime,readiness,estimatedDurationInMinutes,
+                                         provisioningState}],
+                          maintenancesMeasured,
+                          addons[{privateCloudId,name,addonCount,srmEnabled,vrEnabled,hcxEnabled,
+                                   arcEnabled,hcxOffer,vrsCount,failedAddonCount}],
+                          addonsMeasured,
+                          globalReachConnections[{privateCloudId,name,connectionCount,
+                                                   connectedCount,peerCircuitCount,failedCount}],
+                          globalReachConnectionsMeasured,
+                          authorizations[{privateCloudId,name,authorizationCount,failedCount}],
+                          authorizationsMeasured,
+                          cloudLinks[{privateCloudId,name,linkCount,activeCount}],
+                          cloudLinksMeasured,
+                          segments[{privateCloudId,name,segmentCount,failedSegmentCount,
+                                     connectedSegmentCount,dhcpSegmentCount}],
+                          segmentsMeasured,
+                          dhcpConfigurations[{privateCloudId,name,configurationCount,serverCount,
+                                               relayCount}],
+                          dhcpConfigurationsMeasured,
+                          dnsServices[{privateCloudId,name,serviceCount,failedServiceCount}],
+                          dnsServicesMeasured,
+                          gateways[{privateCloudId,name,gatewayCount}],
+                          gatewaysMeasured,
+                          iscsiPaths[{privateCloudId,name,pathCount}],
+                          iscsiPathsMeasured},   (AB#9300, 3.18.19 -- the CHILDREN of Azure VMware
+                          Solution private clouds, which Resource Graph does not index; the private
+                          clouds themselves stay `compute.privateClouds`. One ARM GET per private cloud
+                          per dataset (two per cluster for datastores and placementPolicies), api-version
+                          2025-09-01, read by Get-ScoutArmChildResource and shaped by
+                          ConvertFrom-ScoutInventory -- there is NO KQL twin, so the typed-query path
+                          declares the same keys, empty and unmeasured. Every `privateCloudId` is the
+                          private cloud's resource id, lower-cased. clusters, datastores,
+                          placementPolicies and maintenances are one row per child; every other
+                          dataset is ONE ROW PER PRIVATE CLOUD whose list answered, with counts and
+                          booleans (a count of 0 where nothing came back), so a private cloud whose
+                          GET failed has no row and is never reported as lacking the thing. Each
+                          `<dataset>Measured` flag is true only when a GET of that dataset was
+                          answered; a rule gates on it and reports NotAssessed, never a Pass on an
+                          empty list. clusters[].minimumHosts is 3, or 6 for a stretched (DualZone)
+                          private cloud, and belowMinimumHosts is clusterSize below it. NEVER carried:
+                          the SRM licence key, an ExpressRoute authorization key or id, a Global Reach
+                          peer circuit id or key, a linked private cloud id, a storage target id,
+                          host names, VM ids, IP addresses or ranges, NSX paths and DNS zone names.)
                       integration{eventHubNamespaces[{id,location,autoInflateEnabled,skuName,capacity,
                                                        maxThroughputUnits,geoReplicaCount,
                                                        disableLocalAuth,minimumTlsVersion,
                                                        cmkKeySource,doubleEncryption}],
                                   apiManagement[{id,location,zoneCount,capacity,additionalRegionCount,
-                                                  publicNetworkAccess,identityType}],
+                                                  publicNetworkAccess,identityType,legacyProtocolEnabled,
+                                                  legacyCipherEnabled}],   (the last two: AB#9300, depth wiring)
                                   serviceBusNamespaces[{id,location,publicAccess,tier,capacity,
                                                          zoneRedundant,geoReplicaCount,
                                                          disableLocalAuth,minimumTlsVersion,
@@ -605,6 +696,29 @@ $ErrorActionPreference = 'Stop'
     database's access keys and linked-database ids. Those are dropped at the GET, before any row
     exists -- see $SafeChildPropertyPaths in Get-ScoutArmChildResource.ps1.
 
+    AB#9300, 3.18.19 -- Azure VMware Solution. A private cloud (microsoft.avs/privateclouds) IS
+    Resource Graph indexed, so `compute.privateClouds` already carried its own properties; this
+    release adds the rest of what the Microsoft.AVS provider exposes. Two parts. (1) The private
+    cloud's extended properties, which ARE in its Resource Graph row: the second zone and circuit of a
+    stretched cloud, provisioning state, DNS zone type, a count of extended network blocks, the NSX
+    public IP quota, whether a virtual network id is set (a Gen 2 cloud), the managed identity type
+    and the customer-managed key's health -- projected by the typed `privateClouds` query and by
+    ConvertFrom-ScoutInventory field for field, like every other typed dataset. (2) The private cloud's
+    CHILDREN, which Resource Graph does not index, under a new canonical section `domains.avs`
+    (documented in the contract above): thirteen datasets read with one ARM GET per private cloud
+    (two per cluster for datastores and placement policies) by Get-ScoutArmChildResource, shaped by
+    ConvertFrom-ScoutInventory, with a `...Measured` flag each. Part (2) has no KQL twin, so the typed-
+    query path declares the same keys empty and unmeasured. Nothing here reads a credential: the
+    vCenter and NSX passwords, the identity sources' passwords, the SRM licence key, ExpressRoute
+    authorization keys, the Global Reach peer key and circuit id are never projected, and the child
+    rows are built from an allow-list so a key that sits in a list response cannot reach a row.
+    The private cloud's diagnostic setting (VMware syslog) joins the diagnostic sweep, so
+    `opsPosture.diagnosticCoverage` has a `microsoft.avs/privateclouds` row. Discovery: the discovery
+    index lists an AZSC/* row only as enrichment of a base resource with the same id, so a child with
+    no Resource Graph row would never be discovered; Get-ScoutRawInventory therefore mirrors each swept
+    child under its real ARM type (ConvertTo-ScoutAvsDiscoveryResource), and the index lists it under
+    Compute. The mirror is skipped by ConvertFrom-ScoutInventory and feeds no worksheet.
+
     Deliberately NOT collected here, confirmed absent/out of scope after
     checking the ARM template references before writing this note:
       - DPS enrollment groups (individualEnrollments/enrollmentGroups) — a
@@ -767,10 +881,16 @@ function Invoke-Collect {
 
     # ---- read-only KQL producing SCALAR fields the rules filter on ----
     $q = @{
+        # AB#9300 (depth wiring): managementGroupLevels is how many management groups sit between the
+        # subscription and the tenant, root included (properties.managementGroupAncestorsChain). 1 means
+        # the subscription hangs directly off the tenant root group, which is where Azure puts a new
+        # subscription -- i.e. it was never assigned to a management group. array_length is null when
+        # the chain is absent, so an unreadable chain is never reported as 0.
         subscriptions = @'
 resourcecontainers
 | where type =~ "microsoft.resources/subscriptions"
-| project id = subscriptionId, name, state = tostring(properties.state), tags
+| project id = subscriptionId, name, state = tostring(properties.state), tags,
+          managementGroupLevels = array_length(properties.managementGroupAncestorsChain)
 '@
         virtualNetworks = @'
 resources
@@ -991,13 +1111,19 @@ resources
 '@
         # AB#6928: monitorStatus is the profile-level probe verdict; endpointCount stays a
         # scalar count of the endpoints child array.
+        # AB#9300 (depth wiring): dnsTtl is the profile's DNS time-to-live in seconds (null when absent), and
+        # alwaysServeEndpointCount is how many of its endpoints have AlwaysServe enabled -- which turns
+        # health probing off for that endpoint. Counted from the lower-cased endpoint list text so no per-
+        # endpoint expansion is needed (and no parent row can be dropped); only the count leaves the query.
         trafficManagerProfiles = @'
 resources | where type =~ "microsoft.network/trafficmanagerprofiles"
 | project id, name, resourceGroup, subscriptionId, location,
           profileStatus = tostring(properties.profileStatus),
           trafficRoutingMethod = tostring(properties.trafficRoutingMethod),
           monitorStatus = tostring(properties.monitorConfig.profileMonitorStatus),
-          endpointCount = array_length(properties.endpoints)
+          endpointCount = array_length(properties.endpoints),
+          dnsTtl = toint(properties.dnsConfig.ttl),
+          alwaysServeEndpointCount = countof(tolower(tostring(properties.endpoints)), '"alwaysserve":"enabled"')
 '@
         virtualWans = @'
 resources | where type =~ "microsoft.network/virtualwans"
@@ -1049,9 +1175,18 @@ resources
 resources
 | where type =~ "microsoft.network/virtualhubs"
 | extend wanId = tostring(properties.virtualWan.id)
+// AB#9300 (depth wiring): hasExpressRouteGateway / hasVpnGateway say whether the hub carries each gateway
+// (the gateways' ids are not projected); routingPreference is hubRoutingPreference. expressRouteBackedUp is
+// true when the hub has BOTH gateways and prefers ExpressRoute over VPN (an unset preference is
+// ExpressRoute, the platform default) -- the Well-Architected "VPN backs up ExpressRoute" shape.
+| extend hasExpressRouteGateway = isnotempty(tostring(properties.expressRouteGateway.id))
+| extend hasVpnGateway = isnotempty(tostring(properties.vpnGateway.id))
+| extend routingPreference = tostring(properties.hubRoutingPreference)
 | project name, resourceGroup, subscriptionId,
           addressPrefix = tostring(properties.addressPrefix),
-          virtualWanName = tostring(split(wanId, "/")[8])
+          virtualWanName = tostring(split(wanId, "/")[8]),
+          hasExpressRouteGateway, hasVpnGateway, routingPreference,
+          expressRouteBackedUp = hasExpressRouteGateway and hasVpnGateway and routingPreference in~ ("ExpressRoute", "")
 '@
         # ---- AB#7091 (Story AB#7059, Feature AB#7069, Epic AB#7099) -- Networking coverage-gap
         # close-out. Every type below is confirmed against the ARM template reference as an
@@ -1076,13 +1211,25 @@ resources | where type =~ "microsoft.network/networkmanagers"
 '@
         # AB#7091: Firewall Manager's policy object -- distinct from the `azureFirewalls` instance
         # it attaches to (a policy can be shared across many firewalls/vHubs).
+        # AB#9300 (depth wiring): the three Premium protections the Well-Architected guide asks of a policy.
+        # idpsEnabled is intrusion detection in Alert or Deny mode; tlsInspectionEnabled is whether a
+        # certificate authority is configured (a bool only -- neither its name nor its Key Vault secret id is
+        # projected); dnsProxyEnabled is the DNS proxy switch. hasBasePolicy marks a child policy: the
+        # firewall's effective IDPS mode is the stricter of child and parent, so a child's own settings
+        # say nothing about what is enforced and the rule leaves it to its parent.
         firewallPolicies = @'
 resources | where type =~ "microsoft.network/firewallpolicies"
+| extend idpsEnabled = tostring(properties.intrusionDetection.mode) in~ ("Alert", "Deny")
+| extend tlsInspectionEnabled = isnotempty(tostring(properties.transportSecurity.certificateAuthority.keyVaultSecretId))
+| extend dnsProxyEnabled = coalesce(tobool(properties.dnsSettings.enableProxy), false)
 | project id, name, resourceGroup, subscriptionId, location,
           sku = tostring(properties.sku.tier),
           provisioningState = tostring(properties.provisioningState),
           threatIntelMode = tostring(properties.threatIntelMode),
-          ruleCollectionGroupCount = array_length(properties.ruleCollectionGroups)
+          ruleCollectionGroupCount = array_length(properties.ruleCollectionGroups),
+          idpsEnabled, tlsInspectionEnabled, dnsProxyEnabled,
+          hasBasePolicy = isnotempty(tostring(properties.basePolicy.id)),
+          idpsTlsDnsEnabled = idpsEnabled and tlsInspectionEnabled and dnsProxyEnabled
 '@
         # AB#7091 (folds in AB#7071 -- zero collector anywhere for this type): Azure Network
         # Function Manager's deployed network-function instance (telco/hybrid NF orchestration).
@@ -1474,7 +1621,10 @@ resources | where type =~ "microsoft.dbforpostgresql/flexibleservers"
           backupRetentionDays = toint(properties.backup.backupRetentionDays),
           encryptionType = tostring(properties.dataEncryption.type),
           entraAuth = tostring(properties.authConfig.activeDirectoryAuth),
-          passwordAuth = tostring(properties.authConfig.passwordAuth)
+          passwordAuth = tostring(properties.authConfig.passwordAuth),
+          // AB#9300 (depth wiring): maintenanceWindow.customWindow is Enabled when the owner chose the
+          // patching window, Disabled when the platform picks one (the default).
+          customMaintenanceWindow = tostring(properties.maintenanceWindow.customWindow)
 '@
         # AB#9300 phase 4. Classic Cache for Redis (microsoft.cache/redis) keeps its SKU under
         # properties.sku (the top-level `sku` column is ABSENT), so `sku` read from the top level was
@@ -1670,6 +1820,9 @@ resources | where type =~ "microsoft.containerservice/managedclusters"
 | extend defenderEnabled = tobool(properties.securityProfile.defender.securityMonitoring.enabled)
 | extend workloadIdentity = tobool(properties.securityProfile.workloadIdentity.enabled)
 | extend azureRbac = tobool(properties.aadProfile.enableAzureRBAC)
+// AB#9300 (depth wiring): the Azure Policy add-on (addonProfiles.azurepolicy.enabled) is what enforces
+// pod and cluster standards -- deployment safeguards need it too. A bool only.
+| extend azurePolicyAddon = tobool(properties.addonProfiles.azurepolicy.enabled)
 // agentPoolProfiles is an array, so per-pool zone spread needs mv-expand +
 // summarize back to one row per cluster — CAF-CON-05 (AB#5057).
 // systemPoolMinNodes is the smallest node count a SYSTEM pool is allowed to fall to: minCount
@@ -1686,18 +1839,21 @@ resources | where type =~ "microsoft.containerservice/managedclusters"
             systemPoolMinNodes = minif(poolMinNodes, isSystemPool)
     by id, name, resourceGroup, location, k8sVersion, privateCluster, rbacEnabled, networkPolicyEnabled, aadIntegrated,
        tier, disableLocalAccounts, upgradeChannel, nodeOsUpgradeChannel, authorizedIpRangeCount,
-       defenderEnabled, workloadIdentity, azureRbac
+       defenderEnabled, workloadIdentity, azureRbac, azurePolicyAddon
 | extend allPoolsZoned = zonedPools == totalPools
 | extend allPoolsAutoscale = autoscalePools == totalPools
 | project id, name, resourceGroup, location, k8sVersion, privateCluster, rbacEnabled, networkPolicyEnabled, aadIntegrated,
           allPoolsZoned, tier, systemPoolMinNodes, allPoolsAutoscale, disableLocalAccounts, upgradeChannel,
-          nodeOsUpgradeChannel, authorizedIpRangeCount, defenderEnabled, workloadIdentity, azureRbac
+          nodeOsUpgradeChannel, authorizedIpRangeCount, defenderEnabled, workloadIdentity, azureRbac,
+          azurePolicyAddon
 '@
         containerRegistries = @'
 resources | where type =~ "microsoft.containerregistry/registries"
 | extend adminEnabled = tobool(properties.adminUserEnabled)
 | extend publicAccess = tostring(properties.publicNetworkAccess)
-| project name, resourceGroup, sku = tostring(sku.name), adminEnabled, publicAccess
+// AB#9300 (depth wiring): id and subscriptionId, so a rule can join a registry to its subscription's
+// Defender for Containers plan.
+| project id, subscriptionId, name, resourceGroup, sku = tostring(sku.name), adminEnabled, publicAccess
 '@
         # ---- AB#7110 -- Containers(4) coverage gap. Ordinary ARG-indexed ARM types, same
         # verification standard as the rest of this file.
@@ -1708,26 +1864,51 @@ resources | where type =~ "microsoft.redhatopenshift/openshiftclusters"
 '@
         # AB#9300 phase 4. configuration.secrets is NEVER projected (it holds secret values); only
         # the ingress exposure switches and the scale floor are.
+        # AB#9300 (depth wiring): containerCount and containersWithoutAllProbes say whether every
+        # container carries a liveness, a readiness AND a startup probe (the Well-Architected guide asks
+        # for all three). Only the probe TYPE is read -- never a probe's host, path or headers. The
+        # container list is expanded and summarised back to one row per app (Resource Graph has no
+        # mv-apply); an absent/empty list is swapped for a one-element placeholder so the app row is
+        # never dropped (AB#6845), and the placeholder is not counted as a container.
         containerApps = @'
 resources | where type =~ "microsoft.app/containerapps"
-| project id, name, resourceGroup, subscriptionId, location,
-          provisioningState = tostring(properties.provisioningState),
-          environmentId = tostring(properties.environmentId),
-          minReplicas = toint(properties.template.scale.minReplicas),
-          externalIngress = tobool(properties.configuration.ingress.external),
-          allowInsecure = tobool(properties.configuration.ingress.allowInsecure),
-          identityType = tostring(identity.type)
+| extend provisioningState = tostring(properties.provisioningState)
+| extend environmentId = tostring(properties.environmentId)
+| extend minReplicas = toint(properties.template.scale.minReplicas)
+| extend externalIngress = tobool(properties.configuration.ingress.external)
+| extend allowInsecure = tobool(properties.configuration.ingress.allowInsecure)
+| extend identityType = tostring(identity.type)
+| extend containerCount = array_length(properties.template.containers)
+| extend containerArr = iff(coalesce(toint(array_length(properties.template.containers)), 0) > 0, properties.template.containers, dynamic([{}]))
+| mv-expand ctr = containerArr
+| extend probeTypes = tostring(ctr.probes)
+| extend isRealContainer = tostring(ctr) != "{}"
+| extend hasAllProbes = probeTypes contains '"type":"Liveness"' and probeTypes contains '"type":"Readiness"' and probeTypes contains '"type":"Startup"'
+| summarize containersWithoutAllProbes = countif(isRealContainer and not(hasAllProbes))
+    by id, name, resourceGroup, subscriptionId, location, provisioningState, environmentId, minReplicas,
+       externalIngress, allowInsecure, identityType, containerCount
+| project id, name, resourceGroup, subscriptionId, location, provisioningState, environmentId, minReplicas,
+          externalIngress, allowInsecure, identityType, containerCount, containersWithoutAllProbes
 '@
         # AB#9300 phase 4. properties.appLogsConfiguration.logAnalyticsConfiguration.sharedKey is NEVER
         # projected. ['internal'] is bracket-quoted so the alias can never collide with a keyword.
+        # AB#9300 (depth wiring): logDestination is appLogsConfiguration.destination (log-analytics,
+        # azure-monitor or none) and logsExported is true when the environment sends its console and
+        # system logs anywhere -- either of those two destinations, or an OpenTelemetry logs destination.
+        # Only the destination NAME is read; the workspace id and shared key never are, and neither is the
+        # OpenTelemetry destinations' configuration (it carries partner API keys).
         containerAppEnvironments = @'
 resources | where type =~ "microsoft.app/managedenvironments"
+| extend logDestination = tostring(properties.appLogsConfiguration.destination)
 | project id, name, resourceGroup, subscriptionId, location,
           provisioningState = tostring(properties.provisioningState),
           zoneRedundant = tobool(properties.zoneRedundant),
           ['internal'] = tobool(properties.vnetConfiguration.internal),
           vnetIntegrated = isnotempty(tostring(properties.vnetConfiguration.infrastructureSubnetId)),
-          publicNetworkAccess = tostring(properties.publicNetworkAccess)
+          publicNetworkAccess = tostring(properties.publicNetworkAccess),
+          logDestination,
+          logsExported = logDestination in~ ("log-analytics", "azure-monitor")
+                         or coalesce(toint(array_length(properties.openTelemetryConfiguration.logsConfiguration.destinations)), 0) > 0
 '@
         containerGroups = @'
 resources | where type =~ "microsoft.containerinstance/containergroups"
@@ -2049,15 +2230,32 @@ resources | where type =~ "microsoft.eventhub/namespaces"
 '@
         # AB#9300 phase 4: zoneCount is the top-level `zones` array (a Premium instance spread over
         # availability zones); additionalRegionCount is a COUNT of the extra gateway regions.
+        # AB#9300 (depth wiring): legacyProtocolEnabled is true when ANY of the legacy transport protocols
+        # (SSL 3.0, TLS 1.0, TLS 1.1) is explicitly on for clients or for the back ends, false when all
+        # the settings that are present say off, and null when the service reports none of them (the
+        # default then depends on the service's creation date, so it is not guessed).
+        # legacyCipherEnabled is the Triple DES cipher switch. The values live in customProperties as the
+        # strings 'True' / 'False'; only those seven named keys are read, never the bag as a whole.
         apiManagement = @'
 resources | where type =~ "microsoft.apimanagement/service"
 | extend virtualNetworkType = tostring(properties.virtualNetworkType)
+| extend ssl30 = tobool(tostring(properties.customProperties["Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Ssl30"]))
+| extend tls10 = tobool(tostring(properties.customProperties["Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls10"]))
+| extend tls11 = tobool(tostring(properties.customProperties["Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls11"]))
+| extend backendSsl30 = tobool(tostring(properties.customProperties["Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Ssl30"]))
+| extend backendTls10 = tobool(tostring(properties.customProperties["Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls10"]))
+| extend backendTls11 = tobool(tostring(properties.customProperties["Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls11"]))
+| extend legacyProtocolEnabled = iff(isnull(ssl30) and isnull(tls10) and isnull(tls11) and isnull(backendSsl30) and isnull(backendTls10) and isnull(backendTls11),
+                                     bool(null),
+                                     coalesce(ssl30, false) or coalesce(tls10, false) or coalesce(tls11, false) or coalesce(backendSsl30, false) or coalesce(backendTls10, false) or coalesce(backendTls11, false))
 | project id, name, resourceGroup, location, sku = tostring(sku.name), virtualNetworkType,
           zoneCount = array_length(zones),
           capacity = toint(sku.capacity),
           additionalRegionCount = array_length(properties.additionalLocations),
           publicNetworkAccess = tostring(properties.publicNetworkAccess),
-          identityType = tostring(identity.type)
+          identityType = tostring(identity.type),
+          legacyProtocolEnabled,
+          legacyCipherEnabled = tobool(tostring(properties.customProperties["Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TripleDes168"]))
 '@
         serviceBusNamespaces = @'
 resources | where type =~ "microsoft.servicebus/namespaces"
@@ -2552,19 +2750,46 @@ resources | where type =~ "microsoft.desktopvirtualization/workspaces"
         #   encryption.status                            -- WAF-AVS-SEC-05 (encryption enabled)
         #   internet                                     -- AVS-C3 (internet egress toggle)
         #   identitySources / externalCloudLinks          -- array counts only, no credential material
+        # AB#9300, 3.18.19 -- the private cloud's own extended properties (the API versions through
+        # 2025-09-01 carry all of them), each a scalar, a count or a boolean:
+        #   availability.secondaryZone / secondaryCircuit -- the second zone and circuit of a stretched cloud
+        #   provisioningState                              -- Succeeded / Updating / Failed ...
+        #   dnsZoneType                                    -- Public or Private (Gen 2)
+        #   extendedNetworkBlocks                          -- a COUNT of the extra address blocks, never the CIDRs
+        #   nsxPublicIpQuotaRaised                         -- Enabled / Disabled
+        #   virtualNetworkId                               -- a BOOLEAN: set on a Gen 2 cloud deployed in a VNet
+        #   identity.type                                  -- None / SystemAssigned
+        #   encryption.keyVaultProperties.keyState / versionType -- the customer-managed key's health; the
+        #                                                     key name, version and vault URL are NOT projected
+        # NEVER projected: vcenterPassword, nsxtPassword, the identity sources' password and username,
+        # vcfLicense (the licence key), the vCenter / NSX certificate thumbprints, the endpoint
+        # addresses, the networkBlock and the management, provisioning and vMotion networks.
         privateClouds = @'
 resources | where type =~ "microsoft.avs/privateclouds"
 | extend availabilityStrategy = tostring(properties.availability.strategy)
 | extend availabilityZone = tostring(properties.availability.zone)
+| extend availabilitySecondaryZone = tostring(properties.availability.secondaryZone)
 | extend clusterSize = toint(properties.managementCluster.clusterSize)
 | extend expressRouteCircuitId = tostring(properties.circuit.expressRouteID)
+| extend secondaryCircuitPresent = isnotempty(tostring(properties.secondaryCircuit.expressRouteID))
 | extend encryptionStatus = tostring(properties.encryption.status)
+| extend encryptionKeyState = tostring(properties.encryption.keyVaultProperties.keyState)
+| extend encryptionKeyVersionType = tostring(properties.encryption.keyVaultProperties.versionType)
 | extend internet = tostring(properties.internet)
 | extend identitySourceCount = array_length(properties.identitySources)
 | extend externalCloudLinkCount = array_length(properties.externalCloudLinks)
+| extend provisioningState = tostring(properties.provisioningState)
+| extend dnsZoneType = tostring(properties.dnsZoneType)
+| extend extendedNetworkBlockCount = array_length(properties.extendedNetworkBlocks)
+| extend nsxPublicIpQuotaRaised = tostring(properties.nsxPublicIpQuotaRaised)
+| extend virtualNetworkIdSet = isnotempty(tostring(properties.virtualNetworkId))
+| extend identityType = tostring(identity.type)
 | project id, name, resourceGroup, subscriptionId, sku = tostring(sku.name),
-          availabilityStrategy, availabilityZone, clusterSize, expressRouteCircuitId,
-          encryptionStatus, internet, identitySourceCount, externalCloudLinkCount
+          availabilityStrategy, availabilityZone, availabilitySecondaryZone, clusterSize,
+          expressRouteCircuitId, secondaryCircuitPresent, encryptionStatus, encryptionKeyState,
+          encryptionKeyVersionType, internet, identitySourceCount, externalCloudLinkCount,
+          provisioningState, dnsZoneType, extendedNetworkBlockCount, nsxPublicIpQuotaRaised,
+          virtualNetworkIdSet, identityType
 '@
         # ---- Compute coverage-gap close-out (AB#7088, folds in AB#7071) -------------------------
         # All five types are confirmed ARG-indexed against manifests/azure-provider-types.json --
@@ -2719,7 +2944,9 @@ resources
           // keeps the case, and KQL property access is case-sensitive). workspaceBased is a BOOL
           // ONLY -- the workspace resource id itself is not projected.
           workspaceBased = isnotempty(tostring(properties.WorkspaceResourceId)),
-          disableLocalAuth = tobool(properties.DisableLocalAuth)
+          disableLocalAuth = tobool(properties.DisableLocalAuth),
+          // AB#9300 (depth wiring): true means IP address masking is turned OFF (full client addresses stored).
+          disableIpMasking = tobool(properties.DisableIpMasking)
 '@
         workbooks = @'
 resources
@@ -3118,6 +3345,7 @@ resources
         # one place and so Collect.Phase4Batch2.Tests can hold the map and the contract together.
         blobServiceProperties    = @('Storage', 'Security')
         fileServiceProperties    = @('Storage', 'Security')
+        lifecyclePolicies        = @('Storage')
         sqlServerAuditing        = @('Databases', 'Security', 'Monitor')
         sqlFailoverGroups        = @('Databases')
         redisEnterpriseDatabases = @('Databases', 'Security')
@@ -3356,12 +3584,30 @@ resources
             # source operations and health. The raw pass keeps only an allow-list of scalar settings
             # from each response -- never a key, app setting, connection string or partner resource id.
             $rawArgs.IncludeArmChildResources = $true
+            #
+            # AB#9300, 3.18.19 adds thirteen Azure VMware Solution datasets for the CHILDREN of a
+            # private cloud (clusters, datastores, placement policies, add-ons, Global Reach
+            # connections, authorizations, cloud links, the NSX workload network, iSCSI paths,
+            # maintenances), which Resource Graph does not index. They cost nothing when the estate
+            # has no private cloud -- the sweep finds no parent and makes no request -- and otherwise
+            # one GET per private cloud per dataset plus two per cluster, fetched in parallel. Rows
+            # carry an allow-list of scalars, counts and booleans, never a licence key, an
+            # authorization key or a peer circuit id.
+            #
+            # AB#9300 (depth wiring) adds StorageLifecyclePolicies: one GET per blob-capable storage
+            # account (a 404 means no policy), 8 at a time with the datasets above. A 200-account estate
+            # pays about 25 s more; the dataset was already read by the inventory run, it just never
+            # reached collect.json. Reduced to counts per account by ConvertFrom-ScoutInventory.
             $rawArgs.ArmChildDataset = @(
                 'ResourceDiagnosticSettings'
-                'StorageBlobServiceProperties', 'StorageFileServiceProperties'
+                'StorageBlobServiceProperties', 'StorageFileServiceProperties', 'StorageLifecyclePolicies'
                 'SqlServerAuditing', 'SqlFailoverGroups'
                 'WebAppConfig', 'WebAppBasicAuth'
                 'EventHubGeoDr', 'RedisEnterpriseDatabases'
+                'AvsClusters', 'AvsDatastores', 'AvsPlacementPolicies', 'AvsAddons'
+                'AvsGlobalReachConnections', 'AvsAuthorizations', 'AvsCloudLinks'
+                'AvsSegments', 'AvsDhcpConfigurations', 'AvsDnsServices', 'AvsGateways'
+                'AvsIscsiPaths', 'AvsMaintenances'
             )
             # ARM deployment history lives in Resource Graph's deploymentresources table, not the
             # resources table. It is what tells the infrastructure-as-code rules (WAF-OE-02/08,
@@ -3639,6 +3885,45 @@ resources
     $r['eventHubGeoDrMeasured'] = [bool]($inventoryShaped.ContainsKey('eventHubGeoDrMeasured') -and $inventoryShaped['eventHubGeoDrMeasured'])
     $r['redisEnterpriseDatabases'] = if ($inventoryShaped.ContainsKey('redisEnterpriseDatabases')) { @($inventoryShaped['redisEnterpriseDatabases']) } else { @() }
     $r['redisEnterpriseDatabasesMeasured'] = [bool]($inventoryShaped.ContainsKey('redisEnterpriseDatabasesMeasured') -and $inventoryShaped['redisEnterpriseDatabasesMeasured'])
+
+    # AB#9300 (depth wiring). Storage lifecycle management policies -- the same situation: no KQL can
+    # produce them (one ARM GET per blob-capable storage account), so an explicit copy and a Measured flag.
+    $r['lifecyclePolicies'] = if ($inventoryShaped.ContainsKey('lifecyclePolicies')) { @($inventoryShaped['lifecyclePolicies']) } else { @() }
+    $r['lifecyclePoliciesMeasured'] = [bool]($inventoryShaped.ContainsKey('lifecyclePoliciesMeasured') -and $inventoryShaped['lifecyclePoliciesMeasured'])
+
+    # AB#9300, 3.18.19. The thirteen Azure VMware Solution private-cloud child datasets and their
+    # `...Measured` flags -- the same situation again: ARM REST reads Resource Graph cannot supply, so
+    # no typed query and an explicit copy each. They land in `domains.avs` below. Empty / $false
+    # whenever the ARM-child sweep did not run, and always when no private cloud exists (the sweep
+    # makes no request then).
+    # Written out key by key, not looped: tests/Collect.ShapedDatasetsReachTheResult.Tests.ps1 finds
+    # the copies by scanning for `$r['name'] =`, which is how it catches a shaped dataset nobody wired up.
+    $r['avsClusters'] = if ($inventoryShaped.ContainsKey('avsClusters')) { @($inventoryShaped['avsClusters']) } else { @() }
+    $r['avsClustersMeasured'] = [bool]($inventoryShaped.ContainsKey('avsClustersMeasured') -and $inventoryShaped['avsClustersMeasured'])
+    $r['avsDatastores'] = if ($inventoryShaped.ContainsKey('avsDatastores')) { @($inventoryShaped['avsDatastores']) } else { @() }
+    $r['avsDatastoresMeasured'] = [bool]($inventoryShaped.ContainsKey('avsDatastoresMeasured') -and $inventoryShaped['avsDatastoresMeasured'])
+    $r['avsPlacementPolicies'] = if ($inventoryShaped.ContainsKey('avsPlacementPolicies')) { @($inventoryShaped['avsPlacementPolicies']) } else { @() }
+    $r['avsPlacementPoliciesMeasured'] = [bool]($inventoryShaped.ContainsKey('avsPlacementPoliciesMeasured') -and $inventoryShaped['avsPlacementPoliciesMeasured'])
+    $r['avsAddons'] = if ($inventoryShaped.ContainsKey('avsAddons')) { @($inventoryShaped['avsAddons']) } else { @() }
+    $r['avsAddonsMeasured'] = [bool]($inventoryShaped.ContainsKey('avsAddonsMeasured') -and $inventoryShaped['avsAddonsMeasured'])
+    $r['avsGlobalReachConnections'] = if ($inventoryShaped.ContainsKey('avsGlobalReachConnections')) { @($inventoryShaped['avsGlobalReachConnections']) } else { @() }
+    $r['avsGlobalReachConnectionsMeasured'] = [bool]($inventoryShaped.ContainsKey('avsGlobalReachConnectionsMeasured') -and $inventoryShaped['avsGlobalReachConnectionsMeasured'])
+    $r['avsAuthorizations'] = if ($inventoryShaped.ContainsKey('avsAuthorizations')) { @($inventoryShaped['avsAuthorizations']) } else { @() }
+    $r['avsAuthorizationsMeasured'] = [bool]($inventoryShaped.ContainsKey('avsAuthorizationsMeasured') -and $inventoryShaped['avsAuthorizationsMeasured'])
+    $r['avsCloudLinks'] = if ($inventoryShaped.ContainsKey('avsCloudLinks')) { @($inventoryShaped['avsCloudLinks']) } else { @() }
+    $r['avsCloudLinksMeasured'] = [bool]($inventoryShaped.ContainsKey('avsCloudLinksMeasured') -and $inventoryShaped['avsCloudLinksMeasured'])
+    $r['avsSegments'] = if ($inventoryShaped.ContainsKey('avsSegments')) { @($inventoryShaped['avsSegments']) } else { @() }
+    $r['avsSegmentsMeasured'] = [bool]($inventoryShaped.ContainsKey('avsSegmentsMeasured') -and $inventoryShaped['avsSegmentsMeasured'])
+    $r['avsDhcpConfigurations'] = if ($inventoryShaped.ContainsKey('avsDhcpConfigurations')) { @($inventoryShaped['avsDhcpConfigurations']) } else { @() }
+    $r['avsDhcpConfigurationsMeasured'] = [bool]($inventoryShaped.ContainsKey('avsDhcpConfigurationsMeasured') -and $inventoryShaped['avsDhcpConfigurationsMeasured'])
+    $r['avsDnsServices'] = if ($inventoryShaped.ContainsKey('avsDnsServices')) { @($inventoryShaped['avsDnsServices']) } else { @() }
+    $r['avsDnsServicesMeasured'] = [bool]($inventoryShaped.ContainsKey('avsDnsServicesMeasured') -and $inventoryShaped['avsDnsServicesMeasured'])
+    $r['avsGateways'] = if ($inventoryShaped.ContainsKey('avsGateways')) { @($inventoryShaped['avsGateways']) } else { @() }
+    $r['avsGatewaysMeasured'] = [bool]($inventoryShaped.ContainsKey('avsGatewaysMeasured') -and $inventoryShaped['avsGatewaysMeasured'])
+    $r['avsIscsiPaths'] = if ($inventoryShaped.ContainsKey('avsIscsiPaths')) { @($inventoryShaped['avsIscsiPaths']) } else { @() }
+    $r['avsIscsiPathsMeasured'] = [bool]($inventoryShaped.ContainsKey('avsIscsiPathsMeasured') -and $inventoryShaped['avsIscsiPathsMeasured'])
+    $r['avsMaintenances'] = if ($inventoryShaped.ContainsKey('avsMaintenances')) { @($inventoryShaped['avsMaintenances']) } else { @() }
+    $r['avsMaintenancesMeasured'] = [bool]($inventoryShaped.ContainsKey('avsMaintenancesMeasured') -and $inventoryShaped['avsMaintenancesMeasured'])
 
     # ---- firewall policy rule-collection group parsing (AB#400) ----
     # properties.ruleCollections is a nested dynamic array (rule collections -> rules)
@@ -4397,6 +4682,10 @@ resources
                 blobServicePropertiesMeasured = [bool]$r['blobServicePropertiesMeasured']
                 fileServiceProperties = $r.fileServiceProperties
                 fileServicePropertiesMeasured = [bool]$r['fileServicePropertiesMeasured']
+                # AB#9300 (depth wiring) -- one ARM GET per blob-capable storage account (lifecycle
+                # management policy), reduced to counts per account.
+                lifecyclePolicies = $r.lifecyclePolicies
+                lifecyclePoliciesMeasured = [bool]$r['lifecyclePoliciesMeasured']
             }
             databases    = [pscustomobject]@{
                 sqlDatabases = $r.sqlDatabases; sqlServers = $r.sqlServers
@@ -4528,6 +4817,39 @@ resources
                 galleryImages = $r.galleryImages
                 marketplaceGalleryImages = $r.marketplaceGalleryImages
                 storageContainers = $r.storageContainers
+            }
+            # AB#9300, 3.18.19 -- the CHILDREN of Azure VMware Solution private clouds, which Resource
+            # Graph does not index (the private clouds themselves are `compute.privateClouds`). Item
+            # rows for clusters / datastores / placementPolicies / maintenances, one summary row per
+            # private cloud for the rest; every dataset has a `...Measured` flag that is $true only
+            # when a GET of it was answered. Read the flags with [bool] on the hashtable.
+            avs          = [pscustomobject]@{
+                clusters = $r.avsClusters
+                clustersMeasured = [bool]$r['avsClustersMeasured']
+                datastores = $r.avsDatastores
+                datastoresMeasured = [bool]$r['avsDatastoresMeasured']
+                placementPolicies = $r.avsPlacementPolicies
+                placementPoliciesMeasured = [bool]$r['avsPlacementPoliciesMeasured']
+                addons = $r.avsAddons
+                addonsMeasured = [bool]$r['avsAddonsMeasured']
+                globalReachConnections = $r.avsGlobalReachConnections
+                globalReachConnectionsMeasured = [bool]$r['avsGlobalReachConnectionsMeasured']
+                authorizations = $r.avsAuthorizations
+                authorizationsMeasured = [bool]$r['avsAuthorizationsMeasured']
+                cloudLinks = $r.avsCloudLinks
+                cloudLinksMeasured = [bool]$r['avsCloudLinksMeasured']
+                segments = $r.avsSegments
+                segmentsMeasured = [bool]$r['avsSegmentsMeasured']
+                dhcpConfigurations = $r.avsDhcpConfigurations
+                dhcpConfigurationsMeasured = [bool]$r['avsDhcpConfigurationsMeasured']
+                dnsServices = $r.avsDnsServices
+                dnsServicesMeasured = [bool]$r['avsDnsServicesMeasured']
+                gateways = $r.avsGateways
+                gatewaysMeasured = [bool]$r['avsGatewaysMeasured']
+                iscsiPaths = $r.avsIscsiPaths
+                iscsiPathsMeasured = [bool]$r['avsIscsiPathsMeasured']
+                maintenances = $r.avsMaintenances
+                maintenancesMeasured = [bool]$r['avsMaintenancesMeasured']
             }
             integration  = [pscustomobject]@{
                 eventHubNamespaces = $r.eventHubNamespaces; apiManagement = $r.apiManagement

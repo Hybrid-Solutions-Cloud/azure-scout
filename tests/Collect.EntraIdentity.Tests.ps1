@@ -62,7 +62,7 @@ BeforeAll {
     function Invoke-AZSCGraphRequest {
         [Diagnostics.CodeAnalysis.SuppressMessage('PSReviewUnusedParameter', '', Justification = 'Mock/shadow function must declare the real signature.')]
         [CmdletBinding()]
-        param([string] $Uri, [string] $TenantID, [string[]] $RequiredScopes, [switch] $SinglePage, [switch] $SuppressFailureWarning)
+        param([string] $Uri, [string] $TenantID, [string[]] $RequiredScopes, [switch] $SinglePage, [switch] $SuppressFailureWarning, [switch] $OptionalRead)
     }
     function Get-ScoutExternalIdentitiesPolicy {
         param([string] $TenantID)

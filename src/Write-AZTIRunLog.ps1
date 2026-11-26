@@ -204,7 +204,11 @@ function Add-ScoutFileToRunLog {
 
 function Invoke-ScoutDiagnosticOperation {
     [CmdletBinding()]
-    param([Parameter(Mandatory)][scriptblock]$Operation)
+    param(
+        [Parameter(Mandatory)][scriptblock]$Operation,
+        # Level a thrown failure is logged at. INFO for reads the caller handles as optional.
+        [ValidateSet('ERROR', 'WARN', 'INFO')][string]$FailureLevel = 'ERROR'
+    )
     # SDK modules have their own scope, so capture their streams at the request boundary.
     # Only success objects leave this function; diagnostic records never become inventory.
     #
@@ -258,8 +262,8 @@ function Invoke-ScoutDiagnosticOperation {
     }
     catch {
         & $writeHeld
-        Write-AZSCLog -Level ERROR -Message $_.Exception.Message -FileOnly
-        if ($_.ErrorDetails) { Write-AZSCLog -Level ERROR -Message $_.ErrorDetails.Message -FileOnly }
+        Write-AZSCLog -Level $FailureLevel -Message $_.Exception.Message -FileOnly
+        if ($_.ErrorDetails -and $_.ErrorDetails.Message) { Write-AZSCLog -Level $FailureLevel -Message $_.ErrorDetails.Message -FileOnly }
         throw
     }
 }

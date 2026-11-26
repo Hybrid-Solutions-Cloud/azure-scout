@@ -64,7 +64,7 @@ Describe 'AB#6820 -- avs.workload.yaml and caf.avslandingzone.yaml load and gate
     It 'both load through Get-RuleSet with the frameworkversion the gate requires' {
         $set = Get-RuleSet -Patterns @('avs.workload', 'caf.avslandingzone')
         $set.Count | Should -Be 2
-        ($set | Where-Object Framework -eq 'AVS').Rules.Count | Should -Be 26
+        ($set | Where-Object Framework -eq 'AVS').Rules.Count | Should -Be 27
         ($set | Where-Object Framework -eq 'CAF').Rules.Count | Should -Be 25
         $set | ForEach-Object { $_.FrameworkVersion | Should -Not -BeNullOrEmpty }
     }
@@ -74,7 +74,7 @@ Describe 'AB#6820 -- avs.workload.yaml and caf.avslandingzone.yaml load and gate
         $collect = New-EmptyCollect
         $findings = Invoke-Assessment -Collect $collect -RuleSet $set -Assessment 'Workload: AVS'
 
-        $findings.Count | Should -Be (26 + 25)
+        $findings.Count | Should -Be (27 + 25)
         ($findings | Where-Object Status -ne 'Unknown') | Should -BeNullOrEmpty -Because 'requires: gates the whole set when compute.privateClouds[*] returns zero rows'
         ($findings | Select-Object -First 1).Remediation | Should -Match 'Not assessed'
     }
@@ -87,8 +87,10 @@ Describe 'AB#6820 -- avs.workload.yaml and caf.avslandingzone.yaml load and gate
                 id = '/subscriptions/s1/resourceGroups/rg1/providers/Microsoft.AVS/privateClouds/pc1'
                 name = 'pc1'; resourceGroup = 'rg1'; subscriptionId = 's1'; sku = 'av36'
                 availabilityStrategy = 'None'; availabilityZone = $null; clusterSize = 3
-                expressRouteCircuitId = $null; encryptionStatus = 'Disabled'; internet = 'Disabled'
+                expressRouteCircuitId = ''; encryptionStatus = 'Disabled'; internet = 'Disabled'
                 identitySourceCount = 0; externalCloudLinkCount = 0
+                # AB#9300, 3.18.19 -- the extended fields AVS-C5 and WAF-AVS-SEC-05 read.
+                virtualNetworkIdSet = $false; encryptionKeyState = ''
             }
         )
         $findings = Invoke-Assessment -Collect $collect -RuleSet $set -Assessment 'Workload: AVS'
@@ -125,13 +127,18 @@ Describe 'AB#6821 -- casa.security.yaml loads and scores real collected data' {
         @($set[0].Requires).Count | Should -Be 0
     }
 
-    It 'has no rule that needs the contents of a Key Vault (CASA-CO-01 and WAF-AVS-SEC-05 were removed)' {
+    It 'has no rule that needs the contents of a Key Vault (CASA-CO-01 was removed; WAF-AVS-SEC-05 reads the private cloud, not a vault)' {
         $casa = Get-RuleSet -Patterns @('casa.*')
         $avs = Get-RuleSet -Patterns @('avs.workload*')
         @($casa[0].Rules.Id).Count | Should -BeGreaterThan 0 -Because 'the guard below must be looking at real rules'
         @($avs[0].Rules.Id).Count | Should -BeGreaterThan 0 -Because 'the guard below must be looking at real rules'
         @($casa[0].Rules.Id) | Should -Not -Contain 'CASA-CO-01'
-        @($avs[0].Rules.Id) | Should -Not -Contain 'WAF-AVS-SEC-05'
+        # WAF-AVS-SEC-05 (vSAN datastores use a customer-managed key) was dropped as "needs the keys inside
+        # a Key Vault". AB#9300, 3.18.19 restored it, because the answer is on the private cloud itself:
+        # properties.encryption.status and keyVaultProperties.keyState. It must keep reading only that.
+        @($avs[0].Rules.Id) | Should -Contain 'WAF-AVS-SEC-05'
+        $cmk = @($avs[0].Rules | Where-Object Id -eq 'WAF-AVS-SEC-05')[0]
+        [string]$cmk.Query | Should -Match 'compute\.privateClouds'
         foreach ($rule in @($casa[0].Rules) + @($avs[0].Rules)) {
             [string]$rule.Query | Should -Not -Match 'keyVault(Keys|Secrets)'
         }
@@ -173,11 +180,15 @@ Describe 'AB#6820 -- compute.privateClouds: the typed-query and inventory-shapin
                     availability = [pscustomobject]@{ strategy = 'DualZone'; zone = 2 }
                     managementCluster = [pscustomobject]@{ clusterSize = 6 }
                     circuit = [pscustomobject]@{ expressRouteID = '/subscriptions/s1/.../expressRouteCircuits/er1' }
-                    encryption = [pscustomobject]@{ status = 'Enabled' }
+                    encryption = [pscustomobject]@{ status = 'Enabled'; keyVaultProperties = [pscustomobject]@{ keyState = 'Connected' } }
                     internet = 'Disabled'
                     identitySources = @(@{ name = 'ad1' })
                     externalCloudLinks = @()
+                    secondaryCircuit = [pscustomobject]@{ expressRouteID = '/subscriptions/s1/.../expressRouteCircuits/er2' }
+                    provisioningState = 'Succeeded'
+                    virtualNetworkId = '/subscriptions/s1/.../virtualNetworks/vnet1'
                 }
+                identity = [pscustomobject]@{ type = 'SystemAssigned' }
             }
         )
         $result = ConvertFrom-ScoutInventory -Resources $resources -ResourceContainers @()
@@ -191,6 +202,13 @@ Describe 'AB#6820 -- compute.privateClouds: the typed-query and inventory-shapin
         $pc.encryptionStatus | Should -Be 'Enabled'
         $pc.identitySourceCount | Should -Be 1
         $pc.externalCloudLinkCount | Should -Be 0
+        # AB#9300, 3.18.19 -- the extended fields (the full column-for-column parity check against the
+        # typed KQL is in Collect.AvsChildResources.Tests.ps1).
+        $pc.encryptionKeyState | Should -Be 'Connected'
+        $pc.secondaryCircuitPresent | Should -BeTrue
+        $pc.virtualNetworkIdSet | Should -BeTrue
+        $pc.provisioningState | Should -Be 'Succeeded'
+        $pc.identityType | Should -Be 'SystemAssigned'
     }
 
     It 'reports clusterSize as null, not zero, when the property is absent (matches the KQL toint(null) semantics elsewhere in this file)' {
@@ -260,14 +278,23 @@ param([Parameter(ValueFromRemainingArguments)] $Rest); return @() }
         # basic-auth policies, Event Hubs geo-DR, Redis Enterprise databases). None of them reads a
         # Key Vault, and each keeps only an allow-list of scalar settings (never a key, app setting,
         # connection string or partner id) -- see Collect.Phase4Batch2.Tests.ps1. The list is pinned
-        # in full so a ninth dataset cannot join the assessment sweep unreviewed.
+        # in full so a ninth dataset cannot join the assessment sweep unreviewed. AB#9300, 3.18.19 added
+        # thirteen more for the CHILDREN of Azure VMware Solution private clouds (clusters, datastores,
+        # add-ons, Global Reach, the NSX workload network, maintenances ...): ARM control-plane lists
+        # under a private cloud, read with an allow-list, never a Key Vault. AB#9300 (depth wiring) added
+        # StorageLifecyclePolicies: one GET per blob-capable storage account for the management policy
+        # (a 404 means none), reduced to rule counts -- a storage account's policy, never a Key Vault.
         $script:capturedIncludeArmChild | Should -Be $true
         @($script:capturedArmChildDataset) | Should -Be @(
             'ResourceDiagnosticSettings'
-            'StorageBlobServiceProperties', 'StorageFileServiceProperties'
+            'StorageBlobServiceProperties', 'StorageFileServiceProperties', 'StorageLifecyclePolicies'
             'SqlServerAuditing', 'SqlFailoverGroups'
             'WebAppConfig', 'WebAppBasicAuth'
             'EventHubGeoDr', 'RedisEnterpriseDatabases'
+            'AvsClusters', 'AvsDatastores', 'AvsPlacementPolicies', 'AvsAddons'
+            'AvsGlobalReachConnections', 'AvsAuthorizations', 'AvsCloudLinks'
+            'AvsSegments', 'AvsDhcpConfigurations', 'AvsDnsServices', 'AvsGateways'
+            'AvsIscsiPaths', 'AvsMaintenances'
         )
         @($script:capturedArmChildDataset) | Should -Not -Contain 'KeyVaultSecrets'
         @($script:capturedArmChildDataset) | Should -Not -Contain 'KeyVaultKeys'

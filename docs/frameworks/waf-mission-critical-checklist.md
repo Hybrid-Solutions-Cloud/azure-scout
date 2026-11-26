@@ -124,7 +124,7 @@ necessary-but-not-sufficient signals and say so in their remediation text.
 | WAF-MC-HM-07 | Enabled metric alert rules are wired to an action group | ✅ `actionGroupCount` | OPS · Application operations (critical alerts and audiences) |
 | WAF-MC-HM-08 | Alert rules exist for the workload | ✅ enabled metric or log search alert exists | HM · Set actionable alerts |
 | WAF-MC-HM-09 | An enabled action group exists to route alerts | ✅ enabled action group exists | OPS · Application operations (critical alerts and audiences) |
-| WAF-MC-HM-10 | Service Health alerts cover the services and regions in use | ❌ Manual — activity-log alert rules attached | AD · Resiliency patterns and error handling (Azure Service Health) |
+| WAF-MC-HM-10 | Service Health alerts cover the services and regions in use | ✅ an enabled alert with the Service Health `category`; which services and regions it covers is not read | AD · Resiliency patterns and error handling (Azure Service Health) |
 | WAF-MC-HM-11 | Data collection rules deliver host and container telemetry to Log Analytics | ✅ rule with a Log Analytics destination exists | AP · Containerization (monitoring); HM · Use platform metrics and logs |
 | WAF-MC-HM-12 | Alerts are tuned so only actionable ones reach operators | ❌ Manual | OPS · Application operations; HM · Set actionable alerts |
 
@@ -183,11 +183,11 @@ necessary-but-not-sufficient signals and say so in their remediation text.
 | Application platform | 8 | 4 | 4 |
 | Data platform | 9 | 4 | 5 |
 | Networking and connectivity | 14 | 10 | 4 |
-| Health modeling and observability | 12 | 8 | 4 |
+| Health modeling and observability | 12 | 9 | 3 |
 | Deployment and testing | 9 | 2 | 7 |
 | Security | 13 | 7 | 6 |
 | Operational procedures | 10 | 5 | 5 |
-| **Total** | **81** | **41** | **40** |
+| **Total** | **81** | **42** | **39** |
 
 Where an item says "attached", Scout carries the matching resources as evidence on the Manual
 finding but does not score them.

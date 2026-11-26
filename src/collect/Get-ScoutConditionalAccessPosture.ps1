@@ -360,7 +360,7 @@ function Get-ScoutConditionalAccessPosture {
         $defaultsPolicy = $null
         if ($defaultsSlice.Answered -and @($defaultsSlice.Rows).Count -gt 0) { $defaultsPolicy = @($defaultsSlice.Rows)[0] }
         elseif (-not $SkipGraph) {
-            try { $defaultsPolicy = Invoke-AZSCGraphRequest -Uri '/v1.0/policies/identitySecurityDefaultsEnforcementPolicy' -TenantID $TenantID -RequiredScopes @('Policy.Read.All') -SinglePage -SuppressFailureWarning }
+            try { $defaultsPolicy = Invoke-AZSCGraphRequest -Uri '/v1.0/policies/identitySecurityDefaultsEnforcementPolicy' -TenantID $TenantID -RequiredScopes @('Policy.Read.All') -SinglePage -SuppressFailureWarning -OptionalRead }
             catch { Write-Verbose "Get-ScoutConditionalAccessPosture: Security Defaults state was not read: $($_.Exception.Message)" }
         }
         $isEnabled = Get-ScoutCaValue $defaultsPolicy @('isEnabled')

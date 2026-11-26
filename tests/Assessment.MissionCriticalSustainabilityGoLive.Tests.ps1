@@ -12,9 +12,9 @@
 
 BeforeDiscovery {
     $script:Reviews = @(
-        @{ Name = 'Mission Critical'; Pattern = 'waf.missioncritical'; Assessment = 'WAF: Mission Critical'; Prefix = 'WAF-MC'; Framework = 'WAF-MC'; Doc = 'waf-mission-critical-checklist.md'; Total = 81; Auto = 41; Manual = 40 }
-        @{ Name = 'Sustainability'; Pattern = 'waf.sustainability'; Assessment = 'WAF: Sustainability'; Prefix = 'WAF-SUS'; Framework = 'WAF-SUS'; Doc = 'waf-sustainability-checklist.md'; Total = 67; Auto = 20; Manual = 47 }
-        @{ Name = 'Go-Live'; Pattern = 'waf.golive'; Assessment = 'WAF: Go-Live'; Prefix = 'WAF-GOLIVE'; Framework = 'WAF-GOLIVE'; Doc = 'waf-go-live-checklist.md'; Total = 57; Auto = 35; Manual = 22 }
+        @{ Name = 'Mission Critical'; Pattern = 'waf.missioncritical'; Assessment = 'WAF: Mission Critical'; Prefix = 'WAF-MC'; Framework = 'WAF-MC'; Doc = 'waf-mission-critical-checklist.md'; Total = 81; Auto = 42; Manual = 39 }
+        @{ Name = 'Sustainability'; Pattern = 'waf.sustainability'; Assessment = 'WAF: Sustainability'; Prefix = 'WAF-SUS'; Framework = 'WAF-SUS'; Doc = 'waf-sustainability-checklist.md'; Total = 67; Auto = 21; Manual = 46 }
+        @{ Name = 'Go-Live'; Pattern = 'waf.golive'; Assessment = 'WAF: Go-Live'; Prefix = 'WAF-GOLIVE'; Framework = 'WAF-GOLIVE'; Doc = 'waf-go-live-checklist.md'; Total = 57; Auto = 36; Manual = 21 }
     )
 }
 
@@ -73,6 +73,7 @@ BeforeAll {
             security      = [ordered]@{
                 wafPolicies   = @([ordered]@{ id = 'waf1'; mode = (& $G 'Prevention' 'Detection'); enabledState = 'Enabled' })
                 defenderPlans = @([ordered]@{ name = 'VirtualMachines'; properties = [ordered]@{ pricingTier = (& $G 'Standard' 'Free') } })
+                defenderSecureScores = @([ordered]@{ SubscriptionId = (& $G '00000000-0000-0000-0000-000000000001' '00000000-0000-0000-0000-000000000099'); Percentage = 0.5 })
             }
             management    = [ordered]@{
                 logAnalyticsWorkspaces      = @(if ($Good) { [ordered]@{ name = 'law'; retentionInDays = 30 }; [ordered]@{ name = 'law-long'; retentionInDays = 180 } })
@@ -89,7 +90,7 @@ BeforeAll {
                 metricAlertRules             = @([ordered]@{ id = 'ma1'; enabled = $true; actionGroupCount = (& $G 1 0) })
                 scheduledQueryRules          = @()
                 actionGroups                 = @(if ($Good) { [ordered]@{ id = 'ag1'; enabled = $true; emailReceiverCount = 1 } })
-                activityLogAlertRules        = @([ordered]@{ id = 'al1'; enabled = $true })
+                activityLogAlertRules        = @([ordered]@{ id = 'al1'; enabled = $true; category = (& $G 'ServiceHealth' 'Administrative') })
                 dataCollectionRules          = @(if ($Good) { [ordered]@{ id = 'dcr1'; hasLogAnalyticsDestination = $true; dataFlowCount = 1 } })
                 autoscaleSettings            = @([ordered]@{ id = 'as1'; enabled = $Good; targetResourceUri = (& $G $plan "$p/Microsoft.Web/serverfarms/none") })
             }
@@ -134,6 +135,8 @@ BeforeAll {
                         if ($Good) { [ordered]@{ id = "$p/Microsoft.Compute/disks/disk2"; name = 'disk2'; location = 'westus' } }
                     )
                     snapshots       = @([ordered]@{ id = 'snap1'; name = 'snap1'; sourceDiskId = (& $G $disk "$p/Microsoft.Compute/disks/deleted") })
+                    lifecyclePoliciesMeasured = $true
+                    lifecyclePolicies = @([ordered]@{ storageAccountId = 'st1'; premium = $false; policyPresent = $Good; enabledRuleCount = (& $G 2 0); tieringRuleCount = (& $G 1 0); deleteRuleCount = (& $G 1 0) })
                 }
                 databases  = [ordered]@{
                     sqlDatabases              = @(
@@ -188,7 +191,7 @@ BeforeAll {
             subscriptions    = @()
             compute          = [ordered]@{ virtualMachines = @() }
             networking       = [ordered]@{ frontDoors = @(); cdnProfiles = @(); trafficManagerProfiles = @(); applicationGateways = @(); loadBalancers = @(); natGateways = @(); virtualNetworks = @(); nsgPublicInbound = @(); bastionHosts = @(); azureFirewalls = @() }
-            security         = [ordered]@{ wafPolicies = @(); defenderPlans = @() }
+            security         = [ordered]@{ wafPolicies = @(); defenderPlans = @(); defenderSecureScores = @() }
             management       = [ordered]@{ logAnalyticsWorkspaces = @(); backupProtectedItems = @(); recoveryVaultBackupPolicies = @() }
             opsPosture       = [ordered]@{ diagnosticCoverage = @(); diagnosticCoverageMeasured = $false }
             monitor          = [ordered]@{ appInsights = @(); appInsightsAvailabilityTests = @(); metricAlertRules = @(); scheduledQueryRules = @(); actionGroups = @(); activityLogAlertRules = @(); dataCollectionRules = @(); autoscaleSettings = @() }
@@ -199,7 +202,7 @@ BeforeAll {
             finops           = [ordered]@{ reservations = @() }
             devops           = [ordered]@{ loadTesting = @(); chaosExperiments = @(); managedPools = @() }
             domains          = [ordered]@{
-                storage     = [ordered]@{ storageAccounts = @(); managedDisks = @(); snapshots = @() }
+                storage     = [ordered]@{ storageAccounts = @(); managedDisks = @(); snapshots = @(); lifecyclePolicies = @(); lifecyclePoliciesMeasured = $false }
                 databases   = [ordered]@{ sqlDatabases = @(); sqlServers = @(); sqlDefenderPricing = @(); cosmosDbAccounts = @(); postgreSqlFlexibleServers = @(); redisCaches = @() }
                 web         = [ordered]@{ webApps = @(); webAppDeploymentSlots = @(); appServicePlans = @() }
                 containers  = [ordered]@{ aksClusters = @(); containerRegistries = @(); containerApps = @() }

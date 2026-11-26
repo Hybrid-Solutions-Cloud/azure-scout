@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.18.19] - 2026-11-26 - deeper collection: AVS sub-resources and more checks scored from data
+
+### Added
+
+- `domains.avs`: 13 Azure VMware Solution sub-resource datasets read per private cloud at api-version 2025-09-01
+  (clusters, datastores, placementPolicies, maintenances, addons, globalReachConnections, authorizations, cloudLinks,
+  segments, dhcpConfigurations, dnsServices, gateways, iscsiPaths), each with a `Measured` flag. Zero requests when
+  no private cloud exists. Passwords, licence and authorization keys, peer circuit ids, IP ranges and host names are
+  never kept. The swept children are listed in discovery under their real resource types.
+- Private cloud fields: secondary zone, secondary circuit, encryption key state, DNS zone type, identity type, and more.
+- `microsoft.avs/privateclouds` is a diagnostic-settings parent (VMware syslog forwarding).
+- Storage lifecycle policies are read on the assessment path (`lifecyclePolicies`).
+
+### Changed
+
+- AVS checks scored from data: WAF-AVS-RE-05 (minimum hosts on every cluster, stretched-aware), WAF-AVS-SEC-05
+  (encryption state, restored), WAF-AVS-SEC-07 (syslog diagnostic coverage), AVS-E2 (SRM add-on), AVS-C5 (accepts
+  Gen 2 private clouds). Three more attach evidence.
+- Scored from data instead of manual: CAF-RES-04, CAF-CON-07, WAF-CO-07, WAF-DATA-BLOB-13, WAF-SUS-CO-09,
+  WAF-DATA-PG-09, WAF-ANALYTICS-RE-10, WAF-GOLIVE-SE-01, WAF-MC-HM-10, WAF-SVC-ACA-09, WAF-SVC-ACA-11,
+  WAF-SVC-AKS-13, WAF-SVC-APIM-09, WAF-SVC-APPI-05, WAF-SVC-FW-06, WAF-SVC-TM-04, WAF-SVC-VWAN-05.
+
+### Fixed
+
+- A handled failure of an optional Graph read (Security Defaults, HTTP 403) was written to the run log as ERROR
+  three times per tenant; it is now INFO.
+
 ## [3.18.18] - 2026-11-25 - Azure only, with Conditional Access and PIM scored from data
 
 ### Removed

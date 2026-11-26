@@ -16,7 +16,9 @@
 # data-protection settings, Redis Enterprise databases and the diagnostic-settings coverage of managed instances and
 # Redis, so SQL-02, SQL-11, MI-08, RED-06, RED-08 and BLOB-10 are automated too. Each of those reads has a sibling
 # <name>Measured flag, and the rule is gated on it (or on the type's coverage rows), so a run that never read the
-# setting reports Not assessed instead of a pass. What is still manual is what ARM does not carry on the parent
+# setting reports Not assessed instead of a pass. The depth wiring that followed projects PostgreSQL's custom maintenance
+# window (PG-09, from the server's own row) and reads each blob-capable storage account's lifecycle management policy
+# (BLOB-13, gated on lifecyclePoliciesMeasured). What is still manual is what ARM does not carry on the parent
 # resource: backup policies, data-plane configuration, client code and judgement about workload fit.
 #
 # Absent-means-bad: an ARG projection yields '' for a missing string and null for a missing boolean. Newtonsoft JSONPath
@@ -529,14 +531,16 @@ rules:
     assert: { type: countEquals, value: 0, gate: "$.opsPosture.diagnosticCoverage[?(@.type == 'microsoft.dbforpostgresql/flexibleservers')]" }
     remediation: "WAF-DATA-PG-08. Some servers have no diagnostic setting. Collect logs and metrics to detect problems early."
     manual: false
-  # servers attached with version and backupRetentionDays (the platform floor is 7, so no threshold is scored) [PG-OE-R]
+  # customMaintenanceWindow (AB#9300, depth wiring): Enabled when the owner chose the patching window, Disabled when the platform picks it. A server whose
+  # row does not say reads '' and is flagged too, because `!= 'Enabled'` is "no custom window". Backup retention (platform floor 7, so no threshold is
+  # scored) and the major version stay on the row as evidence [PG-OE-R]
   - id: WAF-DATA-PG-09
     title: "WAF-DATA-PG-09. Backups, maintenance windows and major-version currency are managed"
     severity: low
-    query: "$.domains.databases.postgreSqlFlexibleServers[*]"
-    assert: { type: manual }
-    remediation: "WAF-DATA-PG-09. Use Azure Backup with native backups, set custom maintenance windows and keep to supported major versions with pre-upgrade checks. Servers are attached with version and backup retention days; maintenance windows are not collected."
-    manual: true
+    query: "$.domains.databases.postgreSqlFlexibleServers[?(@.customMaintenanceWindow != 'Enabled')]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.databases.postgreSqlFlexibleServers[*]" }
+    remediation: "WAF-DATA-PG-09. The servers listed use the platform-chosen maintenance window, so patching can land at a busy time. Set a custom maintenance window (day and hour) outside business peaks. Backups are native and automatic (retention 7 to 35 days, shown on each server) and the supported major version is a moving target: confirm the version is still supported and a pre-upgrade check is planned by hand."
+    manual: false
 
   # ---- PG, Performance efficiency ----------------------------------------------------------
   # server parameters, not collected [PG-PE-R]
@@ -935,14 +939,16 @@ rules:
     manual: false
 
   # ---- BLOB, Cost optimization -------------------------------------------------------------
-  # lifecycle policies are not collected (proposed in the report); accounts attached [BLOB-CO]
+  # lifecyclePolicies (AB#9300, depth wiring): one row per blob-capable account whose management policy was read; tieringRuleCount counts the ENABLED rules that
+  # move blobs, versions or snapshots to Cool, Cold or Archive. A premium block blob account has no access tiers to move to, so it is not listed.
+  # Gated on the Measured flag so a run that never read the policies is Not assessed [BLOB-CO]
   - id: WAF-DATA-BLOB-13
     title: "WAF-DATA-BLOB-13. Access tiers and lifecycle management move cold data to cheaper tiers"
     severity: low
-    query: "$.domains.storage.storageAccounts[*]"
-    assert: { type: manual }
-    remediation: "WAF-DATA-BLOB-13. Use Hot, Cool, Cold and Archive tiers with lifecycle policies and review redundancy against need. Accounts are attached; lifecycle policies are not collected."
-    manual: true
+    query: "$.domains.storage.lifecyclePolicies[?(@.tieringRuleCount == 0 && @.premium == false)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.storage.lifecyclePoliciesMeasured" }
+    remediation: "WAF-DATA-BLOB-13. The accounts listed have no enabled lifecycle management rule that moves data to the Cool, Cold or Archive tier (either no policy at all, or a policy with no tiering rule). Add a rule that tiers blobs down after a period without modification or access, and review the redundancy level against need. An account whose policy could not be read is not listed."
+    manual: false
 
   # ---- BLOB, Performance efficiency --------------------------------------------------------
   # accounts attached with sku, kind and location [BLOB-PE]

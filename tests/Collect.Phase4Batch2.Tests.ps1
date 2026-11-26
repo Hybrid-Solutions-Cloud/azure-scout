@@ -53,7 +53,7 @@ BeforeAll {
         'SENTINEL-KEY-001', 'SENTINEL-SUBID-002', 'SENTINEL-STORAGE-003', 'SENTINEL-PARTNER-004',
         'SENTINEL-APPSETTING-005', 'SENTINEL-CONN-006', 'SENTINEL-PATH-007', 'SENTINEL-NAMESPACE-008',
         'SENTINEL-ALIAS-009', 'SENTINEL-NICK-010', 'SENTINEL-LINKED-011', 'SENTINEL-ARGS-012',
-        'SENTINEL-ORIGIN-013', 'SENTINEL-DOC-014'
+        'SENTINEL-ORIGIN-013', 'SENTINEL-DOC-014', 'SENTINEL-RULE-015', 'SENTINEL-PREFIX-016'
     )
 
     $script:Parents = @(
@@ -87,6 +87,16 @@ BeforeAll {
                         cors = @{ corsRules = @(@{ allowedOrigins = @('https://SENTINEL-ORIGIN-013') }) }
                         staticWebsite = @{ enabled = $true; indexDocument = 'SENTINEL-DOC-014' }
                     } }
+            }
+            # AB#9300 (depth wiring): the lifecycle management policy. Its rules carry a name and container prefixes
+            # (planted sentinels) next to the actions the collect reduces to counts.
+            '/managementPolicies/default$' {
+                return @{ id = $trimmed; name = 'default'; properties = @{ policy = @{ rules = @(
+                                @{ name = 'SENTINEL-RULE-015'; enabled = $true; type = 'Lifecycle'; definition = @{
+                                        actions = @{ baseBlob = @{ tierToCool = @{ daysAfterModificationGreaterThan = 30 }; delete = @{ daysAfterModificationGreaterThan = 365 } } }
+                                        filters = @{ blobTypes = @('blockBlob'); prefixMatch = @('SENTINEL-PREFIX-016/') } } }
+                                @{ name = 'off'; enabled = $false; type = 'Lifecycle'; definition = @{ actions = @{ baseBlob = @{ tierToArchive = @{ daysAfterModificationGreaterThan = 90 } } } } }
+                            ) } } }
             }
             '/fileServices/default$' {
                 return @{ id = $trimmed; name = 'default'; properties = @{
@@ -185,13 +195,18 @@ Describe 'Invoke-Collect -- per-resource ARM GET datasets (AB#9300 phase 4, batc
             $script:Json = $script:Collect | ConvertTo-Json -Depth 20
         }
 
-        It 'asks the assessment collect for all eight datasets alongside the diagnostic sweep' {
+        It 'asks the assessment collect for all eight datasets alongside the diagnostic sweep and the storage lifecycle policies, then the thirteen Azure VMware Solution ones' {
             @($script:CapturedArmChildDataset) | Should -Be @(
                 'ResourceDiagnosticSettings'
-                'StorageBlobServiceProperties', 'StorageFileServiceProperties'
+                'StorageBlobServiceProperties', 'StorageFileServiceProperties', 'StorageLifecyclePolicies'
                 'SqlServerAuditing', 'SqlFailoverGroups'
                 'WebAppConfig', 'WebAppBasicAuth'
                 'EventHubGeoDr', 'RedisEnterpriseDatabases'
+                # AB#9300, 3.18.19 -- see Collect.AvsChildResources.Tests.ps1.
+                'AvsClusters', 'AvsDatastores', 'AvsPlacementPolicies', 'AvsAddons'
+                'AvsGlobalReachConnections', 'AvsAuthorizations', 'AvsCloudLinks'
+                'AvsSegments', 'AvsDhcpConfigurations', 'AvsDnsServices', 'AvsGateways'
+                'AvsIscsiPaths', 'AvsMaintenances'
             )
         }
 
@@ -201,6 +216,13 @@ Describe 'Invoke-Collect -- per-resource ARM GET datasets (AB#9300 phase 4, batc
             $storage.blobServiceProperties[0].deleteRetentionEnabled | Should -BeTrue
             $storage.blobServiceProperties[0].versioningEnabled | Should -BeTrue
             $storage.fileServiceProperties[0].smbVersions | Should -BeExactly 'SMB3.1.1'
+            # AB#9300 (depth wiring): counts of the lifecycle rules, never a rule name or a prefix.
+            $storage.lifecyclePolicies[0].storageAccountId | Should -BeExactly '/subscriptions/sub1/resourcegroups/rg1/providers/microsoft.storage/storageaccounts/stone'
+            $storage.lifecyclePolicies[0].policyPresent | Should -BeTrue
+            $storage.lifecyclePolicies[0].ruleCount | Should -Be 2
+            $storage.lifecyclePolicies[0].enabledRuleCount | Should -Be 1
+            $storage.lifecyclePolicies[0].tieringRuleCount | Should -Be 1
+            $storage.lifecyclePolicies[0].deleteRuleCount | Should -Be 1
 
             $databases = $script:Collect.domains.databases
             $databases.sqlServerAuditing[0].auditingState | Should -BeExactly 'Enabled'
@@ -222,6 +244,7 @@ Describe 'Invoke-Collect -- per-resource ARM GET datasets (AB#9300 phase 4, batc
         It 'sets every Measured flag, in the same domain as its dataset' {
             $script:Collect.domains.storage.blobServicePropertiesMeasured | Should -BeTrue
             $script:Collect.domains.storage.fileServicePropertiesMeasured | Should -BeTrue
+            $script:Collect.domains.storage.lifecyclePoliciesMeasured | Should -BeTrue
             $script:Collect.domains.databases.sqlServerAuditingMeasured | Should -BeTrue
             $script:Collect.domains.databases.sqlFailoverGroupsMeasured | Should -BeTrue
             $script:Collect.domains.databases.redisEnterpriseDatabasesMeasured | Should -BeTrue
@@ -254,7 +277,7 @@ Describe 'Invoke-Collect -- per-resource ARM GET datasets (AB#9300 phase 4, batc
         It 'leaves every dataset empty and every Measured flag false, so a rule reports NotAssessed instead of passing' {
             $domains = $script:Denied.domains
             foreach ($pair in @(
-                    @($domains.storage, 'blobServiceProperties'), @($domains.storage, 'fileServiceProperties'),
+                    @($domains.storage, 'blobServiceProperties'), @($domains.storage, 'fileServiceProperties'), @($domains.storage, 'lifecyclePolicies'),
                     @($domains.databases, 'sqlServerAuditing'), @($domains.databases, 'sqlFailoverGroups'),
                     @($domains.databases, 'redisEnterpriseDatabases'), @($domains.web, 'webAppConfig'),
                     @($domains.web, 'webAppBasicAuth'), @($domains.integration, 'eventHubGeoDr'))) {
@@ -275,6 +298,8 @@ Describe 'Invoke-Collect -- per-resource ARM GET datasets (AB#9300 phase 4, batc
             $domains = $script:Typed.domains
             @($domains.storage.blobServiceProperties).Count | Should -Be 0
             $domains.storage.blobServicePropertiesMeasured | Should -BeFalse
+            @($domains.storage.lifecyclePolicies).Count | Should -Be 0
+            $domains.storage.lifecyclePoliciesMeasured | Should -BeFalse
             @($domains.web.webAppBasicAuth).Count | Should -Be 0
             $domains.web.webAppBasicAuthMeasured | Should -BeFalse
             $domains.integration.eventHubGeoDrMeasured | Should -BeFalse

@@ -6,7 +6,7 @@
 #
 # Written ONLY against docs/frameworks/waf-mission-critical-checklist.md. Microsoft does not publish
 # the assessment's question text, so every item is Scout's reading of the live design-area guidance
-# named per row. 81 items: 41 automated, 40 manual.
+# named per row. 81 items: 42 automated, 39 manual.
 #
 # Scout scans an estate, not one workload: an automated rule reports every resource of its type in
 # scope. Each automated rule is gated on its data being present, so an estate without the resource
@@ -358,10 +358,13 @@ rules:
   - id: WAF-MC-HM-10
     title: "WAF-MC-HM-10. Service Health alerts cover the services and regions in use"
     severity: medium
-    query: "$.monitor.activityLogAlertRules[*]"
-    assert: { type: manual }
-    remediation: "WAF-MC-HM-10. Confirm Azure Service Health alerts cover every service and region the workload depends on. Activity-log alert rules are attached; their category is not yet collected."
-    manual: true
+    # AB#9300, depth wiring: an activity-log alert rule's category IS collected now (the `category` condition of the rule),
+    # so the rule checks that at least one ENABLED Service Health alert exists. Which services, regions and incident
+    # types it covers sits inside the alert's condition and is not read, so coverage stays a manual confirmation.
+    query: "$.monitor.activityLogAlertRules[?(@.category == 'ServiceHealth' && @.enabled == true)]"
+    assert: { type: exists, gate: "$.subscriptions[*]" }
+    remediation: "WAF-MC-HM-10. No enabled Azure Service Health alert was found in scope. Create an activity-log alert for the Service Health category, with an action group, so a platform incident or planned maintenance reaches the team. Finding one does not show it covers every service and region the workload depends on: confirm the alert's services, regions and event types by hand."
+    manual: false
   - id: WAF-MC-HM-11
     title: "WAF-MC-HM-11. Data collection rules deliver host and container telemetry to Log Analytics"
     severity: medium
