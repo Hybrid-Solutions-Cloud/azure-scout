@@ -90,7 +90,11 @@ function Import-ScoutDevOpsCapability {
         $devopsResources = @($FromInventory | Where-Object {
                 $_ -and $_.PSObject.Properties['type'] -and [string]$_.type -like 'devops/*'
             })
-        $attempted = $true
+        # The inventory pass hands over EVERY resource it collected, not only Azure DevOps ones, and it
+        # reads Azure DevOps only under -IncludeDevOps. "There were rows" therefore says nothing about
+        # whether DevOps was attempted: a combined run without the switch reported attempted = $true
+        # (an assessment-only run of the same estate reported $false). Attempted means it was requested.
+        $attempted = $IncludeDevOps.IsPresent
         Write-Verbose "Import-ScoutDevOpsCapability: reusing $($devopsResources.Count) Azure DevOps resource(s) from the inventory pass -- no Azure DevOps call made."
     }
     elseif ($IncludeDevOps.IsPresent) {

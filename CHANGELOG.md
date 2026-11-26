@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.18.21] - 2026-11-26 - assessment-only runs collect the same data as combined runs
+
+### Fixed
+
+- **False Pass in assessment-only runs (#102).** An assessment-only run read Azure Advisor through the
+  per-subscription fallback, got a narrower set (no Security or Performance recommendations) and still set
+  `advisorAvailable` true, so ADVISOR-OE-01, ADVISOR-PE-02, ADVISOR-SE-01, ADVISOR-SE-02, WAF-GOLIVE-OE-10,
+  WAF-GOLIVE-SE-15, WAF-PE-07, WAF-SE-02 and WAF-SE-04 reported Pass. It now reads `advisorresources` from
+  Resource Graph like a combined run; the fallback always sets `advisorAvailable` false, so dependent checks
+  read NotAssessed.
+- Assessment-only now also collects `management.advisorScores`, `management.lighthouseDelegations` and
+  `compute.avdSessionHosts`, which it silently left empty.
+- **Assessment-only output location (#103).** It ignored `-RunName` and wrote to `.\output` in the current
+  directory. All three run modes now write under the same root and honour `-RunName` and `-ReportDir`; drift
+  history moves to `<root>\.scout-history`.
+- Completeness flags that claimed more than was read: `discovery.Status` (Partial for an assessment-only index),
+  `opsPosture.diagnosticCoverageMeasured` (needs an answered read), `finops.available` and `devops.attempted`.
+- A single Entra row was serialised as an object instead of an array.
+
+### Added
+
+- `tests/Collect.ModeParity.Tests.ps1`: drives the assessment-only and combined paths against the same mocked
+  Azure responses and fails when their datasets or flags differ outside a short justified allow-list.
+
+### Changed
+
+- An assessment-only run makes up to three more Resource Graph queries and one Advisor-score read per subscription.
+
 ## [3.18.20] - 2026-11-26 - deeper collection: Front Door, SQL, Azure Local, messaging, App Service, API Management
 
 ### Added

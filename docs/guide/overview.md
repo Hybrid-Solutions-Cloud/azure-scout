@@ -109,8 +109,10 @@ That still works, but it pays for two collections against Azure instead of one.
 The inventory pass already fetches the full property bag for every resource, and the
 assessment shapes its scores from those rows instead of re-querying the same resource types.
 Exactly one Resource Graph query still runs in a combined pass — the Defender for SQL pricing
-lookup, which reads a table the inventory does not collect. An assessment-only run is
-unchanged and still issues the full query pack.
+lookup, which reads a table the inventory does not collect. An assessment-only run reads its own
+Resource Graph tables and the ARM calls its datasets need; the datasets it produces are the same as a
+combined run's, apart from the Entra inventory and the full discovery index, which only the inventory
+pass collects.
 :::
 
 ## Requirements

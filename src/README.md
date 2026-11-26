@@ -41,7 +41,7 @@ Invoke-AzureScout -Assessment All -OutputFormat All
 
 # Collect once, assess later (no re-scan)
 Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -CollectOnly
-Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -FromCollect ./output/<run>/collect.json -OutputFormat PowerBi
+Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -FromCollect '<base>/<run>/assessment-report/collect.json' -OutputFormat PowerBi
 
 # Pre-flight permission check
 Invoke-AzureScout -Assessment All -PermissionAudit

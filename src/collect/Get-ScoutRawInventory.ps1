@@ -330,6 +330,11 @@ function Get-ScoutRawInventory {
         [switch]   $IncludeDesktopVirtualization,
         [switch]   $IncludeUpdateManagerResources,
         [switch]   $IncludeAdvisories,
+        # Issue #102. Appends the ARM REST sweep's Advisor score rows (`microsoft.advisor/advisorscore`)
+        # to `Resources`, the way a combined run's inventory orchestration appends them. Set by the
+        # assessment collect, whose raw pass has no orchestration after it; the inventory path leaves
+        # it off because the orchestration appends the same rows and they would be listed twice.
+        [switch]   $IncludeAdvisorScore,
         [switch]   $IncludeSecurityCenter,
         [switch]   $IncludeTags,
         [switch]   $IncludeRetirements,
@@ -1409,7 +1414,25 @@ function Get-ScoutRawInventory {
             if ((Get-Command Get-ScoutApiResources).Parameters.ContainsKey('SkipManagedIdentities')) {
                 $apiArgs.SkipManagedIdentities = $true
             }
+            if ($IncludeAdvisorScore -and (Get-Command Get-ScoutApiResources).Parameters.ContainsKey('IncludeAdvisorScore')) {
+                $apiArgs.IncludeAdvisorScore = $true
+            }
             $collectedApiResources = @(Get-ScoutApiResources @apiArgs)
+
+            # Issue #102 -- the Advisor score rows, appended the same way the inventory orchestration
+            # appends them (`$Resources += ... 'AdvisorScore'`), so ConvertFrom-ScoutInventory shapes
+            # `management.advisorScores` from the same rows in both modes. Read element-wise: a
+            # subscription whose call failed or returned nothing carries $null, never a shape.
+            if ($IncludeAdvisorScore) {
+                foreach ($sweepResult in @($collectedApiResources)) {
+                    if ($null -eq $sweepResult) { continue }
+                    $scoreProperty = $sweepResult.PSObject.Properties['AdvisorScore']
+                    if ($null -eq $scoreProperty -or $null -eq $scoreProperty.Value) { continue }
+                    foreach ($scoreRow in @($scoreProperty.Value)) {
+                        if ($null -ne $scoreRow) { $resources.Add($scoreRow) }
+                    }
+                }
+            }
         }
         catch {
             $apiSweepStatus = 'Failed'

@@ -1015,7 +1015,14 @@ function Invoke-Collect {
         # Both are real, non-trivial Azure costs that only the 'WAF: Azure Local' assessment
         # should pay -- Invoke-ScoutAssessmentCore sets this only when that assessment (or
         # another declaring the same manifest flag) is selected.
-        [switch]   $IncludeAzureLocalArm
+        [switch]   $IncludeAzureLocalArm,
+
+        # Issue #102 -- opt-in, set by Invoke-ScoutAssessmentCore only when a chosen assessment
+        # declares the 'AdvisorScores' ingest. Adds one Resource Graph round-trip (`advisorresources`,
+        # Medium and High impact) to this function's own raw pass and attaches the result as
+        # `advisor` / `advisorAvailable`, shaped exactly as the combined run shapes the inventory
+        # pass's rows. Ignored with -FromInventory (the rows are already in that inventory).
+        [switch]   $IncludeAdvisories
     )
     if ($OfflineFromInventory -and -not $FromInventory) {
         throw '-OfflineFromInventory requires -FromInventory.'
@@ -3772,6 +3779,26 @@ resources
             # CAF-PA, DevOps, Platform Engineering) whether a resource group was deployed from a
             # template; without it those rules could never pass (AB#9300).
             $rawArgs.ResourceGraphDiscoveryTable = @('deploymentresources')
+            # ---- sources a combined run's inventory pass reads and this pass did not (issue #102) ----
+            # ConvertFrom-ScoutInventory ALWAYS emits every key it can shape, empty when its source
+            # rows are absent, and the copy loop below treats "the key exists" as "the dataset was
+            # collected" -- so the typed query for these four never ran and each came back as a clean
+            # empty array in assessment-only while the combined run returned rows. Each is now asked
+            # for explicitly, and only when a dataset that reads it is selected.
+            #   avdSessionHosts        -> desktopvirtualizationresources (the combined run reads it with
+            #                             -IncludeDesktopVirtualization; every AVD session-host rule
+            #                             reads Not assessed without it, even on an estate with hosts)
+            #   lighthouseDelegations  -> managedservicesresources (named discovery table)
+            #   advisorScores          -> Microsoft.Advisor/advisorScore, ARM REST, one GET per subscription
+            #                             (the combined run's orchestration reads it; ADVISOR-SC-01 and
+            #                             the Advisor score rules fail or pass on it)
+            #   advisor                -> advisorresources, see -IncludeAdvisories above
+            if ($selectedKeys -contains 'avdSessionHosts') { $rawArgs.IncludeDesktopVirtualization = $true }
+            if ($selectedKeys -contains 'lighthouseDelegations') {
+                $rawArgs.ResourceGraphDiscoveryTable = @($rawArgs.ResourceGraphDiscoveryTable) + @('managedservicesresources')
+            }
+            if ($selectedKeys -contains 'advisorScores') { $rawArgs.IncludeAdvisorScore = $true }
+            if ($IncludeAdvisories) { $rawArgs.IncludeAdvisories = $true }
             if ($IncludeAzureLocalArm) {
                 $rawArgs.ArmChildDataset = @($rawArgs.ArmChildDataset) + @('AzureLocalVirtualMachineInstances')
                 $rawArgs.TenantWideDefinitionsOnly = $false
@@ -4681,8 +4708,19 @@ resources
             $discovery = Get-ScoutResourceCompleteness -Resources @($rawInventory.Resources) `
                 -CollectionHealth @($rawCollectionHealth) -DiscoveryContext $DiscoveryContext
             $discoveryStatus = if (($discovery.Summary.Partial + $discovery.Summary.Unavailable) -gt 0) { 'Partial' } else { 'Complete' }
+            $discoveryReason = ''
+            # Issue #102 -- the index is only as wide as the pass that fed it. This function's OWN
+            # raw pass reads the tables its datasets need; it does not read every Resource Graph table
+            # (Get-ScoutResourceGraphDiscoveryTable), the Resource Manager cross-check, support
+            # tickets or the provider detail an inventory run adds, so on the same tenant the index
+            # listed 521 resources where the combined run's listed 3,114 -- and called itself
+            # Complete. Say what it is. (A pass handed in with -FromInventory keeps its own verdict.)
+            if (-not $FromInventory) {
+                $discoveryStatus = 'Partial'
+                $discoveryReason = 'This assessment-only collect read the Resource Graph tables and ARM sweeps its datasets need. It did not read every Resource Graph table or run the Resource Manager cross-check that an inventory run does, so resources outside those sources are not listed. Run an inventory (or -InventoryAndAssessment) for the full discovery index.'
+            }
             $discovery | Add-Member -NotePropertyName Status -NotePropertyValue $discoveryStatus -Force
-            $discovery | Add-Member -NotePropertyName StatusReason -NotePropertyValue '' -Force
+            $discovery | Add-Member -NotePropertyName StatusReason -NotePropertyValue $discoveryReason -Force
         }
         catch {
             if ($discovery.PSObject.Properties['StatusReason']) {
@@ -5207,6 +5245,25 @@ resources
             generatedOn = (Get-Date).ToString('o'); scope = $Scope
             categories = $Categories; managementGroupId = $ManagementGroupId
             collectionHealth = @($rawCollectionHealth)
+        }
+    }
+
+    # ---- Advisor, from this function's own raw pass (issue #102) ----
+    # Attached only when the raw pass was asked for it AND answered completely. Any 'Advisories'
+    # health row means a batch of subscriptions did not answer, so the rows would be a partial set
+    # and the ingest falls back to its explicitly-incomplete source instead (Import-AdvisorScores:
+    # advisorAvailable stays $false, every Advisor-dependent rule reads Not assessed). An empty but
+    # complete answer is a complete answer: zero open recommendations is a finding, not a gap.
+    if ($IncludeAdvisories -and -not $FromInventory -and $rawInventory -and $rawInventory.PSObject.Properties['Advisories']) {
+        $advisorHealth = @($rawCollectionHealth | Where-Object {
+                $_.PSObject.Properties['Dataset'] -and [string]$_.Dataset -eq 'Advisories' -and
+                $_.PSObject.Properties['Status'] -and [string]$_.Status -in @('Unavailable', 'Failed')
+            })
+        if ($advisorHealth.Count -eq 0) {
+            if (-not (Get-Command Import-AdvisorScores -ErrorAction SilentlyContinue)) {
+                . (Join-Path (Split-Path $PSScriptRoot -Parent) 'ingest/Import-AdvisorScores.ps1')
+            }
+            $collect = Import-AdvisorScores -Collect $collect -FromInventory @($rawInventory.Advisories | Where-Object { $null -ne $_ })
         }
     }
     return $collect

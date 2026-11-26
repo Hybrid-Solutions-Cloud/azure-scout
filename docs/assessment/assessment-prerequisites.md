@@ -43,7 +43,7 @@ dependencies; install those only when you enable the corresponding feature.
 | `Az.ResourceGraph` | The Collect layer's Resource Graph queries | All | Yes |
 | `Az.Resources` | Role assignment reads (permission pre-flight) | All | Yes |
 | `powershell-yaml` | Parses the `caf.*`/`waf.*` rule YAML files (`Get-RuleSet`) | All scoring (any assessment with `Rules`) | Yes |
-| `Az.Advisor` | `Get-AzAdvisorRecommendation`, used by the `AdvisorScores` ingest | Assessments whose `Ingest` includes `AdvisorScores` (`CAF: Azure Landing Zone`, `Management`, `Security`, `Compute`, `Scout: Cost Optimization`) | Yes |
+| `Az.Advisor` | `Get-AzAdvisorRecommendation`, the last-resort fallback of the `AdvisorScores` ingest. Advisor recommendations normally come from the Resource Graph `advisorresources` table, the same source in every run mode; when only the fallback can answer, the Advisor-dependent findings read *Not assessed* | Assessments whose `Ingest` includes `AdvisorScores` (`CAF: Azure Landing Zone`, `Management`, `Security`, `Compute`, `Scout: Cost Optimization`) | Yes |
 | `ImportExcel` | Package dependency retained for the held Excel renderer and legacy workbook tests | No live output format | Yes |
 | `AzAPICall` | Dependency of the third-party Azure Governance Visualizer | Assessments whose `Ingest` includes `AzGovViz` | No — `Import-AzGovViz.ps1` installs it itself at first use (`Install-Module AzAPICall -Scope CurrentUser -Force`) if not already present |
 

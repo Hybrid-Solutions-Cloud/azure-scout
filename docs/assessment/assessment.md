@@ -359,7 +359,7 @@ here too.
 Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -CollectOnly
 
 # Re-run Assess + Report from that saved collect.json, no re-scan
-Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -FromCollect ./output/20260720_101500/collect.json -OutputFormat React,JsonEvidence
+Invoke-AzureScout -Assessment 'CAF: Azure Landing Zone' -FromCollect 'C:\AzureScout\2026-07-20_101500\assessment-report\collect.json' -OutputFormat React,JsonEvidence
 ```
 
 Useful for iterating on rule changes or re-rendering a different output tier

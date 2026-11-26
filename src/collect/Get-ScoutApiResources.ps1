@@ -99,7 +99,13 @@ function Get-ScoutApiResources {
         # Get-ScoutRawInventory already owns user-assigned identities through the Resource Graph
         # resources table. Its full inventory path sets this switch so the REST sweep does not
         # issue a duplicate request or return rows that would be appended twice.
-        [switch] $SkipManagedIdentities
+        [switch] $SkipManagedIdentities,
+        # Issue #102. -DefinitionsOnly skips the advisor score along with the other inventory-report
+        # inputs, but the Advisor score is not only a report input: `management.advisorScores` feeds
+        # ADVISOR-SC-01, and a combined run reads it while an assessment-only run did not, so the
+        # rule read Not assessed instead of Fail. This adds that one GET per subscription to a
+        # -DefinitionsOnly sweep. It has no effect without -DefinitionsOnly (the full sweep reads it).
+        [switch] $IncludeAdvisorScore
     )
 
     if ($DefinitionsOnly -and $SkipPolicy) {
@@ -364,6 +370,10 @@ function Get-ScoutApiResources {
             # wildcard covers `Microsoft.Edge/sites/read`; no new permission is required.
             $arcSites = Invoke-ScoutApiCall -FieldName 'ArcSites' -SubscriptionName $subName `
                 -Uri "$base/Microsoft.Edge/sites?api-version=2024-02-01-preview"
+        }
+        elseif ($IncludeAdvisorScore) {
+            $advisorScore = Invoke-ScoutApiCall -FieldName 'AdvisorScore' -SubscriptionName $subName `
+                -Uri "$base/Microsoft.Advisor/advisorScore?api-version=2023-01-01" -NotFoundIsEmpty
         }
 
         $policyAssignments   = $null
