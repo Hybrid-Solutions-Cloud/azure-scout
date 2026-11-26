@@ -87,7 +87,7 @@ Log Analytics workspaces now carry location, pricing tier, daily cap, public net
 | WAF-ANALYTICS-CO-04 | No Databricks workspace runs on the trial SKU | ✅ workspace sku (trial only; Standard versus Premium is judgement) | DBX-CO-R |
 | WAF-ANALYTICS-CO-05 | Databricks cost is monitored with system tables, Cost Management budgets and tags | ❌ Manual — budgets attached (estate-wide) | DBX-CO-R |
 | WAF-ANALYTICS-CO-06 | Delta tables are optimised and vacuumed on a schedule and data formats are efficient | ❌ Manual — data-plane maintenance | DBX-CO-R |
-| WAF-ANALYTICS-CO-07 | Event Hubs tier, throughput, auto-inflate maximum and retention suit the workload | ❌ Manual — namespaces attached with tier, capacity and auto-inflate ceiling; the workload and per-hub retention are not collected | EH-CO-R |
+| WAF-ANALYTICS-CO-07 | Event Hubs tier, throughput, auto-inflate maximum and retention suit the workload | ❌ Manual — with evidence: each event hub's retention and whether Capture is on (`domains.integration.eventHubEntities`), beside the namespaces' tier, capacity and auto-inflate ceiling; whether they suit the workload is not collected | EH-CO-R |
 | WAF-ANALYTICS-CO-08 | Event Hubs has budgets, policy limits and shutdown automation for non-production | ❌ Manual — budgets attached (estate-wide) | EH-CO-R |
 | WAF-ANALYTICS-CO-09 | Log Analytics uses a commitment tier or dedicated cluster where volume justifies it | ❌ Manual — workspaces attached with pricing tier and daily cap; ingestion volume is a metric, not collected | LA-CO-R |
 | WAF-ANALYTICS-CO-10 | Retention, archive, Basic logs and summary rules keep long-term log cost down | ❌ Manual — table plans are not collected | LA-CO-R |
@@ -120,7 +120,7 @@ Log Analytics workspaces now carry location, pricing tier, daily cap, public net
 | WAF-ANALYTICS-PE-01 | Databricks cluster types and autoscale bounds match the workload | ❌ Manual — cluster settings are data plane; workspaces attached | DBX-PE-R |
 | WAF-ANALYTICS-PE-02 | Delta tables are optimised, clustered and cached; Photon and adaptive query execution are on | ❌ Manual — data-plane configuration | DBX-PE-R |
 | WAF-ANALYTICS-PE-03 | Serverless SQL warehouses serve BI and interactive queries, and streaming triggers match latency needs | ❌ Manual — data-plane configuration | DBX-PE-R |
-| WAF-ANALYTICS-PE-04 | Event Hubs tier and partition count suit throughput and retention needs | ❌ Manual — namespaces attached with tier and capacity; throughput needs and per-hub partition counts are not collected | EH-PE-R |
+| WAF-ANALYTICS-PE-04 | Event Hubs tier and partition count suit throughput and retention needs | ❌ Manual — with evidence: each event hub's partition count (`domains.integration.eventHubEntities`) beside the namespaces' tier and capacity; throughput needs are not collected | EH-PE-R |
 | WAF-ANALYTICS-PE-05 | Standard namespaces have auto-inflate enabled | ✅ Standard tier with auto-inflate not on; Premium and Dedicated scaling is not collected | EH-PE-R |
 | WAF-ANALYTICS-PE-06 | Producers and consumers are tuned: batching, prefetch, connection reuse and consumer groups | ❌ Manual — client code, not ARM | EH-PE-R |
 | WAF-ANALYTICS-PE-07 | The Log Analytics workspace and its collection endpoints are deployed close to the workload | ❌ Manual — collection endpoints attached; workspace regions are on WAF-ANALYTICS-RE-10, the workload region is not collected | LA-PE-R |

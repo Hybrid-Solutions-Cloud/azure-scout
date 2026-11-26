@@ -1,5 +1,18 @@
 # Handoff
 
+## Session 2026-11-26 (continued) — sub-resource depth (3.18.20); tracking moves to GitHub
+
+3.18.19 released and five-tenant tested. 3.18.20: 26 ARM child datasets via a $DepthSpec table in
+Get-ScoutArmChildResource.ps1 (Front Door, SQL, Azure Local, Event Hubs/Service Bus, App Service auth, APIM), generic
+discovery mirror ConvertTo-ScoutChildDiscoveryResource.ps1 (47 datasets), 8 rules automated, requires-gate findings
+now NotAssessed + NotApplicable flag (were Unknown, ~107 per tenant). None of the new datasets is live-verified; Event
+Hubs/Service Bus/APIM and two Azure Local shapes were not fetched from Learn. Second look at the audit's 32
+"no new call" candidates converted none (reasons in the agent report: a Fail would not always be a violation).
+Tracking: operator decided to move roadmap and issues from ADO to GitHub Issues with NEW standards (no AB# going
+forward) -- pmo/plans/github-tracking-migration.md, pmo/work-item-standard.md. ADO read via MCP get_auth_token
+(provider ado): 178 open of 782; 33 closed on 2026-11-26 as shipped or out of scope. Nothing created on GitHub yet;
+operator still to confirm the fold/keep buckets. Public repo: no tenant or customer names in issues.
+
 ## Session 2026-11-26 — collection depth: AVS sub-resources (3.18.19)
 
 3.18.18 released and five-tenant tested (all Completed, 0 Error findings; CA read in all five, PIM checks score).

@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.18.20] - 2026-11-26 - deeper collection: Front Door, SQL, Azure Local, messaging, App Service, API Management
+
+### Added
+
+- 26 sub-resource datasets in the ARM child sweep, each with a `Measured` flag and zero requests when the parent
+  type is absent: `domains.afd.*` (originGroups, origins, endpoints, routes, customDomains, securityPolicies);
+  `domains.databases.sql*` (BackupShortTerm, BackupLongTerm, Tde, FirewallRules, EncryptionProtector,
+  SecurityAlertPolicies); `domains.hybrid.azureLocal*` (UpdateSummaries, SecuritySettings, ArcSettings);
+  `domains.integration.*` (Event Hubs and Service Bus network rule sets, authorization rules, entities, queues,
+  topics; API Management global policy, APIs, named values); `domains.web.webAppAuth`. Rows are built from an
+  allow-list: no keys, host names, IP addresses, policy XML or named-value contents.
+- Discovery lists swept sub-resources (47 datasets) under their real ARM types; high-volume record datasets
+  (diagnostic settings, Log Analytics tables and similar) are not mirrored.
+- `pmo/plans/github-tracking-migration.md` and `pmo/work-item-standard.md`: plan and standard for moving work
+  tracking to GitHub Issues.
+
+### Changed
+
+- Scored from data: WAF-SVC-AFD-04, WAF-SVC-AFD-05, WAF-SVC-SB-12, WAF-SVC-APIM-10, CAF-DB-03, CAF-DB-05,
+  CAF-DB-06, WAF-AZLOCAL-SE-01. Six more checks attach the new data as evidence.
+- A rule set whose `requires:` data is absent (a workload the tenant does not have) and a percentage check with
+  no denominator now report `NotAssessed` with a "Not applicable" explanation instead of `Unknown`.
+
+### Known limits
+
+- The new datasets were verified against the REST reference, not live resources.
+
 ## [3.18.19] - 2026-11-26 - deeper collection: AVS sub-resources and more checks scored from data
 
 ### Added

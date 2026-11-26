@@ -308,7 +308,7 @@ Describe 'Technology review: Analytics' {
             param($Eh, $Dbx, $La, $Fab, $Cov)
             [ordered]@{
                 domains       = [ordered]@{
-                    integration = [ordered]@{ eventHubNamespaces = @($Eh) }
+                    integration = [ordered]@{ eventHubNamespaces = @($Eh); eventHubEntities = @($Eh | ForEach-Object { [ordered]@{ namespaceName = $_.name; name = 'hub1'; partitionCount = 4 } }) }
                     analytics   = [ordered]@{ databricksWorkspaces = @($Dbx); fabricCapacities = @($Fab) }
                     security    = [ordered]@{ sentinelWorkspaces = @() }
                 }

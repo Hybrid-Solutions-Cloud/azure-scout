@@ -117,4 +117,82 @@ $script:Cases = @(
         Fail = @{ domains = @{ storage = @{ lifecyclePoliciesMeasured = $true; lifecyclePolicies = @(@{ storageAccountId = 's1'; premium = $false; enabledRuleCount = 0; tieringRuleCount = 0; deleteRuleCount = 0 }, @{ storageAccountId = 's2'; premium = $true; enabledRuleCount = 1; tieringRuleCount = 0; deleteRuleCount = 1 }) } } }
         NotAssessed = @{ domains = @{ storage = @{ lifecyclePoliciesMeasured = $false; lifecyclePolicies = @() } } }
     }
+
+    # ---- AB#9300, 3.18.20: rules answered by the depth datasets (sub-resources Resource Graph does not index). The
+    # fixtures use the field names ConvertFrom-ScoutInventory produces; tests/Collect.*ChildResources.Tests.ps1 prove
+    # the shapes from real sweep rows. A row whose value is $null is one the sweep could not read, and is never a finding.
+    @{
+        Id = 'WAF-SVC-AFD-04'; Set = 'waf.serviceguides'; FailCount = 2
+        Pass = @{
+            networking = @{ cdnProfiles = @(@{ id = 'p1'; sku = 'Premium_AzureFrontDoor' }) }
+            domains = @{ afd = @{ originGroupsMeasured = $true; originsMeasured = $true; originGroups = @(@{ name = 'og1'; hasRedundantOrigins = $true; probeGap = $false }) } }
+        }
+        Fail = @{
+            networking = @{ cdnProfiles = @(@{ id = 'p1'; sku = 'Premium_AzureFrontDoor' }) }
+            domains = @{ afd = @{ originGroupsMeasured = $true; originsMeasured = $true; originGroups = @(
+                        @{ name = 'single'; hasRedundantOrigins = $false; probeGap = $false }
+                        @{ name = 'noprobe'; hasRedundantOrigins = $true; probeGap = $true }
+                        @{ name = 'unread'; hasRedundantOrigins = $null; probeGap = $null }) } }
+        }
+        NotAssessed = @{
+            networking = @{ cdnProfiles = @(@{ id = 'p1'; sku = 'Premium_AzureFrontDoor' }) }
+            domains = @{ afd = @{ originGroupsMeasured = $true; originsMeasured = $false; originGroups = @() } }
+        }
+    }
+    @{
+        Id = 'WAF-SVC-AFD-05'; Set = 'waf.serviceguides'; FailCount = 2
+        Pass = @{
+            networking = @{ cdnProfiles = @(@{ id = 'p1'; sku = 'Standard_AzureFrontDoor' }) }
+            domains = @{ afd = @{ customDomainsMeasured = $true; customDomains = @(@{ name = 'd1'; tls12OrHigher = $true }, @{ name = 'd2'; tls12OrHigher = $null }) } }
+        }
+        Fail = @{
+            networking = @{ cdnProfiles = @(@{ id = 'p1'; sku = 'Standard_AzureFrontDoor' }) }
+            domains = @{ afd = @{ customDomainsMeasured = $true; customDomains = @(@{ name = 'd1'; tls12OrHigher = $false }, @{ name = 'd2'; tls12OrHigher = $false }, @{ name = 'd3'; tls12OrHigher = $true }) } }
+        }
+        NotAssessed = @{
+            networking = @{ cdnProfiles = @(@{ id = 'p1'; sku = 'Standard_AzureFrontDoor' }) }
+            domains = @{ afd = @{ customDomainsMeasured = $false; customDomains = @() } }
+        }
+    }
+    @{
+        Id = 'WAF-SVC-SB-12'; Set = 'waf.serviceguides'; FailCount = 1
+        Pass = @{ domains = @{ integration = @{ serviceBusNamespaces = @(@{ id = 'n1' }); serviceBusNetworkRuleSetsMeasured = $true; serviceBusNetworkRuleSets = @(@{ name = 'n1'; allowsAllNetworks = $false }) } } }
+        Fail = @{ domains = @{ integration = @{ serviceBusNamespaces = @(@{ id = 'n1' }, @{ id = 'n2' }, @{ id = 'n3' }); serviceBusNetworkRuleSetsMeasured = $true
+                    serviceBusNetworkRuleSets = @(@{ name = 'n1'; allowsAllNetworks = $true }, @{ name = 'n2'; allowsAllNetworks = $false }, @{ name = 'n3'; allowsAllNetworks = $null }) } } }
+        NotAssessed = @{ domains = @{ integration = @{ serviceBusNamespaces = @(@{ id = 'n1' }); serviceBusNetworkRuleSetsMeasured = $false; serviceBusNetworkRuleSets = @() } } }
+    }
+    @{
+        Id = 'WAF-SVC-APIM-10'; Set = 'waf.serviceguides'; FailCount = 2
+        Pass = @{ domains = @{ integration = @{ apiManagement = @(@{ id = 'a1' }); apimNamedValuesMeasured = $true; apimNamedValues = @(@{ name = 'a1'; namedValueCount = 3; secretCount = 2; inlineSecretCount = 0 }) } } }
+        Fail = @{ domains = @{ integration = @{ apiManagement = @(@{ id = 'a1' }, @{ id = 'a2' }, @{ id = 'a3' }); apimNamedValuesMeasured = $true
+                    apimNamedValues = @(@{ name = 'a1'; inlineSecretCount = 2 }, @{ name = 'a2'; inlineSecretCount = 1 }, @{ name = 'a3'; inlineSecretCount = 0 }) } } }
+        NotAssessed = @{ domains = @{ integration = @{ apiManagement = @(@{ id = 'a1' }); apimNamedValuesMeasured = $false; apimNamedValues = @() } } }
+    }
+    @{
+        Id = 'CAF-DB-03'; Set = 'caf.databases'; FailCount = 1
+        Pass = @{ domains = @{ databases = @{ sqlTdeMeasured = $true; sqlTde = @(@{ databaseName = 'db1'; state = 'Enabled'; enabled = $true }, @{ databaseName = 'db2'; enabled = $null }) } } }
+        Fail = @{ domains = @{ databases = @{ sqlTdeMeasured = $true; sqlTde = @(@{ databaseName = 'db1'; enabled = $false }, @{ databaseName = 'db2'; enabled = $true }, @{ databaseName = 'db3'; enabled = $null }) } } }
+        NotAssessed = @{ domains = @{ databases = @{ sqlTdeMeasured = $false; sqlTde = @() } } }
+    }
+    @{
+        Id = 'CAF-DB-05'; Set = 'caf.databases'; FailCount = 2
+        Pass = @{ domains = @{ databases = @{ sqlBackupShortTermMeasured = $true; sqlBackupShortTerm = @(@{ databaseName = 'db1'; retentionDays = 7; meetsMinimumRetention = $true }, @{ databaseName = 'db2'; retentionDays = 35; meetsMinimumRetention = $true }) } } }
+        Fail = @{ domains = @{ databases = @{ sqlBackupShortTermMeasured = $true; sqlBackupShortTerm = @(
+                        @{ databaseName = 'db1'; retentionDays = 1; meetsMinimumRetention = $false }, @{ databaseName = 'db2'; retentionDays = 3; meetsMinimumRetention = $false }
+                        @{ databaseName = 'db3'; retentionDays = 14; meetsMinimumRetention = $true }, @{ databaseName = 'db4'; retentionDays = $null; meetsMinimumRetention = $null }) } } }
+        NotAssessed = @{ domains = @{ databases = @{ sqlBackupShortTermMeasured = $false; sqlBackupShortTerm = @() } } }
+    }
+    @{
+        Id = 'CAF-DB-06'; Set = 'caf.databases'; FailCount = 2
+        Pass = @{ domains = @{ databases = @{ sqlFirewallRulesMeasured = $true; sqlFirewallRules = @(@{ name = 's1'; ruleCount = 3; allowAllRuleCount = 0; allowAzureServicesRuleCount = 1; broadRangeRuleCount = 1 }) } } }
+        Fail = @{ domains = @{ databases = @{ sqlFirewallRulesMeasured = $true; sqlFirewallRules = @(
+                        @{ name = 's1'; ruleCount = 1; allowAllRuleCount = 1 }, @{ name = 's2'; ruleCount = 2; allowAllRuleCount = 2 }, @{ name = 's3'; ruleCount = 0; allowAllRuleCount = 0 }) } } }
+        NotAssessed = @{ domains = @{ databases = @{ sqlFirewallRulesMeasured = $false; sqlFirewallRules = @() } } }
+    }
+    @{
+        Id = 'WAF-AZLOCAL-SE-01'; Set = 'waf.azurelocal.security'; FailCount = 1
+        Pass = @{ domains = @{ hybrid = @{ azureLocalSecuritySettingsMeasured = $true; azureLocalSecuritySettings = @(@{ clusterName = 'c1'; driftControlEnforced = $true }, @{ clusterName = 'c2'; driftControlEnforced = $null }) } } }
+        Fail = @{ domains = @{ hybrid = @{ azureLocalSecuritySettingsMeasured = $true; azureLocalSecuritySettings = @(@{ clusterName = 'c1'; driftControlEnforced = $false }, @{ clusterName = 'c2'; driftControlEnforced = $true }, @{ clusterName = 'c3'; driftControlEnforced = $null }) } } }
+        NotAssessed = @{ domains = @{ hybrid = @{ azureLocalSecuritySettingsMeasured = $false; azureLocalSecuritySettings = @() } } }
+    }
 )

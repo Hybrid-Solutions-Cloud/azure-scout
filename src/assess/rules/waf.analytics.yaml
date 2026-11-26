@@ -400,9 +400,13 @@ rules:
   - id: WAF-ANALYTICS-CO-07
     title: "WAF-ANALYTICS-CO-07. Event Hubs tier, throughput, auto-inflate maximum and retention suit the workload"
     severity: medium
-    query: "$.domains.integration.eventHubNamespaces[*]"
+    # Evidence only (AB#9300, 3.18.20): every event hub's retention (messageRetentionInDays, cleanupPolicy,
+    # retentionTimeInHours) and whether Capture is on are read (domains.integration.eventHubEntities). Whether the tier,
+    # throughput and retention "suit the workload" is knowledge of the workload, so nothing is scored. The namespaces
+    # with their tier, capacity and auto-inflate ceiling stay in domains.integration.eventHubNamespaces.
+    query: "$.domains.integration.eventHubEntities[*]"
     assert: { type: manual }
-    remediation: "WAF-ANALYTICS-CO-07. Match tier to the economics, cap auto-inflate, align retention to access patterns and use Capture with Cool or Archive storage. Namespaces are attached with their tier, capacity and auto-inflate ceiling; the workload they must carry and per-hub retention are not collected."
+    remediation: "WAF-ANALYTICS-CO-07. The event hubs listed as evidence show each hub's retention and whether Capture is on. Match tier to the economics, cap auto-inflate (on the namespace row, domains.integration.eventHubNamespaces), align retention to access patterns and use Capture with Cool or Archive storage. The workload each namespace must carry is not collected."
     manual: true
   # budgets attached (estate-wide) [EH-CO-R]
   - id: WAF-ANALYTICS-CO-08
@@ -588,9 +592,11 @@ rules:
   - id: WAF-ANALYTICS-PE-04
     title: "WAF-ANALYTICS-PE-04. Event Hubs tier and partition count suit throughput and retention needs"
     severity: medium
-    query: "$.domains.integration.eventHubNamespaces[*]"
+    # Evidence only (AB#9300, 3.18.20): every event hub's partition count is read (domains.integration.eventHubEntities).
+    # Whether it suits the throughput is a measurement of the workload, not a setting, so nothing is scored.
+    query: "$.domains.integration.eventHubEntities[*]"
     assert: { type: manual }
-    remediation: "WAF-ANALYTICS-PE-04. Standard supports up to 32 partitions, Premium adds networking and CMK, Dedicated scales to 1,024 partitions; test the choice. Namespaces are attached with their tier and capacity; throughput needs and per-hub partition counts are not collected."
+    remediation: "WAF-ANALYTICS-PE-04. The event hubs listed as evidence show each hub's partitionCount. Standard supports up to 32 partitions, Premium adds networking and CMK, Dedicated scales to 1,024 partitions; test the choice against the throughput the workload needs, which is not collected. The tier and capacity are on the namespace rows (domains.integration.eventHubNamespaces)."
     manual: true
   # skuName Standard with autoInflateEnabled not true; Basic cannot auto-inflate, and Premium and Dedicated scale by processing or capacity units that are not collected [EH-PE-R]
   - id: WAF-ANALYTICS-PE-05

@@ -399,10 +399,10 @@ Describe 'The manual items that now carry what was read as evidence' {
 
 Describe 'Every AVS rule against an estate with no private cloud' {
 
-    It 'reports Unknown, not a manufactured Pass, because the requires gate is not met' {
+    It 'reports NotAssessed, not a manufactured Pass, because the requires gate is not met' {
         $collect = New-AvsCollect -Clouds @()
         $workload = Invoke-Assessment -Collect $collect -RuleSet $script:RuleSet -Assessment 'Workload: AVS'
-        @($workload | Where-Object Status -ne 'Unknown') | Should -BeNullOrEmpty
+        @($workload | Where-Object Status -ne 'NotAssessed') | Should -BeNullOrEmpty
         @($workload).Count | Should -Be (27 + 25)
     }
 }

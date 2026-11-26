@@ -43,9 +43,13 @@ rules:
   - id: WAF-AZLOCAL-RE-02
     title: "Performance and operations choices that affect reliability are reviewed (rightsizing, disk type, firmware currency)"
     severity: medium
-    query: null
+    # Evidence only (AB#9300, 3.18.20): each cluster's update summary is read (domains.hybrid.azureLocalUpdateSummaries:
+    # state, health state, current version and solution builder extension version, when the platform last checked for and
+    # last applied an update, whether one is available). That evidences software and firmware currency; rightsizing and
+    # disk type are judgement and are not ARM-readable, so nothing is scored.
+    query: "$.domains.hybrid.azureLocalUpdateSummaries[*]"
     assert: { type: manual }
-    remediation: "WAF-AZLOCAL-RE-02. domains.hybrid.azureLocalClusters[].nodeCount and .clusterVersion (added AB#6803) evidence node count and cluster software currency, but firmware/driver currency and disk-type rightsizing are not ARM-readable properties -- review the Solution Builder Extension/OEM firmware baseline and node sizing manually, using nodeCount/clusterVersion as supporting evidence."
+    remediation: "WAF-AZLOCAL-RE-02. The update summary listed for each cluster (state, updateAvailable, currentVersion, currentSbeVersion, lastChecked, lastUpdated) evidences solution and firmware currency: a cluster with an update available, or one the platform has not checked recently, needs attention. Disk-type and node rightsizing are not ARM-readable properties -- review them manually, using domains.hybrid.azureLocalClusters[].nodeCount and .clusterVersion as supporting evidence."
     manual: true
 
   - id: WAF-AZLOCAL-RE-03

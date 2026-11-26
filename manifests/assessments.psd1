@@ -261,7 +261,7 @@
         Tags = @('waf', 'databases', 'storage', 'technology-review'); Reporters = @('Html', 'Excel')
     }
     'WAF: Service Guides' = @{
-        Description = 'Well-Architected Framework service guides -- 214 items (138 automated) from the Configuration recommendations of 20 Azure service guides: AKS, App Service, Functions, Container Apps, API Management, Service Bus, Event Grid, Firewall, Application Gateway, Load Balancer, Virtual Network, Virtual Machines and scale sets, Disk, Application Insights, Front Door, Traffic Manager, Virtual WAN, ExpressRoute, Files and NetApp Files. A guide is assessed only when the estate has that service; see docs/frameworks/waf-service-guides-checklist.md'
+        Description = 'Well-Architected Framework service guides -- 214 items (142 automated) from the Configuration recommendations of 20 Azure service guides: AKS, App Service, Functions, Container Apps, API Management, Service Bus, Event Grid, Firewall, Application Gateway, Load Balancer, Virtual Network, Virtual Machines and scale sets, Disk, Application Insights, Front Door, Traffic Manager, Virtual WAN, ExpressRoute, Files and NetApp Files. A guide is assessed only when the estate has that service; see docs/frameworks/waf-service-guides-checklist.md'
         Category    = '*'; Collect = @('Compute', 'Containers', 'Web', 'Integration', 'Networking', 'Storage', 'Monitor', 'Management', 'Security', 'Databases'); Ingest = @()
         Rules = @('waf.serviceguides'); Frameworks = @('WAF: Service guides')
         Tags = @('waf', 'service-guides'); Reporters = @('Html', 'Excel')

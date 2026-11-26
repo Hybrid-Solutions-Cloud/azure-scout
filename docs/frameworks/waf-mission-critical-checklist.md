@@ -108,7 +108,7 @@ necessary-but-not-sufficient signals and say so in their remediation text.
 | WAF-MC-NC-10 | AKS clusters enforce Kubernetes network policy | ✅ `networkPolicyEnabled` | NC · Micro-segmentation and Kubernetes network policies |
 | WAF-MC-NC-11 | Administrative access uses Azure Bastion or another proxied private connection | ❌ Manual — Bastion hosts attached | NC · Virtual network integration |
 | WAF-MC-NC-12 | Outbound internet traffic uses NAT Gateway and, where inspection is required, Azure Firewall | ❌ Manual — NAT gateways attached | NC · Internet egress |
-| WAF-MC-NC-13 | Front Door and Traffic Manager are configured for fast failover and locked to the intended path | ❌ Manual — Front Door profiles attached | NC · Global traffic routing (Front Door and Traffic Manager recommendations) |
+| WAF-MC-NC-13 | Front Door and Traffic Manager are configured for fast failover and locked to the intended path | ❌ Manual — Front Door profiles attached; origin groups, probes and routes are now collected (`domains.afd`, scored by `WAF-SVC-AFD-04`), but "validate downstream dependencies", Traffic Manager TTL and locking backends to Front Door remain judgements | NC · Global traffic routing (Front Door and Traffic Manager recommendations) |
 | WAF-MC-NC-14 | Network address space is sized and non-overlapping, traffic is logged, and stamps are independent | ❌ Manual — virtual networks attached | NC · Virtual network integration; Inter-zone and inter-region connectivity; SEC · Network intrusion protection |
 
 ### Health modeling and observability (WAF-MC-HM) — 12 items

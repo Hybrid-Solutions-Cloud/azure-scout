@@ -67,7 +67,7 @@ BeforeAll {
 Describe 'Rule files the phase 4 batch 2 reads converted' {
     It '<File> keeps <Rules> rules with <Auto> automated, each id unique' -ForEach @(
         @{ File = 'caf.storage'; Rules = 6; Auto = 5 }
-        @{ File = 'caf.databases'; Rules = 7; Auto = 4 }
+        @{ File = 'caf.databases'; Rules = 7; Auto = 7 }
         @{ File = 'caf.web'; Rules = 6; Auto = 5 }
         @{ File = 'waf.reliability'; Rules = 7; Auto = 4 }
     ) {

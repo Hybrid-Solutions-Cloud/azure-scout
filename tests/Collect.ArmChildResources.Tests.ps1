@@ -18,10 +18,11 @@ BeforeAll {
             [string]$Type,
             [string]$Name,
             [string]$Kind,
+            [string]$Sku,
             [hashtable]$Properties = @{}
         )
 
-        [PSCustomObject]@{
+        $Row = [PSCustomObject]@{
             id             = "/subscriptions/sub-test/resourceGroups/rg-test/providers/$Type/$Name"
             type           = $Type
             name           = $Name
@@ -31,6 +32,9 @@ BeforeAll {
             location       = 'eastus'
             properties     = [PSCustomObject]$Properties
         }
+        # AB#9300, 3.18.20 -- a SKU for the parents the depth datasets filter on (Front Door tier, Service Bus tier).
+        if ($Sku) { $Row | Add-Member -NotePropertyName sku -NotePropertyValue ([PSCustomObject]@{ name = $Sku }) }
+        $Row
     }
 
     $script:Parents = @(
@@ -499,6 +503,9 @@ Describe 'Get-ScoutArmChildResource - selection, ordering and resilience' {
     }
 
     It 'covers every ARM-child dataset across the supported remote outcome matrix' {
+        # The matrix answers a 500 for every dataset, and the sweep retries one with an exponential back-off (1, 2, 4, 8 s). The back-off is
+        # not what is under test here, and unmocked it cost 15 s per dataset -- minutes for the whole matrix.
+        Mock Start-Sleep { }
         $datasetCases = @(
             @{ Dataset = 'MLComputes'; Parent = Get-TestParent -Type 'microsoft.machinelearningservices/workspaces' -Name 'ml' -Kind 'Default'; NotFoundIsEmpty = $false }
             @{ Dataset = 'MLDatasets'; Parent = Get-TestParent -Type 'microsoft.machinelearningservices/workspaces' -Name 'ml' -Kind 'Default'; NotFoundIsEmpty = $false }
@@ -549,6 +556,34 @@ Describe 'Get-ScoutArmChildResource - selection, ordering and resilience' {
             @{ Dataset = 'AvsGateways'; Parent = Get-TestParent -Type 'microsoft.avs/privateclouds' -Name 'pc'; NotFoundIsEmpty = $true }
             @{ Dataset = 'AvsIscsiPaths'; Parent = Get-TestParent -Type 'microsoft.avs/privateclouds' -Name 'pc'; NotFoundIsEmpty = $true }
             @{ Dataset = 'AvsMaintenances'; Parent = Get-TestParent -Type 'microsoft.avs/privateclouds' -Name 'pc'; NotFoundIsEmpty = $true }
+            # AB#9300, 3.18.20 -- the depth datasets. Every one accepts a 404 as empty data. The two second-level
+            # Front Door datasets are driven by the first-level list the matrix stub answers with one item.
+            @{ Dataset = 'AfdOriginGroups'; Parent = Get-TestParent -Type 'microsoft.cdn/profiles' -Name 'afd' -Sku 'Premium_AzureFrontDoor'; NotFoundIsEmpty = $true }
+            @{ Dataset = 'AfdOrigins'; Parent = Get-TestParent -Type 'microsoft.cdn/profiles' -Name 'afd' -Sku 'Premium_AzureFrontDoor'; NotFoundIsEmpty = $true }
+            @{ Dataset = 'AfdEndpoints'; Parent = Get-TestParent -Type 'microsoft.cdn/profiles' -Name 'afd' -Sku 'Premium_AzureFrontDoor'; NotFoundIsEmpty = $true }
+            @{ Dataset = 'AfdRoutes'; Parent = Get-TestParent -Type 'microsoft.cdn/profiles' -Name 'afd' -Sku 'Premium_AzureFrontDoor'; NotFoundIsEmpty = $true }
+            @{ Dataset = 'AfdCustomDomains'; Parent = Get-TestParent -Type 'microsoft.cdn/profiles' -Name 'afd' -Sku 'Premium_AzureFrontDoor'; NotFoundIsEmpty = $true }
+            @{ Dataset = 'AfdSecurityPolicies'; Parent = Get-TestParent -Type 'microsoft.cdn/profiles' -Name 'afd' -Sku 'Premium_AzureFrontDoor'; NotFoundIsEmpty = $true }
+            @{ Dataset = 'SqlDatabaseBackupShortTerm'; Parent = Get-TestParent -Type 'microsoft.sql/servers/databases' -Name 'db'; NotFoundIsEmpty = $true }
+            @{ Dataset = 'SqlDatabaseBackupLongTerm'; Parent = Get-TestParent -Type 'microsoft.sql/servers/databases' -Name 'db'; NotFoundIsEmpty = $true }
+            @{ Dataset = 'SqlDatabaseTde'; Parent = Get-TestParent -Type 'microsoft.sql/servers/databases' -Name 'db'; NotFoundIsEmpty = $true }
+            @{ Dataset = 'SqlServerFirewallRules'; Parent = Get-TestParent -Type 'microsoft.sql/servers' -Name 'sql'; NotFoundIsEmpty = $true }
+            @{ Dataset = 'SqlServerEncryptionProtector'; Parent = Get-TestParent -Type 'microsoft.sql/servers' -Name 'sql'; NotFoundIsEmpty = $true }
+            @{ Dataset = 'SqlServerSecurityAlertPolicies'; Parent = Get-TestParent -Type 'microsoft.sql/servers' -Name 'sql'; NotFoundIsEmpty = $true }
+            @{ Dataset = 'AzureLocalUpdateSummaries'; Parent = Get-TestParent -Type 'microsoft.azurestackhci/clusters' -Name 'hci'; NotFoundIsEmpty = $true }
+            @{ Dataset = 'AzureLocalSecuritySettings'; Parent = Get-TestParent -Type 'microsoft.azurestackhci/clusters' -Name 'hci'; NotFoundIsEmpty = $true }
+            @{ Dataset = 'AzureLocalArcSettings'; Parent = Get-TestParent -Type 'microsoft.azurestackhci/clusters' -Name 'hci'; NotFoundIsEmpty = $true }
+            @{ Dataset = 'EventHubNetworkRuleSets'; Parent = Get-TestParent -Type 'microsoft.eventhub/namespaces' -Name 'hub'; NotFoundIsEmpty = $true }
+            @{ Dataset = 'EventHubAuthorizationRules'; Parent = Get-TestParent -Type 'microsoft.eventhub/namespaces' -Name 'hub'; NotFoundIsEmpty = $true }
+            @{ Dataset = 'EventHubEntities'; Parent = Get-TestParent -Type 'microsoft.eventhub/namespaces' -Name 'hub'; NotFoundIsEmpty = $true }
+            @{ Dataset = 'ServiceBusNetworkRuleSets'; Parent = Get-TestParent -Type 'microsoft.servicebus/namespaces' -Name 'bus' -Sku 'Premium'; NotFoundIsEmpty = $true }
+            @{ Dataset = 'ServiceBusAuthorizationRules'; Parent = Get-TestParent -Type 'microsoft.servicebus/namespaces' -Name 'bus' -Sku 'Premium'; NotFoundIsEmpty = $true }
+            @{ Dataset = 'ServiceBusQueues'; Parent = Get-TestParent -Type 'microsoft.servicebus/namespaces' -Name 'bus' -Sku 'Premium'; NotFoundIsEmpty = $true }
+            @{ Dataset = 'ServiceBusTopics'; Parent = Get-TestParent -Type 'microsoft.servicebus/namespaces' -Name 'bus' -Sku 'Premium'; NotFoundIsEmpty = $true }
+            @{ Dataset = 'WebAppAuth'; Parent = Get-TestParent -Type 'microsoft.web/sites' -Name 'web'; NotFoundIsEmpty = $true }
+            @{ Dataset = 'ApimGlobalPolicy'; Parent = Get-TestParent -Type 'microsoft.apimanagement/service' -Name 'apim'; NotFoundIsEmpty = $true }
+            @{ Dataset = 'ApimApis'; Parent = Get-TestParent -Type 'microsoft.apimanagement/service' -Name 'apim'; NotFoundIsEmpty = $true }
+            @{ Dataset = 'ApimNamedValues'; Parent = Get-TestParent -Type 'microsoft.apimanagement/service' -Name 'apim'; NotFoundIsEmpty = $true }
         )
         $declaredDatasets = @(
             (Get-Command Get-ScoutArmChildResource).Parameters['Dataset'].Attributes |
@@ -902,9 +937,9 @@ Describe 'Get-ScoutArmChildResource - per-resource settings (AB#9300 phase 4, ba
         )
         @($script:Batch2Datasets | Where-Object { $declared -notcontains $_ }) | Should -BeNullOrEmpty
         # The eight sit after the existing datasets and before the thirteen Azure VMware Solution
-        # datasets AB#9300 added in 3.18.19.
-        @($declared | Select-Object -SkipLast 13 | Select-Object -Last 8) | Should -Be $script:Batch2Datasets
-        @($declared | Select-Object -Last 13 | Select-Object -First 1) | Should -Be @('AvsClusters')
+        # datasets AB#9300 added in 3.18.19 (and the twenty-six depth datasets of 3.18.20 after those).
+        @($declared | Select-Object -SkipLast 39 | Select-Object -Last 8) | Should -Be $script:Batch2Datasets
+        @($declared | Select-Object -SkipLast 26 | Select-Object -Last 13 | Select-Object -First 1) | Should -Be @('AvsClusters')
 
         $rows = @(Get-ScoutArmChildResource -Resources $script:Batch2Parents)
         $types = @($rows.TYPE | Select-Object -Unique)

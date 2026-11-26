@@ -113,7 +113,7 @@ Guide: <https://learn.microsoft.com/azure/well-architected/service-guides/app-se
 | WAF-SVC-APP-12 | Web apps send diagnostic logs to a destination | Operational excellence | ✅ diagnostic-settings coverage of `microsoft.web/sites` |
 | WAF-SVC-APP-13 | Health check, auto-heal and Always On are configured | Reliability | ✅ `webAppConfig` `healthCheckPathSet` and `alwaysOn`, web apps only (a function app has no Always On); auto-heal is not collected |
 | WAF-SVC-APP-14 | Basic authentication, FTP and remote debugging are disabled, and secrets use Key Vault references | Security | ✅ `webAppBasicAuth` `ftpBasicAuthAllowed` and `scmBasicAuthAllowed`, `webAppConfig` `ftpsState` (AllAllowed is a finding) and `remoteDebuggingEnabled`; covers web and function apps, a policy that was not returned is not scored; Key Vault references are not collected |
-| WAF-SVC-APP-15 | Built-in authentication or Microsoft Entra ID authentication protects the app, with restrictive CORS | Security | ❌ Manual — no collected field |
+| WAF-SVC-APP-15 | Built-in authentication or Microsoft Entra ID authentication protects the app, with restrictive CORS | Security | ❌ Manual — with evidence: each web app's built-in authentication settings (`domains.web.webAppAuth`: switched on, required, action for unauthenticated clients, identity providers on, Entra ID on); an app can authenticate in its own code, so authentication being off is not scored; CORS is not read |
 | WAF-SVC-APP-16 | Releases go through deployment slots and a pipeline | Operational excellence | ❌ Manual — no collected field |
 | WAF-SVC-APP-17 | Lower environments use Free or Basic plans, and steady workloads use reservations | Cost optimization | ❌ Manual — evidence attached |
 
@@ -153,7 +153,7 @@ Guide: <https://learn.microsoft.com/azure/well-architected/service-guides/azure-
 
 ### Azure API Management (WAF-SVC-APIM) — 12 items
 
-Guide: <https://learn.microsoft.com/azure/well-architected/service-guides/azure-api-management>. 9 automated, 3 manual.
+Guide: <https://learn.microsoft.com/azure/well-architected/service-guides/azure-api-management>. 10 automated, 2 manual.
 
 | # | Item | Pillar | Scout |
 |---|---|---|---|
@@ -166,13 +166,13 @@ Guide: <https://learn.microsoft.com/azure/well-architected/service-guides/azure-
 | WAF-SVC-APIM-07 | Microsoft Defender for APIs is enabled | Security | ✅ Defender plan `Api` |
 | WAF-SVC-APIM-08 | Instances send resource logs to a destination | Operational excellence | ✅ diagnostic-settings coverage of `microsoft.apimanagement/service` |
 | WAF-SVC-APIM-09 | The narrowest TLS versions, protocols and ciphers are set, and the developer portal and direct management API are off | Security | ✅ `legacyProtocolEnabled`, `legacyCipherEnabled`; the developer portal and the direct management API are not read |
-| WAF-SVC-APIM-10 | APIs authenticate with OAuth 2.0, secrets use Key Vault named values, and a WAF fronts internet-exposed gateways | Security | ❌ Manual — no collected field |
+| WAF-SVC-APIM-10 | APIs authenticate with OAuth 2.0, secrets use Key Vault named values, and a WAF fronts internet-exposed gateways | Security | ✅ `domains.integration.apimNamedValues` — a service holding a secret named value inline instead of in Key Vault fails; the global policy's token validation and the count of APIs with token authentication (`apimGlobalPolicy`, `apimApis`) are evidence, because a `validate-jwt` policy can sit on one API or operation, which is not read |
 | WAF-SVC-APIM-11 | Backup, restore and a disaster recovery playbook exist, and unrelated APIs are isolated | Reliability | ❌ Manual — no collected field |
 | WAF-SVC-APIM-12 | The tier is the least expensive that meets the workload, and lower environments use non-production tiers | Cost optimization | ❌ Manual — evidence attached |
 
 ### Azure Service Bus (WAF-SVC-SB) — 13 items
 
-Guide: <https://learn.microsoft.com/azure/well-architected/service-guides/azure-service-bus>. 9 automated, 4 manual.
+Guide: <https://learn.microsoft.com/azure/well-architected/service-guides/azure-service-bus>. 10 automated, 3 manual.
 
 | # | Item | Pillar | Scout |
 |---|---|---|---|
@@ -187,7 +187,7 @@ Guide: <https://learn.microsoft.com/azure/well-architected/service-guides/azure-
 | WAF-SVC-SB-09 | Namespaces send security and operational logs to a destination | Operational excellence | ✅ diagnostic-settings coverage of `microsoft.servicebus/namespaces` |
 | WAF-SVC-SB-10 | Geo-replication or geo-disaster recovery has a rehearsed regional recovery runbook | Reliability | ❌ Manual — no collected field |
 | WAF-SVC-SB-11 | Consumers use PeekLock, duplicate detection and dead-lettering, and alerts watch queue depth and throttling | Reliability | ❌ Manual — evidence attached |
-| WAF-SVC-SB-12 | Access uses least-privilege Azure RBAC, IP firewall rules, and Key Vault for any remaining keys | Security | ❌ Manual — no collected field |
+| WAF-SVC-SB-12 | Access uses least-privilege Azure RBAC, IP firewall rules, and Key Vault for any remaining keys | Security | ✅ `domains.integration.serviceBusNetworkRuleSets` — a Premium namespace (the only tier with IP firewall rules) open to every network fails; the authorization rules (`serviceBusAuthorization`) are evidence; Azure RBAC role assignments are not read |
 | WAF-SVC-SB-13 | Premium autoscale, batching, prefetch and partitioning are tuned by load test | Performance efficiency | ❌ Manual — no collected field |
 
 ### Azure Event Grid (WAF-SVC-EG) — 10 items
@@ -353,16 +353,16 @@ Guide: <https://learn.microsoft.com/azure/well-architected/service-guides/applic
 
 ### Azure Front Door (WAF-SVC-AFD) — 7 items
 
-Guide: <https://learn.microsoft.com/azure/well-architected/service-guides/azure-front-door>. 3 automated, 4 manual.
+Guide: <https://learn.microsoft.com/azure/well-architected/service-guides/azure-front-door>. 5 automated, 2 manual.
 
 | # | Item | Pillar | Scout |
 |---|---|---|---|
 | WAF-SVC-AFD-01 | Front Door profiles use the Premium tier | Security | ✅ `sku` |
 | WAF-SVC-AFD-02 | A Front Door WAF policy runs in Prevention mode | Security | ✅ `wafPolicies.mode` |
 | WAF-SVC-AFD-03 | Profiles send logs and metrics to a destination | Operational excellence | ✅ diagnostic-settings coverage of `microsoft.cdn/profiles` |
-| WAF-SVC-AFD-04 | Origin groups have redundant origins with health probes, and request timeouts and session affinity are deliberate | Reliability | ❌ Manual — no collected field |
-| WAF-SVC-AFD-05 | Origins are reached over Private Link, TLS 1.2 is the minimum, and managed certificates are used | Security | ❌ Manual — no collected field |
-| WAF-SVC-AFD-06 | Caching and compression are enabled for cacheable content | Performance efficiency | ❌ Manual — no collected field |
+| WAF-SVC-AFD-04 | Origin groups have redundant origins with health probes, and request timeouts and session affinity are deliberate | Reliability | ✅ `domains.afd.originGroups` — a group with fewer than two enabled origins, or two or more and no health probe, fails; timeouts and session affinity are shown on each row, not scored |
+| WAF-SVC-AFD-05 | Origins are reached over Private Link, TLS 1.2 is the minimum, and managed certificates are used | Security | ✅ `domains.afd.customDomains` — a custom domain whose minimum TLS version is below 1.2 fails; Private Link use (`origins`), the certificate type and HTTP-to-HTTPS redirect (`routes`) are read and shown but are choices, not scored |
+| WAF-SVC-AFD-06 | Caching and compression are enabled for cacheable content | Performance efficiency | ❌ Manual — with evidence: each route's cache configuration and compression (`domains.afd.routes`); whether content is cacheable is a judgement about the application |
 | WAF-SVC-AFD-07 | Alerts and built-in analytics reports are reviewed | Operational excellence | ❌ Manual — evidence attached |
 
 ### Azure Traffic Manager (WAF-SVC-TM) — 6 items
@@ -470,7 +470,7 @@ The assessment collects volume name, state and quota only, so every item here is
 | Azure ExpressRoute | 9 | 4 | 5 |
 | Azure Files | 9 | 6 | 3 |
 | Azure NetApp Files | 8 | 0 | 8 |
-| **Total** | **214** | **138** | **76** |
+| **Total** | **214** | **142** | **72** |
 
 ## What these rules read
 

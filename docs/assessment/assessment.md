@@ -152,11 +152,71 @@ worksheets (no collector manifest declares them, as with the other ARM-child dat
 assessment, and every swept child is also listed in the discovery index (`Discovery.json`) under its real
 ARM type — `microsoft.avs/privateclouds/clusters`, `…/datastores`, `…/addons`, `…/workloadnetworks/segments`
 and so on — in the Compute category, and appears in the React report under Compute, other discovered
-resources. The other ARM-child datasets (a diagnostic setting, a blob container, a Log Analytics table)
-are not listed in the index one by one: a synthetic row is enrichment of a base resource with the same id,
-and a child has none. Azure VMware Solution children are deployable resources Resource Graph does not
-index, so each is mirrored as a resource of its own.
+resources. The other ARM-child datasets that keep a whole response or grow with use (a diagnostic setting, a blob
+container, a Log Analytics table) are not listed in the index one by one: a synthetic row is enrichment of a base
+resource with the same id, and a child has none. The mirroring rule is in the next section.
 :::
+
+### Sub-resources below the top level: Front Door, SQL, Azure Local, Event Hubs, Service Bus, App Service and API Management
+
+Resource Graph indexes the top-level resource but not what hangs off it, and most of the Well-Architected
+checks for these services are about the child: whether a Front Door origin group has a second origin, whether
+a database has transparent data encryption, whether a SQL server's firewall allows every address. Twenty-six
+more ARM reads, declared as a table in `Get-ScoutArmChildResource` (`$DepthSpec`, one entry each), fetch them 8
+at a time with the datasets above. **A parent type the estate does not have costs no request.** Every row is
+built from an allow-list, counts and booleans, and each dataset has a `…Measured` flag that is true only when a
+GET of it was answered, so a list Scout could not read is **Not assessed**, never a Fail.
+
+| Section | Dataset (`collect.json` key) | Read from `{parent}/…` | api-version | Rows |
+|---|---|---|---|---|
+| `domains.afd` (Front Door Standard / Premium profiles; a classic CDN profile is not asked) | `originGroups` | `originGroups` | 2025-04-15 | one per group: probe and load-balancing settings, session affinity, origin count, `hasRedundantOrigins`, `probeGap` |
+| | `origins` | `originGroups/{group}/origins` | 2025-04-15 | one per origin: enabled, priority, weight, certificate-name check, Private Link |
+| | `endpoints`, `routes` | `afdEndpoints`, `afdEndpoints/{endpoint}/routes` | 2025-04-15 | one per endpoint and route: HTTPS redirect, forwarding protocol, protocols, cache and compression, `httpNotRedirected` |
+| | `customDomains`, `securityPolicies` | `customDomains`, `securityPolicies` | 2025-04-15 | one per domain (certificate type, minimum TLS, `tls12OrHigher`) and per policy (WAF set, associated domain count) |
+| `domains.databases` (SQL) | `sqlBackupShortTerm`, `sqlBackupLongTerm`, `sqlTde` | `backupShortTermRetentionPolicies`, `backupLongTermRetentionPolicies`, `transparentDataEncryption` of each user database (not `master`; a dedicated pool is asked for TDE only) | 2025-01-01 | one per database: retention days and `meetsMinimumRetention` (7-day default), whether long-term retention is configured, TDE state |
+| | `sqlFirewallRules` | `firewallRules` of each server | 2025-01-01 | one per server whose list answered: rule count, **allow-all** count, Azure-services count, /8-or-wider count — never an address |
+| | `sqlEncryptionProtector`, `sqlSecurityAlertPolicies` | `encryptionProtector`, `securityAlertPolicies` of each server | 2025-01-01 | service- versus customer-managed key and rotation; threat-detection state, retention, counts of disabled alerts and e-mail recipients |
+| `domains.hybrid` (Azure Local clusters) | `azureLocalUpdateSummaries`, `azureLocalSecuritySettings`, `azureLocalArcSettings` | `updateSummaries`, `securitySettings`, `arcSettings` | 2024-04-01 | update state, versions, last checked and updated; secured-core, WDAC and SMB-encryption assignments and `driftControlEnforced`; Arc aggregate state and node counts |
+| `domains.integration` (Event Hubs and Service Bus) | `eventHubNetworkRuleSets`, `serviceBusNetworkRuleSets` | `networkRuleSets` (Event Hubs Standard and above, Service Bus Premium only) | 2024-01-01 | default action, public access, rule counts, `allowsAllNetworks` |
+| | `eventHubAuthorization`, `serviceBusAuthorization` | `authorizationRules` | 2024-01-01 | one per namespace: rule, Manage and non-root Manage counts (keys are a POST and never asked) |
+| | `eventHubEntities`, `serviceBusQueues`, `serviceBusTopics` | `eventhubs`, `queues`, `topics` | 2024-01-01 | partitions, retention and Capture; dead-lettering, duplicate detection, delivery limit; subscription count |
+| | `apimGlobalPolicy`, `apimApis`, `apimNamedValues` | `policies`, `apis`, `namedValues` of each API Management service | 2024-05-01 | one per service: whether a global policy validates tokens, limits rate or filters IPs; API counts (HTTP allowed, no subscription, token authentication); named-value counts (secret, Key Vault-backed, inline) |
+| `domains.web` (App Service) | `webAppAuth` | `config/authsettingsV2` (the "without secrets" GET) | 2025-05-01 | one per web app: built-in authentication on, required, action, providers on |
+
+Front Door origins are read once per origin group and routes once per endpoint, in a second parallel wave,
+so a profile costs 4 + origin groups + endpoints requests. A group whose origin list could not be read has
+`originCount` and `hasRedundantOrigins` null — unknown, never "no origin".
+
+What these responses carry beside the settings, and is therefore **never read**: Front Door host names,
+probe paths, Private Link targets, route patterns and the DNS validation token; SQL firewall addresses, the
+encryption protector's Key Vault key, and the alert policy's e-mail addresses and storage key; the Azure Local
+Arc application and object ids and node names; the allowed addresses and subnets of a network rule set, an
+event hub's Capture destination and a queue's forwarding targets; App Service client ids, secret setting names
+and issuers; the API Management policy XML (scanned for `validate-jwt`, `rate-limit` and `ip-filter` and
+dropped), an API's backend URL and every named value's value.
+
+**Discovery.** "Everything deployable must be discoverable", so the sub-resources that are real ARM resources
+are also listed in `Discovery.json` and the React report under their real types —
+`microsoft.cdn/profiles/origingroups`, `microsoft.sql/servers/firewallrules`,
+`microsoft.eventhub/namespaces/eventhubs`, `microsoft.apimanagement/service/apis` and so on — by one transform
+(`ConvertTo-ScoutChildDiscoveryResource`, no Azure call). The rule: a dataset is mirrored when its rows are
+built from an allow-list (so the twin carries exactly what the row carries) and each row is a deployable
+sub-resource whose count is bounded by the parents and the configuration they hold. That covers the Azure
+VMware Solution children, the datasets above, and the batch-2 settings (storage blob and file service
+settings, SQL auditing and failover groups, web app configuration and basic-auth policies, Event Hubs geo-DR,
+Redis Enterprise databases). Not mirrored, because they keep a whole response or are records and user data
+that grow with use: diagnostic settings, storage lifecycle policies, Log Analytics tables and saved searches,
+Sentinel connectors, blob containers, file shares, queues, tables, the machine learning datasets, reservation
+utilisation, OpenAI deployments and backup instances.
+
+Rules these datasets convert from manual to automated: `CAF-DB-03` (TDE on), `CAF-DB-05` (point-in-time
+restore retention at least the 7-day default), `CAF-DB-06` (no allow-all firewall rule),
+`WAF-SVC-AFD-04` (two enabled origins and a health probe), `WAF-SVC-AFD-05` (minimum TLS 1.2 on custom domains),
+`WAF-SVC-SB-12` (a Premium namespace not open to every network), `WAF-SVC-APIM-10` (no inline secret named
+value) and `WAF-AZLOCAL-SE-01` (drift control enforced). Six more manual rules now show what was read as
+evidence and score nothing, because the judgement is the application's or the business's:
+`WAF-SVC-AFD-06`, `WAF-SVC-APP-15`, `WAF-DATA-SQL-03`, `WAF-AZLOCAL-RE-02`, `WAF-ANALYTICS-CO-07`,
+`WAF-ANALYTICS-PE-04`.
 
 ::: info `ArgQueryPack` is retired
 The `ArgQueryPack` ingestor is gone. It re-ran six Resource Graph queries that

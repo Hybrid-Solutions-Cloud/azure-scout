@@ -4,7 +4,7 @@ description: How much of each enumerated framework Azure Scout actually has a ru
 
 # Framework Coverage
 
-Across every framework Azure Scout enumerates, **1448 of 1870 items (77%) have a rule behind them**.
+Across every framework Azure Scout enumerates, **1450 of 1872 items (77%) have a rule behind them**.
 
 ::: warning Read this number the right way
 Scout **enumerates** each framework in full — see [Frameworks](../frameworks/README.md) — and a test
@@ -32,8 +32,8 @@ and a fresh regeneration disagree.
 | [`caf-landing-zone-design-areas`](../frameworks/caf-landing-zone-design-areas.md) | 393 | 0 | **0%** | 8 / 8 |
 | [`waf-service-guides-checklist`](../frameworks/waf-service-guides-checklist.md) | 214 | 214 | **100%** | 1 / 1 |
 | [`waf-saas-checklist`](../frameworks/waf-saas-checklist.md) | 108 | 108 | **100%** | 1 / 1 |
-| [`waf-data-services-checklist`](../frameworks/waf-data-services-checklist.md) | 104 | 104 | **100%** | 1 / 1 |
-| [`waf-mission-critical-checklist`](../frameworks/waf-mission-critical-checklist.md) | 81 | 81 | **100%** | 1 / 1 |
+| [`waf-data-services-checklist`](../frameworks/waf-data-services-checklist.md) | 105 | 105 | **100%** | 2 / 2 |
+| [`waf-mission-critical-checklist`](../frameworks/waf-mission-critical-checklist.md) | 82 | 82 | **100%** | 2 / 2 |
 | [`waf-sustainability-checklist`](../frameworks/waf-sustainability-checklist.md) | 67 | 67 | **100%** | 1 / 1 |
 | [`ai-readiness-question-set`](../frameworks/ai-readiness-question-set.md) | 64 | 64 | **100%** | 1 / 1 |
 | [`app-modernization-question-set`](../frameworks/app-modernization-question-set.md) | 62 | 62 | **100%** | 1 / 1 |
@@ -61,7 +61,7 @@ and a fresh regeneration disagree.
 | `finops-review-question-set` | — | — | *not enumerated with item ids* | — |
 | `avs-landing-zone-question-set` | — | — | *not enumerated with item ids* | — |
 | `waf-analytics-checklist` | — | — | *not enumerated with item ids* | — |
-| **Total** | **1870** | **1448** | **77%** | |
+| **Total** | **1872** | **1450** | **77%** | |
 
 ::: warning Where item coverage reads 0%, check the areas column
 `caf-landing-zone-design-areas` enumerates individual recommendations (`AUT-DEV-01`,
