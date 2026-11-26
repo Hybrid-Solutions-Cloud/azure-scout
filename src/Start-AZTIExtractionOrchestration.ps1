@@ -117,7 +117,14 @@ function Resolve-AZSCExtractionCategoryPlan {
         # AB#9300, 3.18.19 -- Azure VMware Solution private-cloud children, same reasoning.
         'AvsClusters', 'AvsDatastores', 'AvsPlacementPolicies', 'AvsAddons', 'AvsGlobalReachConnections',
         'AvsAuthorizations', 'AvsCloudLinks', 'AvsSegments', 'AvsDhcpConfigurations', 'AvsDnsServices',
-        'AvsGateways', 'AvsIscsiPaths', 'AvsMaintenances'
+        'AvsGateways', 'AvsIscsiPaths', 'AvsMaintenances',
+        # AB#9300, 3.18.20 -- depth datasets, same reasoning: no collector manifest declares them yet.
+        'AfdOriginGroups', 'AfdOrigins', 'AfdEndpoints', 'AfdRoutes', 'AfdCustomDomains', 'AfdSecurityPolicies',
+        'SqlDatabaseBackupShortTerm', 'SqlDatabaseBackupLongTerm', 'SqlDatabaseTde', 'SqlServerFirewallRules',
+        'SqlServerEncryptionProtector', 'SqlServerSecurityAlertPolicies', 'AzureLocalUpdateSummaries',
+        'AzureLocalSecuritySettings', 'AzureLocalArcSettings', 'EventHubNetworkRuleSets', 'EventHubAuthorizationRules',
+        'EventHubEntities', 'ServiceBusNetworkRuleSets', 'ServiceBusAuthorizationRules', 'ServiceBusQueues',
+        'ServiceBusTopics', 'WebAppAuth', 'ApimGlobalPolicy', 'ApimApis', 'ApimNamedValues'
     )
     $armChildDataset = @($armChildNames | Where-Object { $_ -in $supportedArmChildren } | Sort-Object -Unique)
     $specialApiTypes = @(

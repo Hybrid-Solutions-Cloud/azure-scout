@@ -49,7 +49,7 @@ a regular cadence). Re-verify before quoting, and re-date this page when you do.
 | # | Item | Scope | Scout collector |
 |---|---|---|---|
 | WAF-AZLOCAL-RE-01 | Define workload reliability targets (SLOs) for the platform and workload | Platform + workload | ❌ Organisational — no ARM property records an intended SLO |
-| WAF-AZLOCAL-RE-02 | Consider how performance and operations affect reliability (rightsizing, disk type choice, firmware currency) | Platform | ⚠️ Partial — `Hybrid/Clusters` reports cluster health and node count; firmware/driver currency isn't collected |
+| WAF-AZLOCAL-RE-02 | Consider how performance and operations affect reliability (rightsizing, disk type choice, firmware currency) | Platform | ⚠️ Partial — manual, with evidence: `Hybrid/Clusters` reports cluster health and node count, and each cluster's update summary (`domains.hybrid.azureLocalUpdateSummaries`: state, versions, last checked and last updated, whether an update is available) evidences solution and firmware currency; rightsizing and disk type are not ARM-readable |
 | WAF-AZLOCAL-RE-03 | Provide fault tolerance to the instance and its infrastructure dependencies (storage resiliency, network topology) | Platform | ✅ `Hybrid/Clusters` (storage resiliency, node count) · `Hybrid/LogicalNetworks` (network topology) |
 | WAF-AZLOCAL-RE-04 | Build redundancy to provide resiliency (multi-instance deployment across sites) | Workload | ⚠️ Partial — Scout sees one cluster's inventory per collection scope; cross-instance redundancy isn't correlated |
 | WAF-AZLOCAL-RE-05 | Plan and test recoverability (RTO/RPO, Azure Site Recovery) | Workload | ❌ Unanswerable — recovery testing cadence isn't an ARM-readable property |
@@ -59,7 +59,7 @@ a regular cadence). Re-verify before quoting, and re-date this page when you do.
 
 | # | Item | Scope | Scout collector |
 |---|---|---|---|
-| WAF-AZLOCAL-SE-01 | Review the security baselines (drift protection, regulatory standards) | Platform | ⚠️ Partial — `Security/DefenderSecureScore` reflects posture; the specific Azure Local security-baseline drift-control setting isn't a discrete collected property |
+| WAF-AZLOCAL-SE-01 | Review the security baselines (drift protection, regulatory standards) | Platform | ✅ `domains.hybrid.azureLocalSecuritySettings` — a cluster whose secured core, WDAC or SMB encryption baseline is only audited (not `ApplyAndAutoCorrect`) fails drift protection; regulatory standards are not scored (`Security/DefenderSecureScore` reflects posture) |
 | WAF-AZLOCAL-SE-02 | Detect, prevent, and respond to threats (Defender for Cloud, Defender for Servers) | Platform | ✅ `Security/DefenderPricing`, `Security/DefenderAlerts`, `Security/DefenderAssessments` |
 | WAF-AZLOCAL-SE-03 | Create segmentation to contain the blast radius (identity role separation, network isolation) | Platform + workload | ⚠️ Partial — `Hybrid/LogicalNetworks` shows network segmentation; RBAC role-scope separation isn't collected (audit §14 item 2, gap B1) |
 | WAF-AZLOCAL-SE-04 | Use a trusted identity provider to control access (Microsoft Entra ID) | Platform + workload | ✅ `Identity/*` collectors evidence Entra-backed identities; the specific Azure Local built-in-role assignment isn't yet a distinct collector |
@@ -107,13 +107,13 @@ a regular cadence). Re-verify before quoting, and re-date this page when you do.
 | Pillar | Items | Answerable (✅) | Partial (⚠️) | Unanswerable (❌) |
 |---|---|---|---|---|
 | Reliability | 6 | 2 | 2 | 2 |
-| Security | 9 | 4 | 2 | 3 |
+| Security | 9 | 5 | 1 | 3 |
 | Cost Optimization | 6 | 1 | 3 | 2 |
 | Operational Excellence | 6 | 5 | 0 | 1 |
 | Performance Efficiency | 6 | 0 | 2 | 4 |
-| **Total** | **33** | **12** | **9** | **12** |
+| **Total** | **33** | **13** | **8** | **12** |
 
-12 of 33 items (36%) map cleanly to an existing collector. A further 9 are partially answerable —
+13 of 33 items (39%) map cleanly to an existing collector. A further 8 are partially answerable —
 the collector exists but doesn't expose the specific field the checklist item asks about, which is
 build work rather than a new collector. 12 are genuinely unanswerable from ARM/ARG data (pre-deployment
 sizing/validation exercises, benchmarking runs, and organisational commitments), and any future

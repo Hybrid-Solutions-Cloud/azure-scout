@@ -276,7 +276,37 @@ $ErrorActionPreference = 'Stop'
                                                            persistenceRdbEnabled,
                                                            persistenceRdbFrequency,
                                                            geoReplicationLinkCount}],
-                                redisEnterpriseDatabasesMeasured},   (AB#9300 phase 4, batch 2 -- one
+                                redisEnterpriseDatabasesMeasured,
+                                sqlBackupShortTerm[{databaseId,databaseName,sqlServerId,retentionDays,
+                                                     diffBackupIntervalInHours,meetsMinimumRetention}],
+                                sqlBackupShortTermMeasured,
+                                sqlBackupLongTerm[{databaseId,databaseName,sqlServerId,weeklyRetention,
+                                                    monthlyRetention,yearlyRetention,ltrConfigured,
+                                                    timeBasedImmutability}],
+                                sqlBackupLongTermMeasured,
+                                sqlTde[{databaseId,databaseName,sqlServerId,state,enabled,scanState}],
+                                sqlTdeMeasured,
+                                sqlFirewallRules[{sqlServerId,name,ruleCount,allowAllRuleCount,
+                                                   allowAzureServicesRuleCount,broadRangeRuleCount,
+                                                   allowsAllInternet}],
+                                sqlFirewallRulesMeasured,
+                                sqlEncryptionProtector[{sqlServerId,name,serverKeyType,
+                                                         customerManagedKey,autoRotationEnabled}],
+                                sqlEncryptionProtectorMeasured,
+                                sqlSecurityAlertPolicies[{sqlServerId,name,state,enabled,
+                                                           emailAccountAdmins,retentionDays,
+                                                           disabledAlertCount,emailAddressCount}],
+                                sqlSecurityAlertPoliciesMeasured},   (AB#9300, 3.18.20 -- SQL policies
+                                Resource Graph does not index, api-version 2025-01-01: per user database
+                                (not master, not a dedicated pool for the backup policies) the short- and
+                                long-term backup retention and TDE, per server the firewall rules, the
+                                encryption protector and the security alert policies. sqlFirewallRules is
+                                one row per server whose list answered, reduced to counts: NEVER an
+                                address -- the sweep turns each rule into allows-everything, allows-Azure-
+                                services and a-/8-or-wider booleans before a row exists. NEVER carried:
+                                the encryption protector's Key Vault key name, uri or thumbprint, the
+                                alert policy's e-mail addresses, storage endpoint or storage key.)
+                                (AB#9300 phase 4, batch 2, the datasets above these -- one
                                 ARM GET per SQL server / Redis Enterprise cluster. sqlServerAuditing
                                 never carries the storage key, subscription or endpoint;
                                 sqlFailoverGroups is one row per server whose list answered, count 0
@@ -290,11 +320,18 @@ $ErrorActionPreference = 'Stop'
                                          scmMinTlsVersion}],
                           webAppConfigMeasured,
                           webAppBasicAuth[{webAppId,ftpBasicAuthAllowed,scmBasicAuthAllowed}],
-                          webAppBasicAuthMeasured},   (AB#9300 phase 4, batch 2 -- one ARM GET per
+                          webAppBasicAuthMeasured,
+                          webAppAuth[{webAppId,name,builtInAuthEnabled,requireAuthentication,
+                                       unauthenticatedClientAction,requireHttps,entraProviderEnabled,
+                                       enabledIdentityProviderCount,excludedPathCount}],
+                          webAppAuthMeasured},   (AB#9300 phase 4, batch 2 -- one ARM GET per
                           web app for config/web, two for the ftp and scm basic-auth policies. Never
                           app settings or connection strings; healthCheckPathSet is a boolean, the
                           path is not carried; a basic-auth field is $null when its GET returned
-                          nothing.)
+                          nothing. webAppAuth, AB#9300 3.18.20: one GET per web app of
+                          config/authsettingsV2 (WebApps_GetAuthSettingsV2WithoutSecrets, api-version
+                          2025-05-01; the POST that returns secrets is never made). Never a client id,
+                          a secret setting name, an issuer URL or an excluded path -- only counts.)
                       containers{aksClusters[{id,location,networkPolicyEnabled,aadIntegrated,allPoolsZoned,
                                                tier,systemPoolMinNodes,allPoolsAutoscale,
                                                disableLocalAccounts,upgradeChannel,
@@ -420,7 +457,31 @@ $ErrorActionPreference = 'Stop'
                                                         hyperVGeneration,publisher,offer,sku,
                                                         imageVersion}],
                              storageContainers[{provisioningState,status,path,availableSizeGB,
-                                                 containerSizeGB}]},                              (AB#7061,
+                                                 containerSizeGB}],
+                             azureLocalUpdateSummaries[{clusterId,clusterName,name,state,healthState,
+                                                         currentVersion,currentSbeVersion,lastUpdated,
+                                                         lastChecked,packageVersionCount,
+                                                         updateAvailable,upToDate}],
+                             azureLocalUpdateSummariesMeasured,
+                             azureLocalSecuritySettings[{clusterId,clusterName,name,
+                                                          securedCoreComplianceAssignment,
+                                                          wdacComplianceAssignment,
+                                                          smbEncryptionComplianceAssignment,
+                                                          securedCoreCompliance,wdacCompliance,
+                                                          dataAtRestEncrypted,dataInTransitProtected,
+                                                          provisioningState,driftControlEnforced}],
+                             azureLocalSecuritySettingsMeasured,
+                             azureLocalArcSettings[{clusterId,clusterName,name,aggregateState,
+                                                     provisioningState,connectivityEnabled,nodeCount,
+                                                     connectedNodeCount,defaultExtensionCount,
+                                                     allNodesConnected}],
+                             azureLocalArcSettingsMeasured},   (AB#9300, 3.18.20 -- one ARM GET per
+                             Azure Local cluster of updateSummaries, securitySettings and arcSettings,
+                             api-version 2024-04-01. Item rows keyed by `clusterId`, each dataset with a
+                             `...Measured` flag. driftControlEnforced is true only when every baseline
+                             assignment the cluster names is ApplyAndAutoCorrect. NEVER carried: the Arc
+                             application and object ids, the Arc resource group, node names, hardware model.)
+                             (AB#7061,
                              Story AB#7059, Feature AB#7069, Epic AB#7099 -- Azure Local child
                              resources: gallery/marketplace images, storage containers, and the
                              remaining Arc-adjacent types (data controllers, gateways, Kubernetes,
@@ -487,6 +548,39 @@ $ErrorActionPreference = 'Stop'
                           the SRM licence key, an ExpressRoute authorization key or id, a Global Reach
                           peer circuit id or key, a linked private cloud id, a storage target id,
                           host names, VM ids, IP addresses or ranges, NSX paths and DNS zone names.)
+                      afd{originGroups[{profileId,profileName,name,probeRequestType,probeProtocol,
+                                         probeIntervalInSeconds,healthProbeConfigured,sampleSize,
+                                         successfulSamplesRequired,sessionAffinityEnabled,originCount,
+                                         enabledOriginCount,privateLinkOriginCount,
+                                         hasRedundantOrigins,probeGap,provisioningState}],
+                          originGroupsMeasured,
+                          origins[{profileId,originGroupName,name,enabled,enforceCertificateNameCheck,
+                                    priority,weight,privateLink}],
+                          originsMeasured,
+                          endpoints[{profileId,name,enabled,provisioningState}],
+                          endpointsMeasured,
+                          routes[{profileId,endpointName,name,enabled,forwardingProtocol,httpsRedirect,
+                                   linkToDefaultDomain,supportsHttp,supportsHttps,patternCount,
+                                   customDomainCount,ruleSetCount,cacheConfigured,compressionEnabled,
+                                   httpNotRedirected,forwardsOverHttpOnly}],
+                          routesMeasured,
+                          customDomains[{profileId,name,certificateType,minimumTlsVersion,
+                                          tls12OrHigher,managedCertificate,validated,azureDnsZoneSet}],
+                          customDomainsMeasured,
+                          securityPolicies[{profileId,name,policyType,wafPolicySet,associationCount,
+                                             associatedDomainCount}],
+                          securityPoliciesMeasured},   (AB#9300, 3.18.20 -- the sub-resources of Azure
+                          Front Door Standard / Premium profiles (`networking.cdnProfiles` keeps the
+                          profiles), which Resource Graph does not index. One ARM GET per profile per
+                          dataset, api-version 2025-04-15; origins are read once per origin group and
+                          routes once per endpoint (a second parallel wave). A classic Azure CDN profile
+                          is not asked. Item rows, each keyed by `profileId` (the profile's resource id,
+                          lower-cased) and with a `...Measured` flag that is true only when a GET of that
+                          dataset was answered. originGroups[].originCount and hasRedundantOrigins are
+                          $null for a group whose origin list was not answered, never 0 / false.
+                          NEVER carried: host names, origin host headers, probe paths, private link
+                          targets, route patterns and origin paths, the DNS validation token, the WAF
+                          policy id and the associated domain ids.)
                       integration{eventHubNamespaces[{id,location,autoInflateEnabled,skuName,capacity,
                                                        maxThroughputUnits,geoReplicaCount,
                                                        disableLocalAuth,minimumTlsVersion,
@@ -502,9 +596,60 @@ $ErrorActionPreference = 'Stop'
                                               minimumTlsVersion,disableLocalAuth,zoneRedundant,
                                               identityType}],                     (AB#9300 phase 4)
                                   eventHubGeoDr[{eventHubNamespaceId,geoDrConfigured}],
-                                  eventHubGeoDrMeasured},   (AB#9300 phase 4, batch 2 -- one row per
+                                  eventHubGeoDrMeasured,
+                                  eventHubNetworkRuleSets[{namespaceId,name,defaultAction,
+                                                            publicNetworkAccess,trustedServiceAccess,
+                                                            ipRuleCount,virtualNetworkRuleCount,
+                                                            allowsAllNetworks}],
+                                  eventHubNetworkRuleSetsMeasured,
+                                  eventHubAuthorization[{namespaceId,name,ruleCount,manageRuleCount,
+                                                          nonRootManageRuleCount,sendListenOnlyCount}],
+                                  eventHubAuthorizationMeasured,
+                                  eventHubEntities[{namespaceId,namespaceName,name,partitionCount,
+                                                     messageRetentionInDays,cleanupPolicy,
+                                                     retentionTimeInHours,captureEnabled,
+                                                     captureIntervalInSeconds,status}],
+                                  eventHubEntitiesMeasured,
+                                  serviceBusNetworkRuleSets[...as eventHubNetworkRuleSets],
+                                  serviceBusNetworkRuleSetsMeasured,
+                                  serviceBusAuthorization[...as eventHubAuthorization],
+                                  serviceBusAuthorizationMeasured,
+                                  serviceBusQueues[{namespaceId,namespaceName,name,maxDeliveryCount,
+                                                     deadLetteringOnMessageExpiration,
+                                                     requiresDuplicateDetection,requiresSession,
+                                                     partitioned,lockDuration,defaultMessageTimeToLive,
+                                                     maxSizeInMegabytes,forwardsMessages,
+                                                     forwardsDeadLetteredMessages,status}],
+                                  serviceBusQueuesMeasured,
+                                  serviceBusTopics[{namespaceId,namespaceName,name,
+                                                     requiresDuplicateDetection,partitioned,
+                                                     defaultMessageTimeToLive,maxSizeInMegabytes,
+                                                     subscriptionCount,status}],
+                                  serviceBusTopicsMeasured,
+                                  apimGlobalPolicy[{apimServiceId,name,policyPresent,validatesTokens,
+                                                     limitsRate,filtersIp}],
+                                  apimGlobalPolicyMeasured,
+                                  apimApis[{apimServiceId,name,apiCount,httpAllowedApiCount,
+                                             subscriptionNotRequiredApiCount,
+                                             tokenAuthenticatedApiCount}],
+                                  apimApisMeasured,
+                                  apimNamedValues[{apimServiceId,name,namedValueCount,secretCount,
+                                                    keyVaultBackedSecretCount,inlineSecretCount}],
+                                  apimNamedValuesMeasured},   (AB#9300 phase 4, batch 2 -- one row per
                                   non-Basic namespace whose disasterRecoveryConfigs list answered;
-                                  a boolean only, never the partner namespace)
+                                  a boolean only, never the partner namespace. AB#9300, 3.18.20 -- ten
+                                  more ARM-read datasets, api-version 2024-01-01 for Event Hubs and Service
+                                  Bus and 2024-05-01 for API Management. The network rule sets are asked only
+                                  of the tiers that can have one (Event Hubs Standard and above, Service Bus
+                                  Premium); the authorization rules, API Management global policy, APIs and
+                                  named values are summaries, one row per namespace or service whose list
+                                  answered, with counts and booleans. allowsAllNetworks is the default action
+                                  Allow with public network access not Disabled. NEVER carried: an allowed
+                                  address or subnet id, an authorization rule's keys (a POST, never asked) or
+                                  rights list, an event hub's Capture destination, a queue's forwarding
+                                  targets, the global policy XML (scanned for validate-jwt, rate-limit and
+                                  ip-filter, then dropped), an API's backend URL, a named value's value or
+                                  Key Vault secret identifier.)
                       iot{iotHubs[{disableLocalAuth}],
                           dpsInstances[{publicAccess,allocationPolicy,linkedHubCount}],
                           digitalTwinsInstances[{publicAccess,privateEndpointConnectionCount,identityType}]},
@@ -716,7 +861,7 @@ $ErrorActionPreference = 'Stop'
     `opsPosture.diagnosticCoverage` has a `microsoft.avs/privateclouds` row. Discovery: the discovery
     index lists an AZSC/* row only as enrichment of a base resource with the same id, so a child with
     no Resource Graph row would never be discovered; Get-ScoutRawInventory therefore mirrors each swept
-    child under its real ARM type (ConvertTo-ScoutAvsDiscoveryResource), and the index lists it under
+    child under its real ARM type (ConvertTo-ScoutChildDiscoveryResource), and the index lists it under
     Compute. The mirror is skipped by ConvertFrom-ScoutInventory and feeds no worksheet.
 
     Deliberately NOT collected here, confirmed absent/out of scope after
@@ -1879,6 +2024,7 @@ resources | where type =~ "microsoft.app/containerapps"
 | extend allowInsecure = tobool(properties.configuration.ingress.allowInsecure)
 | extend identityType = tostring(identity.type)
 | extend containerCount = array_length(properties.template.containers)
+
 | extend containerArr = iff(coalesce(toint(array_length(properties.template.containers)), 0) > 0, properties.template.containers, dynamic([{}]))
 | mv-expand ctr = containerArr
 | extend probeTypes = tostring(ctr.probes)
@@ -3608,6 +3754,18 @@ resources
                 'AvsGlobalReachConnections', 'AvsAuthorizations', 'AvsCloudLinks'
                 'AvsSegments', 'AvsDhcpConfigurations', 'AvsDnsServices', 'AvsGateways'
                 'AvsIscsiPaths', 'AvsMaintenances'
+                # AB#9300, 3.18.20 -- the depth datasets. Each makes no request when the estate has no parent of its
+                # type (a Front Door Standard/Premium profile, a SQL database or server, an Azure Local cluster, an
+                # Event Hubs or Service Bus namespace, a web app, an API Management service), and otherwise one GET per
+                # parent (two levels for Front Door origins and routes), fetched 8 at a time with the datasets above.
+                'AfdOriginGroups', 'AfdOrigins', 'AfdEndpoints', 'AfdRoutes', 'AfdCustomDomains', 'AfdSecurityPolicies'
+                'SqlDatabaseBackupShortTerm', 'SqlDatabaseBackupLongTerm', 'SqlDatabaseTde'
+                'SqlServerFirewallRules', 'SqlServerEncryptionProtector', 'SqlServerSecurityAlertPolicies'
+                'AzureLocalUpdateSummaries', 'AzureLocalSecuritySettings', 'AzureLocalArcSettings'
+                'EventHubNetworkRuleSets', 'EventHubAuthorizationRules', 'EventHubEntities'
+                'ServiceBusNetworkRuleSets', 'ServiceBusAuthorizationRules', 'ServiceBusQueues', 'ServiceBusTopics'
+                'WebAppAuth'
+                'ApimGlobalPolicy', 'ApimApis', 'ApimNamedValues'
             )
             # ARM deployment history lives in Resource Graph's deploymentresources table, not the
             # resources table. It is what tells the infrastructure-as-code rules (WAF-OE-02/08,
@@ -3924,6 +4082,65 @@ resources
     $r['avsIscsiPathsMeasured'] = [bool]($inventoryShaped.ContainsKey('avsIscsiPathsMeasured') -and $inventoryShaped['avsIscsiPathsMeasured'])
     $r['avsMaintenances'] = if ($inventoryShaped.ContainsKey('avsMaintenances')) { @($inventoryShaped['avsMaintenances']) } else { @() }
     $r['avsMaintenancesMeasured'] = [bool]($inventoryShaped.ContainsKey('avsMaintenancesMeasured') -and $inventoryShaped['avsMaintenancesMeasured'])
+
+    # AB#9300, 3.18.20. The twenty-six depth datasets and their `...Measured` flags (Front Door, SQL database and
+    # server policies, Azure Local cluster updates, security and Arc settings, Event Hubs and Service Bus access
+    # and entities, App Service authentication, API Management) -- the same situation as the AVS block above:
+    # ARM REST reads Resource Graph cannot supply, so no typed query and an explicit copy each. Empty / $false
+    # whenever the ARM-child sweep did not run, and always when no parent of the type exists (the sweep makes no
+    # request then). Written out key by key, not looped, for the reason given above.
+    $r['afdOriginGroups'] = if ($inventoryShaped.ContainsKey('afdOriginGroups')) { @($inventoryShaped['afdOriginGroups']) } else { @() }
+    $r['afdOriginGroupsMeasured'] = [bool]($inventoryShaped.ContainsKey('afdOriginGroupsMeasured') -and $inventoryShaped['afdOriginGroupsMeasured'])
+    $r['afdOrigins'] = if ($inventoryShaped.ContainsKey('afdOrigins')) { @($inventoryShaped['afdOrigins']) } else { @() }
+    $r['afdOriginsMeasured'] = [bool]($inventoryShaped.ContainsKey('afdOriginsMeasured') -and $inventoryShaped['afdOriginsMeasured'])
+    $r['afdEndpoints'] = if ($inventoryShaped.ContainsKey('afdEndpoints')) { @($inventoryShaped['afdEndpoints']) } else { @() }
+    $r['afdEndpointsMeasured'] = [bool]($inventoryShaped.ContainsKey('afdEndpointsMeasured') -and $inventoryShaped['afdEndpointsMeasured'])
+    $r['afdRoutes'] = if ($inventoryShaped.ContainsKey('afdRoutes')) { @($inventoryShaped['afdRoutes']) } else { @() }
+    $r['afdRoutesMeasured'] = [bool]($inventoryShaped.ContainsKey('afdRoutesMeasured') -and $inventoryShaped['afdRoutesMeasured'])
+    $r['afdCustomDomains'] = if ($inventoryShaped.ContainsKey('afdCustomDomains')) { @($inventoryShaped['afdCustomDomains']) } else { @() }
+    $r['afdCustomDomainsMeasured'] = [bool]($inventoryShaped.ContainsKey('afdCustomDomainsMeasured') -and $inventoryShaped['afdCustomDomainsMeasured'])
+    $r['afdSecurityPolicies'] = if ($inventoryShaped.ContainsKey('afdSecurityPolicies')) { @($inventoryShaped['afdSecurityPolicies']) } else { @() }
+    $r['afdSecurityPoliciesMeasured'] = [bool]($inventoryShaped.ContainsKey('afdSecurityPoliciesMeasured') -and $inventoryShaped['afdSecurityPoliciesMeasured'])
+    $r['sqlBackupShortTerm'] = if ($inventoryShaped.ContainsKey('sqlBackupShortTerm')) { @($inventoryShaped['sqlBackupShortTerm']) } else { @() }
+    $r['sqlBackupShortTermMeasured'] = [bool]($inventoryShaped.ContainsKey('sqlBackupShortTermMeasured') -and $inventoryShaped['sqlBackupShortTermMeasured'])
+    $r['sqlBackupLongTerm'] = if ($inventoryShaped.ContainsKey('sqlBackupLongTerm')) { @($inventoryShaped['sqlBackupLongTerm']) } else { @() }
+    $r['sqlBackupLongTermMeasured'] = [bool]($inventoryShaped.ContainsKey('sqlBackupLongTermMeasured') -and $inventoryShaped['sqlBackupLongTermMeasured'])
+    $r['sqlTde'] = if ($inventoryShaped.ContainsKey('sqlTde')) { @($inventoryShaped['sqlTde']) } else { @() }
+    $r['sqlTdeMeasured'] = [bool]($inventoryShaped.ContainsKey('sqlTdeMeasured') -and $inventoryShaped['sqlTdeMeasured'])
+    $r['sqlFirewallRules'] = if ($inventoryShaped.ContainsKey('sqlFirewallRules')) { @($inventoryShaped['sqlFirewallRules']) } else { @() }
+    $r['sqlFirewallRulesMeasured'] = [bool]($inventoryShaped.ContainsKey('sqlFirewallRulesMeasured') -and $inventoryShaped['sqlFirewallRulesMeasured'])
+    $r['sqlEncryptionProtector'] = if ($inventoryShaped.ContainsKey('sqlEncryptionProtector')) { @($inventoryShaped['sqlEncryptionProtector']) } else { @() }
+    $r['sqlEncryptionProtectorMeasured'] = [bool]($inventoryShaped.ContainsKey('sqlEncryptionProtectorMeasured') -and $inventoryShaped['sqlEncryptionProtectorMeasured'])
+    $r['sqlSecurityAlertPolicies'] = if ($inventoryShaped.ContainsKey('sqlSecurityAlertPolicies')) { @($inventoryShaped['sqlSecurityAlertPolicies']) } else { @() }
+    $r['sqlSecurityAlertPoliciesMeasured'] = [bool]($inventoryShaped.ContainsKey('sqlSecurityAlertPoliciesMeasured') -and $inventoryShaped['sqlSecurityAlertPoliciesMeasured'])
+    $r['azureLocalUpdateSummaries'] = if ($inventoryShaped.ContainsKey('azureLocalUpdateSummaries')) { @($inventoryShaped['azureLocalUpdateSummaries']) } else { @() }
+    $r['azureLocalUpdateSummariesMeasured'] = [bool]($inventoryShaped.ContainsKey('azureLocalUpdateSummariesMeasured') -and $inventoryShaped['azureLocalUpdateSummariesMeasured'])
+    $r['azureLocalSecuritySettings'] = if ($inventoryShaped.ContainsKey('azureLocalSecuritySettings')) { @($inventoryShaped['azureLocalSecuritySettings']) } else { @() }
+    $r['azureLocalSecuritySettingsMeasured'] = [bool]($inventoryShaped.ContainsKey('azureLocalSecuritySettingsMeasured') -and $inventoryShaped['azureLocalSecuritySettingsMeasured'])
+    $r['azureLocalArcSettings'] = if ($inventoryShaped.ContainsKey('azureLocalArcSettings')) { @($inventoryShaped['azureLocalArcSettings']) } else { @() }
+    $r['azureLocalArcSettingsMeasured'] = [bool]($inventoryShaped.ContainsKey('azureLocalArcSettingsMeasured') -and $inventoryShaped['azureLocalArcSettingsMeasured'])
+    $r['eventHubNetworkRuleSets'] = if ($inventoryShaped.ContainsKey('eventHubNetworkRuleSets')) { @($inventoryShaped['eventHubNetworkRuleSets']) } else { @() }
+    $r['eventHubNetworkRuleSetsMeasured'] = [bool]($inventoryShaped.ContainsKey('eventHubNetworkRuleSetsMeasured') -and $inventoryShaped['eventHubNetworkRuleSetsMeasured'])
+    $r['eventHubAuthorization'] = if ($inventoryShaped.ContainsKey('eventHubAuthorization')) { @($inventoryShaped['eventHubAuthorization']) } else { @() }
+    $r['eventHubAuthorizationMeasured'] = [bool]($inventoryShaped.ContainsKey('eventHubAuthorizationMeasured') -and $inventoryShaped['eventHubAuthorizationMeasured'])
+    $r['eventHubEntities'] = if ($inventoryShaped.ContainsKey('eventHubEntities')) { @($inventoryShaped['eventHubEntities']) } else { @() }
+    $r['eventHubEntitiesMeasured'] = [bool]($inventoryShaped.ContainsKey('eventHubEntitiesMeasured') -and $inventoryShaped['eventHubEntitiesMeasured'])
+    $r['serviceBusNetworkRuleSets'] = if ($inventoryShaped.ContainsKey('serviceBusNetworkRuleSets')) { @($inventoryShaped['serviceBusNetworkRuleSets']) } else { @() }
+    $r['serviceBusNetworkRuleSetsMeasured'] = [bool]($inventoryShaped.ContainsKey('serviceBusNetworkRuleSetsMeasured') -and $inventoryShaped['serviceBusNetworkRuleSetsMeasured'])
+    $r['serviceBusAuthorization'] = if ($inventoryShaped.ContainsKey('serviceBusAuthorization')) { @($inventoryShaped['serviceBusAuthorization']) } else { @() }
+    $r['serviceBusAuthorizationMeasured'] = [bool]($inventoryShaped.ContainsKey('serviceBusAuthorizationMeasured') -and $inventoryShaped['serviceBusAuthorizationMeasured'])
+    $r['serviceBusQueues'] = if ($inventoryShaped.ContainsKey('serviceBusQueues')) { @($inventoryShaped['serviceBusQueues']) } else { @() }
+    $r['serviceBusQueuesMeasured'] = [bool]($inventoryShaped.ContainsKey('serviceBusQueuesMeasured') -and $inventoryShaped['serviceBusQueuesMeasured'])
+    $r['serviceBusTopics'] = if ($inventoryShaped.ContainsKey('serviceBusTopics')) { @($inventoryShaped['serviceBusTopics']) } else { @() }
+    $r['serviceBusTopicsMeasured'] = [bool]($inventoryShaped.ContainsKey('serviceBusTopicsMeasured') -and $inventoryShaped['serviceBusTopicsMeasured'])
+    $r['apimGlobalPolicy'] = if ($inventoryShaped.ContainsKey('apimGlobalPolicy')) { @($inventoryShaped['apimGlobalPolicy']) } else { @() }
+    $r['apimGlobalPolicyMeasured'] = [bool]($inventoryShaped.ContainsKey('apimGlobalPolicyMeasured') -and $inventoryShaped['apimGlobalPolicyMeasured'])
+    $r['apimApis'] = if ($inventoryShaped.ContainsKey('apimApis')) { @($inventoryShaped['apimApis']) } else { @() }
+    $r['apimApisMeasured'] = [bool]($inventoryShaped.ContainsKey('apimApisMeasured') -and $inventoryShaped['apimApisMeasured'])
+    $r['apimNamedValues'] = if ($inventoryShaped.ContainsKey('apimNamedValues')) { @($inventoryShaped['apimNamedValues']) } else { @() }
+    $r['apimNamedValuesMeasured'] = [bool]($inventoryShaped.ContainsKey('apimNamedValuesMeasured') -and $inventoryShaped['apimNamedValuesMeasured'])
+    $r['webAppAuth'] = if ($inventoryShaped.ContainsKey('webAppAuth')) { @($inventoryShaped['webAppAuth']) } else { @() }
+    $r['webAppAuthMeasured'] = [bool]($inventoryShaped.ContainsKey('webAppAuthMeasured') -and $inventoryShaped['webAppAuthMeasured'])
 
     # ---- firewall policy rule-collection group parsing (AB#400) ----
     # properties.ruleCollections is a nested dynamic array (rule collections -> rules)
@@ -4713,6 +4930,19 @@ resources
                 sqlFailoverGroupsMeasured = [bool]$r['sqlFailoverGroupsMeasured']
                 redisEnterpriseDatabases = $r.redisEnterpriseDatabases
                 redisEnterpriseDatabasesMeasured = [bool]$r['redisEnterpriseDatabasesMeasured']
+                # AB#9300, 3.18.20 -- SQL database and server policies, one ARM GET per database or server.
+                sqlBackupShortTerm = $r.sqlBackupShortTerm
+                sqlBackupShortTermMeasured = [bool]$r['sqlBackupShortTermMeasured']
+                sqlBackupLongTerm = $r.sqlBackupLongTerm
+                sqlBackupLongTermMeasured = [bool]$r['sqlBackupLongTermMeasured']
+                sqlTde = $r.sqlTde
+                sqlTdeMeasured = [bool]$r['sqlTdeMeasured']
+                sqlFirewallRules = $r.sqlFirewallRules
+                sqlFirewallRulesMeasured = [bool]$r['sqlFirewallRulesMeasured']
+                sqlEncryptionProtector = $r.sqlEncryptionProtector
+                sqlEncryptionProtectorMeasured = [bool]$r['sqlEncryptionProtectorMeasured']
+                sqlSecurityAlertPolicies = $r.sqlSecurityAlertPolicies
+                sqlSecurityAlertPoliciesMeasured = [bool]$r['sqlSecurityAlertPoliciesMeasured']
             }
             web          = [pscustomobject]@{
                 webApps = $r.webApps
@@ -4722,6 +4952,9 @@ resources
                 webAppConfigMeasured = [bool]$r['webAppConfigMeasured']
                 webAppBasicAuth = $r.webAppBasicAuth
                 webAppBasicAuthMeasured = [bool]$r['webAppBasicAuthMeasured']
+                # AB#9300, 3.18.20 -- App Service authentication (authsettingsV2, no secrets), one GET per web app.
+                webAppAuth = $r.webAppAuth
+                webAppAuthMeasured = [bool]$r['webAppAuthMeasured']
                 # AB#7110 -- Web plumbing.
                 appServiceCertificates = $r.appServiceCertificates
                 appServiceDomains = $r.appServiceDomains
@@ -4817,6 +5050,13 @@ resources
                 galleryImages = $r.galleryImages
                 marketplaceGalleryImages = $r.marketplaceGalleryImages
                 storageContainers = $r.storageContainers
+                # AB#9300, 3.18.20 -- Azure Local cluster update summaries, security settings and Arc settings.
+                azureLocalUpdateSummaries = $r.azureLocalUpdateSummaries
+                azureLocalUpdateSummariesMeasured = [bool]$r['azureLocalUpdateSummariesMeasured']
+                azureLocalSecuritySettings = $r.azureLocalSecuritySettings
+                azureLocalSecuritySettingsMeasured = [bool]$r['azureLocalSecuritySettingsMeasured']
+                azureLocalArcSettings = $r.azureLocalArcSettings
+                azureLocalArcSettingsMeasured = [bool]$r['azureLocalArcSettingsMeasured']
             }
             # AB#9300, 3.18.19 -- the CHILDREN of Azure VMware Solution private clouds, which Resource
             # Graph does not index (the private clouds themselves are `compute.privateClouds`). Item
@@ -4851,6 +5091,24 @@ resources
                 maintenances = $r.avsMaintenances
                 maintenancesMeasured = [bool]$r['avsMaintenancesMeasured']
             }
+            # AB#9300, 3.18.20 -- Azure Front Door Standard / Premium: the origin groups, origins, endpoints, routes,
+            # custom domains and security policies of each profile (the profiles themselves are networking.cdnProfiles).
+            # Item rows keyed by profileId, each with a ...Measured flag that is $true only when a GET of it was
+            # answered. Read the flags with [bool] on the hashtable.
+            afd          = [pscustomobject]@{
+                originGroups = $r.afdOriginGroups
+                originGroupsMeasured = [bool]$r['afdOriginGroupsMeasured']
+                origins = $r.afdOrigins
+                originsMeasured = [bool]$r['afdOriginsMeasured']
+                endpoints = $r.afdEndpoints
+                endpointsMeasured = [bool]$r['afdEndpointsMeasured']
+                routes = $r.afdRoutes
+                routesMeasured = [bool]$r['afdRoutesMeasured']
+                customDomains = $r.afdCustomDomains
+                customDomainsMeasured = [bool]$r['afdCustomDomainsMeasured']
+                securityPolicies = $r.afdSecurityPolicies
+                securityPoliciesMeasured = [bool]$r['afdSecurityPoliciesMeasured']
+            }
             integration  = [pscustomobject]@{
                 eventHubNamespaces = $r.eventHubNamespaces; apiManagement = $r.apiManagement
                 serviceBusNamespaces = $r.serviceBusNamespaces
@@ -4859,6 +5117,28 @@ resources
                 # AB#9300 phase 4, batch 2 -- one ARM GET per non-Basic Event Hubs namespace.
                 eventHubGeoDr = $r.eventHubGeoDr
                 eventHubGeoDrMeasured = [bool]$r['eventHubGeoDrMeasured']
+                # AB#9300, 3.18.20 -- Event Hubs and Service Bus network rule sets, authorization rules and entities, and API
+                # Management's global policy, APIs and named values.
+                eventHubNetworkRuleSets = $r.eventHubNetworkRuleSets
+                eventHubNetworkRuleSetsMeasured = [bool]$r['eventHubNetworkRuleSetsMeasured']
+                eventHubAuthorization = $r.eventHubAuthorization
+                eventHubAuthorizationMeasured = [bool]$r['eventHubAuthorizationMeasured']
+                eventHubEntities = $r.eventHubEntities
+                eventHubEntitiesMeasured = [bool]$r['eventHubEntitiesMeasured']
+                serviceBusNetworkRuleSets = $r.serviceBusNetworkRuleSets
+                serviceBusNetworkRuleSetsMeasured = [bool]$r['serviceBusNetworkRuleSetsMeasured']
+                serviceBusAuthorization = $r.serviceBusAuthorization
+                serviceBusAuthorizationMeasured = [bool]$r['serviceBusAuthorizationMeasured']
+                serviceBusQueues = $r.serviceBusQueues
+                serviceBusQueuesMeasured = [bool]$r['serviceBusQueuesMeasured']
+                serviceBusTopics = $r.serviceBusTopics
+                serviceBusTopicsMeasured = [bool]$r['serviceBusTopicsMeasured']
+                apimGlobalPolicy = $r.apimGlobalPolicy
+                apimGlobalPolicyMeasured = [bool]$r['apimGlobalPolicyMeasured']
+                apimApis = $r.apimApis
+                apimApisMeasured = [bool]$r['apimApisMeasured']
+                apimNamedValues = $r.apimNamedValues
+                apimNamedValuesMeasured = [bool]$r['apimNamedValuesMeasured']
             }
             iot          = [pscustomobject]@{
                 iotHubs = $r.iotHubs; dpsInstances = $r.dpsInstances

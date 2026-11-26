@@ -176,7 +176,7 @@ function Set-ScoutFindingAnswer {
         as any other not-applicable item) with the note kept.
 
         A manual question whose rule set could not run because its data prerequisite was absent
-        (Status Unknown) is still answerable: the question is about the organisation, not the data.
+        (Status NotAssessed, flagged NotApplicable) is still answerable: the question is about the organisation, not the data.
     #>
     [CmdletBinding()]
     param(
@@ -190,7 +190,7 @@ function Set-ScoutFindingAnswer {
         $source = if ($isManual) { 'Unanswered' } else { 'Data' }
         $answer = $null
         if ($isManual -and $Answers -and $finding.PSObject.Properties['Id'] -and $Answers.ContainsKey([string]$finding.Id) -and
-            [string]$finding.Status -in 'Manual', 'Unknown') {
+            ([string]$finding.Status -in 'Manual', 'Unknown' -or ($finding.PSObject.Properties['NotApplicable'] -and $finding.NotApplicable))) {
             $answer = $Answers[[string]$finding.Id]
         }
         if ($answer) {

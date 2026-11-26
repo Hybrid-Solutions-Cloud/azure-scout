@@ -44,7 +44,7 @@ Items that mix an automated check with something ARM does not carry (active geo-
 |---|---|---|---|---|
 | WAF-DATA-SQL-01 | Reliability | SQL databases are zone redundant | ✅ database zoneRedundant (master excluded) | SQL-RE-R |
 | WAF-DATA-SQL-02 | Reliability | Active geo-replication or failover groups protect against a regional failure | ✅ `sqlFailoverGroups` `failoverGroupCount` (a server with no failover group is a finding; active geo-replication links are not collected, so a server protected by links alone is an exception to record); gated on `sqlFailoverGroupsMeasured` | SQL-RE-C, SQL-RE-R |
-| WAF-DATA-SQL-03 | Reliability | Backups cover point-in-time restore, geo-restore and long-term retention, with immutability | ❌ Manual — backup policy is a child resource, not collected | SQL-RE-R |
+| WAF-DATA-SQL-03 | Reliability | Backups cover point-in-time restore, geo-restore and long-term retention, with immutability | ❌ Manual — with evidence: each database's point-in-time restore retention and long-term retention policy (`domains.databases.sqlBackupShortTerm`, `sqlBackupLongTerm`); whether they are aligned to retention needs is business knowledge (`CAF-DB-05` scores point-in-time retention below the 7-day default) | SQL-RE-R |
 | WAF-DATA-SQL-04 | Reliability | Critical databases use the Business Critical or Hyperscale tier | ❌ Manual — the tier of each database is attached; which are critical is judgement | SQL-RE-C |
 | WAF-DATA-SQL-05 | Reliability | Applications retry with backoff and isolate connection pools by function | ❌ Manual — client code, not ARM | SQL-RE-C, SQL-RE-R |
 | WAF-DATA-SQL-06 | Security | SQL servers have public network access disabled | ✅ server publicNetworkAccess | SQL-SE-R |

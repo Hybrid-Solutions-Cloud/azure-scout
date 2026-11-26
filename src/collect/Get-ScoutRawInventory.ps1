@@ -450,6 +450,33 @@ function Get-ScoutRawInventory {
         'azsc/armchild/avsgateways' = @('microsoft.avs/privateclouds')
         'azsc/armchild/avsiscsipaths' = @('microsoft.avs/privateclouds')
         'azsc/armchild/avsmaintenances' = @('microsoft.avs/privateclouds')
+        # AB#9300, 3.18.20 -- the depth datasets map to the parent type their health is reported against.
+        'azsc/armchild/afdorigingroups' = @('microsoft.cdn/profiles')
+        'azsc/armchild/afdorigins' = @('microsoft.cdn/profiles')
+        'azsc/armchild/afdendpoints' = @('microsoft.cdn/profiles')
+        'azsc/armchild/afdroutes' = @('microsoft.cdn/profiles')
+        'azsc/armchild/afdcustomdomains' = @('microsoft.cdn/profiles')
+        'azsc/armchild/afdsecuritypolicies' = @('microsoft.cdn/profiles')
+        'azsc/armchild/sqldatabasebackupshortterm' = @('microsoft.sql/servers/databases')
+        'azsc/armchild/sqldatabasebackuplongterm' = @('microsoft.sql/servers/databases')
+        'azsc/armchild/sqldatabasetde' = @('microsoft.sql/servers/databases')
+        'azsc/armchild/sqlserverfirewallrules' = @('microsoft.sql/servers')
+        'azsc/armchild/sqlserverencryptionprotector' = @('microsoft.sql/servers')
+        'azsc/armchild/sqlserversecurityalertpolicies' = @('microsoft.sql/servers')
+        'azsc/armchild/azurelocalupdatesummaries' = @('microsoft.azurestackhci/clusters')
+        'azsc/armchild/azurelocalsecuritysettings' = @('microsoft.azurestackhci/clusters')
+        'azsc/armchild/azurelocalarcsettings' = @('microsoft.azurestackhci/clusters')
+        'azsc/armchild/eventhubnetworkrulesets' = @('microsoft.eventhub/namespaces')
+        'azsc/armchild/eventhubauthorizationrules' = @('microsoft.eventhub/namespaces')
+        'azsc/armchild/eventhubentities' = @('microsoft.eventhub/namespaces')
+        'azsc/armchild/servicebusnetworkrulesets' = @('microsoft.servicebus/namespaces')
+        'azsc/armchild/servicebusauthorizationrules' = @('microsoft.servicebus/namespaces')
+        'azsc/armchild/servicebusqueues' = @('microsoft.servicebus/namespaces')
+        'azsc/armchild/servicebustopics' = @('microsoft.servicebus/namespaces')
+        'azsc/armchild/webappauth' = @('microsoft.web/sites')
+        'azsc/armchild/apimglobalpolicy' = @('microsoft.apimanagement/service')
+        'azsc/armchild/apimapis' = @('microsoft.apimanagement/service')
+        'azsc/armchild/apimnamedvalues' = @('microsoft.apimanagement/service')
     }
     $networkDiagnosticParentTypes = @(
         'microsoft.network/networksecuritygroups', 'microsoft.network/applicationgateways',
@@ -1173,20 +1200,22 @@ function Get-ScoutRawInventory {
         }
     }
 
-    # AB#9300, 3.18.19. The Azure VMware Solution children the ARM-child sweep read are real ARM
-    # resources with no Resource Graph row, and the discovery index lists an AZSC/* row only as
-    # enrichment of a base resource with the same id -- so, alone, they would never be discovered. A
-    # pure transform of rows already collected (no Azure call) mirrors each under its real type
-    # (microsoft.avs/privateclouds/clusters ...), appended AFTER the AZSC rows, so discovery lists it.
-    # With no private cloud there are no rows to mirror and nothing is added.
-    if (Import-ScoutRawInventoryHelper -CommandName 'ConvertTo-ScoutAvsDiscoveryResource' -FileName 'ConvertTo-ScoutAvsDiscoveryResource.ps1') {
+    # AB#9300, 3.18.19 and 3.18.20. The sub-resources the ARM-child sweep read (Azure VMware Solution children,
+    # Front Door origin groups and routes, SQL firewall rules, Event Hubs, API Management APIs ...) are real ARM
+    # resources with no Resource Graph row, and the discovery index lists an AZSC/* row only as enrichment of a
+    # base resource with the same id -- so, alone, they would never be discovered. A pure transform of rows
+    # already collected (no Azure call) mirrors each allow-listed, bounded sub-resource dataset under its real
+    # type (microsoft.avs/privateclouds/clusters, microsoft.cdn/profiles/origingroups ...), appended AFTER the
+    # AZSC rows, so discovery lists it. The rule for which datasets are mirrored is in the transform's header.
+    # With no parent of a mirrored type there are no rows to mirror and nothing is added.
+    if (Import-ScoutRawInventoryHelper -CommandName 'ConvertTo-ScoutChildDiscoveryResource' -FileName 'ConvertTo-ScoutChildDiscoveryResource.ps1') {
         try {
-            foreach ($row in @(ConvertTo-ScoutAvsDiscoveryResource -Resources @($resources))) {
+            foreach ($row in @(ConvertTo-ScoutChildDiscoveryResource -Resources @($resources))) {
                 if ($null -ne $row) { $resources.Add($row) }
             }
         }
         catch {
-            Write-Warning "Get-ScoutRawInventory: Azure VMware Solution discovery transform failed; continuing without its mirrored rows: $($_.Exception.Message)"
+            Write-Warning "Get-ScoutRawInventory: sub-resource discovery transform failed; continuing without its mirrored rows: $($_.Exception.Message)"
         }
     }
 

@@ -284,6 +284,18 @@ BeforeAll {
                 [ordered]@{ id = $id.Eg; name = 'eg1'; type = 'microsoft.eventgrid/topics'; publicNetworkAccess = 'Enabled'; inboundIpRuleCount = $null; minimumTlsVersion = '1.0'; disableLocalAuth = $null; identityType = '' }
             })
 
+        # AB#9300, 3.18.20 -- the depth datasets WAF-SVC-AFD-04, AFD-05, SB-12 and APIM-10 read. Good: two enabled origins
+        # with a probe, TLS 1.2 custom domains, a Premium namespace closed to the internet, no inline secret named value.
+        $integration.serviceBusNetworkRuleSetsMeasured = $true
+        $integration.serviceBusNetworkRuleSets = @([ordered]@{ name = 'sb1'; defaultAction = $(if ($Good) { 'Deny' } else { 'Allow' }); allowsAllNetworks = (-not $Good) })
+        $integration.apimNamedValuesMeasured = $true
+        $integration.apimNamedValues = @([ordered]@{ name = 'apim1'; namedValueCount = 3; secretCount = 2; keyVaultBackedSecretCount = $(if ($Good) { 2 } else { 0 }); inlineSecretCount = $(if ($Good) { 0 } else { 2 }) })
+        $afd = [ordered]@{
+            originGroupsMeasured = $true; originsMeasured = $true; customDomainsMeasured = $true
+            originGroups         = @([ordered]@{ name = 'og1'; hasRedundantOrigins = $Good; probeGap = (-not $Good) })
+            customDomains        = @([ordered]@{ name = 'cd1'; minimumTlsVersion = $(if ($Good) { 'TLS12' } else { 'TLS10' }); tls12OrHigher = $Good })
+        }
+
         [ordered]@{
             networking = $networking
             compute    = $compute
@@ -295,7 +307,7 @@ BeforeAll {
                 diagnosticCoverageMeasured = $true
                 diagnosticCoverage         = @(foreach ($t in $diagTypes) { Get-DiagnosticRow -Type $t -Percent $pct })
             }
-            domains    = [ordered]@{ web = $web; containers = $containers; storage = $storage; integration = $integration }
+            domains    = [ordered]@{ web = $web; containers = $containers; storage = $storage; integration = $integration; afd = $afd }
         }
     }
 
@@ -335,10 +347,10 @@ Describe 'waf.serviceguides.yaml -- shape' {
         $script:Set.FrameworkVersion | Should -Match 'waf-service-guides-checklist\.md'
     }
 
-    It 'loads 214 rules, 138 automated and 76 manual, with unique ids' {
+    It 'loads 214 rules, 142 automated and 72 manual, with unique ids' {
         $script:Rules.Count | Should -Be 214
-        $script:Automated.Count | Should -Be 138
-        $script:Manual.Count | Should -Be 76
+        $script:Automated.Count | Should -Be 142
+        $script:Manual.Count | Should -Be 72
         @($script:Rules.id | Select-Object -Unique).Count | Should -Be 214
     }
 
@@ -414,7 +426,7 @@ Describe 'waf-service-guides-checklist.md' {
     }
 
     It 'states the same totals the rule file holds' {
-        $script:Doc | Should -Match '\| \*\*Total\*\* \| \*\*214\*\* \| \*\*138\*\* \| \*\*76\*\* \|'
+        $script:Doc | Should -Match '\| \*\*Total\*\* \| \*\*214\*\* \| \*\*142\*\* \| \*\*72\*\* \|'
     }
 }
 

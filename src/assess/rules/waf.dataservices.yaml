@@ -59,9 +59,13 @@ rules:
   - id: WAF-DATA-SQL-03
     title: "WAF-DATA-SQL-03. Backups cover point-in-time restore, geo-restore and long-term retention, with immutability"
     severity: medium
-    query: null
+    # Evidence only (AB#9300, 3.18.20): each user database's point-in-time restore retention and long-term retention
+    # policy are read (domains.databases.sqlBackupShortTerm, sqlBackupLongTerm). Whether the retention is "aligned to
+    # retention needs" is business knowledge, and geo-restore depends on the backup storage redundancy, so nothing is
+    # scored here (CAF-DB-05 scores a point-in-time retention below the 7-day default; WAF-DATA-SQL-19 the redundancy).
+    query: "$.domains.databases.sqlBackupLongTerm[*]"
     assert: { type: manual }
-    remediation: "WAF-DATA-SQL-03. Configure PITR, geo-restore and LTR and enable backup immutability aligned to retention needs."
+    remediation: "WAF-DATA-SQL-03. The long-term retention policies listed as evidence show, for each database, the weekly, monthly and yearly retention (ltrConfigured is false when none is set) and whether time-based immutability is on; the point-in-time restore retention is on domains.databases.sqlBackupShortTerm. Configure PITR, geo-restore and LTR and enable backup immutability aligned to retention needs -- what those needs are is not something Azure records."
     manual: true
   # the tier of each database is attached; which are critical is judgement [SQL-RE-C]
   - id: WAF-DATA-SQL-04

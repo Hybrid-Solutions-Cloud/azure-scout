@@ -285,9 +285,9 @@ function Invoke-Rule {
                 # supporting number the reference deliverable carries on every risk row. Without
                 # it the reader gets a percentage with nothing behind it.
                 $denominator = $denom
-                # No denominator = nothing collected for this dimension -> Unknown,
+                # No denominator = nothing exists to measure for this dimension -> NotAssessed,
                 # NOT a 0% Fail, which would be misleading (AB#5085).
-                if ($denom -le 0) { $status = 'Unknown' }
+                if ($denom -le 0) { $status = 'NotAssessed' }
                 else {
                     $pct = $evidenceCount / $denom * 100
                     $status = ($pct -ge $v) ? 'Pass' : (($pct -gt 0) ? 'Partial' : 'Fail')

@@ -69,14 +69,14 @@ Describe 'AB#6820 -- avs.workload.yaml and caf.avslandingzone.yaml load and gate
         $set | ForEach-Object { $_.FrameworkVersion | Should -Not -BeNullOrEmpty }
     }
 
-    It 'reports the whole set Unknown, not a manufactured Pass, on an estate with zero AVS private clouds' {
+    It 'reports the whole set NotAssessed, not a manufactured Pass, on an estate with zero AVS private clouds' {
         $set = Get-RuleSet -Patterns @('avs.workload', 'caf.avslandingzone')
         $collect = New-EmptyCollect
         $findings = Invoke-Assessment -Collect $collect -RuleSet $set -Assessment 'Workload: AVS'
 
         $findings.Count | Should -Be (27 + 25)
-        ($findings | Where-Object Status -ne 'Unknown') | Should -BeNullOrEmpty -Because 'requires: gates the whole set when compute.privateClouds[*] returns zero rows'
-        ($findings | Select-Object -First 1).Remediation | Should -Match 'Not assessed'
+        ($findings | Where-Object Status -ne 'NotAssessed') | Should -BeNullOrEmpty -Because 'requires: gates the whole set when compute.privateClouds[*] returns zero rows'
+        ($findings | Select-Object -First 1).Remediation | Should -Match 'Not applicable'
     }
 
     It 'is proven non-vacuous: the SAME rule set scores real findings once a private cloud is in scope' {
@@ -295,6 +295,16 @@ param([Parameter(ValueFromRemainingArguments)] $Rest); return @() }
             'AvsGlobalReachConnections', 'AvsAuthorizations', 'AvsCloudLinks'
             'AvsSegments', 'AvsDhcpConfigurations', 'AvsDnsServices', 'AvsGateways'
             'AvsIscsiPaths', 'AvsMaintenances'
+            # AB#9300, 3.18.20 -- the depth datasets: control-plane lists under a profile, database, server, cluster, namespace,
+            # web app or API Management service, read with an allow-list; none reads a Key Vault.
+            'AfdOriginGroups', 'AfdOrigins', 'AfdEndpoints', 'AfdRoutes', 'AfdCustomDomains', 'AfdSecurityPolicies'
+            'SqlDatabaseBackupShortTerm', 'SqlDatabaseBackupLongTerm', 'SqlDatabaseTde'
+            'SqlServerFirewallRules', 'SqlServerEncryptionProtector', 'SqlServerSecurityAlertPolicies'
+            'AzureLocalUpdateSummaries', 'AzureLocalSecuritySettings', 'AzureLocalArcSettings'
+            'EventHubNetworkRuleSets', 'EventHubAuthorizationRules', 'EventHubEntities'
+            'ServiceBusNetworkRuleSets', 'ServiceBusAuthorizationRules', 'ServiceBusQueues', 'ServiceBusTopics'
+            'WebAppAuth'
+            'ApimGlobalPolicy', 'ApimApis', 'ApimNamedValues'
         )
         @($script:capturedArmChildDataset) | Should -Not -Contain 'KeyVaultSecrets'
         @($script:capturedArmChildDataset) | Should -Not -Contain 'KeyVaultKeys'

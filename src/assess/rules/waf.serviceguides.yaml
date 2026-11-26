@@ -272,9 +272,12 @@ rules:
   - id: WAF-SVC-APP-15
     title: "WAF-SVC-APP-15. Built-in authentication or Microsoft Entra ID authentication protects the app, with restrictive CORS"
     severity: medium
-    query: null
+    # Evidence only (AB#9300, 3.18.20): the built-in authentication settings of each web app (authsettingsV2 without
+    # secrets). An app can authenticate in its own code, so built-in authentication being off is not a violation and
+    # cannot be scored as one; the rows show it so the review starts from what is configured.
+    query: "$.domains.web.webAppAuth[*]"
     assert: { type: manual, gate: "$.domains.web.webApps[?(@.kind =~ /^(?!.*functionapp)/i)]" }
-    remediation: "WAF-SVC-APP-15. Confirm user-facing apps authenticate with Microsoft Entra ID, either through App Service authentication or in code, and that CORS allows only the domains you need. Authentication settings are not collected."
+    remediation: "WAF-SVC-APP-15. The apps listed as evidence show whether App Service authentication is enabled (builtInAuthEnabled), whether it requires authentication (requireAuthentication, unauthenticatedClientAction), how many identity providers are on and whether Microsoft Entra ID is one. An app with built-in authentication off may still authenticate in code, so confirm user-facing apps authenticate with Microsoft Entra ID one way or the other, and that CORS allows only the domains you need (CORS is not read)."
     manual: true
   # Operational excellence: no collected field
   - id: WAF-SVC-APP-16
@@ -412,6 +415,11 @@ rules:
   - id: WAF-SVC-ACA-08
     title: "WAF-SVC-ACA-08. Secrets use Key Vault, registry pulls use Microsoft Entra ID, and egress is controlled"
     severity: medium
+    # Stays manual (AB#9300, 3.18.20, second look). Both measurable clauses -- a secret kept inline rather than in Key
+    # Vault, and a registry pulled with a password rather than a managed identity -- live in configuration.secrets and
+    # configuration.registries[].passwordSecretRef. The typed query pack is held, by tests, never to read a Container App
+    # secret or a registry credential, even to count one; and the third clause (egress through a firewall) is a network
+    # design question. So nothing here can be scored from data Scout is allowed to read.
     query: null
     assert: { type: manual, gate: "$.domains.containers.containerApps[*]" }
     remediation: "WAF-SVC-ACA-08. Confirm secrets and certificates are in Key Vault, image pulls use Microsoft Entra ID rather than admin credentials, and outbound traffic goes through user-defined routes to a firewall. Secrets and registry settings are not collected."
@@ -528,10 +536,14 @@ rules:
   - id: WAF-SVC-APIM-10
     title: "WAF-SVC-APIM-10. APIs authenticate with OAuth 2.0, secrets use Key Vault named values, and a WAF fronts internet-exposed gateways"
     severity: medium
-    query: null
-    assert: { type: manual, gate: "$.domains.integration.apiManagement[*]" }
-    remediation: "WAF-SVC-APIM-10. Confirm APIs validate tokens (validate-jwt), secrets sit in Key Vault named values, and internet-facing gateways are behind a web application firewall with DDoS protection. API policies are not collected."
-    manual: true
+    # Automated (AB#9300, 3.18.20), for the secrets half: a secret named value kept inline in API Management rather
+    # than backed by Key Vault fails. A named value's VALUE is never read. Whether the global policy validates tokens
+    # and how many APIs have token authentication configured are read too (domains.integration.apimGlobalPolicy,
+    # apimApis) and are evidence: a validate-jwt policy can sit on a single API or operation, which is not read.
+    query: "$.domains.integration.apimNamedValues[?(@.inlineSecretCount > 0)]"
+    assert: { type: countEquals, value: 0, gate: ["$.domains.integration.apimNamedValuesMeasured", "$.domains.integration.apiManagement[*]"] }
+    remediation: "WAF-SVC-APIM-10. The API Management services listed hold secret named values inline (inlineSecretCount) instead of referencing Key Vault. Move each secret into Key Vault and make the named value a Key Vault reference. Whether APIs validate tokens (validate-jwt) is shown for the global policy and as a count of APIs with token authentication configured, but a policy on one API or operation is not read -- confirm it per API; internet-facing gateways should also sit behind a web application firewall with DDoS protection."
+    manual: false
   # Reliability: no collected field
   - id: WAF-SVC-APIM-11
     title: "WAF-SVC-APIM-11. Backup, restore and a disaster recovery playbook exist, and unrelated APIs are isolated"
@@ -649,10 +661,16 @@ rules:
   - id: WAF-SVC-SB-12
     title: "WAF-SVC-SB-12. Access uses least-privilege Azure RBAC, IP firewall rules, and Key Vault for any remaining keys"
     severity: medium
-    query: null
-    assert: { type: manual, gate: "$.domains.integration.serviceBusNamespaces[*]" }
-    remediation: "WAF-SVC-SB-12. Confirm Data Sender, Data Receiver and Data Owner roles are assigned at the narrowest scope and any IP or virtual network rules restrict known clients. Access rules are not collected."
-    manual: true
+    # Automated (AB#9300, 3.18.20), for the network half: a Premium namespace (the only tier with IP firewall and
+    # virtual network rules) whose network rule set has the default action Allow with public network access not
+    # Disabled is open to the internet. A Standard or Basic namespace cannot have these rules and is not asked, so with
+    # no Premium namespace the rule is NotAssessed. The authorization rules are read too (domains.integration.
+    # serviceBusAuthorization: how many carry Manage rights besides RootManageSharedAccessKey) as evidence; which Azure
+    # RBAC roles are assigned at which scope is not read here.
+    query: "$.domains.integration.serviceBusNetworkRuleSets[?(@.allowsAllNetworks == true)]"
+    assert: { type: countEquals, value: 0, gate: ["$.domains.integration.serviceBusNetworkRuleSetsMeasured", "$.domains.integration.serviceBusNamespaces[*]"] }
+    remediation: "WAF-SVC-SB-12. The Premium namespaces listed accept connections from any network (default action Allow, public network access not Disabled). Set the network rule set default action to Deny and add IP or virtual network rules for the known clients, or disable public network access and use a private endpoint. Only Premium namespaces can be restricted this way; use Azure RBAC roles (Data Sender, Data Receiver, Data Owner) at the narrowest scope and keep any remaining shared access keys in Key Vault -- role assignments are not read here, and the authorization rules are attached on domains.integration.serviceBusAuthorization."
+    manual: false
   # Performance efficiency: no collected field
   - id: WAF-SVC-SB-13
     title: "WAF-SVC-SB-13. Premium autoscale, batching, prefetch and partitioning are tuned by load test"
@@ -1475,25 +1493,35 @@ rules:
   - id: WAF-SVC-AFD-04
     title: "WAF-SVC-AFD-04. Origin groups have redundant origins with health probes, and request timeouts and session affinity are deliberate"
     severity: high
-    query: null
-    assert: { type: manual, gate: "$.networking.cdnProfiles[?(@.sku =~ /AzureFrontDoor/i)]" }
-    remediation: "WAF-SVC-AFD-04. Confirm each origin group has more than one healthy origin, probes use HEAD requests, and timeouts and session affinity suit the app. Origin settings are not collected."
-    manual: true
+    # Automated (AB#9300, 3.18.20): the origin groups and origins of each Front Door Standard / Premium profile are
+    # read with ARM GETs (domains.afd). A group fails when it has fewer than two ENABLED origins (nothing to fail
+    # over to) or, with two or more, no health probe. Request timeouts and whether session affinity is wanted are
+    # judgement and are only reported (probeRequestType, sessionAffinityEnabled on each row).
+    query: "$.domains.afd.originGroups[?(@.hasRedundantOrigins == false || @.probeGap == true)]"
+    assert: { type: countEquals, value: 0, gate: ["$.domains.afd.originGroupsMeasured", "$.domains.afd.originsMeasured", "$.networking.cdnProfiles[?(@.sku =~ /AzureFrontDoor/i)]"] }
+    remediation: "WAF-SVC-AFD-04. The origin groups listed have fewer than two enabled origins, or two or more origins and no health probe. Add a second enabled origin (ideally in another region) so Front Door can fail over, and enable health probes (HEAD requests keep the load low). A group whose origin list could not be read is not listed. Request timeouts and session affinity are shown on each row but are a judgement about the app, not scored."
+    manual: false
   # Security: no collected field
   - id: WAF-SVC-AFD-05
     title: "WAF-SVC-AFD-05. Origins are reached over Private Link, TLS 1.2 is the minimum, and managed certificates are used"
     severity: high
-    query: null
-    assert: { type: manual, gate: "$.networking.cdnProfiles[?(@.sku =~ /AzureFrontDoor/i)]" }
-    remediation: "WAF-SVC-AFD-05. Confirm origins accept traffic only from Front Door, end-to-end TLS is enforced with HTTP-to-HTTPS redirect, and managed certificates renew themselves. Not collected."
-    manual: true
+    # Automated (AB#9300, 3.18.20), for the minimum TLS version: a custom domain whose tlsSettings.minimumTlsVersion is
+    # below TLS 1.2 fails. A domain that does not state one is not listed (the default endpoint domain is TLS 1.2).
+    # Private Link use, the certificate type and HTTP-to-HTTPS redirect are read too (domains.afd.origins, customDomains,
+    # routes) but they are choices, not violations, so they are evidence on the rows and not scored.
+    query: "$.domains.afd.customDomains[?(@.tls12OrHigher == false)]"
+    assert: { type: countEquals, value: 0, gate: ["$.domains.afd.customDomainsMeasured", "$.networking.cdnProfiles[?(@.sku =~ /AzureFrontDoor/i)]"] }
+    remediation: "WAF-SVC-AFD-05. The custom domains listed allow a minimum TLS version below 1.2. Set the minimum TLS version to 1.2 on each. Whether origins are reached over Private Link (a Premium feature), whether HTTP is redirected to HTTPS on each route and whether a managed certificate is used are shown on the domain, origin and route rows but are a judgement, not scored; confirm origins accept traffic only from Front Door."
+    manual: false
   # Performance efficiency: no collected field
   - id: WAF-SVC-AFD-06
     title: "WAF-SVC-AFD-06. Caching and compression are enabled for cacheable content"
     severity: low
-    query: null
+    # Evidence only (AB#9300, 3.18.20): each route says whether it has a cache configuration and whether compression is on.
+    # Whether a route's content is cacheable is knowledge of the application, so nothing here is scored.
+    query: "$.domains.afd.routes[*]"
     assert: { type: manual, gate: "$.networking.cdnProfiles[?(@.sku =~ /AzureFrontDoor/i)]" }
-    remediation: "WAF-SVC-AFD-06. Confirm caching and file compression are on for the endpoints that support them. Not collected."
+    remediation: "WAF-SVC-AFD-06. The routes listed as evidence show, for each, whether caching is configured (cacheConfigured) and whether compression is on (compressionEnabled). Whether the content behind a route is cacheable is a judgement about the application: confirm caching and file compression are on for the routes that serve cacheable content, and that a route with caching on also compresses."
     manual: true
   # Operational excellence: evidence attached
   - id: WAF-SVC-AFD-07

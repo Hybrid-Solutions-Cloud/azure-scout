@@ -365,7 +365,7 @@ function ConvertFrom-ScoutInventory {
     foreach ($resource in @($Resources)) {
         if ($null -eq $resource) { continue }
         # AB#9300, 3.18.19. A discovery twin mirrors an AZSC/ARMChild row under its real ARM type so
-        # the discovery index lists it (ConvertTo-ScoutAvsDiscoveryResource). It shares that row's id,
+        # the discovery index lists it (ConvertTo-ScoutChildDiscoveryResource). It shares that row's id,
         # which the de-duplication below would otherwise resolve by arrival order; the AZSC row is the
         # one that is shaped, so the twin never takes part. A direct member probe, not Get-ScoutProp: this
         # loop runs once per row of the whole estate (50k on the audited run) and the probe is ~16x cheaper.
@@ -1401,7 +1401,12 @@ function ConvertFrom-ScoutInventory {
     # Name / resource group / subscription for a parent that only has an id to go on: read them off
     # the parent's own row when it is in the inventory, else off the id itself.
     $summaryParentById = @{}
-    foreach ($summaryParent in @(Select-ByAnyType @('microsoft.sql/servers', 'microsoft.eventhub/namespaces', 'microsoft.storage/storageaccounts'))) {
+    # AB#9300, 3.18.20 adds the depth datasets' parents (Front Door profiles, SQL databases, Azure Local clusters,
+    # Service Bus namespaces, web apps, API Management services).
+    foreach ($summaryParent in @(Select-ByAnyType @(
+                'microsoft.sql/servers', 'microsoft.eventhub/namespaces', 'microsoft.storage/storageaccounts',
+                'microsoft.cdn/profiles', 'microsoft.sql/servers/databases', 'microsoft.azurestackhci/clusters',
+                'microsoft.servicebus/namespaces', 'microsoft.web/sites', 'microsoft.apimanagement/service'))) {
         $summaryParentId = [string] (Get-ScoutProp $summaryParent 'id')
         if ($summaryParentId) { $summaryParentById[$summaryParentId.ToLowerInvariant()] = $summaryParent }
     }
@@ -1992,6 +1997,512 @@ function ConvertFrom-ScoutInventory {
         }
     )
 
+    # ---- Depth datasets (AB#9300, 3.18.20) -------------------------------------------------------------------
+    # Twenty-six sub-resources Resource Graph does not index, read by Get-ScoutArmChildResource ($DepthSpec) and
+    # shaped here under the contract the AVS and batch-2 datasets use: a `<name>Measured` flag that is $true only
+    # when at least one GET of the dataset got an answer, so a rule gates on it and reports NotAssessed, never a
+    # Pass on an empty list. Rows are keyed by the PARENT's resource id, lower-cased, in a field named for the
+    # parent (profileId, databaseId, sqlServerId, clusterId, namespaceId, webAppId, apimServiceId). They come in
+    # two shapes:
+    #
+    #   ITEM ROWS     one row per child (an origin group, a database's TDE state, an Event Hub): the question is
+    #                 about each one.
+    #   SUMMARY ROWS  one row per parent whose list ANSWERED, with counts and booleans, and a count of 0 where
+    #                 nothing came back -- for the datasets where the ABSENCE is the finding (no firewall rule,
+    #                 no authorization rule, no global policy). A parent whose list failed has NO row.
+    #
+    # Nothing here is a secret or an address: the sweep already reduced each response to scalar settings, counts
+    # and booleans ($DepthSpec), and these shapers read only those fields.
+    function Get-ScoutDepthIdentity {
+        param([Parameter(Mandatory)] $Row, [Parameter(Mandatory)] [string] $IdKey, [Parameter(Mandatory)] [string] $NameKey)
+        $identity = [ordered]@{}
+        $identity[$IdKey] = ([string] (Get-ScoutProp $Row 'PARENTID')).ToLowerInvariant()
+        $identity[$NameKey] = [string] (Get-ScoutProp $Row 'PARENTNAME')
+        $identity['resourceGroup'] = [string] (Get-ScoutProp $Row 'RESOURCEGROUP')
+        $identity['subscriptionId'] = [string] (Get-ScoutProp $Row 'subscriptionId')
+        $identity['location'] = [string] (Get-ScoutProp $Row 'PARENTLOCATION')
+        return $identity
+    }
+
+    function New-ScoutDepthItemRow {
+        param([Parameter(Mandatory)] $Row, [Parameter(Mandatory)] [string] $IdKey, [Parameter(Mandatory)] [string] $NameKey, [Parameter(Mandatory)] [System.Collections.IDictionary] $Own)
+        $item = Get-ScoutDepthIdentity -Row $Row -IdKey $IdKey -NameKey $NameKey
+        foreach ($key in $Own.Keys) { $item[$key] = $Own[$key] }
+        return [pscustomobject] $item
+    }
+
+    function New-ScoutDepthSummaryRow {
+        param([Parameter(Mandatory)] [string] $Dataset, [Parameter(Mandatory)] [string] $IdKey, [Parameter(Mandatory)] [string] $NameKey, [Parameter(Mandatory)] [scriptblock] $Shape)
+        $childrenByParent = Group-ScoutChildRowByParent "AZSC/ARMChild/$Dataset"
+        $parents = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+        foreach ($checkedParent in (Get-ScoutSweepCheckedParent $Dataset)) { [void] $parents.Add($checkedParent) }
+        foreach ($groupedParent in $childrenByParent.Keys) { [void] $parents.Add($groupedParent) }
+        foreach ($parentId in @($parents | Sort-Object)) {
+            $fact = Get-ScoutSummaryParentFact $parentId
+            $children = @(if ($childrenByParent.Contains($parentId)) { $childrenByParent[$parentId] })
+            $row = [ordered]@{}
+            $row[$IdKey] = $parentId
+            $row[$NameKey] = $fact.name
+            $row['resourceGroup'] = $fact.resourceGroup
+            $row['subscriptionId'] = $fact.subscriptionId
+            $row['location'] = $fact.location
+            $own = & $Shape $children
+            foreach ($key in $own.Keys) { $row[$key] = $own[$key] }
+            [pscustomobject] $row
+        }
+    }
+
+    # `Enabled` / `Disabled` the way ARM spells a switch -> a bool, or $null when the service did not say.
+    function ConvertTo-ScoutEnabledState {
+        param([AllowNull()] $Value)
+        if ($null -eq $Value) { return $null }
+        $text = [string] $Value
+        if ($text -ieq 'Enabled') { return $true }
+        if ($text -ieq 'Disabled') { return $false }
+        return $null
+    }
+
+    # -- Front Door Standard / Premium ------------------------------------------------------------------------
+    # Origins are counted into their origin group, and only where THAT group's origin list answered: a group
+    # whose list failed has originCount $null ("not measured"), never 0, so it cannot be reported as having
+    # no origin.
+    $result['afdOriginGroupsMeasured'] = Test-ScoutSweepMeasured 'AfdOriginGroups'
+    $result['afdOriginsMeasured'] = Test-ScoutSweepMeasured 'AfdOrigins'
+    $afdOriginsByGroup = @{}
+    foreach ($afdOrigin in @(Select-ByType 'AZSC/ARMChild/AfdOrigins')) {
+        $groupKey = ('{0}|{1}' -f [string] (Get-ScoutProp $afdOrigin 'PARENTID'), [string] (Get-ScoutProp $afdOrigin 'properties.originGroupName')).ToLowerInvariant()
+        if (-not $afdOriginsByGroup.ContainsKey($groupKey)) { $afdOriginsByGroup[$groupKey] = [System.Collections.Generic.List[object]]::new() }
+        $afdOriginsByGroup[$groupKey].Add($afdOrigin)
+    }
+    $afdAnsweredGroups = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+    foreach ($afdOperation in $sweepOperations) {
+        if ([string] $afdOperation.Dataset -ne 'AfdOrigins' -or [string] $afdOperation.Status -notin 'Success', 'Empty') { continue }
+        $afdUri = if ($afdOperation.PSObject.Properties['Uri']) { [string] $afdOperation.Uri } else { '' }
+        $groupMatch = [regex]::Match($afdUri, '(?i)/originGroups/(?<name>[^/?]+)/origins')
+        $afdOperationParent = if ($afdOperation.PSObject.Properties['ParentId']) { [string] $afdOperation.ParentId } else { '' }
+        if ($groupMatch.Success -and $afdOperationParent) {
+            [void] $afdAnsweredGroups.Add(('{0}|{1}' -f $afdOperationParent, [uri]::UnescapeDataString($groupMatch.Groups['name'].Value)).ToLowerInvariant())
+        }
+    }
+    $result['afdOriginGroups'] = @(
+        Select-ByType 'AZSC/ARMChild/AfdOriginGroups' | ForEach-Object {
+            $groupKey = ('{0}|{1}' -f [string] (Get-ScoutProp $_ 'PARENTID'), [string] (Get-ScoutProp $_ 'name')).ToLowerInvariant()
+            $known = $afdAnsweredGroups.Contains($groupKey)
+            $members = @(if ($afdOriginsByGroup.ContainsKey($groupKey)) { $afdOriginsByGroup[$groupKey] })
+            $enabledOrigins = @($members | Where-Object { (ConvertTo-ScoutEnabledState (Get-ScoutProp $_ 'properties.enabledState')) -eq $true }).Count
+            $privateLinkOrigins = @($members | Where-Object { (ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.privateLinkEnabled')) -eq $true }).Count
+            $probeConfigured = ConvertTo-ScoutFeatureFlag (Get-ScoutProp $_ 'properties.healthProbeConfigured')
+            New-ScoutDepthItemRow -Row $_ -IdKey 'profileId' -NameKey 'profileName' -Own ([ordered]@{
+                    name                      = [string] (Get-ScoutProp $_ 'name')
+                    probeRequestType          = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.healthProbeSettings.probeRequestType')
+                    probeProtocol             = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.healthProbeSettings.probeProtocol')
+                    probeIntervalInSeconds    = ConvertTo-ScoutInt (Get-ScoutProp $_ 'properties.healthProbeSettings.probeIntervalInSeconds')
+                    healthProbeConfigured     = $probeConfigured
+                    sampleSize                = ConvertTo-ScoutInt (Get-ScoutProp $_ 'properties.loadBalancingSettings.sampleSize')
+                    successfulSamplesRequired = ConvertTo-ScoutInt (Get-ScoutProp $_ 'properties.loadBalancingSettings.successfulSamplesRequired')
+                    sessionAffinityEnabled    = ConvertTo-ScoutEnabledState (Get-ScoutProp $_ 'properties.sessionAffinityState')
+                    originCount               = if ($known) { $members.Count } else { $null }
+                    enabledOriginCount        = if ($known) { $enabledOrigins } else { $null }
+                    privateLinkOriginCount    = if ($known) { $privateLinkOrigins } else { $null }
+                    # Two or more enabled origins is what lets a group fail over. $null when the group's origins
+                    # were not read, so a rule reading `== false` never flags a group it could not see.
+                    hasRedundantOrigins       = if ($known) { $enabledOrigins -ge 2 } else { $null }
+                    # With two or more enabled origins the health probe is what decides which one is used.
+                    probeGap                  = if ($known) { ($enabledOrigins -ge 2) -and -not $probeConfigured } else { $null }
+                    provisioningState         = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.provisioningState')
+                })
+        }
+    )
+    $result['afdOrigins'] = @(
+        Select-ByType 'AZSC/ARMChild/AfdOrigins' | ForEach-Object {
+            New-ScoutDepthItemRow -Row $_ -IdKey 'profileId' -NameKey 'profileName' -Own ([ordered]@{
+                    originGroupName             = [string] (Get-ScoutProp $_ 'properties.originGroupName')
+                    name                        = [string] (Get-ScoutProp $_ 'name')
+                    enabled                     = ConvertTo-ScoutEnabledState (Get-ScoutProp $_ 'properties.enabledState')
+                    enforceCertificateNameCheck = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.enforceCertificateNameCheck')
+                    priority                    = ConvertTo-ScoutInt (Get-ScoutProp $_ 'properties.priority')
+                    weight                      = ConvertTo-ScoutInt (Get-ScoutProp $_ 'properties.weight')
+                    privateLink                 = ConvertTo-ScoutFeatureFlag (Get-ScoutProp $_ 'properties.privateLinkEnabled')
+                })
+        }
+    )
+    $result['afdEndpointsMeasured'] = Test-ScoutSweepMeasured 'AfdEndpoints'
+    $result['afdEndpoints'] = @(
+        Select-ByType 'AZSC/ARMChild/AfdEndpoints' | ForEach-Object {
+            New-ScoutDepthItemRow -Row $_ -IdKey 'profileId' -NameKey 'profileName' -Own ([ordered]@{
+                    name              = [string] (Get-ScoutProp $_ 'name')
+                    enabled           = ConvertTo-ScoutEnabledState (Get-ScoutProp $_ 'properties.enabledState')
+                    provisioningState = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.provisioningState')
+                })
+        }
+    )
+    $result['afdRoutesMeasured'] = Test-ScoutSweepMeasured 'AfdRoutes'
+    $result['afdRoutes'] = @(
+        Select-ByType 'AZSC/ARMChild/AfdRoutes' | ForEach-Object {
+            $supportsHttp = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.supportsHttp')
+            $httpsRedirect = ConvertTo-ScoutEnabledState (Get-ScoutProp $_ 'properties.httpsRedirect')
+            $forwarding = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.forwardingProtocol')
+            New-ScoutDepthItemRow -Row $_ -IdKey 'profileId' -NameKey 'profileName' -Own ([ordered]@{
+                    endpointName         = [string] (Get-ScoutProp $_ 'properties.endpointName')
+                    name                 = [string] (Get-ScoutProp $_ 'name')
+                    enabled              = ConvertTo-ScoutEnabledState (Get-ScoutProp $_ 'properties.enabledState')
+                    forwardingProtocol   = $forwarding
+                    httpsRedirect        = $httpsRedirect
+                    linkToDefaultDomain  = ConvertTo-ScoutEnabledState (Get-ScoutProp $_ 'properties.linkToDefaultDomain')
+                    supportsHttp         = $supportsHttp
+                    supportsHttps        = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.supportsHttps')
+                    patternCount         = ConvertTo-ScoutInt (Get-ScoutProp $_ 'properties.patternCount')
+                    customDomainCount    = ConvertTo-ScoutInt (Get-ScoutProp $_ 'properties.customDomainCount')
+                    ruleSetCount         = ConvertTo-ScoutInt (Get-ScoutProp $_ 'properties.ruleSetCount')
+                    cacheConfigured      = ConvertTo-ScoutFeatureFlag (Get-ScoutProp $_ 'properties.cacheConfigured')
+                    compressionEnabled   = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.cacheConfiguration.compressionSettings.isCompressionEnabled')
+                    # A route that takes plain HTTP and does not redirect it to HTTPS. $null when the route did not
+                    # say which protocols it accepts.
+                    httpNotRedirected    = if ($null -eq $supportsHttp) { $null } else { $supportsHttp -and ($httpsRedirect -ne $true) }
+                    forwardsOverHttpOnly = if ($null -eq $forwarding) { $null } else { $forwarding -ieq 'HttpOnly' }
+                })
+        }
+    )
+    $result['afdCustomDomainsMeasured'] = Test-ScoutSweepMeasured 'AfdCustomDomains'
+    $result['afdCustomDomains'] = @(
+        Select-ByType 'AZSC/ARMChild/AfdCustomDomains' | ForEach-Object {
+            $minimumTls = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.tlsSettings.minimumTlsVersion')
+            $certificateType = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.tlsSettings.certificateType')
+            $validation = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.domainValidationState')
+            New-ScoutDepthItemRow -Row $_ -IdKey 'profileId' -NameKey 'profileName' -Own ([ordered]@{
+                    name               = [string] (Get-ScoutProp $_ 'name')
+                    certificateType    = $certificateType
+                    minimumTlsVersion  = $minimumTls
+                    # TLS 1.2 or later; $null when the domain did not say, which is not a finding.
+                    tls12OrHigher      = if ($null -eq $minimumTls) { $null } else { $minimumTls -notin 'TLS10', 'TLS11' }
+                    managedCertificate = if ($null -eq $certificateType) { $null } else { $certificateType -in 'ManagedCertificate', 'AzureFirstPartyManagedCertificate' }
+                    validated          = if ($null -eq $validation) { $null } else { $validation -ieq 'Approved' }
+                    azureDnsZoneSet    = ConvertTo-ScoutFeatureFlag (Get-ScoutProp $_ 'properties.azureDnsZoneSet')
+                })
+        }
+    )
+    $result['afdSecurityPoliciesMeasured'] = Test-ScoutSweepMeasured 'AfdSecurityPolicies'
+    $result['afdSecurityPolicies'] = @(
+        Select-ByType 'AZSC/ARMChild/AfdSecurityPolicies' | ForEach-Object {
+            New-ScoutDepthItemRow -Row $_ -IdKey 'profileId' -NameKey 'profileName' -Own ([ordered]@{
+                    name                  = [string] (Get-ScoutProp $_ 'name')
+                    policyType            = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.parameters.type')
+                    wafPolicySet          = ConvertTo-ScoutFeatureFlag (Get-ScoutProp $_ 'properties.wafPolicySet')
+                    associationCount      = ConvertTo-ScoutInt (Get-ScoutProp $_ 'properties.associationCount')
+                    associatedDomainCount = ConvertTo-ScoutInt (Get-ScoutProp $_ 'properties.associatedDomainCount')
+                })
+        }
+    )
+
+    # -- Azure SQL ------------------------------------------------------------------------------------------------
+    # The database-level policies are item rows keyed by the database id (with the server id beside it); the
+    # server-level firewall is a summary (no rule at all is an answer).
+    function Get-ScoutSqlServerOfDatabase {
+        param([AllowNull()] [string] $DatabaseId)
+        return ([string] $DatabaseId -replace '(?i)/databases/[^/]+$', '').ToLowerInvariant()
+    }
+    $result['sqlBackupShortTermMeasured'] = Test-ScoutSweepMeasured 'SqlDatabaseBackupShortTerm'
+    $result['sqlBackupShortTerm'] = @(
+        Select-ByType 'AZSC/ARMChild/SqlDatabaseBackupShortTerm' | ForEach-Object {
+            $retentionDays = ConvertTo-ScoutInt (Get-ScoutProp $_ 'properties.retentionDays')
+            New-ScoutDepthItemRow -Row $_ -IdKey 'databaseId' -NameKey 'databaseName' -Own ([ordered]@{
+                    sqlServerId               = Get-ScoutSqlServerOfDatabase (Get-ScoutProp $_ 'PARENTID')
+                    retentionDays             = $retentionDays
+                    diffBackupIntervalInHours = ConvertTo-ScoutInt (Get-ScoutProp $_ 'properties.diffBackupIntervalInHours')
+                    # 7 days is the service default for point-in-time restore. $null when the policy did not state a
+                    # retention, so a rule reading `== false` never flags a database it could not read.
+                    meetsMinimumRetention     = if ($null -eq $retentionDays) { $null } else { $retentionDays -ge 7 }
+                })
+        }
+    )
+    $result['sqlBackupLongTermMeasured'] = Test-ScoutSweepMeasured 'SqlDatabaseBackupLongTerm'
+    $result['sqlBackupLongTerm'] = @(
+        Select-ByType 'AZSC/ARMChild/SqlDatabaseBackupLongTerm' | ForEach-Object {
+            $weekly = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.weeklyRetention')
+            $monthly = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.monthlyRetention')
+            $yearly = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.yearlyRetention')
+            # PT0S, P0D, P0W and the like mean "keep nothing"; anything else is a retention that was configured.
+            $configured = @(@($weekly, $monthly, $yearly) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) -and $_ -notmatch '^P(T)?0[SDWMY]$' }).Count -gt 0
+            New-ScoutDepthItemRow -Row $_ -IdKey 'databaseId' -NameKey 'databaseName' -Own ([ordered]@{
+                    sqlServerId           = Get-ScoutSqlServerOfDatabase (Get-ScoutProp $_ 'PARENTID')
+                    weeklyRetention       = $weekly
+                    monthlyRetention      = $monthly
+                    yearlyRetention       = $yearly
+                    ltrConfigured         = $configured
+                    timeBasedImmutability = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.timeBasedImmutability')
+                })
+        }
+    )
+    $result['sqlTdeMeasured'] = Test-ScoutSweepMeasured 'SqlDatabaseTde'
+    $result['sqlTde'] = @(
+        Select-ByType 'AZSC/ARMChild/SqlDatabaseTde' | ForEach-Object {
+            $state = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.state')
+            New-ScoutDepthItemRow -Row $_ -IdKey 'databaseId' -NameKey 'databaseName' -Own ([ordered]@{
+                    sqlServerId = Get-ScoutSqlServerOfDatabase (Get-ScoutProp $_ 'PARENTID')
+                    state       = $state
+                    enabled     = if ($null -eq $state) { $null } else { $state -ieq 'Enabled' }
+                    scanState   = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.scanState')
+                })
+        }
+    )
+    # One row per server whose rule list answered. The addresses never reach a row: the sweep reduced each rule to
+    # three booleans, and these are the counts of them.
+    $result['sqlFirewallRulesMeasured'] = Test-ScoutSweepMeasured 'SqlServerFirewallRules'
+    $result['sqlFirewallRules'] = @(
+        New-ScoutDepthSummaryRow -Dataset 'SqlServerFirewallRules' -IdKey 'sqlServerId' -NameKey 'name' -Shape {
+            param($children)
+            $allowAll = @($children | Where-Object { (ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.allowsAllInternet')) -eq $true }).Count
+            [ordered]@{
+                ruleCount                   = $children.Count
+                allowAllRuleCount           = $allowAll
+                allowAzureServicesRuleCount = @($children | Where-Object { (ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.allowsAzureServices')) -eq $true }).Count
+                broadRangeRuleCount         = @($children | Where-Object { (ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.broadRange')) -eq $true }).Count
+                allowsAllInternet           = $allowAll -gt 0
+            }
+        }
+    )
+    $result['sqlEncryptionProtectorMeasured'] = Test-ScoutSweepMeasured 'SqlServerEncryptionProtector'
+    $result['sqlEncryptionProtector'] = @(
+        Select-ByType 'AZSC/ARMChild/SqlServerEncryptionProtector' | ForEach-Object {
+            $keyType = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.serverKeyType')
+            New-ScoutDepthItemRow -Row $_ -IdKey 'sqlServerId' -NameKey 'name' -Own ([ordered]@{
+                    serverKeyType       = $keyType
+                    customerManagedKey  = if ($null -eq $keyType) { $null } else { $keyType -ieq 'AzureKeyVault' }
+                    autoRotationEnabled = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.autoRotationEnabled')
+                })
+        }
+    )
+    $result['sqlSecurityAlertPoliciesMeasured'] = Test-ScoutSweepMeasured 'SqlServerSecurityAlertPolicies'
+    $result['sqlSecurityAlertPolicies'] = @(
+        Select-ByType 'AZSC/ARMChild/SqlServerSecurityAlertPolicies' | ForEach-Object {
+            $state = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.state')
+            New-ScoutDepthItemRow -Row $_ -IdKey 'sqlServerId' -NameKey 'name' -Own ([ordered]@{
+                    state              = $state
+                    enabled            = if ($null -eq $state) { $null } else { $state -ieq 'Enabled' }
+                    emailAccountAdmins = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.emailAccountAdmins')
+                    retentionDays      = ConvertTo-ScoutInt (Get-ScoutProp $_ 'properties.retentionDays')
+                    disabledAlertCount = ConvertTo-ScoutInt (Get-ScoutProp $_ 'properties.disabledAlertCount')
+                    emailAddressCount  = ConvertTo-ScoutInt (Get-ScoutProp $_ 'properties.emailAddressCount')
+                })
+        }
+    )
+
+    # -- Azure Local clusters ----------------------------------------------------------------------------------------
+    $result['azureLocalUpdateSummariesMeasured'] = Test-ScoutSweepMeasured 'AzureLocalUpdateSummaries'
+    $result['azureLocalUpdateSummaries'] = @(
+        Select-ByType 'AZSC/ARMChild/AzureLocalUpdateSummaries' | ForEach-Object {
+            $state = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.state')
+            New-ScoutDepthItemRow -Row $_ -IdKey 'clusterId' -NameKey 'clusterName' -Own ([ordered]@{
+                    name                = [string] (Get-ScoutProp $_ 'name')
+                    state               = $state
+                    healthState         = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.healthState')
+                    currentVersion      = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.currentVersion')
+                    currentSbeVersion   = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.currentSbeVersion')
+                    lastUpdated         = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.lastUpdated')
+                    lastChecked         = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.lastChecked')
+                    packageVersionCount = ConvertTo-ScoutInt (Get-ScoutProp $_ 'properties.packageVersionCount')
+                    # UpdateAvailable is the one state that says a newer update is waiting.
+                    updateAvailable     = if ($null -eq $state) { $null } else { $state -ieq 'UpdateAvailable' }
+                    upToDate            = if ($null -eq $state) { $null } else { $state -in 'UpToDate', 'AppliedSuccessfully' }
+                })
+        }
+    )
+    $result['azureLocalSecuritySettingsMeasured'] = Test-ScoutSweepMeasured 'AzureLocalSecuritySettings'
+    $result['azureLocalSecuritySettings'] = @(
+        Select-ByType 'AZSC/ARMChild/AzureLocalSecuritySettings' | ForEach-Object {
+            $securedCore = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.securedCoreComplianceAssignment')
+            $wdac = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.wdacComplianceAssignment')
+            $smb = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.smbEncryptionForIntraClusterTrafficComplianceAssignment')
+            $assignments = @(@($securedCore, $wdac, $smb) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+            New-ScoutDepthItemRow -Row $_ -IdKey 'clusterId' -NameKey 'clusterName' -Own ([ordered]@{
+                    name                              = [string] (Get-ScoutProp $_ 'name')
+                    securedCoreComplianceAssignment   = $securedCore
+                    wdacComplianceAssignment          = $wdac
+                    smbEncryptionComplianceAssignment = $smb
+                    securedCoreCompliance             = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.securityComplianceStatus.securedCoreCompliance')
+                    wdacCompliance                    = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.securityComplianceStatus.wdacCompliance')
+                    dataAtRestEncrypted               = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.securityComplianceStatus.dataAtRestEncrypted')
+                    dataInTransitProtected            = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.securityComplianceStatus.dataInTransitProtected')
+                    provisioningState                 = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.provisioningState')
+                    # Drift control keeps a setting at its baseline: the assignment ApplyAndAutoCorrect re-applies it when
+                    # it drifts, Audit only reports. True when every assignment the cluster names is ApplyAndAutoCorrect;
+                    # $null when it names none.
+                    driftControlEnforced              = if ($assignments.Count -eq 0) { $null } else { @($assignments | Where-Object { $_ -ieq 'ApplyAndAutoCorrect' }).Count -eq $assignments.Count }
+                })
+        }
+    )
+    $result['azureLocalArcSettingsMeasured'] = Test-ScoutSweepMeasured 'AzureLocalArcSettings'
+    $result['azureLocalArcSettings'] = @(
+        Select-ByType 'AZSC/ARMChild/AzureLocalArcSettings' | ForEach-Object {
+            $nodes = ConvertTo-ScoutInt (Get-ScoutProp $_ 'properties.nodeCount')
+            $connected = ConvertTo-ScoutInt (Get-ScoutProp $_ 'properties.connectedNodeCount')
+            New-ScoutDepthItemRow -Row $_ -IdKey 'clusterId' -NameKey 'clusterName' -Own ([ordered]@{
+                    name                  = [string] (Get-ScoutProp $_ 'name')
+                    aggregateState        = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.aggregateState')
+                    provisioningState     = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.provisioningState')
+                    connectivityEnabled   = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.connectivityProperties.enabled')
+                    nodeCount             = $nodes
+                    connectedNodeCount    = $connected
+                    defaultExtensionCount = ConvertTo-ScoutInt (Get-ScoutProp $_ 'properties.defaultExtensionCount')
+                    allNodesConnected     = if ($null -eq $nodes -or $nodes -eq 0) { $null } else { $connected -eq $nodes }
+                })
+        }
+    )
+
+    # -- Event Hubs and Service Bus ----------------------------------------------------------------------------------
+    # A network rule set is one row per namespace whose GET answered. `allowsAllNetworks` is the combination that
+    # leaves a namespace open to the internet: the default action Allow with public network access not Disabled. The
+    # allowed addresses and subnets are counted, never listed.
+    foreach ($messaging in @(
+            @{ Dataset = 'EventHubNetworkRuleSets'; Key = 'eventHubNetworkRuleSets' }
+            @{ Dataset = 'ServiceBusNetworkRuleSets'; Key = 'serviceBusNetworkRuleSets' }
+        )) {
+        $result["$($messaging.Key)Measured"] = Test-ScoutSweepMeasured $messaging.Dataset
+        $result[$messaging.Key] = @(
+            Select-ByType "AZSC/ARMChild/$($messaging.Dataset)" | ForEach-Object {
+                $defaultAction = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.defaultAction')
+                $publicAccess = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.publicNetworkAccess')
+                New-ScoutDepthItemRow -Row $_ -IdKey 'namespaceId' -NameKey 'name' -Own ([ordered]@{
+                        defaultAction           = $defaultAction
+                        publicNetworkAccess     = $publicAccess
+                        trustedServiceAccess    = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.trustedServiceAccessEnabled')
+                        ipRuleCount             = ConvertTo-ScoutInt (Get-ScoutProp $_ 'properties.ipRuleCount')
+                        virtualNetworkRuleCount = ConvertTo-ScoutInt (Get-ScoutProp $_ 'properties.virtualNetworkRuleCount')
+                        allowsAllNetworks       = if ($null -eq $defaultAction) { $null } else { ($defaultAction -ieq 'Allow') -and ($publicAccess -ine 'Disabled') }
+                    })
+            }
+        )
+    }
+    foreach ($messaging in @(
+            @{ Dataset = 'EventHubAuthorizationRules'; Key = 'eventHubAuthorization' }
+            @{ Dataset = 'ServiceBusAuthorizationRules'; Key = 'serviceBusAuthorization' }
+        )) {
+        $result["$($messaging.Key)Measured"] = Test-ScoutSweepMeasured $messaging.Dataset
+        $result[$messaging.Key] = @(
+            New-ScoutDepthSummaryRow -Dataset $messaging.Dataset -IdKey 'namespaceId' -NameKey 'name' -Shape {
+                param($children)
+                $managing = @($children | Where-Object { (ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.canManage')) -eq $true })
+                [ordered]@{
+                    ruleCount              = $children.Count
+                    manageRuleCount        = $managing.Count
+                    # The namespace's own RootManageSharedAccessKey is always present; a Manage rule beside it is a choice.
+                    nonRootManageRuleCount = @($managing | Where-Object { ([string] (Get-ScoutProp $_ 'name')) -ine 'RootManageSharedAccessKey' }).Count
+                    sendListenOnlyCount    = @($children | Where-Object { (ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.canManage')) -ne $true }).Count
+                }
+            }
+        )
+    }
+    $result['eventHubEntitiesMeasured'] = Test-ScoutSweepMeasured 'EventHubEntities'
+    $result['eventHubEntities'] = @(
+        Select-ByType 'AZSC/ARMChild/EventHubEntities' | ForEach-Object {
+            New-ScoutDepthItemRow -Row $_ -IdKey 'namespaceId' -NameKey 'namespaceName' -Own ([ordered]@{
+                    name                     = [string] (Get-ScoutProp $_ 'name')
+                    partitionCount           = ConvertTo-ScoutInt (Get-ScoutProp $_ 'properties.partitionCount')
+                    messageRetentionInDays   = ConvertTo-ScoutInt (Get-ScoutProp $_ 'properties.messageRetentionInDays')
+                    cleanupPolicy            = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.retentionDescription.cleanupPolicy')
+                    retentionTimeInHours     = ConvertTo-ScoutInt (Get-ScoutProp $_ 'properties.retentionDescription.retentionTimeInHours')
+                    captureEnabled           = ConvertTo-ScoutFeatureFlag (Get-ScoutProp $_ 'properties.captureDescription.enabled')
+                    captureIntervalInSeconds = ConvertTo-ScoutInt (Get-ScoutProp $_ 'properties.captureDescription.intervalInSeconds')
+                    status                   = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.status')
+                })
+        }
+    )
+    $result['serviceBusQueuesMeasured'] = Test-ScoutSweepMeasured 'ServiceBusQueues'
+    $result['serviceBusQueues'] = @(
+        Select-ByType 'AZSC/ARMChild/ServiceBusQueues' | ForEach-Object {
+            New-ScoutDepthItemRow -Row $_ -IdKey 'namespaceId' -NameKey 'namespaceName' -Own ([ordered]@{
+                    name                             = [string] (Get-ScoutProp $_ 'name')
+                    maxDeliveryCount                 = ConvertTo-ScoutInt (Get-ScoutProp $_ 'properties.maxDeliveryCount')
+                    deadLetteringOnMessageExpiration = ConvertTo-ScoutFeatureFlag (Get-ScoutProp $_ 'properties.deadLetteringOnMessageExpiration')
+                    requiresDuplicateDetection       = ConvertTo-ScoutFeatureFlag (Get-ScoutProp $_ 'properties.requiresDuplicateDetection')
+                    requiresSession                  = ConvertTo-ScoutFeatureFlag (Get-ScoutProp $_ 'properties.requiresSession')
+                    partitioned                      = ConvertTo-ScoutFeatureFlag (Get-ScoutProp $_ 'properties.enablePartitioning')
+                    lockDuration                     = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.lockDuration')
+                    defaultMessageTimeToLive         = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.defaultMessageTimeToLive')
+                    maxSizeInMegabytes               = ConvertTo-ScoutInt (Get-ScoutProp $_ 'properties.maxSizeInMegabytes')
+                    forwardsMessages                 = ConvertTo-ScoutFeatureFlag (Get-ScoutProp $_ 'properties.forwardsMessages')
+                    forwardsDeadLetteredMessages     = ConvertTo-ScoutFeatureFlag (Get-ScoutProp $_ 'properties.forwardsDeadLetteredMessages')
+                    status                           = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.status')
+                })
+        }
+    )
+    $result['serviceBusTopicsMeasured'] = Test-ScoutSweepMeasured 'ServiceBusTopics'
+    $result['serviceBusTopics'] = @(
+        Select-ByType 'AZSC/ARMChild/ServiceBusTopics' | ForEach-Object {
+            New-ScoutDepthItemRow -Row $_ -IdKey 'namespaceId' -NameKey 'namespaceName' -Own ([ordered]@{
+                    name                       = [string] (Get-ScoutProp $_ 'name')
+                    requiresDuplicateDetection = ConvertTo-ScoutFeatureFlag (Get-ScoutProp $_ 'properties.requiresDuplicateDetection')
+                    partitioned                = ConvertTo-ScoutFeatureFlag (Get-ScoutProp $_ 'properties.enablePartitioning')
+                    defaultMessageTimeToLive   = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.defaultMessageTimeToLive')
+                    maxSizeInMegabytes         = ConvertTo-ScoutInt (Get-ScoutProp $_ 'properties.maxSizeInMegabytes')
+                    subscriptionCount          = ConvertTo-ScoutInt (Get-ScoutProp $_ 'properties.subscriptionCount')
+                    status                     = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.status')
+                })
+        }
+    )
+
+    # -- App Service authentication --------------------------------------------------------------------------------------
+    # authsettingsV2 without secrets. `builtInAuthEnabled` is the platform switch; an app that authenticates in its
+    # own code has it off and is not thereby unprotected, which is why the rule that reads this is evidence, not a
+    # finding.
+    $result['webAppAuthMeasured'] = Test-ScoutSweepMeasured 'WebAppAuth'
+    $result['webAppAuth'] = @(
+        Select-ByType 'AZSC/ARMChild/WebAppAuth' | ForEach-Object {
+            New-ScoutDepthItemRow -Row $_ -IdKey 'webAppId' -NameKey 'name' -Own ([ordered]@{
+                    builtInAuthEnabled           = ConvertTo-ScoutFeatureFlag (Get-ScoutProp $_ 'properties.platform.enabled')
+                    requireAuthentication        = ConvertTo-ScoutFeatureFlag (Get-ScoutProp $_ 'properties.globalValidation.requireAuthentication')
+                    unauthenticatedClientAction  = ConvertTo-ScoutNullableString (Get-ScoutProp $_ 'properties.globalValidation.unauthenticatedClientAction')
+                    requireHttps                 = ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.httpSettings.requireHttps')
+                    entraProviderEnabled         = ConvertTo-ScoutFeatureFlag (Get-ScoutProp $_ 'properties.identityProviders.azureActiveDirectory.enabled')
+                    enabledIdentityProviderCount = ConvertTo-ScoutInt (Get-ScoutProp $_ 'properties.enabledIdentityProviderCount')
+                    excludedPathCount            = ConvertTo-ScoutInt (Get-ScoutProp $_ 'properties.excludedPathCount')
+                })
+        }
+    )
+
+    # -- API Management --------------------------------------------------------------------------------------------------
+    # Summaries per service whose list answered. The global policy document is never carried -- the sweep scanned
+    # it for three element names and kept three booleans -- and a named value's value is never read, secret or not.
+    $result['apimGlobalPolicyMeasured'] = Test-ScoutSweepMeasured 'ApimGlobalPolicy'
+    $result['apimGlobalPolicy'] = @(
+        New-ScoutDepthSummaryRow -Dataset 'ApimGlobalPolicy' -IdKey 'apimServiceId' -NameKey 'name' -Shape {
+            param($children)
+            [ordered]@{
+                policyPresent   = $children.Count -gt 0
+                validatesTokens = @($children | Where-Object { (ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.validatesTokens')) -eq $true }).Count -gt 0
+                limitsRate      = @($children | Where-Object { (ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.limitsRate')) -eq $true }).Count -gt 0
+                filtersIp       = @($children | Where-Object { (ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.filtersIp')) -eq $true }).Count -gt 0
+            }
+        }
+    )
+    $result['apimApisMeasured'] = Test-ScoutSweepMeasured 'ApimApis'
+    $result['apimApis'] = @(
+        New-ScoutDepthSummaryRow -Dataset 'ApimApis' -IdKey 'apimServiceId' -NameKey 'name' -Shape {
+            param($children)
+            [ordered]@{
+                apiCount                        = $children.Count
+                httpAllowedApiCount             = @($children | Where-Object { (ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.allowsHttp')) -eq $true }).Count
+                subscriptionNotRequiredApiCount = @($children | Where-Object { (ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.subscriptionRequired')) -eq $false }).Count
+                tokenAuthenticatedApiCount      = @($children | Where-Object { (ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.tokenAuthenticationConfigured')) -eq $true }).Count
+            }
+        }
+    )
+    $result['apimNamedValuesMeasured'] = Test-ScoutSweepMeasured 'ApimNamedValues'
+    $result['apimNamedValues'] = @(
+        New-ScoutDepthSummaryRow -Dataset 'ApimNamedValues' -IdKey 'apimServiceId' -NameKey 'name' -Shape {
+            param($children)
+            $secrets = @($children | Where-Object { (ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.secret')) -eq $true })
+            $vaultBacked = @($secrets | Where-Object { (ConvertTo-ScoutBool (Get-ScoutProp $_ 'properties.keyVaultBacked')) -eq $true })
+            [ordered]@{
+                namedValueCount           = $children.Count
+                secretCount               = $secrets.Count
+                keyVaultBackedSecretCount = $vaultBacked.Count
+                # A secret named value kept inline in APIM rather than in Key Vault.
+                inlineSecretCount         = $secrets.Count - $vaultBacked.Count
+            }
+        }
+    )
+
     # ---- per-domain scalars ----
     $result['storageAccounts'] = @(
         Select-ByType 'microsoft.storage/storageaccounts' | ForEach-Object {
@@ -2172,6 +2683,7 @@ function ConvertFrom-ScoutInventory {
                 $hasAllProbes = ($probeKinds -contains 'Liveness') -and ($probeKinds -contains 'Readiness') -and ($probeKinds -contains 'Startup')
                 if (-not $hasAllProbes) { $containersWithoutAllProbes++ }
             }
+
             [pscustomobject]@{
                 id                = [string] (Get-ScoutProp $_ 'id')
                 name              = [string] (Get-ScoutProp $_ 'name')

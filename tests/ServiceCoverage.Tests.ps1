@@ -263,11 +263,11 @@ Describe 'SMART is gated on real data (AB#6832)' {
         }
     }
 
-    It 'reports Unknown, not Pass, when the Migration collectors returned nothing' {
+    It 'reports NotAssessed, not Pass, when the Migration collectors returned nothing' {
         $Empty = [pscustomobject]@{ domains = [pscustomobject]@{ migration = [pscustomobject]@{ migrateProjects = @() } } }
         $Findings = @(Invoke-Assessment -Collect $Empty -RuleSet @($script:SmartSet) -Assessment 'Microsoft: SMART Migration')
         $Findings.Count | Should -Be 1
-        $Findings[0].Status | Should -Be 'Unknown'
+        $Findings[0].Status | Should -Be 'NotAssessed'
         $Findings[0].Remediation | Should -Match 'Azure Migrate projects'
     }
 
@@ -445,10 +445,10 @@ Describe 'CAF Migrate readiness rules re-based from SMART' {
         @($Findings | Where-Object { $_.Id -eq 'SMART-I2' })[0].Status | Should -Be 'Fail'
     }
 
-    It 'holds the whole set at Unknown when no migration data was collected' {
+    It 'holds the whole set at NotAssessed when no migration data was collected' {
         $Empty = $script:SmartPopulated.PSObject.Copy()
         $Empty.domains = [pscustomobject]@{ migration = [pscustomobject]@{ migrateProjects = @(); discoverySites = @(); migrationServices = @() } }
         $Findings = @(Invoke-Assessment -Collect $Empty -RuleSet $script:SmartSets -Assessment 'CAF: Migrate readiness')
-        @($Findings | Where-Object { $_.Status -ne 'Unknown' }) | Should -BeNullOrEmpty
+        @($Findings | Where-Object { $_.Status -ne 'NotAssessed' }) | Should -BeNullOrEmpty
     }
 }

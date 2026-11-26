@@ -395,9 +395,9 @@ Describe 'caf.govern.*.yaml -- the false-pass class: sparse/empty data must Fail
         }
     }
 
-    It 'reads Unknown, never a 0% Fail or a Pass, where a percentage rule has no denominator (no budgets, no storage accounts)' {
+    It 'reads NotAssessed, never a 0% Fail or a Pass, where a percentage rule has no denominator (no budgets, no storage accounts)' {
         foreach ($id in 'CGOV-CM-06', 'CGOV-DG-04', 'CGOV-DG-05') {
-            (($script:EmptyFindings | Where-Object Id -eq $id).Status) | Should -Be 'Unknown' -Because "$id has nothing to measure a percentage of"
+            (($script:EmptyFindings | Where-Object Id -eq $id).Status) | Should -Be 'NotAssessed' -Because "$id has nothing to measure a percentage of"
         }
     }
 

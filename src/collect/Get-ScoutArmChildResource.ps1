@@ -57,7 +57,19 @@ if (-not (Get-Command Get-ScoutHttpFailure -ErrorAction SilentlyContinue)) { . (
     authorization key and peer circuit ids, and none of them is ever read into a row. These rows
     are `AZSC/ARMChild/*`, which the discovery index treats as enrichment of a same-id base
     resource and never lists on its own, so Get-ScoutRawInventory also mirrors each under its real ARM
-    type (ConvertTo-ScoutAvsDiscoveryResource) to make the children discoverable.
+    type (ConvertTo-ScoutChildDiscoveryResource) to make the children discoverable.
+
+    Twenty-six more datasets (AB#9300, 3.18.20) read sub-resources Resource Graph does not index, declared
+    as a table ($DepthSpec) so each is one entry: Front Door Standard / Premium origin groups, origins,
+    endpoints, routes, custom domains and security policies; SQL database backup retention (short and long
+    term) and transparent data encryption, and SQL server firewall rules, encryption protector and security
+    alert policies; Azure Local cluster update summaries, security settings and Arc settings; Event Hubs and
+    Service Bus network rule sets, authorization rules, event hubs, queues and topics; App Service
+    authentication (authsettingsV2 without secrets); and API Management's global policy, APIs and named
+    values. The contract is the AVS one: the parent type must be a row Scout already holds (no parent, no
+    request), each parent is asked once (Front Door origins and routes once per origin group and per endpoint,
+    in a second parallel wave), a 404 is empty data, and every row is built from an allow-list, counts and
+    booleans -- a key, an address, a secret or a policy document never reaches a row.
 
     Calls are independently non-fatal. A failed parent/dataset call emits a warning and only that
     child collection is omitted; other parents and datasets continue. Input order, canonical
@@ -156,7 +168,36 @@ function Get-ScoutArmChildResource {
             'AvsDnsServices',
             'AvsGateways',
             'AvsIscsiPaths',
-            'AvsMaintenances'
+            'AvsMaintenances',
+            # AB#9300, 3.18.20 -- sub-resources Resource Graph does not index (depth). Front Door
+            # Standard/Premium, SQL, Azure Local clusters, Event Hubs / Service Bus, App Service
+            # authentication and API Management. See $DepthSpec below for each one's request.
+            'AfdOriginGroups',
+            'AfdOrigins',
+            'AfdEndpoints',
+            'AfdRoutes',
+            'AfdCustomDomains',
+            'AfdSecurityPolicies',
+            'SqlDatabaseBackupShortTerm',
+            'SqlDatabaseBackupLongTerm',
+            'SqlDatabaseTde',
+            'SqlServerFirewallRules',
+            'SqlServerEncryptionProtector',
+            'SqlServerSecurityAlertPolicies',
+            'AzureLocalUpdateSummaries',
+            'AzureLocalSecuritySettings',
+            'AzureLocalArcSettings',
+            'EventHubNetworkRuleSets',
+            'EventHubAuthorizationRules',
+            'EventHubEntities',
+            'ServiceBusNetworkRuleSets',
+            'ServiceBusAuthorizationRules',
+            'ServiceBusQueues',
+            'ServiceBusTopics',
+            'WebAppAuth',
+            'ApimGlobalPolicy',
+            'ApimApis',
+            'ApimNamedValues'
         )]
         [string[]]$Dataset = @('All'),
 
@@ -241,7 +282,35 @@ function Get-ScoutArmChildResource {
         'AvsDnsServices',
         'AvsGateways',
         'AvsIscsiPaths',
-        'AvsMaintenances'
+        'AvsMaintenances',
+        # AB#9300, 3.18.20. A first-level list always precedes the second-level datasets that read it
+        # (AfdOriginGroups before AfdOrigins, AfdEndpoints before AfdRoutes), exactly as AvsClusters does.
+        'AfdOriginGroups',
+        'AfdOrigins',
+        'AfdEndpoints',
+        'AfdRoutes',
+        'AfdCustomDomains',
+        'AfdSecurityPolicies',
+        'SqlDatabaseBackupShortTerm',
+        'SqlDatabaseBackupLongTerm',
+        'SqlDatabaseTde',
+        'SqlServerFirewallRules',
+        'SqlServerEncryptionProtector',
+        'SqlServerSecurityAlertPolicies',
+        'AzureLocalUpdateSummaries',
+        'AzureLocalSecuritySettings',
+        'AzureLocalArcSettings',
+        'EventHubNetworkRuleSets',
+        'EventHubAuthorizationRules',
+        'EventHubEntities',
+        'ServiceBusNetworkRuleSets',
+        'ServiceBusAuthorizationRules',
+        'ServiceBusQueues',
+        'ServiceBusTopics',
+        'WebAppAuth',
+        'ApimGlobalPolicy',
+        'ApimApis',
+        'ApimNamedValues'
     )
 
     # --- Diagnostic-settings parent scope (AB#6769) ---------------------------------------------
@@ -399,6 +468,313 @@ function Get-ScoutArmChildResource {
             'maintenanceReadiness.status', 'estimatedDurationInMinutes'
         )
     }
+
+    # --- Depth datasets (AB#9300, 3.18.20) --------------------------------------------------------------
+    #
+    # Twenty-six more children Resource Graph does not index, declared as DATA so that each one is one
+    # table entry rather than another copy of the sweep. An entry says which parent type is asked, the
+    # request, and how the response is reduced. The row is built from `Allow` (scalar settings), `Counts`
+    # (the size of an array, never its elements), `Flags` (whether a value is set, never the value) and
+    # `Reduce` (a few derived booleans) -- the raw `properties` bag is never copied, so a key, a secret,
+    # an address, a partner id or a policy document cannot reach a row, a collect.json or a log.
+    #
+    #   Parent        Resource Graph type the request hangs off (a row Scout already holds); with no such
+    #                 parent the dataset makes no request at all.
+    #   ParentFilter  Optional: a parent that cannot answer is not asked (a Basic tier, a system database).
+    #   Suffix        Appended to the parent id. A list, except WebAppAuth (a singleton).
+    #   ApiVersion    The oldest GA version that carries every property read (Microsoft Learn).
+    #   Via           For a second-level dataset: the first-level dataset whose answer names the middle
+    #                 resource. ViaSegment is its path segment, ViaOp the sub-operation name when the
+    #                 first-level dataset was not selected, ExtraKey the row field that carries the name.
+    #
+    # What each response holds beside the allow-listed settings, and is therefore never read:
+    #   AfdOriginGroups          healthProbeSettings.probePath
+    #   AfdOrigins               hostName, originHostHeader, the private link target id and message, azureOrigin id
+    #   AfdEndpoints             hostName (the endpoint's public domain)
+    #   AfdRoutes                patternsToMatch (paths), originPath, the origin group, rule set and domain ids
+    #   AfdCustomDomains         hostName, validationProperties (the DNS validation token), the secret id,
+    #                            the Azure DNS zone id
+    #   AfdSecurityPolicies      the WAF policy id and every associated domain id and pattern
+    #   SqlServerFirewallRules   startIpAddress, endIpAddress (reduced to "allows everything", "allows Azure
+    #                            services" and "a /8 or wider range" booleans before a row exists)
+    #   SqlServerEncryptionProtector   serverKeyName, uri, thumbprint (the Key Vault key and its identity)
+    #   SqlServerSecurityAlertPolicies emailAddresses, storageEndpoint, storageAccountAccessKey
+    #   AzureLocalArcSettings    the Arc application and object ids, the Arc resource group, node names
+    #   EventHubEntities         captureDescription.destination (storage account, container and path)
+    #   *NetworkRuleSets         ipRules (the allowed addresses), virtualNetworkRules (subnet ids)
+    #   *AuthorizationRules      the rule's rights list (reduced to three booleans); keys are a POST and never asked
+    #   ServiceBusQueues         forwardTo, forwardDeadLetteredMessagesTo (other entities' names)
+    #   WebAppAuth               client ids, secret setting names, issuer URLs, excluded paths (a count)
+    #   ApimGlobalPolicy         the policy XML itself (scanned for three element names and dropped)
+    #   ApimApis                 serviceUrl (the backend), the API's description and path
+    #   ApimNamedValues          value (never read, secret or not), the Key Vault secret identifier
+    # Only Front Door Standard / Premium profiles have origin groups, endpoints and routes of this shape; a
+    # classic Azure CDN profile (Standard_Microsoft, Standard_Akamai ...) answers 400 and would only warn.
+    $AfdProfileFilter = {
+        param($Parent)
+        $Sku = Get-ArmParentValue -InputObject $Parent -Name @('sku', 'SKU')
+        if ($null -eq $Sku) { return $false }
+        return ([string](Get-ArmParentValue -InputObject $Sku -Name @('name', 'NAME'))) -match '(?i)AzureFrontDoor'
+    }
+    $DepthSpec = [ordered]@{
+        # ---- Azure Front Door Standard / Premium (Microsoft.Cdn/profiles, api 2025-04-15) --------------
+        AfdOriginGroups = @{
+            Parent = 'microsoft.cdn/profiles'; Family = 'Afd'; ParentFilter = $AfdProfileFilter; Suffix = '/originGroups'; ApiVersion = '2025-04-15'
+            Allow = @(
+                'healthProbeSettings.probeRequestType', 'healthProbeSettings.probeProtocol',
+                'healthProbeSettings.probeIntervalInSeconds', 'loadBalancingSettings.sampleSize',
+                'loadBalancingSettings.successfulSamplesRequired', 'loadBalancingSettings.additionalLatencyInMilliseconds',
+                'sessionAffinityState', 'trafficRestorationTimeToHealedOrNewEndpointsInMinutes',
+                'provisioningState', 'deploymentStatus'
+            )
+            Flags = @{ healthProbeConfigured = 'healthProbeSettings' }
+        }
+        AfdOrigins = @{
+            Parent = 'microsoft.cdn/profiles'; Family = 'Afd'; ParentFilter = $AfdProfileFilter; ApiVersion = '2025-04-15'
+            Via = 'AfdOriginGroups'; ViaSegment = 'originGroups'; Segment = 'origins'; ViaOp = 'OriginGroups'
+            ViaLabel = 'origin group'; ViaPlural = 'origin groups'; Noun = 'origins'; ExtraKey = 'originGroupName'
+            Allow = @('enabledState', 'enforceCertificateNameCheck', 'priority', 'weight', 'provisioningState', 'deploymentStatus')
+            Flags = @{ privateLinkEnabled = 'sharedPrivateLinkResource'; azureOriginSet = 'azureOrigin' }
+        }
+        AfdEndpoints = @{
+            Parent = 'microsoft.cdn/profiles'; Family = 'Afd'; ParentFilter = $AfdProfileFilter; Suffix = '/afdEndpoints'; ApiVersion = '2025-04-15'
+            Allow = @('enabledState', 'provisioningState', 'deploymentStatus', 'autoGeneratedDomainNameLabelScope')
+        }
+        AfdRoutes = @{
+            Parent = 'microsoft.cdn/profiles'; Family = 'Afd'; ParentFilter = $AfdProfileFilter; ApiVersion = '2025-04-15'
+            Via = 'AfdEndpoints'; ViaSegment = 'afdEndpoints'; Segment = 'routes'; ViaOp = 'Endpoints'
+            ViaLabel = 'endpoint'; ViaPlural = 'endpoints'; Noun = 'routes'; ExtraKey = 'endpointName'
+            Allow = @(
+                'enabledState', 'forwardingProtocol', 'httpsRedirect', 'linkToDefaultDomain', 'provisioningState',
+                'deploymentStatus', 'cacheConfiguration.queryStringCachingBehavior',
+                'cacheConfiguration.compressionSettings.isCompressionEnabled'
+            )
+            Counts = @{ patternCount = 'patternsToMatch'; customDomainCount = 'customDomains'; ruleSetCount = 'ruleSets' }
+            Flags = @{ cacheConfigured = 'cacheConfiguration' }
+            Reduce = {
+                param($Raw, $Tree)
+                $Protocols = @((Get-ArmPathValue -InputObject $Raw -Path 'supportedProtocols').Value | Where-Object { $null -ne $_ } | ForEach-Object { [string]$_ })
+                $Tree['supportsHttp'] = $Protocols -contains 'Http'
+                $Tree['supportsHttps'] = $Protocols -contains 'Https'
+            }
+        }
+        AfdCustomDomains = @{
+            Parent = 'microsoft.cdn/profiles'; Family = 'Afd'; ParentFilter = $AfdProfileFilter; Suffix = '/customDomains'; ApiVersion = '2025-04-15'
+            Allow = @(
+                'tlsSettings.certificateType', 'tlsSettings.minimumTlsVersion', 'domainValidationState',
+                'provisioningState', 'deploymentStatus'
+            )
+            Flags = @{ azureDnsZoneSet = 'azureDnsZone' }
+        }
+        AfdSecurityPolicies = @{
+            Parent = 'microsoft.cdn/profiles'; Family = 'Afd'; ParentFilter = $AfdProfileFilter; Suffix = '/securityPolicies'; ApiVersion = '2025-04-15'
+            Allow = @('parameters.type', 'provisioningState', 'deploymentStatus')
+            Flags = @{ wafPolicySet = 'parameters.wafPolicy' }
+            Counts = @{ associationCount = 'parameters.associations' }
+            Reduce = {
+                param($Raw, $Tree)
+                $Domains = 0
+                foreach ($Association in @((Get-ArmPathValue -InputObject $Raw -Path 'parameters.associations').Value | Where-Object { $null -ne $_ })) {
+                    $Domains += Get-ArmCount -Source $Association -Path 'domains'
+                }
+                $Tree['associatedDomainCount'] = $Domains
+            }
+        }
+
+        # ---- Azure SQL (Microsoft.Sql, api 2025-01-01) ---------------------------------------------------
+        # A system database (master) and a dedicated SQL pool do not answer the backup policies, so they are not asked.
+        SqlDatabaseBackupShortTerm = @{
+            Parent = 'microsoft.sql/servers/databases'; Family = 'SqlDb'; Suffix = '/backupShortTermRetentionPolicies'; ApiVersion = '2025-01-01'
+            ParentFilter = { param($Parent) Test-SqlUserDatabase -Parent $Parent -ExcludeWarehouse }
+            Allow = @('retentionDays', 'diffBackupIntervalInHours')
+        }
+        SqlDatabaseBackupLongTerm = @{
+            Parent = 'microsoft.sql/servers/databases'; Family = 'SqlDb'; Suffix = '/backupLongTermRetentionPolicies'; ApiVersion = '2025-01-01'
+            ParentFilter = { param($Parent) Test-SqlUserDatabase -Parent $Parent -ExcludeWarehouse }
+            Allow = @('weeklyRetention', 'monthlyRetention', 'yearlyRetention', 'weekOfYear', 'timeBasedImmutability', 'timeBasedImmutabilityMode')
+        }
+        SqlDatabaseTde = @{
+            Parent = 'microsoft.sql/servers/databases'; Family = 'SqlDb'; Suffix = '/transparentDataEncryption'; ApiVersion = '2025-01-01'
+            ParentFilter = { param($Parent) Test-SqlUserDatabase -Parent $Parent }
+            Allow = @('state', 'scanState')
+        }
+        SqlServerFirewallRules = @{
+            Parent = 'microsoft.sql/servers'; Family = 'Sql'; Suffix = '/firewallRules'; ApiVersion = '2025-01-01'
+            Allow = @()
+            Reduce = {
+                param($Raw, $Tree)
+                $StartText = [string](Get-ArmPathValue -InputObject $Raw -Path 'startIpAddress').Value
+                $EndText = [string](Get-ArmPathValue -InputObject $Raw -Path 'endIpAddress').Value
+                $Start = $null; $End = $null
+                $Parsed = [System.Net.IPAddress]::TryParse($StartText, [ref]$Start) -and [System.Net.IPAddress]::TryParse($EndText, [ref]$End) -and
+                    $Start.AddressFamily -eq [System.Net.Sockets.AddressFamily]::InterNetwork -and $End.AddressFamily -eq [System.Net.Sockets.AddressFamily]::InterNetwork
+                $First = [long]-1; $Last = [long]-1
+                if ($Parsed) {
+                    $A = $Start.GetAddressBytes(); $B = $End.GetAddressBytes()
+                    $First = [long]$A[0] * 16777216 + [long]$A[1] * 65536 + [long]$A[2] * 256 + [long]$A[3]
+                    $Last = [long]$B[0] * 16777216 + [long]$B[1] * 65536 + [long]$B[2] * 256 + [long]$B[3]
+                }
+                # "Allow Azure services" is the single address 0.0.0.0; "allow all" is the whole IPv4 space;
+                # a broad range is one that spans a /8 (16,777,216 addresses) or more without being everything.
+                $Tree['allowsAzureServices'] = $Parsed -and $First -eq 0 -and $Last -eq 0
+                $Tree['allowsAllInternet'] = $Parsed -and $First -eq 0 -and $Last -eq 4294967295
+                $Tree['broadRange'] = $Parsed -and -not ($First -eq 0 -and $Last -eq 4294967295) -and ($Last - $First + 1) -ge 16777216
+            }
+        }
+        SqlServerEncryptionProtector = @{
+            Parent = 'microsoft.sql/servers'; Family = 'Sql'; Suffix = '/encryptionProtector'; ApiVersion = '2025-01-01'
+            Allow = @('serverKeyType', 'autoRotationEnabled')
+        }
+        SqlServerSecurityAlertPolicies = @{
+            Parent = 'microsoft.sql/servers'; Family = 'Sql'; Suffix = '/securityAlertPolicies'; ApiVersion = '2025-01-01'
+            Allow = @('state', 'emailAccountAdmins', 'retentionDays')
+            Counts = @{ disabledAlertCount = 'disabledAlerts'; emailAddressCount = 'emailAddresses' }
+        }
+
+        # ---- Azure Local clusters (Microsoft.AzureStackHCI/clusters) --------------------------------------
+        AzureLocalUpdateSummaries = @{
+            Parent = 'microsoft.azurestackhci/clusters'; Family = 'AzLocal'; Suffix = '/updateSummaries'; ApiVersion = '2024-04-01'
+            Allow = @('state', 'healthState', 'currentVersion', 'currentSbeVersion', 'lastUpdated', 'lastChecked', 'healthCheckDate', 'provisioningState')
+            Counts = @{ packageVersionCount = 'packageVersions' }
+        }
+        AzureLocalSecuritySettings = @{
+            Parent = 'microsoft.azurestackhci/clusters'; Family = 'AzLocal'; Suffix = '/securitySettings'; ApiVersion = '2024-04-01'
+            Allow = @(
+                'provisioningState', 'securedCoreComplianceAssignment', 'wdacComplianceAssignment',
+                'smbEncryptionForIntraClusterTrafficComplianceAssignment',
+                'securityComplianceStatus.securedCoreCompliance', 'securityComplianceStatus.wdacCompliance',
+                'securityComplianceStatus.dataAtRestEncrypted', 'securityComplianceStatus.dataInTransitProtected',
+                'securityComplianceStatus.lastUpdated'
+            )
+        }
+        AzureLocalArcSettings = @{
+            Parent = 'microsoft.azurestackhci/clusters'; Family = 'AzLocal'; Suffix = '/arcSettings'; ApiVersion = '2024-04-01'
+            Allow = @('aggregateState', 'provisioningState', 'connectivityProperties.enabled')
+            Counts = @{ nodeCount = 'perNodeDetails'; defaultExtensionCount = 'defaultExtensions' }
+            Reduce = {
+                param($Raw, $Tree)
+                $Connected = 0
+                foreach ($Node in @((Get-ArmPathValue -InputObject $Raw -Path 'perNodeDetails').Value | Where-Object { $null -ne $_ })) {
+                    $State = [string](Get-ArmPathValue -InputObject $Node -Path 'state').Value
+                    if ($State -in @('Connected', 'Succeeded')) { $Connected++ }
+                }
+                $Tree['connectedNodeCount'] = $Connected
+            }
+        }
+
+        # ---- Event Hubs and Service Bus (api 2024-01-01) --------------------------------------------------
+        # Event Hubs IP firewall rules need Standard or above; Service Bus needs Premium. Asking a tier that
+        # cannot answer would be a warning and an Unavailable dataset for something that is not a failure.
+        EventHubNetworkRuleSets = @{
+            Parent = 'microsoft.eventhub/namespaces'; Family = 'EventHub'; Suffix = '/networkRuleSets'; ApiVersion = '2024-01-01'
+            ParentFilter = { param($Parent) (Get-NamespaceSkuName -Parent $Parent) -ine 'Basic' }
+            Allow = @('defaultAction', 'publicNetworkAccess', 'trustedServiceAccessEnabled')
+            Counts = @{ ipRuleCount = 'ipRules'; virtualNetworkRuleCount = 'virtualNetworkRules' }
+        }
+        EventHubAuthorizationRules = @{
+            Parent = 'microsoft.eventhub/namespaces'; Family = 'EventHub'; Suffix = '/authorizationRules'; ApiVersion = '2024-01-01'
+            Allow = @()
+            Reduce = { param($Raw, $Tree) Set-RightsFlag -Raw $Raw -Tree $Tree }
+        }
+        EventHubEntities = @{
+            Parent = 'microsoft.eventhub/namespaces'; Family = 'EventHub'; Suffix = '/eventhubs'; ApiVersion = '2024-01-01'
+            Allow = @(
+                'partitionCount', 'messageRetentionInDays', 'status', 'retentionDescription.cleanupPolicy',
+                'retentionDescription.retentionTimeInHours', 'captureDescription.enabled',
+                'captureDescription.intervalInSeconds', 'captureDescription.sizeLimitInBytes'
+            )
+        }
+        ServiceBusNetworkRuleSets = @{
+            Parent = 'microsoft.servicebus/namespaces'; Family = 'ServiceBus'; Suffix = '/networkRuleSets'; ApiVersion = '2024-01-01'
+            ParentFilter = { param($Parent) (Get-NamespaceSkuName -Parent $Parent) -ieq 'Premium' }
+            Allow = @('defaultAction', 'publicNetworkAccess', 'trustedServiceAccessEnabled')
+            Counts = @{ ipRuleCount = 'ipRules'; virtualNetworkRuleCount = 'virtualNetworkRules' }
+        }
+        ServiceBusAuthorizationRules = @{
+            Parent = 'microsoft.servicebus/namespaces'; Family = 'ServiceBus'; Suffix = '/authorizationRules'; ApiVersion = '2024-01-01'
+            Allow = @()
+            Reduce = { param($Raw, $Tree) Set-RightsFlag -Raw $Raw -Tree $Tree }
+        }
+        ServiceBusQueues = @{
+            Parent = 'microsoft.servicebus/namespaces'; Family = 'ServiceBus'; Suffix = '/queues'; ApiVersion = '2024-01-01'
+            Allow = @(
+                'maxDeliveryCount', 'deadLetteringOnMessageExpiration', 'requiresDuplicateDetection', 'requiresSession',
+                'enablePartitioning', 'status', 'lockDuration', 'defaultMessageTimeToLive', 'maxSizeInMegabytes'
+            )
+            Flags = @{ forwardsMessages = 'forwardTo'; forwardsDeadLetteredMessages = 'forwardDeadLetteredMessagesTo' }
+        }
+        ServiceBusTopics = @{
+            Parent = 'microsoft.servicebus/namespaces'; Family = 'ServiceBus'; Suffix = '/topics'; ApiVersion = '2024-01-01'
+            Allow = @(
+                'requiresDuplicateDetection', 'enablePartitioning', 'status', 'defaultMessageTimeToLive',
+                'maxSizeInMegabytes', 'subscriptionCount'
+            )
+        }
+
+        # ---- App Service authentication (api 2025-05-01) ----------------------------------------------------
+        # GET .../config/authsettingsV2 is WebApps_GetAuthSettingsV2WithoutSecrets. The POST .../list variant
+        # that returns secrets is never called.
+        WebAppAuth = @{
+            Parent = 'microsoft.web/sites'; Family = 'Web'; Suffix = '/config/authsettingsV2'; ApiVersion = '2025-05-01'
+            Allow = @(
+                'platform.enabled', 'globalValidation.requireAuthentication', 'globalValidation.unauthenticatedClientAction',
+                'httpSettings.requireHttps', 'identityProviders.azureActiveDirectory.enabled'
+            )
+            Counts = @{ excludedPathCount = 'globalValidation.excludedPaths' }
+            Reduce = {
+                param($Raw, $Tree)
+                $Enabled = 0
+                $Providers = (Get-ArmPathValue -InputObject $Raw -Path 'identityProviders').Value
+                if ($null -ne $Providers) {
+                    foreach ($Provider in $Providers.PSObject.Properties) {
+                        if ($Provider.Name -eq 'customOpenIdConnectProviders') {
+                            if ($null -ne $Provider.Value) {
+                                foreach ($Custom in $Provider.Value.PSObject.Properties) {
+                                    if ((Get-ArmPathValue -InputObject $Custom.Value -Path 'enabled').Value -eq $true) { $Enabled++ }
+                                }
+                            }
+                        }
+                        elseif ((Get-ArmPathValue -InputObject $Provider.Value -Path 'enabled').Value -eq $true) { $Enabled++ }
+                    }
+                }
+                $Tree['enabledIdentityProviderCount'] = $Enabled
+            }
+        }
+
+        # ---- API Management (api 2024-05-01) ---------------------------------------------------------------
+        ApimGlobalPolicy = @{
+            Parent = 'microsoft.apimanagement/service'; Family = 'Apim'; Suffix = '/policies'; ApiVersion = '2024-05-01'
+            Allow = @('format')
+            Reduce = {
+                param($Raw, $Tree)
+                # The XML can hold anything an operator typed, including a key. It is scanned for three
+                # element names and then dropped: the row keeps three booleans and never the document.
+                $Xml = [string](Get-ArmPathValue -InputObject $Raw -Path 'value').Value
+                $Tree['validatesTokens'] = $Xml -match '(?i)<\s*(validate-jwt|validate-azure-ad-token)\b'
+                $Tree['limitsRate'] = $Xml -match '(?i)<\s*(rate-limit|rate-limit-by-key|quota|quota-by-key)\b'
+                $Tree['filtersIp'] = $Xml -match '(?i)<\s*ip-filter\b'
+            }
+        }
+        ApimApis = @{
+            Parent = 'microsoft.apimanagement/service'; Family = 'Apim'; Suffix = '/apis'; ApiVersion = '2024-05-01'
+            Allow = @('subscriptionRequired', 'isCurrent', 'apiType')
+            Reduce = {
+                param($Raw, $Tree)
+                $Protocols = @((Get-ArmPathValue -InputObject $Raw -Path 'protocols').Value | Where-Object { $null -ne $_ } | ForEach-Object { [string]$_ })
+                $Tree['allowsHttp'] = $Protocols -contains 'http'
+                $Tree['allowsHttps'] = $Protocols -contains 'https'
+                $Tree['tokenAuthenticationConfigured'] = (Get-ArmCount -Source $Raw -Path 'authenticationSettings.oAuth2AuthenticationSettings') -gt 0 -or
+                    (Get-ArmCount -Source $Raw -Path 'authenticationSettings.openidAuthenticationSettings') -gt 0 -or
+                    $null -ne (Get-ArmPathValue -InputObject $Raw -Path 'authenticationSettings.oAuth2').Value
+            }
+        }
+        ApimNamedValues = @{
+            Parent = 'microsoft.apimanagement/service'; Family = 'Apim'; Suffix = '/namedValues'; ApiVersion = '2024-05-01'
+            Allow = @('secret')
+            Flags = @{ keyVaultBacked = 'keyVault' }
+        }
+    }
+    foreach ($DepthName in $DepthSpec.Keys) { $SafeChildPropertyPaths[$DepthName] = $DepthSpec[$DepthName].Allow }
 
     $Selected = if ($Dataset -contains 'All') {
         $DatasetOrder
@@ -969,6 +1345,38 @@ function Get-ScoutArmChildResource {
         return @($Found.Value).Count
     }
 
+    function Get-NamespaceSkuName {
+        # The SKU name of a namespace row ('Basic', 'Standard', 'Premium'), or '' when the row carries none.
+        param([Parameter(Mandatory)]$Parent)
+        $Sku = Get-ArmParentValue -InputObject $Parent -Name @('sku', 'SKU')
+        if ($null -eq $Sku) { return '' }
+        return [string](Get-ArmParentValue -InputObject $Sku -Name @('name', 'NAME'))
+    }
+
+    function Test-SqlUserDatabase {
+        # A user database. `master` and anything on the System tier answer none of the database-level
+        # policies; a dedicated SQL pool (data warehouse) answers TDE but not the backup retention policies.
+        param([Parameter(Mandatory)]$Parent, [switch]$ExcludeWarehouse)
+        $Name = ([string](Get-ArmParentValue -InputObject $Parent -Name @('name', 'NAME'))).Split('/')[-1]
+        if ($Name -ieq 'master') { return $false }
+        $Sku = Get-ArmParentValue -InputObject $Parent -Name @('sku', 'SKU')
+        $Tier = if ($null -ne $Sku) { [string](Get-ArmParentValue -InputObject $Sku -Name @('tier', 'TIER')) } else { '' }
+        $SkuName = if ($null -ne $Sku) { [string](Get-ArmParentValue -InputObject $Sku -Name @('name', 'NAME')) } else { '' }
+        if ($Tier -ieq 'System' -or $SkuName -ieq 'System') { return $false }
+        if ($ExcludeWarehouse -and ($Tier -ieq 'DataWarehouse' -or $SkuName -match '(?i)^DW\d')) { return $false }
+        return $true
+    }
+
+    function Set-RightsFlag {
+        # An authorization rule's rights ('Manage', 'Send', 'Listen') as three booleans. The keys are a POST
+        # (listKeys) that is never made, and the rights list is not copied.
+        param([AllowNull()]$Raw, [Parameter(Mandatory)]$Tree)
+        $Rights = @((Get-ArmPathValue -InputObject $Raw -Path 'rights').Value | Where-Object { $null -ne $_ } | ForEach-Object { [string]$_ })
+        $Tree['canManage'] = $Rights -contains 'Manage'
+        $Tree['canSend'] = $Rights -contains 'Send'
+        $Tree['canListen'] = $Rights -contains 'Listen'
+    }
+
     function ConvertTo-ArmPlainObject {
         param([AllowNull()]$Node)
 
@@ -996,6 +1404,8 @@ function Get-ScoutArmChildResource {
             $Found = Get-ArmPathValue -InputObject $RawProperties -Path $Path
             if (-not $Found.Found) { continue }
             $Value = $Found.Value
+            # ConvertFrom-Json turns an ISO 8601 string into a [datetime]; a timestamp is kept as the string.
+            if ($Value -is [datetime]) { $Value = $Value.ToUniversalTime().ToString('o') }
             $IsScalar = $Value -is [string] -or $Value -is [bool] -or $Value -is [int] -or $Value -is [long] -or
                 $Value -is [double] -or $Value -is [decimal]
             if (-not $IsScalar) { continue }
@@ -1085,6 +1495,21 @@ function Get-ScoutArmChildResource {
                 elseif ($Found.Value -is [datetime]) { $Found.Value.ToUniversalTime().ToString('o') }
                 else { [string]$Found.Value }
             }
+        }
+
+        # The depth datasets (AB#9300, 3.18.20): counts, flags and derived booleans from the spec.
+        if ($DepthSpec.Contains($DatasetName)) {
+            $Spec = $DepthSpec[$DatasetName]
+            if ($Spec.ContainsKey('Counts')) {
+                foreach ($Key in $Spec.Counts.Keys) { $Tree[$Key] = Get-ArmCount -Source $RawProperties -Path $Spec.Counts[$Key] }
+            }
+            if ($Spec.ContainsKey('Flags')) {
+                foreach ($Key in $Spec.Flags.Keys) {
+                    $Found = Get-ArmPathValue -InputObject $RawProperties -Path $Spec.Flags[$Key]
+                    $Tree[$Key] = $Found.Found -and $null -ne $Found.Value -and -not [string]::IsNullOrWhiteSpace([string]$Found.Value)
+                }
+            }
+            if ($Spec.ContainsKey('Reduce')) { & $Spec.Reduce $RawProperties $Tree }
         }
         if ($null -ne $Extra) { foreach ($Key in $Extra.Keys) { $Tree[$Key] = $Extra[$Key] } }
 
@@ -1221,7 +1646,9 @@ function Get-ScoutArmChildResource {
         'AvsGateways',
         'AvsIscsiPaths',
         'AvsMaintenances'
-    )
+    ) + @($DepthSpec.Keys | Where-Object { -not $DepthSpec[$_].ContainsKey('Via') })
+    # (AB#9300, 3.18.20) Every first-level depth dataset is one GET per parent and joins the parallel batch
+    # with the AVS lists; the second-level ones (AfdOrigins, AfdRoutes) wait for their first-level answer.
 
     # --- Azure VMware Solution (AB#9300, 3.18.19) ----------------------------------------------------
     #
@@ -1270,14 +1697,57 @@ function Get-ScoutArmChildResource {
         AvsIscsiPaths             = '/iscsiPaths'
         AvsMaintenances           = '/maintenances'
     }
-    # Private cloud id (lower-cased) -> the cluster names its list answered, or $null when the list was
-    # asked and not answered. A key that is absent means "not asked yet".
-    $AvsClusterNames = @{}
 
-    function Get-AvsClusterScopedPath {
-        param([Parameter(Mandatory)][string]$PrivateCloudId, [Parameter(Mandatory)][string]$ClusterName, [Parameter(Mandatory)][string]$DatasetName)
-        $Segment = if ($DatasetName -eq 'AvsDatastores') { 'datastores' } else { 'placementPolicies' }
-        return "$PrivateCloudId/clusters/$([uri]::EscapeDataString($ClusterName))/$Segment`?api-version=$AvsApiVersion"
+    # --- Second-level datasets (AVS per cluster; Front Door per origin group and per endpoint) -------------
+    #
+    # A second-level dataset hangs off a MIDDLE resource that only the first-level list can name: a
+    # datastore off a cluster, an origin off an origin group, a route off an endpoint. `Via` is that
+    # first-level dataset. Its answer (the middle resources' names) is recorded as it is applied, and the
+    # second-level GETs are then made one per middle resource -- in a second parallel wave when the first
+    # wave ran, one at a time otherwise.
+    #
+    # "<first-level dataset>|<parent id, lower-cased>" -> @{ Answered; Names }. A key that is absent means
+    # "not asked yet"; Answered is $false when the list failed, so a parent whose list did not answer
+    # contributes nothing and its children are never reported as absent.
+    $ViaAnswers = @{}
+    $TwoLevel = @{
+        AvsDatastores = @{
+            Via = 'AvsClusters'; ViaSegment = 'clusters'; Segment = 'datastores'; ApiVersion = $AvsApiVersion; ExtraKey = 'clusterName'
+            ViaOp = 'Clusters'; ViaLabel = 'cluster'; ViaPlural = 'clusters'; Noun = 'datastores'
+        }
+        AvsPlacementPolicies = @{
+            Via = 'AvsClusters'; ViaSegment = 'clusters'; Segment = 'placementPolicies'; ApiVersion = $AvsApiVersion; ExtraKey = 'clusterName'
+            ViaOp = 'Clusters'; ViaLabel = 'cluster'; ViaPlural = 'clusters'; Noun = 'placement policies'
+        }
+    }
+    foreach ($DepthName in $DepthSpec.Keys) {
+        if ($DepthSpec[$DepthName].ContainsKey('Via')) { $TwoLevel[$DepthName] = $DepthSpec[$DepthName] }
+    }
+    $ViaDatasets = @($TwoLevel.Values | ForEach-Object { $_.Via } | Select-Object -Unique)
+
+    function Get-DepthParent {
+        # The parents a depth dataset is asked about: the rows of its parent type that pass its filter.
+        param([Parameter(Mandatory)][string]$DatasetName)
+        $Spec = $DepthSpec[$DatasetName]
+        return @($Resources | Where-Object {
+                if ((Get-ArmParentValue -InputObject $_ -Name @('type', 'TYPE')) -ine $Spec.Parent) { return $false }
+                if ($Spec.ContainsKey('ParentFilter')) { return [bool](& $Spec.ParentFilter $_) }
+                return $true
+            })
+    }
+
+    function Get-TwoLevelParent {
+        # The parents of a second-level dataset are its first-level dataset's parents.
+        param([Parameter(Mandatory)][string]$DatasetName)
+        $Via = $TwoLevel[$DatasetName].Via
+        if ($DepthSpec.Contains($Via)) { return @(Get-DepthParent -DatasetName $Via) }
+        return @($AvsPrivateCloudParents)
+    }
+
+    function Get-ChildScopedPath {
+        param([Parameter(Mandatory)][string]$ParentId, [Parameter(Mandatory)][string]$MiddleName, [Parameter(Mandatory)][string]$DatasetName)
+        $Level = $TwoLevel[$DatasetName]
+        return "$ParentId/$($Level.ViaSegment)/$([uri]::EscapeDataString($MiddleName))/$($Level.Segment)`?api-version=$($Level.ApiVersion)"
     }
 
     function Get-ArmWorkItem {
@@ -1405,6 +1875,15 @@ function Get-ScoutArmChildResource {
                     @{ Parent = $Parent; Suffix = "$($AvsPrivateCloudSuffix[$DatasetName])`?api-version=$AvsApiVersion"; NotFoundIsEmpty = $true }
                 }
             }
+            # The first-level depth datasets (AB#9300, 3.18.20): one GET per parent that passes the dataset's
+            # filter, the request and api-version being the table entry in $DepthSpec. A 404 is ordinary empty
+            # data -- a database with no policy yet, a profile with no routes.
+            { $DepthSpec.Contains($_) -and -not $DepthSpec[$_].ContainsKey('Via') } {
+                $Depth = $DepthSpec[$DatasetName]
+                foreach ($Parent in (Get-DepthParent -DatasetName $DatasetName)) {
+                    @{ Parent = $Parent; Suffix = "$($Depth.Suffix)`?api-version=$($Depth.ApiVersion)"; NotFoundIsEmpty = $true }
+                }
+            }
         })
 
         foreach ($Spec in $Specs) {
@@ -1523,22 +2002,26 @@ function Get-ScoutArmChildResource {
                 # not join the first batch. They are built from the cluster answers just fetched -- the
                 # same responses the apply step reads the cluster names from -- so the apply step asks
                 # for exactly these paths, and fetches any that are missing one at a time.
-                $ClusterScoped = @($Selected | Where-Object { $_ -in @('AvsDatastores', 'AvsPlacementPolicies') })
-                if ($ClusterScoped.Count -gt 0 -and $WorkItems.ContainsKey('AvsClusters')) {
+                #
+                # AB#9300, 3.18.20 generalises this: the same wave carries every second-level dataset
+                # ($TwoLevel) -- Front Door origins per origin group and routes per endpoint beside the AVS
+                # datastores and placement policies per cluster.
+                $ClusterScoped = @($Selected | Where-Object { $TwoLevel.Contains($_) -and $WorkItems.ContainsKey($TwoLevel[$_].Via) })
+                if ($ClusterScoped.Count -gt 0) {
                     $SecondWave = [System.Collections.Generic.List[object]]::new()
                     $NextIndex = $AllWorkItems.Count
-                    foreach ($ClusterItem in $WorkItems['AvsClusters']) {
-                        if (-not $Prefetched.ContainsKey($ClusterItem.Index)) { continue }
-                        $ClusterResult = $Prefetched[$ClusterItem.Index]
-                        if ($ClusterResult.Terminal -ne 'Content') { continue }
-                        foreach ($ClusterChild in @(Get-ArmChildItemSet -Content $ClusterResult.Content)) {
-                            $ClusterName = [string](Get-ArmParentValue -InputObject $ClusterChild -Name @('name', 'NAME'))
-                            if ([string]::IsNullOrWhiteSpace($ClusterName)) { continue }
-                            foreach ($ScopedDataset in $ClusterScoped) {
+                    foreach ($ScopedDataset in $ClusterScoped) {
+                        foreach ($ClusterItem in $WorkItems[$TwoLevel[$ScopedDataset].Via]) {
+                            if (-not $Prefetched.ContainsKey($ClusterItem.Index)) { continue }
+                            $ClusterResult = $Prefetched[$ClusterItem.Index]
+                            if ($ClusterResult.Terminal -ne 'Content') { continue }
+                            foreach ($ClusterChild in @(Get-ArmChildItemSet -Content $ClusterResult.Content)) {
+                                $ClusterName = [string](Get-ArmParentValue -InputObject $ClusterChild -Name @('name', 'NAME'))
+                                if ([string]::IsNullOrWhiteSpace($ClusterName)) { continue }
                                 $SecondWave.Add([pscustomobject]@{
                                         Index   = $NextIndex++
                                         Dataset = $ScopedDataset
-                                        Path    = Get-AvsClusterScopedPath -PrivateCloudId $ClusterItem.ParentId -ClusterName $ClusterName -DatasetName $ScopedDataset
+                                        Path    = Get-ChildScopedPath -ParentId $ClusterItem.ParentId -MiddleName $ClusterName -DatasetName $ScopedDataset
                                     })
                             }
                         }
@@ -2099,12 +2582,13 @@ function Get-ScoutArmChildResource {
                         -Prefetched $(if ($Prefetched.ContainsKey($Item.Index)) { $Prefetched[$Item.Index] } else { $null })
                     $ChildItems = @(Get-ArmChildItemSet -Content $Content)
 
-                    if ($DatasetName -eq 'AvsClusters') {
-                        # The per-cluster datasets need to know which clusters exist -- and whether
-                        # the list was actually answered, which an empty $Content cannot say.
+                    if ($ViaDatasets -contains $DatasetName) {
+                        # The second-level datasets (AVS per cluster, Front Door per origin group and per
+                        # endpoint) need to know which middle resources exist -- and whether the list was
+                        # actually answered, which an empty $Content cannot say.
                         $ClusterNameList = @($ChildItems | ForEach-Object { [string](Get-ArmParentValue -InputObject $_ -Name @('name', 'NAME')) } |
                                 Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
-                        $AvsClusterNames[([string]$Item.ParentId).ToLowerInvariant()] = [pscustomobject]@{
+                        $ViaAnswers["$DatasetName|$(([string]$Item.ParentId).ToLowerInvariant())"] = [pscustomobject]@{
                             Answered = [bool]$Outcome['Answered']
                             Names    = $ClusterNameList
                         }
@@ -2122,54 +2606,56 @@ function Get-ScoutArmChildResource {
                 }
             }
 
-            # --- Azure VMware Solution, per cluster (AB#9300, 3.18.19) ----------------------------
+            # --- Second-level datasets: AVS per cluster, Front Door per origin group and per endpoint ---------
             #
-            # Datastores and placement policies hang off a CLUSTER, so the cluster names come first:
-            # from the AvsClusters answer when that dataset ran (it always precedes these in the
-            # canonical order), otherwise asked here once per private cloud as the sub-operation
-            # '<dataset>.Clusters' -- which keeps a failure owned by the dataset that needed it, the
-            # way '<dataset>.LatestVersion' does for the ML datasets. A private cloud whose cluster
-            # list was not answered contributes nothing, and its datastores are therefore not
-            # measured. The per-cluster GETs themselves are made in the second parallel wave when
-            # there was one, and one at a time otherwise.
-            { $_ -in @('AvsDatastores', 'AvsPlacementPolicies') } {
-                foreach ($Parent in $AvsPrivateCloudParents) {
+            # (AB#9300, 3.18.19 for AVS; generalised in 3.18.20.) Datastores, placement policies, origins and
+            # routes hang off a MIDDLE resource, so its names come first: from the first-level dataset's
+            # answer when that dataset ran (it always precedes these in the canonical order), otherwise
+            # asked here once per parent as the sub-operation '<dataset>.<ViaOp>' (AvsDatastores.Clusters,
+            # AfdOrigins.OriginGroups) -- which keeps a failure owned by the dataset that needed it, the way
+            # '<dataset>.LatestVersion' does for the ML datasets. A parent whose list was not answered
+            # contributes nothing, and its children are therefore not measured. The per-middle-resource GETs
+            # themselves are made in the second parallel wave when there was one, and one at a time otherwise.
+            { $TwoLevel.Contains($_) } {
+                $Level = $TwoLevel[$DatasetName]
+                foreach ($Parent in (Get-TwoLevelParent -DatasetName $DatasetName)) {
                     $Base = [string](Get-ArmParentValue -InputObject $Parent -Name @('id', 'ID'))
                     $ParentName = [string](Get-ArmParentValue -InputObject $Parent -Name @('name', 'NAME'))
-                    $ParentKey = $Base.ToLowerInvariant()
-                    if (-not $AvsClusterNames.ContainsKey($ParentKey)) {
+                    $ViaKey = "$($Level.Via)|$($Base.ToLowerInvariant())"
+                    if (-not $ViaAnswers.ContainsKey($ViaKey)) {
                         $Outcome = @{}
-                        $ClusterContent = Get-ArmChildContent -Path "$Base/clusters`?api-version=$AvsApiVersion" -DatasetName "$DatasetName.Clusters" `
+                        $ViaApiVersion = if ($DepthSpec.Contains($Level.Via)) { $DepthSpec[$Level.Via].ApiVersion } else { $AvsApiVersion }
+                        $ViaContent = Get-ArmChildContent -Path "$Base/$($Level.ViaSegment)`?api-version=$ViaApiVersion" -DatasetName "$DatasetName.$($Level.ViaOp)" `
                             -ParentName $ParentName -ParentId $Base -NotFoundIsEmpty -Outcome $Outcome
-                        $ClusterNameList = @(Get-ArmChildItemSet -Content $ClusterContent |
+                        $ClusterNameList = @(Get-ArmChildItemSet -Content $ViaContent |
                                 ForEach-Object { [string](Get-ArmParentValue -InputObject $_ -Name @('name', 'NAME')) } |
                                 Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
-                        $AvsClusterNames[$ParentKey] = [pscustomobject]@{ Answered = [bool]$Outcome['Answered']; Names = $ClusterNameList }
+                        $ViaAnswers[$ViaKey] = [pscustomobject]@{ Answered = [bool]$Outcome['Answered']; Names = $ClusterNameList }
                     }
-                    if (-not $AvsClusterNames[$ParentKey].Answered) {
-                        # Nothing to ask without the clusters. The cluster list's own failure is already
-                        # recorded (under AvsClusters, or under this dataset when it asked); say here that
-                        # THIS dataset was therefore not read, once, so health lists every dataset that
-                        # has no answer. The dataset stays unmeasured because no GET of it was answered.
+                    if (-not $ViaAnswers[$ViaKey].Answered) {
+                        # Nothing to ask without the middle resources. The first-level list's own failure is
+                        # already recorded (under its dataset, or under this one when it asked); say here that
+                        # THIS dataset was therefore not read, once, so health lists every dataset that has no
+                        # answer. The dataset stays unmeasured because no GET of it was answered.
                         if ($null -ne $CollectionHealth -and $FailedHealthDatasets.Add($DatasetName)) {
                             [void]$CollectionHealth.Add([pscustomobject]@{
                                     Dataset       = $DatasetName
-                                    Operation     = "$DatasetName.Clusters"
+                                    Operation     = "$DatasetName.$($Level.ViaOp)"
                                     Status        = 'NotAssessed'
-                                    Reason        = "Parent '$ParentName' at '$Base': the cluster list was not answered, so its clusters' $(if ($DatasetName -eq 'AvsDatastores') { 'datastores' } else { 'placement policies' }) were not asked for."
+                                    Reason        = "Parent '$ParentName' at '$Base': the $($Level.ViaLabel) list was not answered, so its $($Level.ViaPlural)' $($Level.Noun) were not asked for."
                                     ResourceTypes = @("AZSC/ARMChild/$DatasetName")
                                 })
                         }
                         continue
                     }
 
-                    foreach ($ClusterName in @($AvsClusterNames[$ParentKey].Names)) {
-                        $ClusterPath = Get-AvsClusterScopedPath -PrivateCloudId $Base -ClusterName $ClusterName -DatasetName $DatasetName
-                        $PrefetchKey = "$DatasetName|$ClusterPath"
-                        $Content = Get-ArmChildContent -Path $ClusterPath -DatasetName $DatasetName -ParentName $ParentName -ParentId $Base -NotFoundIsEmpty `
+                    foreach ($MiddleName in @($ViaAnswers[$ViaKey].Names)) {
+                        $MiddlePath = Get-ChildScopedPath -ParentId $Base -MiddleName $MiddleName -DatasetName $DatasetName
+                        $PrefetchKey = "$DatasetName|$MiddlePath"
+                        $Content = Get-ArmChildContent -Path $MiddlePath -DatasetName $DatasetName -ParentName $ParentName -ParentId $Base -NotFoundIsEmpty `
                             -Prefetched $(if ($PrefetchedByPath.ContainsKey($PrefetchKey)) { $PrefetchedByPath[$PrefetchKey] } else { $null })
                         foreach ($Child in @(Get-ArmChildItemSet -Content $Content)) {
-                            $RowChild = ConvertTo-ArmSafeChild -Child $Child -DatasetName $DatasetName -Extra @{ clusterName = $ClusterName }
+                            $RowChild = ConvertTo-ArmSafeChild -Child $Child -DatasetName $DatasetName -Extra @{ $Level.ExtraKey = $MiddleName }
                             ConvertTo-ArmChildRow -Child $RowChild -Parent $Parent -DatasetName $DatasetName
                         }
                     }

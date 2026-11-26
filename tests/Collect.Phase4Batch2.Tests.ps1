@@ -207,6 +207,15 @@ Describe 'Invoke-Collect -- per-resource ARM GET datasets (AB#9300 phase 4, batc
                 'AvsGlobalReachConnections', 'AvsAuthorizations', 'AvsCloudLinks'
                 'AvsSegments', 'AvsDhcpConfigurations', 'AvsDnsServices', 'AvsGateways'
                 'AvsIscsiPaths', 'AvsMaintenances'
+                # AB#9300, 3.18.20 -- see Collect.AvsChildResources.Tests.ps1.
+                'AfdOriginGroups', 'AfdOrigins', 'AfdEndpoints', 'AfdRoutes', 'AfdCustomDomains', 'AfdSecurityPolicies'
+                'SqlDatabaseBackupShortTerm', 'SqlDatabaseBackupLongTerm', 'SqlDatabaseTde'
+                'SqlServerFirewallRules', 'SqlServerEncryptionProtector', 'SqlServerSecurityAlertPolicies'
+                'AzureLocalUpdateSummaries', 'AzureLocalSecuritySettings', 'AzureLocalArcSettings'
+                'EventHubNetworkRuleSets', 'EventHubAuthorizationRules', 'EventHubEntities'
+                'ServiceBusNetworkRuleSets', 'ServiceBusAuthorizationRules', 'ServiceBusQueues', 'ServiceBusTopics'
+                'WebAppAuth'
+                'ApimGlobalPolicy', 'ApimApis', 'ApimNamedValues'
             )
         }
 

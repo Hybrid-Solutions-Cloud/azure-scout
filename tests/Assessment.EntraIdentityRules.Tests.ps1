@@ -337,8 +337,8 @@ Describe 'PIM rules score from the Azure RBAC schedules' {
             $f.Denominator | Should -Be 1
         }
 
-        It 'reads Unknown, not Fail, when there is no privileged user access at all' {
-            (Invoke-TestRule 'caf.identity' 'CAF-IDN-05' (New-PimCollect)).Status | Should -Be 'Unknown'
+        It 'reads NotAssessed, not Fail, when there is no privileged user access at all' {
+            (Invoke-TestRule 'caf.identity' 'CAF-IDN-05' (New-PimCollect)).Status | Should -Be 'NotAssessed'
         }
 
         It 'reads NotAssessed when either schedule read was refused' {

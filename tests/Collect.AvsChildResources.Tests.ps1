@@ -150,6 +150,16 @@ public sealed class AvsFixtureServer : IDisposable
         name = 'st1'; type = 'microsoft.storage/storageaccounts'; kind = 'StorageV2'; location = 'eastus'
         resourceGroup = 'rg1'; subscriptionId = 'sub1'; properties = [pscustomobject]@{}
     }
+    # AB#9300, 3.18.20 -- the depth datasets the assessment collect also asks for, after the AVS ones.
+    $script:DepthDatasets = @(
+        'AfdOriginGroups', 'AfdOrigins', 'AfdEndpoints', 'AfdRoutes', 'AfdCustomDomains', 'AfdSecurityPolicies',
+        'SqlDatabaseBackupShortTerm', 'SqlDatabaseBackupLongTerm', 'SqlDatabaseTde',
+        'SqlServerFirewallRules', 'SqlServerEncryptionProtector', 'SqlServerSecurityAlertPolicies',
+        'AzureLocalUpdateSummaries', 'AzureLocalSecuritySettings', 'AzureLocalArcSettings',
+        'EventHubNetworkRuleSets', 'EventHubAuthorizationRules', 'EventHubEntities',
+        'ServiceBusNetworkRuleSets', 'ServiceBusAuthorizationRules', 'ServiceBusQueues', 'ServiceBusTopics',
+        'WebAppAuth', 'ApimGlobalPolicy', 'ApimApis', 'ApimNamedValues'
+    )
     $script:AvsDatasets = @(
         'AvsClusters', 'AvsDatastores', 'AvsPlacementPolicies', 'AvsAddons', 'AvsGlobalReachConnections',
         'AvsAuthorizations', 'AvsCloudLinks', 'AvsSegments', 'AvsDhcpConfigurations', 'AvsDnsServices',
@@ -789,11 +799,11 @@ Describe 'Get-ScoutArmChildResource -- Azure VMware Solution in parallel' {
 Describe 'Azure VMware Solution children are discoverable (collection health and the discovery index)' {
 
     BeforeAll {
-        . (Join-Path -Path $script:Root -ChildPath 'src/collect/ConvertTo-ScoutAvsDiscoveryResource.ps1')
+        . (Join-Path -Path $script:Root -ChildPath 'src/collect/ConvertTo-ScoutChildDiscoveryResource.ps1')
         . (Join-Path -Path $script:Root -ChildPath 'src/pipeline/Get-ScoutResourceCompleteness.ps1')
         Install-AvsStub -Routes (Get-AvsRouteTable)
         $script:Sweep = Invoke-AvsSweep
-        $script:Twins = @(ConvertTo-ScoutAvsDiscoveryResource -Resources @($script:Sweep.Rows))
+        $script:Twins = @(ConvertTo-ScoutChildDiscoveryResource -Resources @($script:Sweep.Rows))
         $script:Catalogue = @((Get-Content (Join-Path -Path $script:Root -ChildPath 'manifests/azure-provider-types.json') -Raw | ConvertFrom-Json).Types)
     }
 
@@ -811,9 +821,9 @@ Describe 'Azure VMware Solution children are discoverable (collection health and
     }
 
     It 'adds nothing for an estate with no private cloud, and ignores every other synthetic row' {
-        @(ConvertTo-ScoutAvsDiscoveryResource -Resources @()).Count | Should -Be 0
+        @(ConvertTo-ScoutChildDiscoveryResource -Resources @()).Count | Should -Be 0
         $other = [pscustomobject]@{ id = '/x/y'; name = 'y'; type = 'AZSC/ARMChild/StorageBlobContainers'; properties = [pscustomobject]@{} }
-        @(ConvertTo-ScoutAvsDiscoveryResource -Resources @($script:Storage, $other)).Count | Should -Be 0
+        @(ConvertTo-ScoutChildDiscoveryResource -Resources @($script:Storage, $other)).Count | Should -Be 0
     }
 
     It 'lists every child in the discovery index, filed under Compute, which no AZSC row would be on its own' {
@@ -849,8 +859,8 @@ Describe 'Azure VMware Solution children are discoverable (collection health and
 
     It 'is wired into the raw inventory, the collection-health parent map and the category plan' {
         $raw = Get-Content (Join-Path -Path $script:Root -ChildPath 'src/collect/Get-ScoutRawInventory.ps1') -Raw
-        $raw | Should -Match "Import-ScoutRawInventoryHelper -CommandName 'ConvertTo-ScoutAvsDiscoveryResource' -FileName 'ConvertTo-ScoutAvsDiscoveryResource.ps1'"
-        $raw.IndexOf('ConvertTo-ScoutAvsDiscoveryResource -Resources') | Should -BeGreaterThan $raw.IndexOf('Get-ScoutArmChildResource -Resources') -Because 'the twins are appended after the AZSC rows'
+        $raw | Should -Match "Import-ScoutRawInventoryHelper -CommandName 'ConvertTo-ScoutChildDiscoveryResource' -FileName 'ConvertTo-ScoutChildDiscoveryResource.ps1'"
+        $raw.IndexOf('ConvertTo-ScoutChildDiscoveryResource -Resources') | Should -BeGreaterThan $raw.IndexOf('Get-ScoutArmChildResource -Resources') -Because 'the twins are appended after the AZSC rows'
         $plan = Get-Content (Join-Path -Path $script:Root -ChildPath 'src/Start-AZTIExtractionOrchestration.ps1') -Raw
         foreach ($dataset in $script:AvsDatasets) {
             $raw | Should -Match ("'azsc/armchild/{0}' = @\('microsoft\.avs/privateclouds'\)" -f $dataset.ToLowerInvariant()) -Because "$dataset's health must map to its parent"
@@ -990,14 +1000,14 @@ Describe 'Invoke-Collect -- Azure VMware Solution in collect.json' {
             $script:CollectJson = $script:Collect | ConvertTo-Json -Depth 20
         }
 
-        It 'asks the assessment collect for all thirteen datasets, after the existing ten' {
+        It 'asks the assessment collect for all thirteen datasets, after the existing ten, then the depth datasets' {
             @($script:CapturedArmChildDataset) | Should -Be (@(
                     'ResourceDiagnosticSettings'
                     'StorageBlobServiceProperties', 'StorageFileServiceProperties', 'StorageLifecyclePolicies'
                     'SqlServerAuditing', 'SqlFailoverGroups'
                     'WebAppConfig', 'WebAppBasicAuth'
                     'EventHubGeoDr', 'RedisEnterpriseDatabases'
-                ) + $script:AvsDatasets)
+                ) + $script:AvsDatasets + $script:DepthDatasets)
         }
 
         It 'places every dataset and its Measured flag under domains.avs' {

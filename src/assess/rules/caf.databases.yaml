@@ -22,15 +22,18 @@ rules:
     remediation: "Enable zone redundancy for Business Critical / Premium SQL databases."
     manual: false
   - id: CAF-DB-03
-    title: "Transparent Data Encryption confirmed"
+    title: "CAF-DB-03. Transparent Data Encryption is enabled on every SQL database"
     severity: high
     # Microsoft.Sql/servers/databases/transparentDataEncryption is an RP child
     # resource, not in the Resource Graph supported-tables-and-resource-types
-    # reference (verified AB#5068) — Resource Graph cannot see it. Stays manual.
-    query: null
-    assert: { type: manual }
-    remediation: "Confirm TDE is enabled on all SQL databases (default on, verify no opt-outs)."
-    manual: true
+    # reference (verified AB#5068) — Resource Graph cannot see it. Automated
+    # (AB#9300, 3.18.20): the ARM sweep reads it with one GET per user database
+    # (domains.databases.sqlTde, gated on the Measured flag). A database whose
+    # state is not Enabled is a finding; `master` and dedicated pools are not asked.
+    query: "$.domains.databases.sqlTde[?(@.enabled == false)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.databases.sqlTdeMeasured" }
+    remediation: "CAF-DB-03. Transparent Data Encryption is not enabled on the databases listed. Enable TDE on each (it is on by default for new databases, so a disabled one was turned off deliberately or restored from a copy without it). A database whose TDE state could not be read is not listed."
+    manual: false
   - id: CAF-DB-04
     title: "Microsoft Defender for SQL (Advanced Threat Protection) enabled"
     severity: high
@@ -45,24 +48,34 @@ rules:
     remediation: "Enable Microsoft Defender for SQL (the Defender for Cloud 'SqlServers' plan) at Standard tier for every subscription hosting SQL servers/databases."
     manual: false
   - id: CAF-DB-05
-    title: "SQL database backup retention meets minimum policy"
+    title: "CAF-DB-05. SQL database point-in-time restore retention meets the minimum"
     severity: medium
     # Microsoft.Sql/servers/databases/backupShortTermRetentionPolicies (and the
     # long-term retention equivalent) are RP child resources, not in the
-    # Resource Graph reference (verified AB#5068). Stays manual.
-    query: null
-    assert: { type: manual }
-    remediation: "Confirm point-in-time restore retention (and long-term retention for compliance workloads) meets the org's minimum retention policy. collect.json does not yet capture backup retention settings — verify via `az sql db show-backup-short-term-retention-policy` / long-term retention policy."
-    manual: true
+    # Resource Graph reference (verified AB#5068). Automated (AB#9300, 3.18.20)
+    # for point-in-time restore: the ARM sweep reads the policy of each user
+    # database (domains.databases.sqlBackupShortTerm) and a retention below the
+    # service default of 7 days is a finding. The organisation's own minimum may
+    # be higher, and long-term retention (domains.databases.sqlBackupLongTerm) is
+    # only needed for compliance workloads, so that is evidence, not scored.
+    query: "$.domains.databases.sqlBackupShortTerm[?(@.meetsMinimumRetention == false)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.databases.sqlBackupShortTermMeasured" }
+    remediation: "CAF-DB-05. The databases listed keep point-in-time restore backups for fewer than 7 days (the service default). Raise retentionDays on each (up to 35). Check the result against the organisation's own minimum, which may be higher, and add long-term retention (weekly, monthly or yearly) for compliance workloads -- long-term retention is read (domains.databases.sqlBackupLongTerm: ltrConfigured) but not scored."
+    manual: false
   - id: CAF-DB-06
-    title: "SQL server firewall rules exclude an 'allow all' entry"
+    title: "CAF-DB-06. SQL server firewall rules exclude an 'allow all' entry"
     severity: high
     # Microsoft.Sql/servers/firewallRules is an RP child resource, not in the
-    # Resource Graph reference (verified AB#5068). Stays manual.
-    query: null
-    assert: { type: manual }
-    remediation: "Remove any firewall rule spanning 0.0.0.0-255.255.255.255 (or the 0.0.0.0-0.0.0.0 'Allow Azure services' rule left too broad) and scope rules to specific ranges or private endpoints. collect.json does not yet capture SQL server firewall rules — verify via `az sql server firewall-rule list`."
-    manual: true
+    # Resource Graph reference (verified AB#5068). Automated (AB#9300, 3.18.20):
+    # the ARM sweep lists each server's rules (domains.databases.sqlFirewallRules,
+    # one row per server whose list answered) and reduces each to booleans -- the
+    # addresses are never kept. A rule spanning the whole IPv4 space is a finding.
+    # "Allow Azure services" (0.0.0.0) and ranges of /8 or wider are counted on the
+    # row (allowAzureServicesRuleCount, broadRangeRuleCount) as evidence.
+    query: "$.domains.databases.sqlFirewallRules[?(@.allowAllRuleCount > 0)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.databases.sqlFirewallRulesMeasured" }
+    remediation: "CAF-DB-06. The SQL servers listed have a firewall rule that allows every IPv4 address (0.0.0.0 to 255.255.255.255). Remove it and scope rules to specific ranges or private endpoints. The 0.0.0.0 'Allow Azure services' rule and ranges of a /8 or wider are counted on each server's row (allowAzureServicesRuleCount, broadRangeRuleCount) but not scored: they are broad, and sometimes needed."
+    manual: false
   - id: CAF-DB-07
     title: "SQL Server/Database auditing enabled to a durable destination"
     severity: high

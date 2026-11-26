@@ -255,7 +255,7 @@ Describe 'Governance rules score against native collect (unblocks AB#5041)' {
         $findings = Invoke-Assessment -Collect $collect -RuleSet (Get-RuleSet -Patterns @('caf.identity')) -Assessment 'GovTest'
 
         ($findings | Where-Object Id -eq 'CAF-IDN-02').Status | Should -Be 'Fail'
-        ($findings | Where-Object Id -eq 'CAF-IDN-05').Status | Should -Be 'Unknown' -Because 'there is no privileged user access at all to take a share of'
+        ($findings | Where-Object Id -eq 'CAF-IDN-05').Status | Should -Be 'NotAssessed' -Because 'there is no privileged user access at all to take a share of'
     }
 
     It 'reads NotAssessed, not Fail, when one subscription refuses the eligibility read' {

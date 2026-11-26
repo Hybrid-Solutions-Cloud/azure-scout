@@ -7,7 +7,8 @@ verifiedAgainst: "docs/frameworks/waf-azure-local-checklist.md, extracted 2026-0
 # Well-Architected Review. See waf.azurelocal.reliability.yaml's header for why this is one of
 # five separate per-pillar files rather than one combined file.
 #
-# EVERY rule in this file is manual. Not because Security has no evidence in principle -- the
+# Exactly one rule in this file is automated: WAF-AZLOCAL-SE-01 (AB#9300, 3.18.20), which reads each cluster's security
+# settings (domains.hybrid.azureLocalSecuritySettings, one ARM GET per cluster). EVERY OTHER rule in this file is manual. Not because Security has no evidence in principle -- the
 # checklist rates four of nine items answerable -- but because the specific fields the checklist
 # names (Security/DefenderPricing, Security/DefenderAlerts, Security/DefenderAssessments,
 # Identity/*, Management/PolicyComplianceStates for the Azure Local built-in policy set) are
@@ -18,12 +19,17 @@ verifiedAgainst: "docs/frameworks/waf-azure-local-checklist.md, extracted 2026-0
 # until a future story wires that data into the canonical contract.
 rules:
   - id: WAF-AZLOCAL-SE-01
-    title: "Security baselines are reviewed (drift protection, regulatory standards)"
+    title: "WAF-AZLOCAL-SE-01. Security baselines are enforced with drift protection and reviewed against regulatory standards"
     severity: high
-    query: null
-    assert: { type: manual }
-    remediation: "WAF-AZLOCAL-SE-01. Security/DefenderSecureScore reflects general posture, but the Azure Local security-baseline drift-control setting is not a discrete field in collect.json's canonical contract -- confirm baseline/drift-control configuration manually."
-    manual: true
+    # Automated (AB#9300, 3.18.20), for drift protection: each cluster's security settings are read
+    # (domains.hybrid.azureLocalSecuritySettings) and a cluster whose baseline assignments (secured core, WDAC, SMB
+    # encryption) are not all ApplyAndAutoCorrect -- that is, drift is only audited, not corrected -- fails. A cluster
+    # that names no assignment is not listed. The regulatory-standards half stays a review: Defender for Cloud's
+    # regulatory compliance is not scored here.
+    query: "$.domains.hybrid.azureLocalSecuritySettings[?(@.driftControlEnforced == false)]"
+    assert: { type: countEquals, value: 0, gate: "$.domains.hybrid.azureLocalSecuritySettingsMeasured" }
+    remediation: "WAF-AZLOCAL-SE-01. The clusters listed audit their security baseline instead of enforcing it: at least one of the secured core, WDAC and SMB encryption assignments is Audit, so a setting that drifts is reported and not corrected. Set the assignments to ApplyAndAutoCorrect (drift control) on each cluster. The regulatory standards half of this item is not scored -- review the Defender for Cloud regulatory compliance dashboard."
+    manual: false
 
   - id: WAF-AZLOCAL-SE-02
     title: "Threats are detected, prevented, and responded to (Defender for Cloud, Defender for Servers)"
